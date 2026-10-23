@@ -1,42 +1,45 @@
 # Hotaru · 蛍
 
-简洁、可定制的 Mihomo 代理客户端，配备小组件首页与网络工具箱。
+一点微光，自在连接。
 
-> 开发准备阶段：目前仓库只有项目说明，尚无应用源码、安装包或可运行版本。下列功能均为开发计划，不代表已实现。
+独立开发中的 Mihomo 客户端：小组件首页、网络工具箱与多跳代理。Windows 10/11 x64 优先，后续 Android、Linux。
 
-## 产品方向
+**当前是网页交互原型，不是可用代理软件，没有 Windows EXE 或安装包。**
 
-独立开发客户端，采用 Mihomo 单内核。首个平台为 Windows 10/11 x64，后续计划支持 Android、Linux。
+## 已实现
+- 深色萤光主题、响应式首页和工具箱。
+- 组件添加、移除、拖动和按钮排序、恢复默认、持久化布局。
+- 多跳路径草稿与重复节点检查（不是协议或连通性验证）。
+- 模型测试、浏览器交互测试、CI 构建。
 
-- 简洁首页：可添加、移除、拖动排序的小组件。
-- 订阅链接与单节点链接导入；提供仅导入节点和完整配置两种模式。
-- 系统代理、TUN、域名/IP/应用分流。
-- 节点延迟与下载测速、自动选择、故障切换。
-- 可视化多跳代理链，显示入口、中转和出口。
-- 网络工具箱：出口 IP、免费来源的 IP 质量检测与 DNS 诊断。
-- 连接记录、流量统计、托盘和开机启动。
-- 新手友好的默认设置，以及可展开的高级配置。
+## 后续功能
+订阅与单节点导入；提取节点/完整配置双模式；系统代理、TUN；域名/IP/应用分流；测速、自动选择、故障切换；多跳代理；免费来源 IP 检测；连接记录、统计、托盘、开机启动。
 
-## 开发路线
+详细步骤和验收标准：[开发计划](docs/PLAN.md) · [架构边界](docs/ARCHITECTURE.md)。
 
-- [x] 确定产品需求与品牌名称。
-- [x] 创建公开 GitHub 仓库。
-- [ ] 制作首页与工具箱交互原型。
-- [ ] 建立工程、构建与自动测试流程。
-- [ ] 接入 Mihomo，实现配置导入与连接。
-- [ ] 实现 Windows 系统代理、TUN 与退出恢复。
-- [ ] 实现分流、多跳及工具箱。
-- [ ] 发布经过验证的 Windows 预览包。
-- [ ] 适配 Android、Linux。
+## 运行原型
+需要 Node.js 22.12+，CI 使用 24。
+
+```sh
+npm ci
+npm run dev
+```
+
+访问终端显示的本地地址。原型仅保存组件布局，不读取节点凭据、不修改系统代理、不发起网络检测。未接入功能明确禁用，不使用模拟连接或测速结果。
+
+## 自检
+```sh
+npm run check
+npx playwright install chromium
+npx playwright test
+```
+
+构建输出在 dist/。浏览器测试覆盖组件保存、排序、工具箱禁用、多跳校验与窄屏溢出。
 
 ## 下载
+Actions 产物是网页原型，**不是 Windows 安装包**。正式应用通过实机验收后发布到 [Releases](https://github.com/kurumiZafkiel12/Hotaru/releases)。
 
-目前没有可下载的 Windows 应用。首个可运行版本通过验证后，将发布到本仓库的 [Releases](https://github.com/kurumiZafkiel12/Hotaru/releases)。GitHub 的 Source code ZIP 是仓库源码，不是安装包。
+## 参考与许可
+[Mihomo](https://github.com/MetaCubeX/mihomo) 为计划使用的内核，目前未分发；[FlClash](https://github.com/chen08209/FlClash)、[Bettbox](https://github.com/appshubcc/Bettbox)、[Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 为体验参考，未复制其客户端代码。
 
-## 参考与致谢
-
-- [Mihomo](https://github.com/MetaCubeX/mihomo)：计划采用的代理内核。
-- [FlClash](https://github.com/chen08209/FlClash)、[Bettbox](https://github.com/appshubcc/Bettbox)：产品体验参考。
-- [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)：链式代理交互参考。
-
-本项目计划开源；具体许可证将在引入代码与依赖前确定，并保留相应第三方许可与声明。
+目前为公开开发仓库；正式开源许可证将在引入内核与发布应用前确定。依赖保留各自许可。
