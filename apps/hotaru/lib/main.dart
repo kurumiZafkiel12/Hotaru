@@ -5,6 +5,7 @@ import 'dart:ui' show AppExitResponse;
 import 'package:flutter/material.dart';
 
 import 'core/mihomo_controller.dart';
+import 'profiles/import_page.dart';
 
 void main() => runApp(const HotaruApp());
 
@@ -87,7 +88,17 @@ class _CorePageState extends State<CorePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('✦ Hotaru · 蛍')),
+    appBar: AppBar(
+      title: const Text('✦ Hotaru · 蛍'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => const ImportPage())),
+          child: const Text('导入预览'),
+        ),
+      ],
+    ),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
