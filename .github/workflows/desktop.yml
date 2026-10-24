@@ -37,6 +37,8 @@ jobs:
           if(-not (Test-Path $compiler)){throw 'Inno Setup missing'}
           & $compiler '/DAppVersion=0.4.0' '../../packaging/windows/Hotaru.iss'
           if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
+      - name: Isolated runner system proxy verification
+        run: dart run tool/system_proxy_smoke.dart
       - name: Install and upgrade smoke
         shell: pwsh
         run: |

@@ -164,8 +164,19 @@ Future<void> main(List<String> args) async {
   } finally {
     await core.dispose();
     upstream?.kill();
+    if (upstream != null) {
+      await upstream.exitCode.timeout(const Duration(seconds: 5));
+    }
     await target?.close(force: true);
-    await dir.delete(recursive: true);
+    for (var attempt = 0; attempt < 10; attempt++) {
+      try {
+        await dir.delete(recursive: true);
+        break;
+      } on FileSystemException {
+        if (attempt == 9) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+    }
   }
 }
 
