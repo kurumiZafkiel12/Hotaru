@@ -101,3 +101,14 @@
 4. 按 SS → VMess → VLESS → Trojan 扩展 → Hysteria2 分批扩展 URI，每种配固定样例与负面用例，属性不得静默丢失。
 5. 最小代理闭环：节点选择 → 配置生成 → `mihomo -t` 校验 → 启动 → 手动 HTTP/SOCKS 入口 → 真实请求验证 → 停止；通过后再接系统代理与 TUN，并补 Windows Job Object。
 6. 决定仓库根 `Hotaru-m2b-handoff.zip` 去留；确定正式开源许可证后再考虑随包分发 Mihomo。
+
+## 附录：v0.4.2（2026-10-24，Muse）
+
+- 基线：main 6787047（Codex 0.4.1）；本轮改动：新图标、配置卡片与添加方式、底栏重排与主题统一、节点页便捷操作、聚合订阅；版本号 0.4.2+6。
+- 图标：手绘矢量思路（深蓝灰圆角方块 + 萤火虫身 + 发光尾部 + 光点轨迹 + 四角星），PIL 超采样生成 1024/256/48/32/16 与多尺寸 .ico，替换 `windows/runner/resources/app_icon.ico`（原文件仍为 Flutter 模板图标）；设计脚本见执行环境 `~/workspace/projects/hotaru-icon/make_icon.py`，未随仓库提交。
+- 配置页：长表单改为 FL 式卡片列表（名称、类型与来源数、节点数、更新时间、当前配置打勾）+ “添加配置”弹窗（链接/文件/粘贴/聚合订阅/自定义）；原单页表单字段移入各弹窗，`_import`/`_updateProfile`/`_editOverrides` 行为不变。
+- 底栏：桌面/工具箱/节点/配置 → 桌面/节点/配置/工具箱；`Dashboard` 仍用单个 `ProfilesPage` 实例（IndexedStack 索引映射），节点/配置切换不丢选择与内核状态；工具箱测速入口指向新节点页序号。
+- 节点页（未启动时）：新增搜索框、协议标识、一键“选择并启动”；运行态的分组/搜索/批量测速/排序保持不变。双层 AppBar 改为页内标题行。
+- 聚合订阅：`StoredProfile.sourceUrls`（旧文件缺省为空，向后兼容）；`lib/profiles/aggregate.dart` 提供 URL 解析与合并（保序、重名加来源后缀、完全相同节点去重、仅合并节点）；卡片提供管理来源、更新全部、导出聚合（Base64 配置复制、JSON 文件保存；URI 链接格式导出暂不做，避免反向编码丢参数）。
+- 未做：桌面二维码扫码（无摄像头路径，图片识别待验证）；节点链接 URI 导出；发布页正文待 CI 发布后核对。
+- 自检：`flutter analyze` 零问题；`flutter test` 53/53（含新增 `test/aggregate_test.dart` 2 项，`profiles_page_test`/`profile_panels_test` 已按新交互改写）；真实 Mihomo v1.19.33 本地代理冒烟 PASS（延迟 8 ms，链路证据 [upstream-node, HOTARU]，停止后端口关闭）。

@@ -28,9 +28,22 @@ class HotaruApp extends StatelessWidget {
     title: 'Hotaru · 蛍',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xffc7e9a3),
-        brightness: Brightness.dark,
+      // Hotaru palette, kept deliberately small: deep slate surfaces,
+      // firefly green reserved for primary actions and selection states.
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xffc7e9a3),
+        onPrimary: Color(0xff16211a),
+        surface: Color(0xff111a1c),
+        surfaceContainer: Color(0xff1c2a2e),
+        surfaceContainerHighest: Color(0xff24373c),
+        outline: Color(0xff394a41),
+      ),
+      scaffoldBackgroundColor: const Color(0xff111a1c),
+      cardTheme: const CardThemeData(
+        color: Color(0xff1c2a2e),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
       ),
       useMaterial3: true,
     ),

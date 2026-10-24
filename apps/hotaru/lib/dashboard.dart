@@ -93,7 +93,7 @@ class _DashboardState extends State<Dashboard> {
   Widget card(int id) => Container(
     key: ValueKey(id),
     margin: const EdgeInsets.only(bottom: 16),
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: id == 0 ? const Color(0xff293b30) : const Color(0xff202c2e),
       borderRadius: BorderRadius.circular(24),
@@ -131,7 +131,7 @@ class _DashboardState extends State<Dashboard> {
             metrics['quota'] ?? '尚未导入订阅',
             '准备好，再出发。',
           ][id],
-          style: const TextStyle(fontSize: 26),
+          style: const TextStyle(fontSize: 22),
         ),
         const SizedBox(height: 12),
         Text(
@@ -154,7 +154,7 @@ class _DashboardState extends State<Dashboard> {
       Row(
         children: [
           const Expanded(
-            child: Text('一点微光，自在连接。', style: TextStyle(fontSize: 28)),
+            child: Text('一点微光，自在连接。', style: TextStyle(fontSize: 24)),
           ),
           TextButton(
             onPressed: loaded ? () => setState(() => editing = !editing) : null,
@@ -210,7 +210,7 @@ class _DashboardState extends State<Dashboard> {
   );
   Widget toolbox() => ListView(
     children: [
-      const Text('网络工具箱', style: TextStyle(fontSize: 28)),
+      const Text('网络工具箱', style: TextStyle(fontSize: 24)),
       const SizedBox(height: 24),
       Card(
         child: ListTile(
@@ -218,7 +218,7 @@ class _DashboardState extends State<Dashboard> {
           title: const Text('节点测速'),
           subtitle: const Text('TCP、真连接延迟与全组测试'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => setState(() => page = 2),
+          onTap: () => setState(() => page = 1),
         ),
       ),
       for (final name in ['出口 IP', 'IP 质量', 'DNS 诊断'])
@@ -249,7 +249,7 @@ class _DashboardState extends State<Dashboard> {
           onPressed: () => showLicensePage(
             context: context,
             applicationName: 'Hotaru',
-            applicationVersion: '0.4.1',
+            applicationVersion: '0.4.2',
           ),
           icon: const Icon(Icons.info_outline),
         ),
@@ -265,19 +265,24 @@ class _DashboardState extends State<Dashboard> {
           ),
         const Padding(
           padding: EdgeInsets.all(16),
-          child: Text('Hotaru v0.4.1'),
+          child: Text('Hotaru v0.4.2'),
         ),
       ],
     ),
     body: Padding(
       padding: const EdgeInsets.all(24),
       child: IndexedStack(
-        index: page < 2 ? page : 2,
+        // One ProfilesPage instance serves both panels so selection and
+        // core state stay shared; only its panel prop changes with the tab.
+        index: page == 0
+            ? 0
+            : page == 3
+            ? 2
+            : 1,
         children: [
           home(),
-          toolbox(),
           ProfilesPage(
-            panel: page == 3 ? 'config' : 'nodes',
+            panel: page == 2 ? 'config' : 'nodes',
             onMetricsChanged: (value) {
               if (mounted && jsonEncode(value) != jsonEncode(metrics)) {
                 setState(() => metrics = value);
@@ -289,20 +294,24 @@ class _DashboardState extends State<Dashboard> {
               }
             },
           ),
+          toolbox(),
         ],
       ),
     ),
     bottomNavigationBar: NavigationBar(
       selectedIndex: page,
       onDestinationSelected: (v) => setState(() => page = v),
+      // FlClash-style order by daily importance: home, nodes, config,
+      // toolbox last. Previously toolbox sat second and pushed nodes and
+      // config to the far right.
       destinations: const [
         NavigationDestination(
           icon: Icon(Icons.dashboard_outlined),
           label: '桌面',
         ),
-        NavigationDestination(icon: Icon(Icons.widgets_outlined), label: '工具箱'),
         NavigationDestination(icon: Icon(Icons.hub_outlined), label: '节点'),
         NavigationDestination(icon: Icon(Icons.download_outlined), label: '配置'),
+        NavigationDestination(icon: Icon(Icons.widgets_outlined), label: '工具箱'),
       ],
     ),
   );

@@ -22,6 +22,10 @@ class StoredProfile {
   final Map<String, dynamic> merge;
   final String script;
 
+  /// For aggregated profiles only: the source subscription URLs, in order.
+  /// Empty for ordinary single-source profiles (including older saves).
+  final List<String> sourceUrls;
+
   StoredProfile({
     required this.id,
     required this.name,
@@ -35,7 +39,11 @@ class StoredProfile {
     this.userInfo,
     this.merge = const {},
     this.script = '',
+    this.sourceUrls = const [],
   });
+
+  /// True when this profile merges several subscriptions into one list.
+  bool get isAggregate => source == 'aggregate';
 
   List<Map<String, dynamic>> get nodes => [
     for (final p in (config['proxies'] as List? ?? const []))
@@ -58,6 +66,7 @@ class StoredProfile {
     'userInfo': userInfo,
     'merge': merge,
     'script': script,
+    'sourceUrls': sourceUrls,
   };
 
   factory StoredProfile.fromJson(Map<String, dynamic> json) {
@@ -88,6 +97,10 @@ class StoredProfile {
       userInfo: json['userInfo'] as String?,
       merge: json['merge'] as Map<String, dynamic>? ?? {},
       script: json['script'] as String? ?? '',
+      sourceUrls: [
+        for (final u in (json['sourceUrls'] as List? ?? const []))
+          if (u is String) u,
+      ],
     );
   }
 }
@@ -192,6 +205,7 @@ class ProfileStore {
     String? sourceUrl,
     String? userInfo,
     bool activate = true,
+    List<String> sourceUrls = const [],
   }) => _change(() {
     final random = Random.secure().nextInt(1 << 32).toRadixString(16);
     final profile = StoredProfile(
@@ -204,6 +218,7 @@ class ProfileStore {
       sourceUrl: sourceUrl,
       userInfo: userInfo,
       updatedAt: DateTime.now(),
+      sourceUrls: List<String>.of(sourceUrls),
     );
     profiles.add(profile);
     if (activate || selectedProfileId == null) {

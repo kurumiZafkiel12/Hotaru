@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/mihomo_controller.dart';
 import '../core/proxy_config.dart';
 import '../core/core_location.dart';
 import '../platform/system_proxy.dart';
 import '../storage/atomic_file.dart';
+import 'aggregate.dart';
 import 'importer.dart';
 import 'profile_store.dart';
 import 'overrides.dart';
@@ -59,6 +61,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
   final url = TextEditingController();
   final name = TextEditingController();
   final exePath = TextEditingController();
+  final aggregateUrls = TextEditingController();
+  final filePath = TextEditingController();
   final portField = TextEditingController(text: '7890');
 
   final guardian = ProxyGuardian();
@@ -888,6 +892,428 @@ class _ProfilesPageState extends State<ProfilesPage> {
     }
   }
 
+  String _cardSubtitle(StoredProfile profile) {
+    final kind = profile.isAggregate
+        ? '聚合订阅 · ${profile.sourceUrls.length} 个来源'
+        : profile.mode == ImportMode.fullConfig
+        ? '完整配置'
+        : '仅节点';
+    final updated = profile.updatedAt == null
+        ? '尚未更新'
+        : '更新于 ${profile.updatedAt!.toLocal().toString().split('.').first}';
+    return '$kind · ${profile.nodeNames.length} 个本地节点 / ${profile.providerCount} 个远程节点集 · $updated';
+  }
+
+  /// FlClash-style add sheet: one entry point instead of a long form.
+  /// QR scanning is intentionally absent on desktop (no camera path);
+  /// link / file / paste / aggregate / custom cover every desktop input.
+  Future<void> _showAddDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('添加配置'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('链接'),
+              subtitle: const Text('通过订阅链接获取配置文件'),
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                _importDialog(kind: 'link');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.file_upload),
+              title: const Text('文件'),
+              subtitle: const Text('从本地配置文件路径导入'),
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                _importDialog(kind: 'file');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.paste),
+              title: const Text('粘贴内容'),
+              subtitle: const Text('粘贴配置、Base64 订阅或节点链接'),
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                _importDialog(kind: 'paste');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.merge),
+              title: const Text('聚合订阅'),
+              subtitle: const Text('多个订阅链接合并成一个配置使用'),
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                _aggregateDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.tune),
+              title: const Text('自定义'),
+              subtitle: const Text('粘贴完整配置，再在卡片上覆写策略组与规则'),
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+                setState(() => mode = ImportMode.fullConfig);
+                _importDialog(kind: 'paste');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _importDialog({required String kind}) async {
+    final field = kind == 'link'
+        ? url
+        : kind == 'file'
+        ? filePath
+        : content;
+    final fieldLabel = kind == 'link'
+        ? 'HTTPS 订阅地址'
+        : kind == 'file'
+        ? '配置文件路径'
+        : '粘贴配置、Base64 订阅或节点链接';
+    var dialogMode = mode;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(
+            kind == 'link'
+                ? '通过链接添加'
+                : kind == 'file'
+                ? '通过文件添加'
+                : '粘贴内容添加',
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: name,
+                  decoration: const InputDecoration(
+                    labelText: '订阅名称（可空）',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButton<ImportMode>(
+                  value: dialogMode,
+                  isExpanded: true,
+                  onChanged: (v) => setDialogState(() => dialogMode = v!),
+                  items: const [
+                    DropdownMenuItem(
+                      value: ImportMode.nodesOnly,
+                      child: Text('仅导入节点'),
+                    ),
+                    DropdownMenuItem(
+                      value: ImportMode.fullConfig,
+                      child: Text('完整配置'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: field,
+                  minLines: kind == 'paste' ? 4 : 1,
+                  maxLines: kind == 'paste' ? 8 : 1,
+                  decoration: InputDecoration(
+                    labelText: fieldLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                if (kind == 'file')
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text('桌面版暂无系统文件选择器，请填写配置文件的完整路径。'),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                setState(() => mode = dialogMode);
+                Navigator.of(dialogContext).pop();
+                if (kind == 'file') {
+                  await _importFile();
+                } else {
+                  await _import(kind == 'link');
+                }
+              },
+              child: Text(kind == 'link' ? '下载并保存' : '检查并保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _importFile() async {
+    final path = filePath.text.trim();
+    if (path.isEmpty) {
+      if (mounted) setState(() => importMsg = '请先填写配置文件的完整路径。');
+      return;
+    }
+    try {
+      content.text = await File(path).readAsString();
+    } catch (_) {
+      if (mounted) {
+        setState(() => importMsg = '读取文件失败：请检查路径是否存在且可读。');
+      }
+      return;
+    }
+    await _import(false);
+  }
+
+  Future<void> _selectAndStart(StoredProfile profile, String node) async {
+    await _select(profile, node);
+    if (!mounted || core.status == CoreStatus.running) return;
+    await _toggleProxy();
+  }
+
+  Future<void> _aggregateDialog({StoredProfile? existing}) async {
+    name.text = existing?.name ?? '';
+    aggregateUrls.text = existing == null ? '' : existing.sourceUrls.join('\n');
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(existing == null ? '新建聚合订阅' : '管理聚合来源'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                decoration: const InputDecoration(
+                  labelText: '聚合名称（可空）',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: aggregateUrls,
+                minLines: 4,
+                maxLines: 10,
+                decoration: const InputDecoration(
+                  labelText: '订阅地址，每行一个',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  '只合并各源的节点（节点模式）；重名节点自动加来源后缀，不会静默丢弃。完整配置的策略组与规则不参与合并。',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await _saveAggregate(existing);
+            },
+            child: Text(existing == null ? '创建聚合订阅' : '保存来源并更新'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveAggregate(StoredProfile? existing) async {
+    final s = store;
+    if (s == null || busy) return;
+    late final List<String> urls;
+    try {
+      urls = parseAggregateUrls(aggregateUrls.text);
+    } catch (e) {
+      if (mounted) setState(() => importMsg = '聚合订阅创建失败：$e');
+      return;
+    }
+    setState(() => busy = true);
+    try {
+      final sources = <({String label, Map<String, dynamic> config})>[];
+      final failures = <String>[];
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          final response = await ProfileImporter.fetchSubscription(
+            Uri.parse(urls[i]),
+            proxyPort: core.api == null ? null : core.mixedPort,
+          );
+          final parsed = ProfileImporter.parse(
+            response.body,
+            ImportMode.nodesOnly,
+          );
+          sources.add((
+            label: Uri.parse(urls[i]).host.isEmpty
+                ? '来源${i + 1}'
+                : Uri.parse(urls[i]).host,
+            config: parsed.config,
+          ));
+        } catch (_) {
+          failures.add('来源${i + 1}（${Uri.parse(urls[i]).host}）拉取失败');
+        }
+      }
+      final merged = mergeAggregateConfigs(sources);
+      final nodes = merged['proxies'] as List;
+      if (nodes.isEmpty) {
+        if (mounted) {
+          setState(
+            () => importMsg =
+                '聚合订阅失败：所有来源均无可用节点。${failures.isEmpty ? '' : failures.join('；')}',
+          );
+        }
+        return;
+      }
+      if (desktopEnabled && await File(exePath.text.trim()).exists()) {
+        await _validateCandidate(merged, ImportMode.nodesOnly);
+      }
+      if (existing == null) {
+        final saved = await s.add(
+          name: name.text.trim().isEmpty ? '聚合订阅' : name.text.trim(),
+          mode: ImportMode.nodesOnly,
+          source: 'aggregate',
+          config: merged,
+          activate: core.status != CoreStatus.running,
+          sourceUrls: urls,
+        );
+        if (mounted) {
+          setState(
+            () => importMsg =
+                '已保存聚合「${saved.name}」：${nodes.length} 个节点（${urls.length} 个来源）。${failures.isEmpty ? '' : '注意：${failures.join('；')}'}',
+          );
+        }
+      } else {
+        final next = StoredProfile.fromJson({
+          ...existing.toJson(),
+          'config': merged,
+          'sourceUrls': urls,
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+        await s.replace(next);
+        if (mounted) {
+          setState(
+            () => importMsg =
+                '聚合「${existing.name}」已更新：${nodes.length} 个节点。${failures.isEmpty ? '' : '注意：${failures.join('；')}'}',
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => importMsg = '聚合订阅失败：旧订阅完整保留，请检查各源地址与格式。');
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> _updateAggregate(StoredProfile profile) async {
+    aggregateUrls.text = profile.sourceUrls.join('\n');
+    await _saveAggregate(profile);
+  }
+
+  Future<void> _showAggregateExport(StoredProfile profile) async {
+    final json = const JsonEncoder.withIndent('  ').convert(profile.config);
+    final encoded = base64Encode(utf8.encode(json));
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('导出聚合「${profile.name}」'),
+        content: Text(
+          '${profile.nodeNames.length} 个节点，配置 JSON 约 ${(json.length / 1024).toStringAsFixed(1)} KB。\n\n'
+          'Base64 配置可粘贴给接受 Base64 配置的客户端；JSON 文件可直接作为 Mihomo 配置文件使用。'
+          '导出的内容包含你的节点信息，请勿公开分享。节点链接（URI）格式导出暂不支持：各协议反向编码容易丢失参数，宁可不做假导出。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('关闭'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: encoded));
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('聚合配置 Base64 已复制。')),
+                );
+              }
+            },
+            child: const Text('复制 Base64'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                final dir = Directory('${storeFile!.parent.path}/exports');
+                await dir.create(recursive: true);
+                final file = File('${dir.path}/aggregate-${profile.id}.json');
+                await file.writeAsString(json);
+                if (mounted) {
+                  setState(() => importMsg = '聚合配置已保存到：${file.path}');
+                }
+              } catch (_) {
+                if (mounted) {
+                  setState(() => importMsg = '导出文件失败：请检查导出目录写入权限。');
+                }
+              }
+              if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+            },
+            child: const Text('保存 JSON 文件'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _savedNodeTiles(StoredProfile profile, bool running) {
+    if (widget.panel == 'config') return const [];
+    if (running && activeProfileId == profile.id) return const [];
+    final query = nodeFilter.toLowerCase();
+    final names = profile.nodeNames
+        .where((n) => n.toLowerCase().contains(query))
+        .toList();
+    final s = store;
+    return [
+      for (final node in names)
+        ListTile(
+          dense: true,
+          leading: Icon(
+            s?.selectedProfileId == profile.id && s?.selectedNode == node
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+          ),
+          title: Text(node),
+          subtitle: Text(
+            profile.nodes
+                    .where((n) => n['name'] == node)
+                    .firstOrNull?['type']
+                    ?.toString() ??
+                '节点',
+          ),
+          trailing: IconButton(
+            tooltip: '选择并启动',
+            icon: const Icon(Icons.play_arrow),
+            onPressed: busy ? null : () => _selectAndStart(profile, node),
+          ),
+          onTap: busy ? null : () => _select(profile, node),
+        ),
+    ];
+  }
+
   Future<void> _import(bool remote) async {
     final s = store;
     if (s == null || busy) return;
@@ -1176,7 +1602,15 @@ class _ProfilesPageState extends State<ProfilesPage> {
       }());
     }
     unawaited(core.dispose());
-    for (final c in [content, url, name, exePath, portField]) {
+    for (final c in [
+      content,
+      url,
+      name,
+      exePath,
+      portField,
+      aggregateUrls,
+      filePath,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -1187,96 +1621,76 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final s = store;
     final running = core.status == CoreStatus.running;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.panel == 'config' ? '配置' : '节点'),
-        actions: [
-          if (widget.panel != 'config') ...[
-            IconButton(
-              tooltip: running ? '停止代理' : '启动代理',
-              onPressed: busy || s == null ? null : _toggleProxy,
-              icon: Icon(
-                running
-                    ? Icons.stop_circle_outlined
-                    : Icons.play_circle_outline,
-              ),
-            ),
-            if (systemProxySupported)
-              IconButton(
-                tooltip: systemProxyOn ? '关闭系统代理' : '开启系统代理',
-                onPressed:
-                    !running ||
-                        busy ||
-                        proxyChanging ||
-                        (leftoverBackup && !systemProxyOn)
-                    ? null
-                    : () => _action(() => _setSystemProxy(!systemProxyOn)),
-                icon: Icon(systemProxyOn ? Icons.public : Icons.public_off),
-              ),
-          ],
-        ],
-      ),
+      // No nested AppBar: the dashboard already has one. The panel title
+      // and actions live in the body so the page has a single top bar.
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.panel == 'config' ? '配置' : '节点',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              if (widget.panel != 'config') ...[
+                IconButton(
+                  tooltip: running ? '停止代理' : '启动代理',
+                  onPressed: busy || s == null ? null : _toggleProxy,
+                  icon: Icon(
+                    running
+                        ? Icons.stop_circle_outlined
+                        : Icons.play_circle_outline,
+                  ),
+                ),
+                if (systemProxySupported)
+                  IconButton(
+                    tooltip: systemProxyOn ? '关闭系统代理' : '开启系统代理',
+                    onPressed:
+                        !running ||
+                            busy ||
+                            proxyChanging ||
+                            (leftoverBackup && !systemProxyOn)
+                        ? null
+                        : () => _action(() => _setSystemProxy(!systemProxyOn)),
+                    icon: Icon(systemProxyOn ? Icons.public : Icons.public_off),
+                  ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 16),
           if (widget.panel != 'nodes') ...[
             const Text(
               '导入 → 保存 → 选节点 → 启动代理。协议：SOCKS5、HTTP(S)、Trojan、SS、VMess、VLESS、Hysteria2；其他参数会明确拒绝，不静默丢弃。',
             ),
             const SizedBox(height: 16),
-            DropdownButton<ImportMode>(
-              value: mode,
-              onChanged: busy ? null : (v) => setState(() => mode = v!),
-              items: const [
-                DropdownMenuItem(
-                  value: ImportMode.nodesOnly,
-                  child: Text('仅导入节点'),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: busy || s == null ? null : _showAddDialog,
+                  icon: const Icon(Icons.add),
+                  label: const Text('添加配置'),
                 ),
-                DropdownMenuItem(
-                  value: ImportMode.fullConfig,
-                  child: Text('完整配置'),
-                ),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('链接、文件、粘贴、聚合订阅与自定义，与 FL 的添加方式对齐。')),
               ],
-            ),
-            TextField(
-              controller: name,
-              enabled: !busy,
-              decoration: const InputDecoration(
-                labelText: '订阅名称（可空）',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: content,
-              minLines: 4,
-              maxLines: 8,
-              enabled: !busy,
-              decoration: const InputDecoration(
-                labelText: '粘贴配置、Base64 订阅或节点链接',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: busy || s == null ? null : () => _import(false),
-              child: const Text('检查并保存'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: url,
-              enabled: !busy,
-              decoration: const InputDecoration(
-                labelText: 'HTTPS 订阅地址',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: busy || s == null ? null : () => _import(true),
-              child: const Text('下载并保存'),
             ),
             const SizedBox(height: 12),
             Text(importMsg),
+          ],
+          if (widget.panel != 'config' && !running) ...[
+            TextField(
+              onChanged: (value) => setState(() => nodeFilter = value),
+              decoration: const InputDecoration(
+                labelText: '搜索节点',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
           ],
           const Divider(height: 40),
           if (s == null)
@@ -1285,72 +1699,104 @@ class _ProfilesPageState extends State<ProfilesPage> {
             const Text('还没有保存的订阅。导入后，节点会列在这里供选择。')
           else
             for (final profile in s.profiles) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${profile.name} · ${profile.nodeNames.length} 个本地节点 / ${profile.providerCount} 个远程节点集 · '
-                      '${profile.mode == ImportMode.fullConfig ? '完整配置' : '仅节点'}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: '删除${profile.name}',
-                    onPressed: busy || running
-                        ? null
-                        : () async {
-                            await s.remove(profile.id);
-                            if (mounted) setState(() {});
-                          },
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                ],
-              ),
-              if (widget.panel != 'nodes') ...[
-                Text(_profileSummary(profile)),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    TextButton(
-                      onPressed: busy || running
-                          ? null
-                          : () => _select(
-                              profile,
-                              profile.nodeNames.firstOrNull ?? '',
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              profile.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                      child: Text(
-                        s.selectedProfileId == profile.id ? '当前配置' : '使用此配置',
+                          ),
+                          if (s.selectedProfileId == profile.id)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: Icon(
+                                Icons.check_circle,
+                                color: Color(0xffc7e9a3),
+                              ),
+                            ),
+                          IconButton(
+                            tooltip: '删除${profile.name}',
+                            onPressed: busy || running
+                                ? null
+                                : () async {
+                                    await s.remove(profile.id);
+                                    if (mounted) setState(() {});
+                                  },
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
                       ),
-                    ),
-                    TextButton(
-                      onPressed: busy || profile.sourceUrl == null
-                          ? null
-                          : () => _updateProfile(profile),
-                      child: const Text('更新订阅'),
-                    ),
-                    TextButton(
-                      onPressed: busy || running
-                          ? null
-                          : () => _editOverrides(profile),
-                      child: const Text('覆写与更新设置'),
-                    ),
-                  ],
-                ),
-              ],
-              if (widget.panel != 'config' &&
-                  (!running || activeProfileId != profile.id))
-                for (final node in profile.nodeNames)
-                  ListTile(
-                    dense: true,
-                    leading: Icon(
-                      s.selectedProfileId == profile.id &&
-                              s.selectedNode == node
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                    ),
-                    title: Text(node),
-                    onTap: busy ? null : () => _select(profile, node),
+                      Text(_cardSubtitle(profile)),
+                      if (widget.panel != 'nodes') ...[
+                        Text(_profileSummary(profile)),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            TextButton(
+                              onPressed: busy || running
+                                  ? null
+                                  : () => _select(
+                                      profile,
+                                      profile.nodeNames.firstOrNull ?? '',
+                                    ),
+                              child: Text(
+                                s.selectedProfileId == profile.id
+                                    ? '当前配置'
+                                    : '使用此配置',
+                              ),
+                            ),
+                            TextButton(
+                              onPressed:
+                                  busy ||
+                                      (profile.isAggregate
+                                          ? profile.sourceUrls.isEmpty
+                                          : profile.sourceUrl == null)
+                                  ? null
+                                  : () => profile.isAggregate
+                                        ? _updateAggregate(profile)
+                                        : _updateProfile(profile),
+                              child: Text(
+                                profile.isAggregate ? '更新全部' : '更新订阅',
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: busy || running
+                                  ? null
+                                  : () => _editOverrides(profile),
+                              child: const Text('覆写与更新设置'),
+                            ),
+                            if (profile.isAggregate) ...[
+                              TextButton(
+                                onPressed: busy
+                                    ? null
+                                    : () => _aggregateDialog(existing: profile),
+                                child: const Text('管理来源'),
+                              ),
+                              TextButton(
+                                onPressed: busy
+                                    ? null
+                                    : () => _showAggregateExport(profile),
+                                child: const Text('导出聚合'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                      ..._savedNodeTiles(profile, running),
+                    ],
                   ),
+                ),
+              ),
               const SizedBox(height: 8),
             ],
           const Divider(height: 40),

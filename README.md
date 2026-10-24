@@ -2,11 +2,11 @@
 
 Windows 优先的开源 Mihomo 客户端，简洁小组件首页与独立工具箱，后续支持 Android / Linux。采用 GPL-3.0-or-later。
 
-从 [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载 `Hotaru-0.4.1-windows-x64-setup.exe`，关闭旧版后覆盖安装。包含已校验的 Mihomo v1.19.33 与 Node.js Script 运行时，不需要开发环境。安装包尚未签名。
+从 [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载最新 `Hotaru-0.4.2-windows-x64-setup.exe`（0.4.1 用户关闭旧版后覆盖安装即可）。包含已校验的 Mihomo v1.19.33 与 Node.js Script 运行时，不需要开发环境。安装包尚未签名。
 
 使用：**配置页导入 → 节点页启动 → 按需开启系统代理**。默认保留订阅规则，节点页显示策略组与 Provider 节点。关窗隐藏到托盘；右键托盘“退出并恢复系统代理”才会退出。可选服务首次安装需要管理员授权，日常使用无需重复 UAC；TUN 下一阶段开放。
 
-0.4.1 提供订阅定时更新/用量、TCP/真连接批量测速、三态分流、远程节点集与规则集、Merge+Script 覆写、连接/日志/流量、崩溃代理守护、托盘/静默自启、自动检查与校验安装更新。功能边界、升级步骤和限制见 [0.4.1 发布说明](docs/RELEASE-0.4.1.md)，参考实现分析见 [源码对照](docs/REFERENCE-ANALYSIS-0.4.1.md)。
+0.4.1 提供订阅定时更新/用量、TCP/真连接批量测速、三态分流、远程节点集与规则集、Merge+Script 覆写、连接/日志/流量、崩溃代理守护、托盘/静默自启、自动检查与校验安装更新。功能边界、升级步骤和限制见 [0.4.1 发布说明](docs/RELEASE-0.4.1.md)，参考实现分析见 [源码对照](docs/REFERENCE-ANALYSIS-0.4.1.md)。0.4.2 在此基础上改版：全新手绘萤火图标、FL 式配置卡片与添加方式（链接/文件/粘贴/聚合订阅/自定义）、底栏按常用度重排（桌面/节点/配置/工具箱）与主题统一、节点页搜索与一键选节点启动、聚合订阅（多源合并、去重改名、全部更新、Base64/JSON 导出）；桌面二维码扫码暂不支持（无摄像头路径），图片识别待后续验证。
 
 本地配置包含节点凭据，保存在 `%APPDATA%/Hotaru`，不会上传；卸载保留。原有 v0.3 与历史交还报告保留用于追溯。
 

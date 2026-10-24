@@ -48,6 +48,7 @@ void main() {
       }
       expect(find.text('节点甲'), findsOneWidget);
       expect(find.widgetWithText(TextField, 'HTTPS 订阅地址'), findsNothing);
+      expect(find.text('添加配置'), findsNothing);
       final state = tester.state(find.byType(ProfilesPage));
       await tester.pumpWidget(
         MaterialApp(
@@ -56,6 +57,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(identical(state, tester.state(find.byType(ProfilesPage))), true);
+      await tester.tap(find.text('添加配置'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('链接'));
+      await tester.pumpAndSettle();
       expect(find.widgetWithText(TextField, 'HTTPS 订阅地址'), findsOneWidget);
       expect(find.text('节点甲'), findsNothing);
       await tester.pumpWidget(const SizedBox());

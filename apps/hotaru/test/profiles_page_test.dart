@@ -33,29 +33,39 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('hotaru-page-');
     final file = File('${dir.path}/profiles.json');
     await tester.pumpWidget(MaterialApp(home: ProfilesPage(storeFile: file)));
+    Future<void> pasteImport(String text) async {
+      await tester.tap(find.text('添加配置'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('粘贴内容'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, '粘贴配置、Base64 订阅或节点链接'),
+        text,
+      );
+      await tester.tap(find.text('检查并保存'));
+    }
+
     await until(
       tester,
       () => tester.any(find.text('还没有保存的订阅。导入后，节点会列在这里供选择。')),
       what: 'empty state after load',
     );
 
-    await tester.enterText(
-      find.byType(TextField).at(1),
+    await pasteImport(
       'socks5://127.0.0.1:1080#node-one\nss://aes-128-gcm:pw@example.com:8388#node-two',
     );
-    await tester.tap(find.text('检查并保存'));
     await until(
       tester,
       () => tester.any(find.textContaining('已保存')),
       what: 'save confirmation',
     );
-    expect(find.text('node-one'), findsOneWidget);
-    expect(find.text('node-two'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'node-one'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'node-two'), findsOneWidget);
     expect(file.existsSync(), isTrue);
     expect(file.readAsStringSync(), contains('node-two'));
 
     // Switch selection to the second node; it must be the persisted one.
-    await tester.tap(find.text('node-two'));
+    await tester.tap(find.widgetWithText(ListTile, 'node-two'));
     await until(
       tester,
       () =>
@@ -69,20 +79,19 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: ProfilesPage(storeFile: file)));
     await until(
       tester,
-      () => tester.any(find.text('node-two')),
+      () => tester.any(find.widgetWithText(ListTile, 'node-two')),
       what: 'nodes after reopen',
     );
-    expect(find.text('node-one'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'node-one'), findsOneWidget);
 
     // Broken import must not destroy the saved profile.
-    await tester.enterText(find.byType(TextField).at(1), 'not-a-config');
-    await tester.tap(find.text('检查并保存'));
+    await pasteImport('not-a-config');
     await until(
       tester,
       () => tester.any(find.textContaining('导入失败')),
       what: 'import failure message',
     );
-    expect(find.text('node-two'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'node-two'), findsOneWidget);
 
     // Delete removes the profile and its nodes.
     await tester.tap(find.byTooltip('删除node-one'));
@@ -91,7 +100,7 @@ void main() {
       () => tester.any(find.text('还没有保存的订阅。导入后，节点会列在这里供选择。')),
       what: 'empty state after delete',
     );
-    expect(find.text('node-two'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'node-two'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     dir.deleteSync(recursive: true);
