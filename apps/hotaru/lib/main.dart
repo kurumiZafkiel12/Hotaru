@@ -1,0 +1,134 @@
+import 'dart:io';
+import 'dart:async';
+import 'dart:ui' show AppExitResponse;
+
+import 'package:flutter/material.dart';
+
+import 'core/mihomo_controller.dart';
+
+void main() => runApp(const HotaruApp());
+
+class HotaruApp extends StatelessWidget {
+  const HotaruApp({super.key});
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'Hotaru · 蛍',
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xffc7e9a3),
+        brightness: Brightness.dark,
+      ),
+      useMaterial3: true,
+    ),
+    home: const CorePage(),
+  );
+}
+
+class CorePage extends StatefulWidget {
+  const CorePage({super.key});
+  @override
+  State<CorePage> createState() => _CorePageState();
+}
+
+class _CorePageState extends State<CorePage> {
+  final core = MihomoController();
+  final path = TextEditingController();
+  bool busy = false;
+  String message = '桌面内核诊断：不启用系统代理、不启用 TUN。';
+  Directory? runtime;
+  late final AppLifecycleListener lifecycle;
+  Timer? monitor;
+
+  @override
+  void initState() {
+    super.initState();
+    monitor = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && !busy && core.status == CoreStatus.failed) {
+        setState(() => message = core.error ?? '内核已异常退出');
+      }
+    });
+    lifecycle = AppLifecycleListener(
+      onExitRequested: () async {
+        if (busy) return AppExitResponse.cancel;
+        await core.dispose();
+        if (runtime != null && await runtime!.exists()) {
+          await runtime!.delete(recursive: true);
+        }
+        return AppExitResponse.exit;
+      },
+    );
+  }
+
+  Future<void> toggle() async {
+    setState(() => busy = true);
+    try {
+      if (core.status == CoreStatus.running) {
+        await core.stop();
+        message = '内核已停止';
+      } else {
+        runtime ??= await Directory.systemTemp.createTemp('hotaru-');
+        await core.startDiagnostic(path.text.trim(), runtime!, 19090);
+        message = '内核健康检查通过。当前未开启代理入口，不代表已经代理网络流量。';
+      }
+    } catch (_) {
+      message = core.error ?? '启动失败，请检查内核路径。';
+    }
+    if (mounted) setState(() => busy = false);
+  }
+
+  @override
+  void dispose() {
+    monitor?.cancel();
+    lifecycle.dispose();
+    path.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('✦ Hotaru · 蛍')),
+    body: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760),
+        child: ListView(
+          padding: const EdgeInsets.all(32),
+          children: [
+            Text(
+              '一点微光，自在连接。',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 12),
+            const Text('开发预览 · Mihomo 桌面适配层'),
+            const SizedBox(height: 32),
+            TextField(
+              controller: path,
+              decoration: const InputDecoration(
+                labelText: '本机 Mihomo 可执行文件绝对路径',
+                border: OutlineInputBorder(),
+              ),
+              enabled: !busy && core.status != CoreStatus.running,
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: busy || Platform.isAndroid ? null : toggle,
+              child: Text(
+                busy
+                    ? '正在检查…'
+                    : core.status == CoreStatus.running
+                    ? '停止内核'
+                    : '验证并启动诊断内核',
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(message),
+            const SizedBox(height: 24),
+            const Text(
+              '正常退出时停止本应用启动的内核。强制终止应用的清理保障、订阅导入和系统网络管理尚待实现。Android VPN 服务尚未实现。',
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

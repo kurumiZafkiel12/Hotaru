@@ -43,3 +43,8 @@ Actions 产物是网页原型，**不是 Windows 安装包**。正式应用通�
 [Mihomo](https://github.com/MetaCubeX/mihomo) 为计划使用的内核，目前未分发；[FlClash](https://github.com/chen08209/FlClash)、[Bettbox](https://github.com/appshubcc/Bettbox)、[Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 为体验参考，未复制其客户端代码。
 
 目前为公开开发仓库；正式开源许可证将在引入内核与发布应用前确定。依赖保留各自许可。
+
+## 正式工程进度（M1）
+apps/hotaru/ 已建立 Flutter Windows、Android、Linux 工程；当前界面为内核诊断页，小组件界面尚未迁移。桌面适配层可校验配置、启动 Mihomo、认证健康检查和停止。诊断模式不启用代理入口或 TUN。
+
+本机 5 项 Flutter 测试及真实 Mihomo 启停检查通过；Windows 原生编译等待 CI 验证。详情见 [M1 验证记录](docs/M1-VERIFICATION.md)。尚无可用代理安装包。
