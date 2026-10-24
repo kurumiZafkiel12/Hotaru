@@ -48,6 +48,27 @@ void main() {
       throwsArgumentError,
     );
   });
+  test('findFreePort returns a bindable loopback port', () async {
+    final port = await MihomoController.findFreePort();
+    expect(port, inInclusiveRange(1024, 65535));
+    final probe = await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
+    await probe.close();
+  });
+  test('dispose is idempotent, never throws, and blocks reuse', () async {
+    final core = MihomoController();
+    await core.dispose();
+    await core.dispose();
+    expect(core.status, CoreStatus.stopped);
+    final directory = await Directory.systemTemp.createTemp('hotaru-test-');
+    try {
+      await expectLater(
+        core.startDiagnostic('${directory.path}/missing.exe', directory, 19090),
+        throwsStateError,
+      );
+    } finally {
+      await directory.delete(recursive: true);
+    }
+  });
   test('each launch gets a different strong secret', () {
     final a = MihomoController.newSecret();
     expect(a.length, greaterThanOrEqualTo(43));

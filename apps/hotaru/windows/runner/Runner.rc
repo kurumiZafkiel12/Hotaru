@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "dev.hotaru" "\0"
-            VALUE "FileDescription", "hotaru" "\0"
+            VALUE "FileDescription", "Hotaru - Mihomo client (UI preview)" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "hotaru" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 dev.hotaru. All rights reserved." "\0"
             VALUE "OriginalFilename", "hotaru.exe" "\0"
-            VALUE "ProductName", "hotaru" "\0"
+            VALUE "ProductName", "Hotaru" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

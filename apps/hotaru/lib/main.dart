@@ -70,7 +70,10 @@ class _CorePageState extends State<CorePage> {
         message = '内核已停止';
       } else {
         runtime ??= await Directory.systemTemp.createTemp('hotaru-');
-        await core.startDiagnostic(path.text.trim(), runtime!, 19090);
+        // No fixed control port: pick a free loopback port per launch so a
+        // stale process or another app on 19090 cannot block diagnostics.
+        final port = await MihomoController.findFreePort();
+        await core.startDiagnostic(path.text.trim(), runtime!, port);
         message = '内核健康检查通过。当前未开启代理入口，不代表已经代理网络流量。';
       }
     } catch (_) {
@@ -84,6 +87,10 @@ class _CorePageState extends State<CorePage> {
     monitor?.cancel();
     lifecycle.dispose();
     path.dispose();
+    // Leaving this page (not only exiting the app) must stop the core this
+    // page started; previously the child process was leaked on navigation.
+    // MihomoController.dispose never throws and is safe while busy.
+    unawaited(core.dispose());
     super.dispose();
   }
 

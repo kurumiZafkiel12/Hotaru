@@ -3,7 +3,26 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'profiles/import_page.dart';
+import 'profiles/profiles_page.dart';
+import 'storage/atomic_file.dart';
+
+/// Validates decoded layout data: a JSON list of unique widget ids in range.
+/// Returns null for any other shape so callers can fall back with a warning
+/// instead of silently accepting a corrupt or foreign file.
+List<int>? tryParseLayout(Object? data, int itemCount) {
+  if (data is! List) return null;
+  final result = <int>[];
+  for (final value in data) {
+    if (value is! int || value < 0 || value >= itemCount) return null;
+    if (!result.contains(value)) result.add(value);
+  }
+  return result;
+}
+
+/// Writes the layout atomically (temp file + rename); see
+/// [writeTextAtomically]. The temp file never remains after success.
+Future<void> writeLayoutAtomically(File file, List<int> cards) =>
+    writeTextAtomically(file, jsonEncode(cards));
 
 class Dashboard extends StatefulWidget {
   final Widget diagnostic;
@@ -40,11 +59,14 @@ class _DashboardState extends State<Dashboard> {
     try {
       final file = layoutFile;
       if (file != null && await file.exists()) {
-        final data = jsonDecode(await file.readAsString());
-        if (data is List &&
-            data.every((v) => v is int && v >= 0 && v < labels.length)) {
-          if (mounted) cards = data.cast<int>().toSet().toList();
-        }
+        final parsed = tryParseLayout(
+          jsonDecode(await file.readAsString()),
+          labels.length,
+        );
+        // A present-but-invalid file is corruption, not a fresh install:
+        // surface the same fallback warning as an unreadable file.
+        if (parsed == null) throw const FormatException('Invalid layout');
+        cards = parsed;
       }
     } catch (_) {
       warning = '布局读取失败，已使用默认布局。';
@@ -53,13 +75,13 @@ class _DashboardState extends State<Dashboard> {
   }
 
   void save() {
-    final snapshot = jsonEncode(cards);
+    // Snapshot now; writes stay serialized so renames cannot interleave.
+    final snapshot = List<int>.of(cards);
     writes = writes.then((_) async {
       try {
         final file = layoutFile;
         if (file == null) throw const FileSystemException();
-        await file.parent.create(recursive: true);
-        await file.writeAsString(snapshot, flush: true);
+        await writeLayoutAtomically(file, snapshot);
       } catch (_) {
         if (mounted) setState(() => warning = '布局保存失败，当前修改仅在本次运行有效。');
       }
@@ -107,7 +129,7 @@ class _DashboardState extends State<Dashboard> {
           [
             '界面预览 · 尚未启用系统代理或 TUN',
             '接入实际代理连接后显示流量',
-            '可先在导入预览中检查配置',
+            '在「节点」页导入、保存并选择节点后启动代理',
             '不会显示模拟 IP 地址',
             '订阅保存与用量统计开发中',
             '延迟与下载测速开发中',
@@ -204,7 +226,7 @@ class _DashboardState extends State<Dashboard> {
     appBar: AppBar(
       title: const Text('✦ Hotaru · 蛍'),
       actions: [
-        const Padding(padding: EdgeInsets.all(16), child: Text('界面预览 v0.1')),
+        const Padding(padding: EdgeInsets.all(16), child: Text('可用预览 v0.3')),
       ],
     ),
     body: Padding(
@@ -213,7 +235,7 @@ class _DashboardState extends State<Dashboard> {
           ? home()
           : page == 1
           ? toolbox()
-          : const ImportPage(),
+          : const ProfilesPage(),
     ),
     bottomNavigationBar: NavigationBar(
       selectedIndex: page,
@@ -224,7 +246,7 @@ class _DashboardState extends State<Dashboard> {
           label: '桌面',
         ),
         NavigationDestination(icon: Icon(Icons.widgets_outlined), label: '工具箱'),
-        NavigationDestination(icon: Icon(Icons.download_outlined), label: '导入'),
+        NavigationDestination(icon: Icon(Icons.download_outlined), label: '节点'),
       ],
     ),
   );
