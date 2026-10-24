@@ -1,5 +1,5 @@
 $ErrorActionPreference='Stop'
-$setup=(Resolve-Path '../../dist/Hotaru-0.4.0-windows-x64-setup.exe').Path
+$setup=(Resolve-Path '../../dist/Hotaru-0.4.1-windows-x64-setup.exe').Path
 $target=Join-Path $env:RUNNER_TEMP 'Hotaru-installed'
 $arguments=@('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$target")
 function Invoke-Installer {

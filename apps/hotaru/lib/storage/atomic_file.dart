@@ -11,11 +11,9 @@ Future<void> writeTextAtomically(File file, String content) async {
   try {
     await tmp.rename(file.path);
   } on FileSystemException {
-    // Some Windows environments refuse rename-over-existing (locked or
-    // replace-restricted targets). Fall back to delete-then-rename: a tiny
-    // non-atomic window, still far better than failing the save outright.
-    if (await file.exists()) await file.delete();
-    await tmp.rename(file.path);
+    // Never delete the previous good file on a sharing/permission failure.
+    if (await tmp.exists()) await tmp.delete();
+    rethrow;
   }
 }
 

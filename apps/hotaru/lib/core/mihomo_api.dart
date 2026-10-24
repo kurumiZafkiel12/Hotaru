@@ -8,6 +8,8 @@ class MihomoApi {
   final int port;
   final String secret;
   final HttpClient _http;
+  final _sockets = <WebSocket>{};
+  bool _closed = false;
 
   MihomoApi({required this.port, required this.secret, HttpClient? http})
     : _http = http ?? HttpClient() {
@@ -100,13 +102,14 @@ class MihomoApi {
   /// that as “failed/unknown”, never as a made-up number.
   Future<int?> delay(
     String name, {
+    String? provider,
     String url = 'http://www.gstatic.com/generate_204',
     int timeoutMs = 5000,
   }) async {
     try {
       final (code, text) = await _send(
         'GET',
-        '/proxies/${Uri.encodeComponent(name)}/delay'
+        '${provider == null || provider.isEmpty ? '/proxies/${Uri.encodeComponent(name)}/delay' : '/providers/proxies/${Uri.encodeComponent(provider)}/${Uri.encodeComponent(name)}/healthcheck'}'
             '?timeout=$timeoutMs&url=${Uri.encodeComponent(url)}',
         timeout: Duration(milliseconds: timeoutMs + 2000),
       );
@@ -133,5 +136,92 @@ class MihomoApi {
     return decoded;
   }
 
-  void close() => _http.close(force: true);
+  void close() {
+    _closed = true;
+    for (final socket in _sockets.toList()) {
+      unawaited(socket.close());
+    }
+    _sockets.clear();
+    _http.close(force: true);
+  }
+
+  Future<Map<String, dynamic>> getMap(String path) async {
+    final (code, text) = await _send('GET', path);
+    if (code != 200) throw StateError('Core API returned $code');
+    return (jsonDecode(text) as Map).cast<String, dynamic>();
+  }
+
+  Future<void> setMode(String mode) async {
+    if (!['rule', 'global', 'direct'].contains(mode)) {
+      throw ArgumentError('mode');
+    }
+    final (code, _) = await _send('PATCH', '/configs', body: {'mode': mode});
+    if (code != 204 && code != 200) throw StateError('Mode update failed');
+  }
+
+  Future<void> updateProvider(String name, {bool rules = false}) async {
+    final (code, _) = await _send(
+      'PUT',
+      '/providers/${rules ? 'rules' : 'proxies'}/${Uri.encodeComponent(name)}',
+    );
+    if (code != 204 && code != 200) throw StateError('Provider update failed');
+  }
+
+  Stream<Map<String, dynamic>> events(String path) {
+    late StreamController<Map<String, dynamic>> controller;
+    WebSocket? socket;
+    StreamSubscription<dynamic>? subscription;
+    var canceled = false;
+    controller = StreamController<Map<String, dynamic>>(
+      onListen: () async {
+        try {
+          socket = await WebSocket.connect(
+            'ws://127.0.0.1:$port$path',
+            headers: {HttpHeaders.authorizationHeader: 'Bearer $secret'},
+          ).timeout(const Duration(seconds: 5));
+          if (canceled || _closed) {
+            await socket!.close();
+            return;
+          }
+          _sockets.add(socket!);
+          subscription = socket!.listen(
+            (event) {
+              try {
+                controller.add(
+                  (jsonDecode(event as String) as Map).cast<String, dynamic>(),
+                );
+              } catch (e, st) {
+                controller.addError(e, st);
+              }
+            },
+            onError: controller.addError,
+            onDone: () {
+              _sockets.remove(socket);
+              unawaited(controller.close());
+            },
+          );
+        } catch (e, st) {
+          if (!canceled) {
+            controller.addError(e, st);
+            await controller.close();
+          }
+        }
+      },
+      onCancel: () async {
+        canceled = true;
+        _sockets.remove(socket);
+        await subscription?.cancel();
+        await socket?.close();
+      },
+    );
+    return controller.stream;
+  }
+
+  Future<void> closeConnection(String id) async {
+    final (code, _) = await _send(
+      'DELETE',
+      '/connections/${Uri.encodeComponent(id)}',
+    );
+    if (code != 204 && code != 200) throw StateError('Close connection failed');
+  }
 }

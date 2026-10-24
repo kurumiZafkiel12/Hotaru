@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
@@ -11,12 +12,17 @@ import '../platform/system_proxy.dart';
 import '../storage/atomic_file.dart';
 import 'importer.dart';
 import 'profile_store.dart';
+import 'overrides.dart';
+import '../platform/proxy_guardian.dart';
+import '../platform/desktop.dart';
+import '../platform/app_updater.dart';
 
 /// Subscriptions & nodes: import → save → select → run.
 ///
 /// This page owns one [MihomoController]. Leaving the page stops the core;
 /// if the system proxy was enabled from here it is restored first.
 class ProfilesPage extends StatefulWidget {
+  final String panel;
   final File? storeFile;
   final MihomoController? controller;
   final SystemProxyAdapter? systemProxyAdapter;
@@ -25,6 +31,7 @@ class ProfilesPage extends StatefulWidget {
 
   const ProfilesPage({
     super.key,
+    this.panel = 'all',
     this.storeFile,
     this.controller,
     this.systemProxyAdapter,
@@ -37,6 +44,9 @@ class ProfilesPage extends StatefulWidget {
 }
 
 class _ProfilesPageState extends State<ProfilesPage> {
+  bool get desktopEnabled =>
+      !Platform.environment.containsKey('FLUTTER_TEST') &&
+      widget.storeFile == null;
   late final MihomoController core = widget.controller ?? MihomoController();
   late final SystemProxyAdapter systemProxy =
       widget.systemProxyAdapter ?? SystemProxyAdapter.forPlatform();
@@ -49,8 +59,34 @@ class _ProfilesPageState extends State<ProfilesPage> {
   final exePath = TextEditingController();
   final portField = TextEditingController(text: '7890');
 
+  final guardian = ProxyGuardian();
   ProfileStore? store;
-  ImportMode mode = ImportMode.nodesOnly;
+  Timer? subscriptionTimer;
+  Timer? updateTimer;
+  AppUpdate? availableUpdate;
+  String updateMessage = '启动后自动检查更新；安装前会校验 SHA256。';
+  bool updating = false;
+  Map<String, dynamic> liveProxies = {};
+  Map<String, dynamic> providers = {};
+  Map<String, dynamic> ruleProviders = {};
+  List<dynamic> connections = [];
+  final logs = <String>[];
+  StreamSubscription<Map<String, dynamic>>? logStream;
+  StreamSubscription<Map<String, dynamic>>? trafficStream;
+  final latency = <String, int?>{};
+  final tcpLatency = <String, int?>{};
+  bool sorting = false;
+  bool testing = false;
+  bool polling = false;
+  bool autostart = false;
+  bool serviceReady = false;
+  bool useService = false;
+  String routing = 'rule';
+  int upload = 0, download = 0;
+  String nodeFilter = '';
+  String? chosenGroup;
+
+  ImportMode mode = ImportMode.fullConfig;
   bool busy = false;
   bool systemProxyOn = false;
   bool leftoverBackup = false;
@@ -79,9 +115,6 @@ class _ProfilesPageState extends State<ProfilesPage> {
         try {
           if (systemProxyOn) await _setSystemProxy(false);
           await core.stop();
-          if (runtimeDir != null && await runtimeDir!.exists()) {
-            await runtimeDir!.delete(recursive: true);
-          }
           return AppExitResponse.exit;
         } catch (_) {
           if (mounted) setState(() => proxyMsg = '退出清理失败，请先停止代理并恢复原系统代理后重试。');
@@ -99,6 +132,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
               : '代理未启动',
         );
       }
+      if (mounted && core.api != null && !polling) unawaited(_refreshLive());
+      if (desktopEnabled) {
+        unawaited(DesktopIntegration.status(core.status == CoreStatus.running));
+      }
       if (!mounted ||
           busy ||
           proxyChanging ||
@@ -115,7 +152,579 @@ class _ProfilesPageState extends State<ProfilesPage> {
       }
       if (mounted) setState(() => proxyMsg = '内核已退出，请检查配置并重新启动。');
     });
+    if (Platform.isWindows &&
+        widget.systemProxyAdapter == null &&
+        desktopEnabled) {
+      DesktopIntegration.channel.setMethodCallHandler((call) async {
+        if (call.method == 'exitRequested') await _exit();
+      });
+      DesktopIntegration.autostartEnabled().then((v) {
+        if (mounted) setState(() => autostart = v);
+      });
+      unawaited(_serviceStatus());
+    }
+    subscriptionTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _scheduledUpdates(),
+    );
+    if (Platform.isWindows && desktopEnabled) {
+      unawaited(_checkUpdate());
+      updateTimer = Timer.periodic(
+        const Duration(hours: 6),
+        (_) => _checkUpdate(),
+      );
+    }
     _load();
+  }
+
+  Future<void> _action(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (_) {
+      if (mounted) setState(() => proxyMsg = '操作失败，原配置已保留；请检查网络或配置格式。');
+    }
+  }
+
+  Future<void> _checkUpdate() async {
+    try {
+      final update = await AppUpdater.check();
+      if (mounted) {
+        setState(() {
+          availableUpdate = update;
+          updateMessage = update == null
+              ? '当前已是最新可用版本。'
+              : '发现更新 ${update.tag}，可下载并覆盖安装，保留订阅与设置。';
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => updateMessage = '更新检查失败，可稍后重试。');
+    }
+  }
+
+  Future<void> _serviceStatus() async {
+    try {
+      final result = await Process.run(
+        '${File(Platform.resolvedExecutable).parent.path}/Hotaru.Service.exe',
+        ['status'],
+      );
+      if (mounted) {
+        setState(() {
+          serviceReady = result.exitCode == 0;
+          useService = serviceReady;
+        });
+      }
+    } catch (_) {
+      /* Optional service may be absent in development. */
+    }
+  }
+
+  Future<void> _manageService(bool install) async {
+    if (busy || core.status == CoreStatus.running) return;
+    setState(() => busy = true);
+    await _action(() async {
+      await DesktopIntegration.channel.invokeMethod<void>(
+        install ? 'installService' : 'removeService',
+      );
+      await Future<void>.delayed(const Duration(seconds: 1));
+      await _serviceStatus();
+    });
+    if (mounted) setState(() => busy = false);
+  }
+
+  Future<void> _installUpdate() async {
+    final update = availableUpdate;
+    if (update == null || updating || busy) return;
+    setState(() {
+      updating = true;
+      updateMessage = '正在下载并验证安装包…';
+    });
+    try {
+      final file = await AppUpdater.download(update);
+      if (systemProxyOn) await _setSystemProxy(false);
+      await core.stop();
+      final result = await Process.run(guardian.executable, [
+        'update',
+        '$pid',
+        file.path,
+      ]);
+      if (result.exitCode != 0) throw StateError('更新程序启动失败');
+      await DesktopIntegration.exit();
+    } catch (_) {
+      if (mounted) {
+        setState(() => updateMessage = '更新失败，当前版本保留。网络或校验失败时不会执行安装。');
+      }
+    } finally {
+      if (mounted) setState(() => updating = false);
+    }
+  }
+
+  Future<void> _exit() async {
+    if (busy || proxyChanging) return;
+    await _action(() async {
+      if (systemProxyOn) await _setSystemProxy(false);
+      await core.stop();
+      await DesktopIntegration.exit();
+    });
+  }
+
+  void _startStreams() {
+    unawaited(logStream?.cancel());
+    unawaited(trafficStream?.cancel());
+    final api = core.api;
+    if (api == null) return;
+    logStream = api.events('/logs?level=info').listen((event) {
+      if (!mounted) return;
+      setState(() {
+        logs.add('${event['type'] ?? ''} ${event['payload'] ?? ''}');
+        if (logs.length > 200) logs.removeAt(0);
+      });
+    }, onError: (Object _) {});
+    trafficStream = api.events('/traffic').listen((event) {
+      if (mounted) {
+        setState(() {
+          upload = event['up'] as int? ?? 0;
+          download = event['down'] as int? ?? 0;
+        });
+      }
+    }, onError: (Object _) {});
+  }
+
+  Future<void> _refreshLive() async {
+    final api = core.api;
+    if (api == null || polling) return;
+    polling = true;
+    try {
+      final values = await Future.wait([
+        api.proxies(),
+        api.getMap('/providers/proxies'),
+        api.getMap('/providers/rules'),
+        api.connections(),
+        api.getMap('/configs'),
+      ]);
+      if (!mounted || core.api != api) return;
+      setState(() {
+        liveProxies = values[0];
+        providers = (values[1]['providers'] as Map? ?? {})
+            .cast<String, dynamic>();
+        // Include every provider node even when no group currently references it.
+        for (final p in providers.values) {
+          if (p is Map && p['proxies'] is List) {
+            for (final node in p['proxies'] as List) {
+              if (node is Map && node['name'] is String) {
+                liveProxies[node['name'] as String] = node;
+              }
+            }
+          }
+        }
+        ruleProviders = (values[2]['providers'] as Map? ?? {})
+            .cast<String, dynamic>();
+        connections = values[3]['connections'] as List? ?? [];
+        routing = values[4]['mode'] as String? ?? 'rule';
+      });
+    } catch (_) {
+      /* Keep last snapshot on transient API failures. */
+    } finally {
+      polling = false;
+    }
+  }
+
+  String _profileSummary(StoredProfile profile) {
+    final fields = <String, int>{};
+    for (final field in (profile.userInfo ?? '').split(';')) {
+      final pair = field.trim().split('=');
+      final value = pair.length == 2 ? num.tryParse(pair[1].trim()) : null;
+      if (value != null &&
+          value.isFinite &&
+          value >= 0 &&
+          value <= 0x7fffffffffffffff) {
+        fields[pair[0].trim().toLowerCase()] = value.toInt();
+      }
+    }
+    final total = fields['total'];
+    final remaining = total == null
+        ? null
+        : (total - (fields['upload'] ?? 0) - (fields['download'] ?? 0)).clamp(
+            0,
+            total,
+          );
+    final expiry = fields['expire'];
+    final expire = expiry != null && expiry <= 8640000000000 ? expiry : null;
+    return '${remaining == null ? '流量：来源未提供' : '剩余 ${(remaining / 1073741824).toStringAsFixed(2)} GB / ${(total! / 1073741824).toStringAsFixed(2)} GB'}'
+        ' · ${expire == null || expire <= 0 ? '到期：来源未提供' : '到期：${DateTime.fromMillisecondsSinceEpoch(expire * 1000).toLocal().toString().split(' ').first}'}'
+        '\n${profile.updatedAt == null ? '尚未更新' : '更新于 ${profile.updatedAt!.toLocal()}'} · ${profile.updateHours == 0 ? '手动更新' : '每 ${profile.updateHours} 小时更新'}';
+  }
+
+  Future<void> _scheduledUpdates() async {
+    if (!mounted || busy || store == null) return;
+    for (final profile in List<StoredProfile>.of(store!.profiles)) {
+      if (profile.sourceUrl == null || profile.updateHours == 0) continue;
+      if (DateTime.now()
+              .difference(profile.updatedAt ?? profile.createdAt)
+              .inHours >=
+          profile.updateHours) {
+        await _updateProfile(profile);
+      }
+    }
+  }
+
+  Future<void> _updateProfile(StoredProfile profile) async {
+    if (busy) return;
+    setState(() => busy = true);
+    try {
+      final response = await ProfileImporter.fetchSubscription(
+        Uri.parse(profile.sourceUrl!),
+      );
+      final parsed = ProfileImporter.parse(response.body, profile.mode);
+      final next = StoredProfile.fromJson({
+        ...profile.toJson(),
+        'config': parsed.config,
+        'userInfo': response.userInfo,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      // Validate the result after user overrides before replacing the saved source.
+      final transformed = await ProfileOverrides.apply(
+        next.config,
+        next.merge,
+        next.script,
+      );
+      final candidate = ProxyConfigBuilder.build(
+        profileConfig: transformed,
+        mode: next.mode,
+        selectedNode: next.nodeNames.contains(store!.selectedNode)
+            ? store!.selectedNode!
+            : (next.nodeNames.firstOrNull ?? ''),
+      );
+      final validation = MihomoController();
+      final dir = Directory(
+        '${storeFile!.parent.path}/validation/${profile.id}',
+      );
+      try {
+        await validation.startRuntime(
+          exePath.text.trim(),
+          dir,
+          runtimeConfig: candidate,
+          mixedPort: await MihomoController.findFreePort(),
+        );
+        await validation.stop();
+      } finally {
+        await validation.dispose();
+      }
+      await store!.replace(next);
+      if (mounted) {
+        setState(
+          () => importMsg =
+              '「${profile.name}」已更新；覆写已保留。${activeProfileId == profile.id ? '当前连接继续使用原配置，停止再启动后应用更新。' : ''}',
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => importMsg = '「${profile.name}」更新失败，旧订阅及覆写完整保留。');
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> _editOverrides(StoredProfile profile) async {
+    final merge = TextEditingController(
+      text: const JsonEncoder.withIndent('  ').convert(profile.merge),
+    );
+    final script = TextEditingController(text: profile.script);
+    final interval = TextEditingController(text: '${profile.updateHours}');
+    String? error;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          title: Text('${profile.name} · 覆写'),
+          content: SizedBox(
+            width: 700,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    '顺序：原订阅 → Merge → Script。字典递归合并，数组整体替换。仅运行你信任并主动填写的脚本；保存不会立即改变当前连接。',
+                  ),
+                  TextField(
+                    controller: interval,
+                    decoration: const InputDecoration(
+                      labelText: '更新间隔（小时，0 为关闭，最大 720）',
+                    ),
+                  ),
+                  TextField(
+                    controller: merge,
+                    minLines: 4,
+                    maxLines: 8,
+                    decoration: const InputDecoration(
+                      labelText: 'Merge · YAML/JSON',
+                    ),
+                  ),
+                  TextField(
+                    controller: script,
+                    minLines: 4,
+                    maxLines: 8,
+                    decoration: const InputDecoration(
+                      labelText:
+                          'Script · function main(config) { return config; }',
+                    ),
+                  ),
+                  if (error != null) Text(error!),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  final hours = int.parse(interval.text);
+                  if (hours < 0 || hours > 720) throw const FormatException();
+                  final overlay = ProfileOverrides.parseMerge(merge.text);
+                  await ProfileOverrides.apply(
+                    profile.config,
+                    overlay,
+                    script.text,
+                  );
+                  await store!.replace(
+                    StoredProfile.fromJson({
+                      ...profile.toJson(),
+                      'merge': overlay,
+                      'script': script.text,
+                      'updateHours': hours,
+                    }),
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                  if (mounted) setState(() {});
+                } catch (_) {
+                  update(() => error = '保存失败：检查 Merge、Script 和更新间隔；旧设置未改动。');
+                }
+              },
+              child: const Text('检查并保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+    // Dialog animation may still reference its controllers after completion.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    merge.dispose();
+    script.dispose();
+    interval.dispose();
+  }
+
+  Future<void> _testNodes(List<String> names, {bool tcp = false}) async {
+    if (testing) return;
+    setState(() => testing = true);
+    final api = core.api;
+    final profile = store?.selectedProfile;
+    var index = 0;
+    Future<void> worker() async {
+      while (index < names.length && mounted && core.api == api) {
+        final name = names[index++];
+        int? ms;
+        if (tcp) {
+          final node = profile?.nodes
+              .where((n) => n['name'] == name)
+              .firstOrNull;
+          if (node?['server'] is String && node?['port'] is int) {
+            final watch = Stopwatch()..start();
+            try {
+              final socket = await Socket.connect(
+                node!['server'] as String,
+                node['port'] as int,
+                timeout: const Duration(seconds: 3),
+              );
+              ms = watch.elapsedMilliseconds;
+              socket.destroy();
+            } catch (_) {
+              ms = null;
+            }
+          }
+        } else {
+          ms = await api?.delay(
+            name,
+            provider: liveProxies[name]?['provider-name'] as String?,
+          );
+        }
+        if (mounted) setState(() => (tcp ? tcpLatency : latency)[name] = ms);
+      }
+    }
+
+    await Future.wait(List.generate(4, (_) => worker()));
+    if (mounted) setState(() => testing = false);
+  }
+
+  List<Widget> _liveWidgets() {
+    if (core.api == null) {
+      return [const Text('启动后将按订阅原有代理组显示节点，远程 Provider 由内核加载。')];
+    }
+    final groups = liveProxies.entries
+        .where((e) => e.value is Map && e.value['all'] is List)
+        .toList();
+    final group =
+        groups.where((g) => g.key == chosenGroup).firstOrNull ??
+        groups.where((g) => g.key != 'GLOBAL').firstOrNull ??
+        groups.firstOrNull;
+    var names = group == null || chosenGroup == '*'
+        ? liveProxies.keys.toList()
+        : (group.value['all'] as List).cast<String>().toList();
+    names = names
+        .where((n) => n.toLowerCase().contains(nodeFilter.toLowerCase()))
+        .toList();
+    if (sorting) {
+      names.sort(
+        (a, b) =>
+            (latency[a] ?? 0x7fffffff).compareTo(latency[b] ?? 0x7fffffff),
+      );
+    }
+    final selectable = group?.value['type'] == 'Selector';
+    return [
+      Wrap(
+        spacing: 8,
+        children: [
+          for (final entry in {
+            'rule': '规则',
+            'global': '全局',
+            'direct': '直连',
+          }.entries)
+            ChoiceChip(
+              label: Text(entry.value),
+              selected: routing == entry.key,
+              onSelected: busy
+                  ? null
+                  : (_) => _action(() async {
+                      await core.api!.setMode(entry.key);
+                      await _refreshLive();
+                    }),
+            ),
+        ],
+      ),
+      const Text('默认沿用订阅分流。手动组可切换；自动测速、故障转移与负载均衡组由内核决定。'),
+      Wrap(
+        spacing: 8,
+        children: [
+          for (final g in groups)
+            ChoiceChip(
+              label: Text('${g.key} · ${g.value['type']}'),
+              selected: group?.key == g.key,
+              onSelected: (_) => setState(() => chosenGroup = g.key),
+            ),
+          ChoiceChip(
+            label: const Text('全部节点'),
+            selected: chosenGroup == '*',
+            onSelected: (_) => setState(() => chosenGroup = '*'),
+          ),
+        ],
+      ),
+      TextField(
+        onChanged: (value) => setState(() => nodeFilter = value),
+        decoration: const InputDecoration(labelText: '搜索节点'),
+      ),
+      Wrap(
+        spacing: 8,
+        children: [
+          OutlinedButton(
+            onPressed: testing
+                ? null
+                : () => _testNodes(
+                    chosenGroup == '*' ? liveProxies.keys.toList() : names,
+                  ),
+            child: const Text('全组真连接测速'),
+          ),
+          OutlinedButton(
+            onPressed: testing
+                ? null
+                : () => _testNodes(
+                    chosenGroup == '*' ? liveProxies.keys.toList() : names,
+                    tcp: true,
+                  ),
+            child: const Text('全组 TCP 测速'),
+          ),
+          FilterChip(
+            label: const Text('按延迟排序'),
+            selected: sorting,
+            onSelected: (v) => setState(() => sorting = v),
+          ),
+        ],
+      ),
+      if (testing) const LinearProgressIndicator(),
+      const Text('TCP 只测服务器握手；真连接由内核走代理测试。远程节点未暴露服务器时 TCP 显示不可用。'),
+      for (final node in names)
+        ListTile(
+          title: Text(node),
+          selected: group?.value['now'] == node,
+          subtitle: Text(
+            '${liveProxies[node]?['type'] ?? '代理组'} · 真连接 ${latency.containsKey(node) ? '${latency[node] ?? '失败'} ms' : '未测'} · TCP ${tcpLatency.containsKey(node) ? '${tcpLatency[node] ?? '不可用'} ms' : '未测'}',
+          ),
+          trailing: IconButton(
+            tooltip: '测试 $node',
+            icon: const Icon(Icons.speed),
+            onPressed: testing ? null : () => _testNodes([node]),
+          ),
+          onTap: !selectable || chosenGroup == '*' || busy
+              ? null
+              : () => _action(() async {
+                  await core.api!.select(group!.key, node);
+                  await _refreshLive();
+                }),
+        ),
+      for (final entry in providers.entries)
+        ListTile(
+          title: Text('节点集 · ${entry.key}'),
+          subtitle: Text(
+            '${(entry.value['proxies'] as List?)?.length ?? 0} 个节点',
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _action(() => core.api!.updateProvider(entry.key)),
+          ),
+        ),
+      ExpansionTile(
+        title: Text('远程规则集 · ${ruleProviders.length}'),
+        children: [
+          for (final entry in ruleProviders.entries)
+            ListTile(
+              title: Text(entry.key),
+              subtitle: Text('${entry.value['ruleCount'] ?? '—'} 条规则'),
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () => _action(
+                  () => core.api!.updateProvider(entry.key, rules: true),
+                ),
+              ),
+            ),
+        ],
+      ),
+      ExpansionTile(
+        title: Text(
+          '连接 · ${connections.length} · ↑ ${(upload / 1024).toStringAsFixed(1)} / ↓ ${(download / 1024).toStringAsFixed(1)} KB/s',
+        ),
+        children: [
+          for (final c in connections)
+            ListTile(
+              title: Text(
+                '${c['metadata']?['host'] ?? c['metadata']?['destinationIP'] ?? ''}:${c['metadata']?['destinationPort'] ?? ''}',
+              ),
+              subtitle: Text('${c['chains']} · ${c['rule']}'),
+              trailing: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () =>
+                    _action(() => core.api!.closeConnection(c['id'] as String)),
+              ),
+            ),
+        ],
+      ),
+      ExpansionTile(
+        title: const Text('实时内核日志（本机最近 200 条）'),
+        children: [for (final line in logs.reversed) SelectableText(line)],
+      ),
+      const Divider(height: 32),
+    ];
   }
 
   Future<void> _load() async {
@@ -143,18 +752,23 @@ class _ProfilesPageState extends State<ProfilesPage> {
     if (s == null || busy) return;
     setState(() => busy = true);
     try {
-      final text = remote
-          ? await ProfileImporter.fetch(Uri.parse(url.text.trim()))
-          : content.text;
+      final response = remote
+          ? await ProfileImporter.fetchSubscription(Uri.parse(url.text.trim()))
+          : null;
+      final text = response?.body ?? content.text;
       final parsed = ProfileImporter.parse(text, mode);
       final fallback = remote
           ? (Uri.tryParse(url.text.trim())?.host ?? '订阅')
-          : (parsed.config['proxies'] as List).first['name'].toString();
+          : ((parsed.config['proxies'] as List?)?.firstOrNull?['name']
+                    ?.toString() ??
+                '本地配置');
       final saved = await s.add(
         name: name.text.trim().isEmpty ? fallback : name.text.trim(),
         mode: mode,
         source: remote ? 'url' : 'paste',
         config: parsed.config,
+        sourceUrl: remote ? url.text.trim() : null,
+        userInfo: response?.userInfo,
       );
       if (mounted) {
         setState(
@@ -211,7 +825,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
         final s = store;
         final profile = s?.selectedProfile;
         final node = s?.selectedNode;
-        if (profile == null || node == null) {
+        if (profile == null) {
           setState(() => proxyMsg = '请先导入并选择一个节点。');
           return;
         }
@@ -231,12 +845,19 @@ class _ProfilesPageState extends State<ProfilesPage> {
           port = await MihomoController.findFreePort();
           note = '原端口被占用，已改用 $port。';
         }
-        runtimeDir ??= await Directory.systemTemp.createTemp('hotaru-run-');
-        final config = ProxyConfigBuilder.build(
-          profileConfig: profile.config,
-          mode: profile.mode,
-          selectedNode: node,
+        runtimeDir = Directory(
+          '${storeFile!.parent.path}/runtime/${profile.id}',
         );
+        final config = ProxyConfigBuilder.build(
+          profileConfig: await ProfileOverrides.apply(
+            profile.config,
+            profile.merge,
+            profile.script,
+          ),
+          mode: profile.mode,
+          selectedNode: node ?? '',
+        );
+        core.serviceMode = useService && serviceReady;
         await core.startRuntime(
           exePath.text.trim(),
           runtimeDir!,
@@ -245,7 +866,13 @@ class _ProfilesPageState extends State<ProfilesPage> {
         );
         activeProfileId = profile.id;
         String? group;
-        if (core.api != null) group = await core.api!.selectNode(node);
+        if (core.api != null &&
+            node != null &&
+            profile.mode == ImportMode.nodesOnly) {
+          group = await core.api!.selectNode(node);
+        }
+        await _refreshLive();
+        _startStreams();
         if (mounted) {
           setState(
             () => proxyMsg =
@@ -296,11 +923,21 @@ class _ProfilesPageState extends State<ProfilesPage> {
           throw StateError('Restore existing backup before enabling proxy');
         }
         final current = await systemProxy.read();
-        await writeTextAtomically(bf, current.encode());
+        await writeTextAtomically(
+          bf,
+          jsonEncode({
+            ...current.toJson(),
+            'owned': '127.0.0.1:${core.mixedPort}',
+          }),
+        );
         try {
+          if (Platform.isWindows && widget.systemProxyAdapter == null) {
+            await guardian.arm(core.processId!, '127.0.0.1:${core.mixedPort}');
+          }
           await systemProxy.enable('127.0.0.1:${core.mixedPort}');
         } catch (_) {
           try {
+            await guardian.cancel();
             await systemProxy.restore(current);
             await bf.delete();
           } catch (_) {
@@ -316,6 +953,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
           });
         }
       } else {
+        await guardian.cancel();
         if (bf != null && await bf.exists()) {
           final saved = SavedProxyState.decode(await bf.readAsString());
           final current = await systemProxy.read();
@@ -344,7 +982,13 @@ class _ProfilesPageState extends State<ProfilesPage> {
       final bf = backupFile;
       if (bf == null || !await bf.exists()) return;
       final saved = SavedProxyState.decode(await bf.readAsString());
-      await systemProxy.restore(saved);
+      final journal = jsonDecode(await bf.readAsString()) as Map;
+      final current = await systemProxy.read();
+      if (journal['owned'] != null &&
+          current.enable == true &&
+          current.server == journal['owned']) {
+        await systemProxy.restore(saved);
+      }
       await bf.delete();
       if (mounted) {
         setState(() {
@@ -362,6 +1006,13 @@ class _ProfilesPageState extends State<ProfilesPage> {
   @override
   void dispose() {
     monitor?.cancel();
+    subscriptionTimer?.cancel();
+    updateTimer?.cancel();
+    unawaited(logStream?.cancel());
+    unawaited(trafficStream?.cancel());
+    if (widget.systemProxyAdapter == null) {
+      DesktopIntegration.channel.setMethodCallHandler(null);
+    }
     lifecycle?.dispose();
     if (systemProxyOn) {
       unawaited(() async {
@@ -385,68 +1036,70 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final s = store;
     final running = core.status == CoreStatus.running;
     return Scaffold(
-      appBar: AppBar(title: const Text('订阅与节点')),
+      appBar: AppBar(title: Text(widget.panel == 'config' ? '配置' : '节点')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text(
-            '导入 → 保存 → 选节点 → 启动代理。协议：SOCKS5、HTTP(S)、Trojan、SS、VMess、VLESS、Hysteria2；其他参数会明确拒绝，不静默丢弃。',
-          ),
-          const SizedBox(height: 16),
-          DropdownButton<ImportMode>(
-            value: mode,
-            onChanged: busy ? null : (v) => setState(() => mode = v!),
-            items: const [
-              DropdownMenuItem(
-                value: ImportMode.nodesOnly,
-                child: Text('仅导入节点'),
+          if (widget.panel != 'nodes') ...[
+            const Text(
+              '导入 → 保存 → 选节点 → 启动代理。协议：SOCKS5、HTTP(S)、Trojan、SS、VMess、VLESS、Hysteria2；其他参数会明确拒绝，不静默丢弃。',
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<ImportMode>(
+              value: mode,
+              onChanged: busy ? null : (v) => setState(() => mode = v!),
+              items: const [
+                DropdownMenuItem(
+                  value: ImportMode.nodesOnly,
+                  child: Text('仅导入节点'),
+                ),
+                DropdownMenuItem(
+                  value: ImportMode.fullConfig,
+                  child: Text('完整配置'),
+                ),
+              ],
+            ),
+            TextField(
+              controller: name,
+              enabled: !busy,
+              decoration: const InputDecoration(
+                labelText: '订阅名称（可空）',
+                border: OutlineInputBorder(),
               ),
-              DropdownMenuItem(
-                value: ImportMode.fullConfig,
-                child: Text('完整配置'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: content,
+              minLines: 4,
+              maxLines: 8,
+              enabled: !busy,
+              decoration: const InputDecoration(
+                labelText: '粘贴配置、Base64 订阅或节点链接',
+                border: OutlineInputBorder(),
               ),
-            ],
-          ),
-          TextField(
-            controller: name,
-            enabled: !busy,
-            decoration: const InputDecoration(
-              labelText: '订阅名称（可空）',
-              border: OutlineInputBorder(),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: content,
-            minLines: 4,
-            maxLines: 8,
-            enabled: !busy,
-            decoration: const InputDecoration(
-              labelText: '粘贴配置、Base64 订阅或节点链接',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: busy || s == null ? null : () => _import(false),
+              child: const Text('检查并保存'),
             ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: busy || s == null ? null : () => _import(false),
-            child: const Text('检查并保存'),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: url,
-            enabled: !busy,
-            decoration: const InputDecoration(
-              labelText: 'HTTPS 订阅地址',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            TextField(
+              controller: url,
+              enabled: !busy,
+              decoration: const InputDecoration(
+                labelText: 'HTTPS 订阅地址',
+                border: OutlineInputBorder(),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: busy || s == null ? null : () => _import(true),
-            child: const Text('下载并保存'),
-          ),
-          const SizedBox(height: 12),
-          Text(importMsg),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: busy || s == null ? null : () => _import(true),
+              child: const Text('下载并保存'),
+            ),
+            const SizedBox(height: 12),
+            Text(importMsg),
+          ],
           const Divider(height: 40),
           if (s == null)
             const Center(child: CircularProgressIndicator())
@@ -475,95 +1128,185 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   ),
                 ],
               ),
-              for (final node in profile.nodeNames)
-                ListTile(
-                  dense: true,
-                  leading: Icon(
-                    s.selectedProfileId == profile.id && s.selectedNode == node
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                  ),
-                  title: Text(node),
-                  onTap: busy ? null : () => _select(profile, node),
+              if (widget.panel != 'nodes') ...[
+                Text(_profileSummary(profile)),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: busy || running
+                          ? null
+                          : () => _select(
+                              profile,
+                              profile.nodeNames.firstOrNull ?? '',
+                            ),
+                      child: Text(
+                        s.selectedProfileId == profile.id ? '当前配置' : '使用此配置',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: busy || profile.sourceUrl == null
+                          ? null
+                          : () => _updateProfile(profile),
+                      child: const Text('更新订阅'),
+                    ),
+                    TextButton(
+                      onPressed: busy || running
+                          ? null
+                          : () => _editOverrides(profile),
+                      child: const Text('覆写与更新设置'),
+                    ),
+                  ],
                 ),
+              ],
+              if (widget.panel != 'config' &&
+                  (!running || activeProfileId != profile.id))
+                for (final node in profile.nodeNames)
+                  ListTile(
+                    dense: true,
+                    leading: Icon(
+                      s.selectedProfileId == profile.id &&
+                              s.selectedNode == node
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                    ),
+                    title: Text(node),
+                    onTap: busy ? null : () => _select(profile, node),
+                  ),
               const SizedBox(height: 8),
             ],
           const Divider(height: 40),
-          const Text('代理控制', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: exePath,
-            enabled: !busy && !running,
-            decoration: const InputDecoration(
-              labelText: 'Mihomo 内核路径（安装版自动填写）',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: portField,
-            enabled: !busy && !running,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: '本地混合端口（HTTP/SOCKS）',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: busy || s == null ? null : _toggleProxy,
-            child: Text(
-              busy
-                  ? '正在处理…'
-                  : running
-                  ? '停止代理'
-                  : '启动代理',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(proxyMsg),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              OutlinedButton(
-                onPressed: running ? _delay : null,
-                child: const Text('测速当前节点'),
+          if (widget.panel != 'config') ...[
+            ..._liveWidgets(),
+            const Text('代理控制', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: exePath,
+              enabled: !busy && !running,
+              decoration: const InputDecoration(
+                labelText: 'Mihomo 内核路径（安装版自动填写）',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(width: 12),
-              if (delayMsg != null) Expanded(child: Text(delayMsg!)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (leftoverBackup && !systemProxyOn)
-            OutlinedButton(
-              onPressed: systemProxySupported ? _restoreLeftover : null,
-              child: const Text('恢复上次遗留的原系统代理设置'),
             ),
-          SwitchListTile(
-            title: const Text('系统代理（Windows）'),
-            subtitle: Text(
-              systemProxySupported
-                  ? '开启时先备份你原来的代理设置，关闭时原样恢复。需先启动代理。'
-                  : '当前平台暂不支持系统代理开关，请手动设置上面的本地代理。',
+            const SizedBox(height: 12),
+            TextField(
+              controller: portField,
+              enabled: !busy && !running,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: '本地混合端口（HTTP/SOCKS）',
+                border: OutlineInputBorder(),
+              ),
             ),
-            value: systemProxyOn,
-            onChanged:
-                !systemProxySupported ||
-                    !running ||
-                    busy ||
-                    proxyChanging ||
-                    (leftoverBackup && !systemProxyOn)
-                ? null
-                : (v) async {
-                    try {
-                      await _setSystemProxy(v);
-                    } catch (e) {
-                      if (mounted) {
-                        setState(() => proxyMsg = '系统代理设置失败：$e');
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: busy || s == null ? null : _toggleProxy,
+              child: Text(
+                busy
+                    ? '正在处理…'
+                    : running
+                    ? '停止代理'
+                    : '启动代理',
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(proxyMsg),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: running ? _delay : null,
+                  child: const Text('测速当前节点'),
+                ),
+                const SizedBox(width: 12),
+                if (delayMsg != null) Expanded(child: Text(delayMsg!)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (leftoverBackup && !systemProxyOn)
+              OutlinedButton(
+                onPressed: systemProxySupported ? _restoreLeftover : null,
+                child: const Text('恢复上次遗留的原系统代理设置'),
+              ),
+            SwitchListTile(
+              title: const Text('系统代理（Windows）'),
+              subtitle: Text(
+                systemProxySupported
+                    ? '开启时先备份你原来的代理设置，关闭时原样恢复。需先启动代理。'
+                    : '当前平台暂不支持系统代理开关，请手动设置上面的本地代理。',
+              ),
+              value: systemProxyOn,
+              onChanged:
+                  !systemProxySupported ||
+                      !running ||
+                      busy ||
+                      proxyChanging ||
+                      (leftoverBackup && !systemProxyOn)
+                  ? null
+                  : (v) async {
+                      try {
+                        await _setSystemProxy(v);
+                      } catch (e) {
+                        if (mounted) {
+                          setState(() => proxyMsg = '系统代理设置失败：$e');
+                        }
                       }
-                    }
-                  },
-          ),
+                    },
+            ),
+          ],
+          if (Platform.isWindows)
+            SwitchListTile(
+              title: const Text('开机自启 · 静默到托盘'),
+              value: autostart,
+              onChanged: (v) => _action(() async {
+                await DesktopIntegration.autostart(v);
+                if (mounted) setState(() => autostart = v);
+              }),
+            ),
+          if (Platform.isWindows && widget.panel != 'nodes') ...[
+            SwitchListTile(
+              title: const Text('Windows 服务承载内核'),
+              value: useService,
+              subtitle: Text(
+                serviceReady
+                    ? '已安装 · 日常启动无需 UAC；当前服务以 LocalService 运行，TUN 下一阶段开放。'
+                    : '可选安装需要一次管理员授权，普通系统代理无需安装服务。',
+              ),
+              onChanged: busy || running || !serviceReady
+                  ? null
+                  : (v) => setState(() => useService = v),
+            ),
+            TextButton(
+              onPressed: busy || running
+                  ? null
+                  : () => _manageService(!serviceReady),
+              child: Text(
+                serviceReady
+                    ? '卸载 Windows 服务（管理员授权）'
+                    : '安装 Windows 服务（一次管理员授权）',
+              ),
+            ),
+            Text(updateMessage),
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: updating ? null : _checkUpdate,
+                  child: const Text('检查软件更新'),
+                ),
+                if (availableUpdate != null)
+                  FilledButton(
+                    onPressed: updating || busy ? null : _installUpdate,
+                    child: const Text('下载并安装更新（将退出应用）'),
+                  ),
+              ],
+            ),
+          ],
+          if (Platform.isWindows)
+            OutlinedButton(
+              onPressed: busy ? null : _exit,
+              child: const Text('退出并恢复系统代理'),
+            ),
         ],
       ),
     );

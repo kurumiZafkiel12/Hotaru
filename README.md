@@ -1,30 +1,14 @@
 # Hotaru · 蛍
 
-Windows 优先的 Mihomo 代理客户端。原生 Flutter 工程位于 apps/hotaru，网页原型 src/ 仅作为早期交互参考。
+Windows 优先的开源 Mihomo 客户端，简洁小组件首页与独立工具箱，后续支持 Android / Linux。采用 GPL-3.0-or-later。
 
-## v0.4 安装版
+从 [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载 `Hotaru-0.4.1-windows-x64-setup.exe`，关闭旧版后覆盖安装。包含已校验的 Mihomo v1.19.33 与 Node.js Script 运行时，不需要开发环境。安装包尚未签名。
 
-从 [Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载 Hotaru-0.4.0-windows-x64-setup.exe。安装到当前用户目录，包含校验过的 Mihomo v1.19.33，无需管理员权限或开发环境。安装包由 CI 在测试与验证通过后发布。
+使用：**配置页导入 → 节点页启动 → 按需开启系统代理**。默认保留订阅规则，节点页显示策略组与 Provider 节点。关窗隐藏到托盘；右键托盘“退出并恢复系统代理”才会退出。可选服务首次安装需要管理员授权，日常使用无需重复 UAC；TUN 下一阶段开放。
 
-启动 → 节点页导入订阅/链接 → 选择节点 → 启动代理 → 按需打开系统代理。切换首页/工具箱仍保持运行。正常关闭应用会停止代理并恢复它管理的系统代理；强制退出后可在下次启动用恢复按钮处理。
+0.4.1 提供订阅定时更新/用量、TCP/真连接批量测速、三态分流、远程节点集与规则集、Merge+Script 覆写、连接/日志/流量、崩溃代理守护、托盘/静默自启、自动检查与校验安装更新。功能边界、升级步骤和限制见 [0.4.1 发布说明](docs/RELEASE-0.4.1.md)，参考实现分析见 [源码对照](docs/REFERENCE-ANALYSIS-0.4.1.md)。
 
-更新方式：点击“下载更新”，下载新安装包，关闭 Hotaru 后覆盖安装。订阅和布局保留。当前没有后台自动更新。旧 v0.3 ZIP 可以保留；使用安装版前关闭旧版本，避免争用系统代理。
-
-## 已实现
-
-- 可编辑小组件首页、工具箱入口、节点与订阅保存。
-- Mihomo YAML/JSON（显式 proxies）、Base64 订阅、SOCKS5、HTTP(S)、SS、VMess、VLESS、Trojan、Hysteria2，支持范围由解析器校验。
-- 节点选择、混合入口、真实内核延迟、节点切换、Windows 系统代理备份/恢复与即时通知。
-- 内置内核路径、正常退出清理、内核失败恢复、单实例、Windows Job Object 子进程回收。
-- Inno Setup 安装/覆盖升级/卸载流程；许可页及发布校验和。
-
-完整配置会覆写入站与控制接口字段，确保仅使用本应用控制的回环端口；TUN 和外部面板关闭。跨订阅切换与导入前需要停止运行中的代理。
-
-## 待完成与限制
-
-TUN、多跳、可视化规则编辑、下载测速、IP 质量数据源、托盘、开机启动、Android/Linux 实机适配。首页流量/IP 仍为明确占位。节点凭据保存在 %APPDATA%/Hotaru 的明文 JSON；卸载保留此目录。真实订阅和公网节点需用户验收。
-
-Windows 包尚未签名；对安装、更新和测试的具体证据见 [验收记录](docs/V04-VERIFICATION.md)。历史 [Muse v0.3 交还报告](docs/HANDOFF-REPORT.md) 保留原文，不作为当前版本说明。
+本地配置包含节点凭据，保存在 `%APPDATA%/Hotaru`，不会上传；卸载保留。原有 v0.3 与历史交还报告保留用于追溯。
 
 ## 开发检查
 

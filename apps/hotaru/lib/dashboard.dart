@@ -137,10 +137,10 @@ class _DashboardState extends State<Dashboard> {
           [
             '在节点页启动代理；切换页面后保持连接。TUN 尚未接入。',
             '接入实际代理连接后显示流量',
-            '在「节点」页导入、保存并选择节点后启动代理',
+            '在「配置」页导入订阅，在「节点」页选择代理组',
             '不会显示模拟 IP 地址',
-            '订阅保存与用量统计开发中',
-            '延迟与下载测速开发中',
+            '在配置页查看来源提供的用量与到期时间',
+            '在节点页测试 TCP 与真连接延迟',
           ][id],
           style: const TextStyle(color: Color(0xffa5b6ad)),
         ),
@@ -239,7 +239,7 @@ class _DashboardState extends State<Dashboard> {
           onPressed: () => showLicensePage(
             context: context,
             applicationName: 'Hotaru',
-            applicationVersion: '0.4.0',
+            applicationVersion: '0.4.1',
           ),
           icon: const Icon(Icons.info_outline),
         ),
@@ -253,17 +253,21 @@ class _DashboardState extends State<Dashboard> {
             },
             child: const Text('下载更新'),
           ),
-        const Padding(padding: EdgeInsets.all(16), child: Text('Hotaru v0.4')),
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Hotaru v0.4.1'),
+        ),
       ],
     ),
     body: Padding(
       padding: const EdgeInsets.all(24),
       child: IndexedStack(
-        index: page,
+        index: page < 2 ? page : 2,
         children: [
           home(),
           toolbox(),
           ProfilesPage(
+            panel: page == 3 ? 'config' : 'nodes',
             onConnectionChanged: (value) {
               if (mounted && connectionSummary != value) {
                 setState(() => connectionSummary = value);
@@ -282,7 +286,8 @@ class _DashboardState extends State<Dashboard> {
           label: '桌面',
         ),
         NavigationDestination(icon: Icon(Icons.widgets_outlined), label: '工具箱'),
-        NavigationDestination(icon: Icon(Icons.download_outlined), label: '节点'),
+        NavigationDestination(icon: Icon(Icons.hub_outlined), label: '节点'),
+        NavigationDestination(icon: Icon(Icons.download_outlined), label: '配置'),
       ],
     ),
   );

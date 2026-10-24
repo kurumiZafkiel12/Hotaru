@@ -15,6 +15,12 @@ class StoredProfile {
   final String source; // 'paste' | 'url'
   final DateTime createdAt;
   final Map<String, dynamic> config;
+  final String? sourceUrl;
+  final DateTime? updatedAt;
+  final int updateHours;
+  final String? userInfo;
+  final Map<String, dynamic> merge;
+  final String script;
 
   StoredProfile({
     required this.id,
@@ -23,6 +29,12 @@ class StoredProfile {
     required this.source,
     required this.createdAt,
     required this.config,
+    this.sourceUrl,
+    this.updatedAt,
+    this.updateHours = 24,
+    this.userInfo,
+    this.merge = const {},
+    this.script = '',
   });
 
   List<Map<String, dynamic>> get nodes => [
@@ -39,6 +51,12 @@ class StoredProfile {
     'source': source,
     'createdAt': createdAt.toIso8601String(),
     'config': config,
+    'sourceUrl': sourceUrl,
+    'updatedAt': updatedAt?.toIso8601String(),
+    'updateHours': updateHours,
+    'userInfo': userInfo,
+    'merge': merge,
+    'script': script,
   };
 
   factory StoredProfile.fromJson(Map<String, dynamic> json) {
@@ -46,8 +64,10 @@ class StoredProfile {
     if (json['id'] is! String ||
         json['name'] is! String ||
         config is! Map<String, dynamic> ||
-        (config['proxies'] is! List) ||
-        (config['proxies'] as List).isEmpty) {
+        !((config['proxies'] is List &&
+                (config['proxies'] as List).isNotEmpty) ||
+            (config['proxy-providers'] is Map &&
+                (config['proxy-providers'] as Map).isNotEmpty))) {
       throw const FormatException('Invalid stored profile');
     }
     return StoredProfile(
@@ -61,6 +81,12 @@ class StoredProfile {
           DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       config: config,
+      sourceUrl: json['sourceUrl'] as String?,
+      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? ''),
+      updateHours: (json['updateHours'] as int? ?? 24).clamp(0, 720),
+      userInfo: json['userInfo'] as String?,
+      merge: json['merge'] as Map<String, dynamic>? ?? {},
+      script: json['script'] as String? ?? '',
     );
   }
 }
@@ -130,14 +156,13 @@ class ProfileStore {
       final selNode = decoded['selectedNode'];
       if (selId is String &&
           store.profiles.any((p) => p.id == selId) &&
-          selNode is String &&
-          store.byId(selId)!.nodeNames.contains(selNode)) {
+          (selNode == null || selNode is String)) {
         store.selectedProfileId = selId;
         store.selectedNode = selNode;
       } else if (store.profiles.isNotEmpty) {
         // Keep a usable default selection rather than none at all.
         store.selectedProfileId = store.profiles.first.id;
-        store.selectedNode = store.profiles.first.nodeNames.first;
+        store.selectedNode = store.profiles.first.nodeNames.firstOrNull;
       }
     } catch (_) {
       store.profiles.clear();
@@ -163,6 +188,8 @@ class ProfileStore {
     required ImportMode mode,
     required String source,
     required Map<String, dynamic> config,
+    String? sourceUrl,
+    String? userInfo,
   }) => _change(() {
     final random = Random.secure().nextInt(1 << 32).toRadixString(16);
     final profile = StoredProfile(
@@ -172,10 +199,13 @@ class ProfileStore {
       source: source,
       createdAt: DateTime.now(),
       config: config,
+      sourceUrl: sourceUrl,
+      userInfo: userInfo,
+      updatedAt: DateTime.now(),
     );
     profiles.add(profile);
     selectedProfileId = profile.id;
-    selectedNode = profile.nodeNames.first;
+    selectedNode = profile.nodeNames.firstOrNull;
     return profile;
   });
 
@@ -183,17 +213,30 @@ class ProfileStore {
     profiles.removeWhere((p) => p.id == id);
     if (selectedProfileId == id) {
       selectedProfileId = profiles.isEmpty ? null : profiles.first.id;
-      selectedNode = profiles.isEmpty ? null : profiles.first.nodeNames.first;
+      selectedNode = profiles.isEmpty
+          ? null
+          : profiles.first.nodeNames.firstOrNull;
     }
   });
 
   Future<void> select(String profileId, String nodeName) => _change<void>(() {
     final profile = byId(profileId);
-    if (profile == null || !profile.nodeNames.contains(nodeName)) {
+    if (profile == null ||
+        (nodeName.isNotEmpty && !profile.nodeNames.contains(nodeName))) {
       throw ArgumentError('Unknown profile or node');
     }
     selectedProfileId = profileId;
     selectedNode = nodeName;
+  });
+
+  Future<void> replace(StoredProfile profile) => _change<void>(() {
+    final i = profiles.indexWhere((p) => p.id == profile.id);
+    if (i < 0) throw ArgumentError('Unknown profile');
+    profiles[i] = profile;
+    if (selectedProfileId == profile.id &&
+        !profile.nodeNames.contains(selectedNode)) {
+      selectedNode = profile.nodeNames.firstOrNull;
+    }
   });
 
   Map<String, dynamic> toJson() => {

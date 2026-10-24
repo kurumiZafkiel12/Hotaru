@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:crypto/crypto.dart';
+
 import 'mihomo_api.dart';
 
 enum CoreStatus { stopped, validating, starting, running, failed }
@@ -13,6 +15,9 @@ class MihomoController {
   CoreStatus status = CoreStatus.stopped;
   String? error;
   Process? _process;
+  int? get processId => _process?.pid;
+  bool serviceMode = false;
+  String? serviceExecutable;
   bool _busy = false;
   bool _disposed = false;
 
@@ -111,7 +116,11 @@ class MihomoController {
     final secret = newSecret();
     final controllerPort = await findFreePort();
     final config = <String, dynamic>{
-      ...runtimeConfig,
+      ...jsonDecode(jsonEncode(runtimeConfig)) as Map<String, dynamic>,
+      'profile': {
+        'store-selected': true,
+        ...?runtimeConfig['profile'] as Map<String, dynamic>?,
+      },
       'mixed-port': mixedPort,
       'allow-lan': false,
       'bind-address': '127.0.0.1',
@@ -130,6 +139,19 @@ class MihomoController {
       // a separate privileged feature, not a config accident.
       'tun': {'enable': false},
     };
+    for (final kind in ['proxy-providers', 'rule-providers']) {
+      final providers = config[kind];
+      if (providers is Map) {
+        for (final provider in providers.values) {
+          if (provider is Map &&
+              provider['type'] == 'http' &&
+              provider['url'] is String) {
+            provider['path'] =
+                './providers/$kind-${sha256.convert(utf8.encode(provider['url'] as String))}.cache';
+          }
+        }
+      }
+    }
     await _start(
       executable: executable,
       directory: directory,
@@ -192,12 +214,19 @@ class MihomoController {
       }
       if (_disposed) throw StateError('Controller disposed during validation');
       status = CoreStatus.starting;
-      final child = await Process.start(executable, [
-        '-d',
-        directory.path,
-        '-f',
-        configFile.path,
-      ]);
+      final child =
+          serviceMode && Platform.isWindows && runtimeMixedPort != null
+          ? await Process.start(
+              serviceExecutable ??
+                  '${File(Platform.resolvedExecutable).parent.path}/Hotaru.Service.exe',
+              ['run', configFile.path],
+            )
+          : await Process.start(executable, [
+              '-d',
+              directory.path,
+              '-f',
+              configFile.path,
+            ]);
       _process = child;
       if (_disposed) {
         await _terminate();

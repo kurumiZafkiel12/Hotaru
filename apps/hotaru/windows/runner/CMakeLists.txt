@@ -34,7 +34,22 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
+target_link_libraries(${BINARY_NAME} PRIVATE shell32)
+target_link_libraries(${BINARY_NAME} PRIVATE advapi32)
+target_compile_options(${BINARY_NAME} PRIVATE /utf-8)
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
+
+add_executable(Hotaru.Guardian "proxy_guardian.cpp")
+target_compile_features(Hotaru.Guardian PRIVATE cxx_std_17)
+target_compile_definitions(Hotaru.Guardian PRIVATE UNICODE _UNICODE NOMINMAX)
+target_link_libraries(Hotaru.Guardian PRIVATE advapi32 wininet)
+add_dependencies(${BINARY_NAME} Hotaru.Guardian)
+add_executable(Hotaru.Service "core_service.cpp")
+target_compile_features(Hotaru.Service PRIVATE cxx_std_17)
+target_compile_definitions(Hotaru.Service PRIVATE UNICODE _UNICODE NOMINMAX _WIN32_WINNT=0x0601)
+target_compile_options(Hotaru.Service PRIVATE /utf-8)
+target_link_libraries(Hotaru.Service PRIVATE advapi32)
+add_dependencies(${BINARY_NAME} Hotaru.Service)

@@ -19,23 +19,33 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build windows --release
+      - run: flutter build windows --release --dart-define=HOTARU_RELEASE_TAG=v0.4.1-preview.${{ github.run_number }}
       - name: Bundle verified core
         shell: pwsh
         run: |
           ../../packaging/windows/prepare-core.ps1 -BuildDir build/windows/x64/runner/Release
+          ../../packaging/windows/prepare-node.ps1 -BuildDir build/windows/x64/runner/Release
           Invoke-WebRequest 'https://github.com/MetaCubeX/mihomo/archive/refs/tags/v1.19.33.zip' -OutFile mihomo-v1.19.33-source.zip
           foreach($dll in @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')) {
             Copy-Item (Join-Path $env:WINDIR "System32/$dll") build/windows/x64/runner/Release/
           }
       - name: Real Windows proxy loop
         run: dart run tool/proxy_loop_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/core/mihomo.exe"
+      - name: Providers and four proxy groups
+        run: dart run tool/providers_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/core/mihomo.exe"
+      - name: Script overrides and timeout
+        run: dart run tool/script_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/runtime/node.exe"
+      - name: Crash guardian isolated registry tests
+        run: dart run tool/guardian_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/Hotaru.Guardian.exe"
+      - name: SCM service host isolated tests
+        shell: pwsh
+        run: ../../packaging/windows/test-service.ps1 -BuildDir build/windows/x64/runner/Release
       - name: Build installer
         shell: pwsh
         run: |
           $compiler='C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
           if(-not (Test-Path $compiler)){throw 'Inno Setup missing'}
-          & $compiler '/DAppVersion=0.4.0' '../../packaging/windows/Hotaru.iss'
+          & $compiler '/DAppVersion=0.4.1' '../../packaging/windows/Hotaru.iss'
           if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
       - name: Isolated runner system proxy verification
         run: dart run tool/system_proxy_smoke.dart
@@ -46,13 +56,13 @@ jobs:
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ../../dist/Hotaru-0.4.0-windows-x64-portable.zip
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ../../dist/Hotaru-0.4.1-windows-x64-portable.zip
           Copy-Item mihomo-v1.19.33-source.zip ../../dist/
           $lines=Get-ChildItem ../../dist -File|ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$_.Name }
           $lines | Set-Content ../../dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: hotaru-0.4.0-windows-x64
+          name: hotaru-0.4.1-windows-x64
           path: dist/*
       - name: Publish Windows preview
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -60,5 +70,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag='v0.4.0-preview.${{ github.run_number }}'
-          gh release create $tag ../../dist/* --target '${{ github.sha }}' --prerelease --title 'Hotaru 0.4.0 Windows installer preview' --notes-file ../../docs/RELEASE-0.4.md
+          $tag='v0.4.1-preview.${{ github.run_number }}'
+          gh release create $tag ../../dist/* --target '${{ github.sha }}' --prerelease --title 'Hotaru 0.4.1 Windows installer preview' --notes-file ../../docs/RELEASE-0.4.1.md

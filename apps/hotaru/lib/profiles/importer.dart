@@ -46,9 +46,6 @@ class ProfileImporter {
     if (text.isEmpty) throw const FormatException('请输入配置或节点链接');
     Map<String, dynamic> config;
     if (RegExp('^(${_schemes.join('|')})://').hasMatch(text)) {
-      if (mode == ImportMode.fullConfig) {
-        throw const FormatException('节点链接请选择仅导入节点');
-      }
       config = {
         'proxies': text
             .split(RegExp(r'\r?\n'))
@@ -78,9 +75,14 @@ class ProfileImporter {
         throw const FormatException('无法读取 Mihomo YAML/JSON 配置');
       }
     }
-    final proxies = config['proxies'];
-    if (proxies is! List || proxies.isEmpty) {
-      throw const FormatException('当前需要非空 proxies 列表；远程 provider 暂未支持');
+    final proxies = config['proxies'] ?? <dynamic>[];
+    final providers = config['proxy-providers'];
+    if (proxies is! List ||
+        (proxies.isEmpty && (providers is! Map || providers.isEmpty))) {
+      throw const FormatException('需要 proxies 或 proxy-providers');
+    }
+    if (mode == ImportMode.nodesOnly && proxies.isEmpty) {
+      throw const FormatException('Provider 订阅请使用完整配置');
     }
     final names = <String>{};
     for (final node in proxies) {
@@ -88,11 +90,11 @@ class ProfileImporter {
           node['name'] is! String ||
           (node['name'] as String).trim().isEmpty ||
           node['type'] is! String ||
-          node['server'] is! String ||
-          node['port'] is! int ||
-          node['port'] < 1 ||
-          node['port'] > 65535) {
-        throw const FormatException('节点缺少名称、类型、服务器或有效端口');
+          (node.containsKey('port') &&
+              (node['port'] is! int ||
+                  node['port'] < 1 ||
+                  node['port'] > 65535))) {
+        throw const FormatException('节点缺少名称、类型或端口无效；协议字段由内核校验');
       }
       if (!names.add(node['name'])) throw const FormatException('节点名称重复，请先重命名');
     }
@@ -590,6 +592,10 @@ class ProfileImporter {
   }
 
   static Future<String> fetch(Uri uri) async {
+    return (await fetchSubscription(uri)).body;
+  }
+
+  static Future<SubscriptionResponse> fetchSubscription(Uri uri) async {
     if (uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty) {
       throw const FormatException('订阅必须是 HTTPS 地址，且不能包含 URL 用户名密码');
     }
@@ -597,11 +603,31 @@ class ProfileImporter {
       ..connectionTimeout = const Duration(seconds: 10);
     try {
       return await (() async {
-        final request = await client.getUrl(uri);
-        request.followRedirects = false;
-        final response = await request.close();
+        var target = uri;
+        late HttpClientResponse response;
+        for (var redirects = 0; ; redirects++) {
+          if (target.scheme != 'https' ||
+              target.host.isEmpty ||
+              target.userInfo.isNotEmpty) {
+            throw const FormatException('不接受降级到 HTTP 的订阅重定向');
+          }
+          final request = await client.getUrl(target);
+          request.headers.set(
+            HttpHeaders.userAgentHeader,
+            'clash.meta/Hotaru-0.4.1',
+          );
+          request.followRedirects = false;
+          response = await request.close();
+          if (![301, 302, 303, 307, 308].contains(response.statusCode)) break;
+          final location = response.headers.value(HttpHeaders.locationHeader);
+          if (redirects >= 5 || location == null) {
+            throw const FormatException('订阅重定向过多');
+          }
+          target = target.resolve(location);
+          // Closing the entire client in finally also handles oversized redirect bodies.
+        }
         if (response.statusCode != 200) {
-          throw const FormatException('订阅下载失败；暂不自动跟随重定向');
+          throw const FormatException('订阅下载失败');
         }
         final bytes = <int>[];
         await for (final chunk in response) {
@@ -610,10 +636,19 @@ class ProfileImporter {
           }
           bytes.addAll(chunk);
         }
-        return utf8.decode(bytes);
+        return SubscriptionResponse(
+          utf8.decode(bytes),
+          response.headers.value('subscription-userinfo'),
+        );
       })().timeout(const Duration(seconds: 20));
     } finally {
       client.close(force: true);
     }
   }
+}
+
+class SubscriptionResponse {
+  final String body;
+  final String? userInfo;
+  const SubscriptionResponse(this.body, this.userInfo);
 }

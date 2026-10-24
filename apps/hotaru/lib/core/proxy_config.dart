@@ -19,6 +19,13 @@ class ProxyConfigBuilder {
     required ImportMode mode,
     required String selectedNode,
   }) {
+    if (mode == ImportMode.fullConfig &&
+        ((profileConfig['proxy-groups'] is List &&
+                (profileConfig['proxy-groups'] as List).isNotEmpty) ||
+            profileConfig.containsKey('rules') ||
+            profileConfig.containsKey('proxy-providers'))) {
+      return _deepCopy(profileConfig);
+    }
     final proxies = profileConfig['proxies'];
     if (proxies is! List || proxies.isEmpty) {
       throw ArgumentError('Profile has no proxies');
@@ -29,10 +36,6 @@ class ProxyConfigBuilder {
     ];
     if (!names.contains(selectedNode)) {
       throw ArgumentError('Selected node is not in the profile');
-    }
-    if (mode == ImportMode.fullConfig) {
-      // Deep copy through JSON so the stored profile is never mutated.
-      return _deepCopy(profileConfig);
     }
     return {
       'mode': 'rule',

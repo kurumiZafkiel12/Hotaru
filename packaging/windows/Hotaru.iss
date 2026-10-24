@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.4.0"
+  #define AppVersion "0.4.1"
 #endif
 #ifndef BuildDir
   #define BuildDir "..\..\apps\hotaru\build\windows\x64\runner\Release"
