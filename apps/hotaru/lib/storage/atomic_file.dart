@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 /// Writes text atomically: write a sibling temp file, flush, then rename
 /// over the target. A crash mid-write can only corrupt the temp file; the
@@ -9,7 +10,18 @@ Future<void> writeTextAtomically(File file, String content) async {
   final tmp = File('${file.path}.tmp');
   await tmp.writeAsString(content, flush: true);
   try {
-    await tmp.rename(file.path);
+    for (var attempt = 0; ; attempt++) {
+      try {
+        await tmp.rename(file.path);
+        break;
+      } on FileSystemException catch (error) {
+        final transient =
+            Platform.isWindows &&
+            [5, 32, 33].contains(error.osError?.errorCode);
+        if (!transient || attempt >= 19) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+    }
   } on FileSystemException {
     // Never delete the previous good file on a sharing/permission failure.
     if (await tmp.exists()) await tmp.delete();

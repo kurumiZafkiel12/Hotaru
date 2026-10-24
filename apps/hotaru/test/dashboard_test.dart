@@ -71,7 +71,12 @@ void main() {
     await tester.runAsync(() async {
       await tester.tap(find.byTooltip('移除连接状态'));
       // Poll instead of a fixed sleep: slow CI runners need longer.
-      for (var i = 0; i < 50 && file.readAsStringSync() != '[1,2,3]'; i++) {
+      for (var i = 0; i < 50; i++) {
+        try {
+          if (file.readAsStringSync() == '[1,2,3]') break;
+        } on FileSystemException {
+          // Windows may briefly deny reads during atomic replacement.
+        }
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     });

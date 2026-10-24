@@ -404,7 +404,11 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final expire = expiry != null && expiry <= 8640000000000 ? expiry : null;
     return '${remaining == null ? '流量：来源未提供' : '剩余 ${(remaining / 1073741824).toStringAsFixed(2)} GB / ${(total! / 1073741824).toStringAsFixed(2)} GB'}'
         ' · ${expire == null || expire <= 0 ? '到期：来源未提供' : '到期：${DateTime.fromMillisecondsSinceEpoch(expire * 1000).toLocal().toString().split(' ').first}'}'
-        '\n${profile.updatedAt == null ? '尚未更新' : '更新于 ${profile.updatedAt!.toLocal()}'} · ${profile.updateHours == 0 ? '手动更新' : '每 ${profile.updateHours} 小时更新'}';
+        '\n${profile.updatedAt == null ? '尚未更新' : '更新于 ${profile.updatedAt!.toLocal()}'} · ${profile.sourceUrl == null
+            ? (profile.source == 'url' ? '旧版未保存原链接，重新导入可启用更新' : '本地配置，手动维护')
+            : profile.updateHours == 0
+            ? '手动更新'
+            : '每 ${profile.updateHours} 小时更新'}';
   }
 
   Future<void> _scheduledUpdates() async {

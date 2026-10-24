@@ -11,8 +11,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Keep one application instance per interactive Windows session.
   HANDLE mutex = CreateMutexW(nullptr, FALSE, L"HotaruApplication");
   if (!mutex || GetLastError() == ERROR_ALREADY_EXISTS) {
-    MessageBoxW(nullptr, L"Hotaru is already running. Close it before updating.",
-                L"Hotaru", MB_OK | MB_ICONINFORMATION);
+    if (std::wstring(GetCommandLineW()).find(L"--silent") == std::wstring::npos) {
+      HWND existing = FindWindowW(L"FLUTTER_RUNNER_WIN32_WINDOW", L"Hotaru");
+      if (existing) { ShowWindow(existing, SW_RESTORE); SetForegroundWindow(existing); }
+      else MessageBoxW(nullptr, L"Hotaru is already starting or stopping. Please retry shortly.", L"Hotaru", MB_OK | MB_ICONINFORMATION);
+    }
     if (mutex) CloseHandle(mutex);
     return EXIT_SUCCESS;
   }
