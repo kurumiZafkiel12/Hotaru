@@ -3,6 +3,7 @@
 #include <optional>
 #include <flutter/standard_method_codec.h>
 #include <string>
+#include <vector>
 #include <sddl.h>
 
 #include "flutter/generated_plugin_registrant.h"
@@ -31,7 +32,8 @@ void FlutterWindow::UpdateTray(bool running) {
   DeleteDC(dc); ReleaseDC(nullptr, screen);
   tray_.hIcon = icon;
   wcscpy_s(tray_.szTip, running ? L"Hotaru · 代理运行中" : L"Hotaru · 代理已停止");
-  Shell_NotifyIconW(NIM_MODIFY, &tray_);
+  if (!tray_available_) tray_available_ = Shell_NotifyIconW(NIM_ADD, &tray_) != FALSE;
+  else Shell_NotifyIconW(NIM_MODIFY, &tray_);
   if (tray_icon_) DestroyIcon(tray_icon_);
   tray_icon_ = icon;
 }
@@ -90,7 +92,8 @@ bool FlutterWindow::OnCreate() {
   tray_.cbSize = sizeof(tray_); tray_.hWnd = GetHandle(); tray_.uID = 1;
   tray_.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
   tray_.uCallbackMessage = WM_APP + 1;
-  Shell_NotifyIconW(NIM_ADD, &tray_);
+  tray_.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+  tray_available_ = Shell_NotifyIconW(NIM_ADD, &tray_) != FALSE;
   UpdateTray(false);
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -120,9 +123,9 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
-  if (message == WM_CLOSE && !allow_exit_) { ShowWindow(hwnd, SW_HIDE); return 0; }
+  if (message == WM_CLOSE && !allow_exit_ && tray_available_) { ShowWindow(hwnd, SW_HIDE); return 0; }
   if (message == RegisterWindowMessageW(L"TaskbarCreated")) {
-    Shell_NotifyIconW(NIM_ADD, &tray_); return 0;
+    tray_available_ = Shell_NotifyIconW(NIM_ADD, &tray_) != FALSE; return 0;
   }
   if (message == WM_APP + 1) {
     if (lparam == WM_LBUTTONDBLCLK) { ShowWindow(hwnd, SW_SHOW); SetForegroundWindow(hwnd); }

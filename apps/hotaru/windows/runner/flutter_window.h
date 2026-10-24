@@ -35,6 +35,7 @@ class FlutterWindow : public Win32Window {
   NOTIFYICONDATAW tray_{};
   HICON tray_icon_ = nullptr;
   bool allow_exit_ = false;
+  bool tray_available_ = false;
   void UpdateTray(bool running);
 };
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cwchar>
+#include <cstring>
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "wininet.lib")
 

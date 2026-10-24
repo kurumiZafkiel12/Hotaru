@@ -68,8 +68,9 @@ Future<void> main(List<String> args) async {
                   '/providers/proxies',
                 ))['providers']['remote']['proxies']
                 as List)
-            .any((p) => p['name'] == node))
+            .any((p) => p['name'] == node)) {
           return;
+        }
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
       throw StateError('Provider node absent: $node');
