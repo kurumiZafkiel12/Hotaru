@@ -4,6 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/platform/system_proxy.dart';
 
 void main() {
+  test(
+    'Windows proxy changes broadcast refresh after registry writes',
+    () async {
+      var refreshed = 0;
+      final proxy = WindowsSystemProxy(
+        run: (_) async => ProcessResult(0, 0, '', ''),
+        notify: () => refreshed++,
+      );
+      await proxy.enable('127.0.0.1:7890');
+      await proxy.restore(const SavedProxyState(enable: false));
+      expect(refreshed, 2);
+    },
+  );
   test('parse reg query output for DWORD and SZ values', () {
     const out = '''
 

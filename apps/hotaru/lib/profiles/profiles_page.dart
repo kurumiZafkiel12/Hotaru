@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
 
 import '../core/mihomo_controller.dart';
 import '../core/proxy_config.dart';
+import '../core/core_location.dart';
 import '../platform/system_proxy.dart';
 import '../storage/atomic_file.dart';
 import 'importer.dart';
@@ -19,6 +21,7 @@ class ProfilesPage extends StatefulWidget {
   final MihomoController? controller;
   final SystemProxyAdapter? systemProxyAdapter;
   final bool? systemProxySupported;
+  final ValueChanged<String>? onConnectionChanged;
 
   const ProfilesPage({
     super.key,
@@ -26,6 +29,7 @@ class ProfilesPage extends StatefulWidget {
     this.controller,
     this.systemProxyAdapter,
     this.systemProxySupported,
+    this.onConnectionChanged,
   });
 
   @override
@@ -54,6 +58,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
   String proxyMsg = '代理未启动。';
   String? delayMsg;
   Directory? runtimeDir;
+  AppLifecycleListener? lifecycle;
+  Timer? monitor;
+  bool proxyChanging = false;
+  String? activeProfileId;
 
   File? get storeFile => widget.storeFile ?? ProfileStore.defaultFile();
   File? get backupFile {
@@ -64,6 +72,49 @@ class _ProfilesPageState extends State<ProfilesPage> {
   @override
   void initState() {
     super.initState();
+    exePath.text = bundledCorePath();
+    lifecycle = AppLifecycleListener(
+      onExitRequested: () async {
+        if (busy || proxyChanging) return AppExitResponse.cancel;
+        try {
+          if (systemProxyOn) await _setSystemProxy(false);
+          await core.stop();
+          if (runtimeDir != null && await runtimeDir!.exists()) {
+            await runtimeDir!.delete(recursive: true);
+          }
+          return AppExitResponse.exit;
+        } catch (_) {
+          if (mounted) setState(() => proxyMsg = '退出清理失败，请先停止代理并恢复原系统代理后重试。');
+          return AppExitResponse.cancel;
+        }
+      },
+    );
+    monitor = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (mounted) {
+        widget.onConnectionChanged?.call(
+          core.status == CoreStatus.running
+              ? '运行中 · 127.0.0.1:${core.mixedPort}'
+              : core.status == CoreStatus.failed
+              ? '内核已退出'
+              : '代理未启动',
+        );
+      }
+      if (!mounted ||
+          busy ||
+          proxyChanging ||
+          core.status != CoreStatus.failed) {
+        return;
+      }
+      if (systemProxyOn) {
+        try {
+          await _setSystemProxy(false);
+        } catch (_) {
+          if (mounted) setState(() => proxyMsg = '内核已退出，系统代理恢复失败。请使用恢复按钮。');
+          return;
+        }
+      }
+      if (mounted) setState(() => proxyMsg = '内核已退出，请检查配置并重新启动。');
+    });
     _load();
   }
 
@@ -84,6 +135,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
   }
 
   Future<void> _import(bool remote) async {
+    if (core.status == CoreStatus.running) {
+      setState(() => importMsg = '导入其他订阅前请先停止代理。');
+      return;
+    }
     final s = store;
     if (s == null || busy) return;
     setState(() => busy = true);
@@ -119,18 +174,26 @@ class _ProfilesPageState extends State<ProfilesPage> {
   Future<void> _select(StoredProfile profile, String node) async {
     final s = store;
     if (s == null) return;
-    await s.select(profile.id, node);
-    if (core.status == CoreStatus.running && core.api != null) {
-      final group = await core.api!.selectNode(node);
-      if (mounted) {
-        setState(
-          () => proxyMsg = group != null
-              ? '已切换节点：$node（策略组 $group），无需重启。'
-              : '已保存选择：$node。当前配置未找到包含该节点的策略组，未强制切换。',
-        );
-      }
+    if (core.status == CoreStatus.running && activeProfileId != profile.id) {
+      setState(() => proxyMsg = '切换订阅前请先停止代理，再选择并重新启动。');
+      return;
     }
-    if (mounted) setState(() {});
+    try {
+      await s.select(profile.id, node);
+      if (core.status == CoreStatus.running && core.api != null) {
+        final group = await core.api!.selectNode(node);
+        if (mounted) {
+          setState(
+            () => proxyMsg = group != null
+                ? '已切换节点：$node（策略组 $group），无需重启。'
+                : '已保存选择：$node。当前配置未找到包含该节点的策略组，未强制切换。',
+          );
+        }
+      }
+      if (mounted) setState(() {});
+    } catch (_) {
+      if (mounted) setState(() => proxyMsg = '节点切换或保存失败，请重试。');
+    }
   }
 
   Future<void> _toggleProxy() async {
@@ -149,7 +212,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
           setState(() => proxyMsg = '请先导入并选择一个节点。');
           return;
         }
-        var port = int.tryParse(portField.text.trim()) ?? 7890;
+        var port = int.tryParse(portField.text.trim());
+        if (port == null || port < 1024 || port > 65535) {
+          throw const FormatException('端口必须在 1024–65535');
+        }
         // If the requested port is taken, fall back to a free one and say so.
         var note = '';
         try {
@@ -174,6 +240,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
           runtimeConfig: config,
           mixedPort: port,
         );
+        activeProfileId = profile.id;
         String? group;
         if (core.api != null) group = await core.api!.selectNode(node);
         if (mounted) {
@@ -199,7 +266,12 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final node = store?.selectedNode;
     if (core.api == null || node == null) return;
     setState(() => delayMsg = '正在测速…');
-    final ms = await core.api!.delay(node);
+    int? ms;
+    try {
+      ms = await core.api!.delay(node);
+    } catch (_) {
+      ms = null;
+    }
     if (mounted) {
       setState(
         () => delayMsg = ms == null
@@ -210,49 +282,84 @@ class _ProfilesPageState extends State<ProfilesPage> {
   }
 
   Future<void> _setSystemProxy(bool on) async {
-    final bf = backupFile;
-    if (on) {
-      final current = await systemProxy.read();
-      if (bf != null) await writeTextAtomically(bf, current.encode());
-      await systemProxy.enable('127.0.0.1:${core.mixedPort}');
-      if (mounted) {
-        setState(() {
-          systemProxyOn = true;
-          leftoverBackup = false;
-          proxyMsg = '系统代理已开启：127.0.0.1:${core.mixedPort}（原设置已备份，关闭时代还原）。';
-        });
+    if (proxyChanging) throw StateError('System proxy operation in progress');
+    proxyChanging = true;
+    try {
+      final bf = backupFile;
+      if (on) {
+        if (systemProxyOn) return;
+        if (bf == null) throw StateError('Cannot save proxy backup');
+        if (await bf.exists()) {
+          throw StateError('Restore existing backup before enabling proxy');
+        }
+        final current = await systemProxy.read();
+        await writeTextAtomically(bf, current.encode());
+        try {
+          await systemProxy.enable('127.0.0.1:${core.mixedPort}');
+        } catch (_) {
+          try {
+            await systemProxy.restore(current);
+            await bf.delete();
+          } catch (_) {
+            if (mounted) setState(() => leftoverBackup = true);
+          }
+          rethrow;
+        }
+        if (mounted) {
+          setState(() {
+            systemProxyOn = true;
+            leftoverBackup = false;
+            proxyMsg = '系统代理已开启：127.0.0.1:${core.mixedPort}（原设置已备份，关闭时代还原）。';
+          });
+        }
+      } else {
+        if (bf != null && await bf.exists()) {
+          final saved = SavedProxyState.decode(await bf.readAsString());
+          final current = await systemProxy.read();
+          if (current.enable == true &&
+              current.server == '127.0.0.1:${core.mixedPort}') {
+            await systemProxy.restore(saved);
+          }
+          await bf.delete();
+        }
+        if (mounted) {
+          setState(() {
+            systemProxyOn = false;
+            proxyMsg = '已释放系统代理；若其他程序修改过设置，保留其最新设置。';
+          });
+        }
       }
-    } else {
-      if (bf != null && await bf.exists()) {
-        final saved = SavedProxyState.decode(await bf.readAsString());
-        await systemProxy.restore(saved);
-        await bf.delete();
-      }
-      if (mounted) {
-        setState(() {
-          systemProxyOn = false;
-          proxyMsg = '系统代理已关闭并恢复原设置。';
-        });
-      }
+    } finally {
+      proxyChanging = false;
     }
   }
 
   Future<void> _restoreLeftover() async {
-    final bf = backupFile;
-    if (bf == null || !await bf.exists()) return;
-    final saved = SavedProxyState.decode(await bf.readAsString());
-    await systemProxy.restore(saved);
-    await bf.delete();
-    if (mounted) {
-      setState(() {
-        leftoverBackup = false;
-        proxyMsg = '已恢复上次遗留的原系统代理设置。';
-      });
+    if (busy || proxyChanging) return;
+    setState(() => busy = true);
+    try {
+      final bf = backupFile;
+      if (bf == null || !await bf.exists()) return;
+      final saved = SavedProxyState.decode(await bf.readAsString());
+      await systemProxy.restore(saved);
+      await bf.delete();
+      if (mounted) {
+        setState(() {
+          leftoverBackup = false;
+          proxyMsg = '已恢复上次遗留的原系统代理设置。';
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => proxyMsg = '恢复失败，备份已保留，请重试。');
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
   @override
   void dispose() {
+    monitor?.cancel();
+    lifecycle?.dispose();
     if (systemProxyOn) {
       unawaited(() async {
         try {
@@ -355,7 +462,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   ),
                   IconButton(
                     tooltip: '删除${profile.name}',
-                    onPressed: busy
+                    onPressed: busy || running
                         ? null
                         : () async {
                             await s.remove(profile.id);
@@ -385,7 +492,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
             controller: exePath,
             enabled: !busy && !running,
             decoration: const InputDecoration(
-              labelText: '本机 Mihomo 可执行文件绝对路径',
+              labelText: 'Mihomo 内核路径（安装版自动填写）',
               border: OutlineInputBorder(),
             ),
           ),
@@ -437,7 +544,12 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   : '当前平台暂不支持系统代理开关，请手动设置上面的本地代理。',
             ),
             value: systemProxyOn,
-            onChanged: !systemProxySupported || !running
+            onChanged:
+                !systemProxySupported ||
+                    !running ||
+                    busy ||
+                    proxyChanging ||
+                    (leftoverBackup && !systemProxyOn)
                 ? null
                 : (v) async {
                     try {

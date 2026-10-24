@@ -5,6 +5,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 35
     defaults:
       run:
         working-directory: apps/hotaru
@@ -19,21 +20,43 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build windows --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: hotaru-windows-diagnostic-preview
-          path: apps/hotaru/build/windows/x64/runner/Release/
-      - name: Package UI preview
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Bundle verified core
         shell: pwsh
         run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Hotaru-windows-x64-preview.zip
-          (Get-FileHash Hotaru-windows-x64-preview.zip -Algorithm SHA256).Hash + '  Hotaru-windows-x64-preview.zip' | Set-Content SHA256SUMS.txt
-      - name: Publish downloadable preview
+          ../../packaging/windows/prepare-core.ps1 -BuildDir build/windows/x64/runner/Release
+          Invoke-WebRequest 'https://github.com/MetaCubeX/mihomo/archive/refs/tags/v1.19.33.zip' -OutFile mihomo-v1.19.33-source.zip
+          foreach($dll in @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')) {
+            Copy-Item (Join-Path $env:WINDIR "System32/$dll") build/windows/x64/runner/Release/
+          }
+      - name: Real Windows proxy loop
+        run: dart run tool/proxy_loop_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/core/mihomo.exe"
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $compiler='C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
+          if(-not (Test-Path $compiler)){throw 'Inno Setup missing'}
+          & $compiler '/DAppVersion=0.4.0' '../../packaging/windows/Hotaru.iss'
+          if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
+      - name: Install and upgrade smoke
+        shell: pwsh
+        run: |
+          ../../packaging/windows/test-installer.ps1
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ../../dist/Hotaru-0.4.0-windows-x64-portable.zip
+          Copy-Item mihomo-v1.19.33-source.zip ../../dist/
+          $lines=Get-ChildItem ../../dist -File|ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$_.Name }
+          $lines | Set-Content ../../dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hotaru-0.4.0-windows-x64
+          path: dist/*
+      - name: Publish Windows preview
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag = 'preview-' + '${{ github.run_number }}'
-          gh release create $tag Hotaru-windows-x64-preview.zip SHA256SUMS.txt --target '${{ github.sha }}' --prerelease --title 'Hotaru Windows UI preview' --notes 'Windows 10/11 x64 UI preview. Extract the entire ZIP and run hotaru.exe. Unsigned development build. Widget dashboard, toolbox and import preview; not a functioning proxy client. Mihomo is not bundled. No system proxy or TUN. Build and automated tests passed; interactive Windows behavior still needs user feedback.'
+          $tag='v0.4.0-preview.${{ github.run_number }}'
+          gh release create $tag ../../dist/* --target '${{ github.sha }}' --prerelease --title 'Hotaru 0.4.0 Windows installer preview' --notes-file ../../docs/RELEASE-0.4.md

@@ -3,12 +3,23 @@ import 'dart:async';
 import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'
+    show LicenseRegistry, LicenseEntryWithLineBreaks;
+import 'package:flutter/services.dart' show rootBundle;
 
 import 'core/mihomo_controller.dart';
 import 'profiles/import_page.dart';
 import 'dashboard.dart';
 
-void main() => runApp(const HotaruApp());
+void main() {
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Hotaru (GPL-3.0-or-later)',
+      'Mihomo (GPL-3.0)',
+    ], await rootBundle.loadString('assets/LICENSE.txt'));
+  });
+  runApp(const HotaruApp());
+}
 
 class HotaruApp extends StatelessWidget {
   const HotaruApp({super.key});

@@ -37,6 +37,7 @@ class _DashboardState extends State<Dashboard> {
   List<int> cards = [0, 1, 2, 3];
   int page = 0;
   bool editing = false;
+  String connectionSummary = '代理未启动';
   bool loaded = false;
   String? warning;
   Future<void> writes = Future.value();
@@ -121,13 +122,20 @@ class _DashboardState extends State<Dashboard> {
         ),
         const SizedBox(height: 18),
         Text(
-          ['让连接，轻一点。', '— KB/s', '还没有节点', '待检测', '— GB', '准备好，再出发。'][id],
+          [
+            connectionSummary,
+            '— KB/s',
+            '在节点页选择',
+            '待检测',
+            '— GB',
+            '准备好，再出发。',
+          ][id],
           style: const TextStyle(fontSize: 26),
         ),
         const SizedBox(height: 12),
         Text(
           [
-            '界面预览 · 尚未启用系统代理或 TUN',
+            '在节点页启动代理；切换页面后保持连接。TUN 尚未接入。',
             '接入实际代理连接后显示流量',
             '在「节点」页导入、保存并选择节点后启动代理',
             '不会显示模拟 IP 地址',
@@ -226,16 +234,44 @@ class _DashboardState extends State<Dashboard> {
     appBar: AppBar(
       title: const Text('✦ Hotaru · 蛍'),
       actions: [
-        const Padding(padding: EdgeInsets.all(16), child: Text('可用预览 v0.3')),
+        IconButton(
+          tooltip: '开源许可',
+          onPressed: () => showLicensePage(
+            context: context,
+            applicationName: 'Hotaru',
+            applicationVersion: '0.4.0',
+          ),
+          icon: const Icon(Icons.info_outline),
+        ),
+        if (Platform.isWindows)
+          TextButton(
+            onPressed: () async {
+              await Process.start('rundll32.exe', [
+                'url.dll,FileProtocolHandler',
+                'https://github.com/kurumiZafkiel12/Hotaru/releases',
+              ]);
+            },
+            child: const Text('下载更新'),
+          ),
+        const Padding(padding: EdgeInsets.all(16), child: Text('Hotaru v0.4')),
       ],
     ),
     body: Padding(
       padding: const EdgeInsets.all(24),
-      child: page == 0
-          ? home()
-          : page == 1
-          ? toolbox()
-          : const ProfilesPage(),
+      child: IndexedStack(
+        index: page,
+        children: [
+          home(),
+          toolbox(),
+          ProfilesPage(
+            onConnectionChanged: (value) {
+              if (mounted && connectionSummary != value) {
+                setState(() => connectionSummary = value);
+              }
+            },
+          ),
+        ],
+      ),
     ),
     bottomNavigationBar: NavigationBar(
       selectedIndex: page,

@@ -80,6 +80,20 @@ void main() {
     await tester.tap(find.text('工具箱'));
     await tester.pumpAndSettle();
     expect(find.text('网络工具箱'), findsOneWidget);
+    await tester.tap(find.text('节点'));
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+    final nodePage = tester.state(find.byType(Scaffold).last);
+    await tester.tap(find.text('桌面'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('节点'));
+    await tester.pumpAndSettle();
+    expect(
+      identical(nodePage, tester.state(find.byType(Scaffold).last)),
+      isTrue,
+    );
     await tester.pumpWidget(const SizedBox());
     dir.deleteSync(recursive: true);
   });

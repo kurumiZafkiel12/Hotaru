@@ -54,6 +54,16 @@ class MihomoController {
     return {
       'mixed-port': 0,
       'allow-lan': false,
+      'bind-address': '127.0.0.1',
+      'port': 0,
+      'socks-port': 0,
+      'redir-port': 0,
+      'tproxy-port': 0,
+      'listeners': <Object>[],
+      'external-controller-tls': '',
+      'external-controller-unix': '',
+      'external-controller-pipe': '',
+      'external-ui': '',
       'external-controller': '127.0.0.1:$port',
       'secret': secret,
       'mode': 'direct',
@@ -104,6 +114,16 @@ class MihomoController {
       ...runtimeConfig,
       'mixed-port': mixedPort,
       'allow-lan': false,
+      'bind-address': '127.0.0.1',
+      'port': 0,
+      'socks-port': 0,
+      'redir-port': 0,
+      'tproxy-port': 0,
+      'listeners': <Object>[],
+      'external-controller-tls': '',
+      'external-controller-unix': '',
+      'external-controller-pipe': '',
+      'external-ui': '',
       'external-controller': '127.0.0.1:$controllerPort',
       'secret': secret,
       // TUN stays off in this stage regardless of the source config; it is
@@ -170,6 +190,7 @@ class MihomoController {
       if (code != 0) {
         throw StateError('Mihomo rejected the configuration');
       }
+      if (_disposed) throw StateError('Controller disposed during validation');
       status = CoreStatus.starting;
       final child = await Process.start(executable, [
         '-d',
@@ -178,6 +199,10 @@ class MihomoController {
         configFile.path,
       ]);
       _process = child;
+      if (_disposed) {
+        await _terminate();
+        throw StateError('Controller disposed during startup');
+      }
       unawaited(child.stdout.drain<void>());
       unawaited(child.stderr.drain<void>());
       unawaited(

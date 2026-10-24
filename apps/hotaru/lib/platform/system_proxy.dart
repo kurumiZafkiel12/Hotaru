@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ffi';
 
 /// The user's pre-existing Windows per-user proxy settings, captured before
 /// Hotaru touches anything so they can be restored exactly.
@@ -61,9 +62,26 @@ class WindowsSystemProxy implements SystemProxyAdapter {
       r'HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings';
 
   final Future<ProcessResult> Function(List<String> args) _run;
+  final void Function() _notify;
 
-  WindowsSystemProxy({Future<ProcessResult> Function(List<String> args)? run})
-    : _run = run ?? _defaultRun;
+  WindowsSystemProxy({
+    Future<ProcessResult> Function(List<String> args)? run,
+    void Function()? notify,
+  }) : _run = run ?? _defaultRun,
+       _notify = notify ?? (run == null ? notifyWindows : () {});
+
+  static void notifyWindows() {
+    if (!Platform.isWindows) return;
+    final setOption = DynamicLibrary.open('wininet.dll')
+        .lookupFunction<
+          Int32 Function(Pointer<Void>, Uint32, Pointer<Void>, Uint32),
+          int Function(Pointer<Void>, int, Pointer<Void>, int)
+        >('InternetSetOptionW');
+    if (setOption(nullptr, 39, nullptr, 0) == 0 ||
+        setOption(nullptr, 37, nullptr, 0) == 0) {
+      throw StateError('Windows proxy refresh failed');
+    }
+  }
 
   static Future<ProcessResult> _defaultRun(List<String> args) =>
       Process.run('reg', args, runInShell: false);
@@ -131,6 +149,7 @@ class WindowsSystemProxy implements SystemProxyAdapter {
   Future<void> enable(String server) async {
     await _add('ProxyServer', 'REG_SZ', server);
     await _add('ProxyEnable', 'REG_DWORD', '1');
+    _notify();
   }
 
   @override
@@ -145,5 +164,6 @@ class WindowsSystemProxy implements SystemProxyAdapter {
     } else {
       await _add('ProxyEnable', 'REG_DWORD', saved.enable! ? '1' : '0');
     }
+    _notify();
   }
 }

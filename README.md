@@ -1,43 +1,32 @@
 # Hotaru · 蛍
 
-一点微光，自在连接。
+Windows 优先的 Mihomo 代理客户端。原生 Flutter 工程位于 apps/hotaru，网页原型 src/ 仅作为早期交互参考。
 
-独立开发中的 Mihomo 客户端：小组件首页、网络工具箱与多跳代理。Windows 10/11 x64 优先，后续 Android、Linux。唯一内核为 Mihomo。
+## v0.4 安装版
 
-**当前状态（2026-10-24）：v0.3 已实现最小可用代理闭环（导入→保存→选节点→启动→真实流量→切换/测速→停止），已在本机用真实 Mihomo v1.19.33 做本地端到端验证（SOCKS5 节点链路证据见交接报告）。已发布预览仍为 preview-3（界面版）；v0.3 尚未推送发布。仍未签名、不含 Mihomo 本体（需自备），系统代理为 Windows 实现待实机验收，TUN 未实现。**
+从 [Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载 Hotaru-0.4.0-windows-x64-setup.exe。安装到当前用户目录，包含校验过的 Mihomo v1.19.33，无需管理员权限或开发环境。安装包由 CI 在测试与验证通过后发布。
 
-## 下载（Windows 界面预览）
+启动 → 节点页导入订阅/链接 → 选择节点 → 启动代理 → 按需打开系统代理。切换首页/工具箱仍保持运行。正常关闭应用会停止代理并恢复它管理的系统代理；强制退出后可在下次启动用恢复按钮处理。
 
-[preview-3 预发布](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/preview-3) · [直接下载 ZIP](https://github.com/kurumiZafkiel12/Hotaru/releases/download/preview-3/Hotaru-windows-x64-preview.zip)
-SHA256：`aa6c20f91366b3940e01a14314322393deaffed7ea0bff3aed0bf415ca92cdde`
+更新方式：点击“下载更新”，下载新安装包，关闭 Hotaru 后覆盖安装。订阅和布局保留。当前没有后台自动更新。旧 v0.3 ZIP 可以保留；使用安装版前关闭旧版本，避免争用系统代理。
 
-下载后完整解压再运行 `hotaru.exe`，不要单独移动 EXE。main 分支的 Windows 工作流在检查与构建通过后会自动发布带 SHA256 的新预发布，版本号以 Releases 为准。
+## 已实现
 
-## 已实现（原生工程 apps/hotaru）
+- 可编辑小组件首页、工具箱入口、节点与订阅保存。
+- Mihomo YAML/JSON（显式 proxies）、Base64 订阅、SOCKS5、HTTP(S)、SS、VMess、VLESS、Trojan、Hysteria2，支持范围由解析器校验。
+- 节点选择、混合入口、真实内核延迟、节点切换、Windows 系统代理备份/恢复与即时通知。
+- 内置内核路径、正常退出清理、内核失败恢复、单实例、Windows Job Object 子进程回收。
+- Inno Setup 安装/覆盖升级/卸载流程；许可页及发布校验和。
 
-- 小组件首页：添加、移除、拖动排序、恢复默认；布局只存组件编号（`%APPDATA%/Hotaru/layout-v1.json`），采用临时文件 + 重命名原子保存，损坏时回退默认并提示。
-- 工具箱页（功能占位，明确标注开发中，不生成模拟测速/IP 数据）与导入预览入口。
-- 内核诊断页：对用户自备的本机 Mihomo 做配置校验、子进程启动、随机密钥回环认证健康检查与停止；离开页面即停止该页内核；控制端口每次启动选取空闲端口。诊断模式不开放代理入口，不改系统代理。
-- 订阅与节点（「节点」页）：显式 `proxies` 的 Mihomo YAML/JSON、Base64 订阅、带超时与 2 MiB 上限的 HTTPS 订阅下载；URI 支持 SOCKS5、HTTP(S)、Trojan（含 ws/grpc、allowInsecure）、SS（SIP002/旧式/插件）、VMess、VLESS（含 Reality）、Hysteria2，未知参数明确拒绝不静默丢弃；“仅提取节点 / 完整配置”双模式。导入成功即原子保存到本机（`%APPDATA%/Hotaru/profiles-v1.json`，含节点凭据，仅存用户目录、不进日志），失败不影响已有订阅。
-- 代理闭环：选节点 → 生成运行配置（自动选择 url-test 组 + 手动选择组；完整配置保留其自身策略组/规则）→ Mihomo 校验 → 启动本地混合端口（默认 7890，被占用自动换空闲端口并告知）→ 运行中免重启切换节点（经内核 API）→ 内核实测延迟 → 停止。流量经内核 `/connections` 可见完整链路。
-- 系统代理（Windows）：开关在「节点」页；开启前备份原注册表设置到本机文件，关闭时原样恢复；异常退出遗留备份时下次启动可一键恢复。（Windows 实机待验收。）
+完整配置会覆写入站与控制接口字段，确保仅使用本应用控制的回环端口；TUN 和外部面板关闭。跨订阅切换与导入前需要停止运行中的代理。
 
-## 尚未实现
+## 待完成与限制
 
-TUN、域名/IP/应用级分流规则编辑器、下载测速、故障切换策略组、多跳代理、连接记录页、流量统计、托盘、开机启动；provider-only 订阅配置；工具箱的 IP 质量检测未接入数据源，查不到的数据不会编造。系统代理的 WinINet 即时刷新与 Windows 实机行为待验收。
+TUN、多跳、可视化规则编辑、下载测速、IP 质量数据源、托盘、开机启动、Android/Linux 实机适配。首页流量/IP 仍为明确占位。节点凭据保存在 %APPDATA%/Hotaru 的明文 JSON；卸载保留此目录。真实订阅和公网节点需用户验收。
 
-## 网页原型（仓库根目录 src/）
+Windows 包尚未签名；对安装、更新和测试的具体证据见 [验收记录](docs/V04-VERIFICATION.md)。历史 [Muse v0.3 交还报告](docs/HANDOFF-REPORT.md) 保留原文，不作为当前版本说明。
 
-早期 Vite 布局参考，含组件编辑与多跳草稿校验，仅用于交互参考，不是桌面产品。正式开发只改 `apps/hotaru`。
-
-```sh
-npm ci
-npm run check
-npx playwright install chromium
-npx playwright test
-```
-
-## 原生自检
+## 开发检查
 
 ```sh
 cd apps/hotaru
@@ -45,13 +34,13 @@ flutter pub get
 dart format lib test tool
 flutter analyze
 flutter test
-flutter build windows --release   # 需 Windows C++ 工具链，或由 CI 执行
+flutter build windows --release
 ```
 
-详细步骤和验收标准：[开发计划](docs/PLAN.md) · [架构边界](docs/ARCHITECTURE.md) · [M1 验证记录](docs/M1-VERIFICATION.md) · [导入范围](docs/M2-IMPORT.md) · [最新交接报告](docs/HANDOFF-REPORT.md)。
+真实内核本地链路：dart run tool/proxy_loop_smoke.dart <mihomo绝对路径>。Windows CI 还会构建安装包、静默安装、覆盖安装和卸载，检查用户布局保留。
 
-## 参考与许可
+## 许可与来源
 
-内核：[Mihomo](https://github.com/MetaCubeX/mihomo)（目前未随包分发）。体验参考：[FlClash](https://github.com/chen08209/FlClash)、[Bettbox](https://github.com/appshubcc/Bettbox)、[Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)，未复制其客户端代码。
+Hotaru 自本轮起采用 GPL-3.0-or-later；见 LICENSE。内核与其他组件许可证/源代码见 THIRD-PARTY.md。Windows 发布同时提供固定版本内核源码归档。Flutter 及依赖许可保留在应用许可页和数据目录。
 
-目前为公开开发仓库；**正式开源许可证尚未确定，公开仓库不等于已授予开源许可**。引入/分发 Mihomo 前将确认其许可证与第三方声明义务。依赖保留各自许可。
+参考 FlClash、Bettbox、Clash Verge Rev 的产品体验，Mihomo 为实际代理内核。
