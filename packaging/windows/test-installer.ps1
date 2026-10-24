@@ -1,6 +1,8 @@
 $ErrorActionPreference='Stop'
 if($env:GITHUB_ACTIONS -ne 'true'){throw 'Installer tests require an isolated Windows CI runner'}
-$setup=(Resolve-Path '../../dist/Hotaru-0.4.1-windows-x64-setup.exe').Path
+$setups = @(Get-ChildItem '../../dist/Hotaru-*-windows-x64-setup.exe' -File)
+if ($setups.Count -ne 1) { throw "Expected exactly one installer in dist, found $($setups.Count)" }
+$setup = $setups[0].FullName
 $target=Join-Path $env:RUNNER_TEMP 'Hotaru-installed'
 $arguments=@('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$target")
 function Invoke-Installer {
