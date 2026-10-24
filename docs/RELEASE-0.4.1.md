@@ -1,3 +1,4 @@
+<!-- Release notes template: the desktop workflow replaces the app version string in this file when publishing, so the title and setup filename follow pubspec.yaml. -->
 # Hotaru 0.4.1 · Windows 安装预览
 
 在 v0.4 基础上补齐日常代理功能。下载 `Hotaru-0.4.1-windows-x64-setup.exe`，关闭旧 Hotaru 后覆盖安装，订阅和布局保留。首次使用：配置 → 下载或粘贴订阅 → 节点 → 启动代理 → 系统代理。
