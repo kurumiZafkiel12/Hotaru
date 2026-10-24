@@ -16,10 +16,19 @@ jobs:
           flutter-version: '3.47.8'
           channel: stable
           cache: true
+      - name: Read app version
+        id: app_version
+        shell: pwsh
+        run: |
+          $line = Get-Content pubspec.yaml | Where-Object { $_ -match '^version:' } | Select-Object -First 1
+          if (-not $line) { throw 'version not found in pubspec.yaml' }
+          $version = ($line -replace '^version:\s*', '') -replace '\+.*$', ''
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw "unexpected version: $version" }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build windows --release --dart-define=HOTARU_RELEASE_TAG=v0.4.1-preview.${{ github.run_number }}
+      - run: flutter build windows --release --dart-define=HOTARU_RELEASE_TAG=v${{ steps.app_version.outputs.version }}-preview.${{ github.run_number }}
       - name: Bundle verified core
         id: bundle
         shell: pwsh
@@ -47,7 +56,7 @@ jobs:
         run: |
           $compiler='C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
           if(-not (Test-Path $compiler)){throw 'Inno Setup missing'}
-          & $compiler '/DAppVersion=0.4.1' '../../packaging/windows/Hotaru.iss'
+          & $compiler '/DAppVersion=${{ steps.app_version.outputs.version }}' '../../packaging/windows/Hotaru.iss'
           if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
       - name: Isolated runner system proxy verification
         run: dart run tool/system_proxy_smoke.dart
@@ -58,13 +67,13 @@ jobs:
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ../../dist/Hotaru-0.4.1-windows-x64-portable.zip
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ../../dist/Hotaru-${{ steps.app_version.outputs.version }}-windows-x64-portable.zip
           Copy-Item mihomo-v1.19.33-source.zip ../../dist/
           $lines=Get-ChildItem ../../dist -File|ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$_.Name }
           $lines | Set-Content ../../dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: hotaru-0.4.1-windows-x64
+          name: hotaru-${{ steps.app_version.outputs.version }}-windows-x64
           path: dist/*
       - name: Publish Windows preview
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -72,5 +81,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag='v0.4.1-preview.${{ github.run_number }}'
-          gh release create $tag ../../dist/* --target '${{ github.sha }}' --prerelease --title 'Hotaru 0.4.1 Windows installer preview' --notes-file ../../docs/RELEASE-0.4.1.md
+          $tag='v${{ steps.app_version.outputs.version }}-preview.${{ github.run_number }}'
+          $notes = Get-Content ../../docs/RELEASE-0.4.1.md -Raw
+          $notes = $notes -replace '0\.4\.1', '${{ steps.app_version.outputs.version }}'
+          $notes | Set-Content ../../docs/RELEASE-notes.md -NoNewline
+          gh release create $tag ../../dist/* --target '${{ github.sha }}' --prerelease --title 'Hotaru ${{ steps.app_version.outputs.version }} Windows installer preview' --notes-file ../../docs/RELEASE-notes.md
