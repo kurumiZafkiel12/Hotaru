@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import '../platform/network_client.dart';
+
 enum ImportMode { nodesOnly, fullConfig }
 
 class ImportResult {
@@ -595,12 +597,14 @@ class ProfileImporter {
     return (await fetchSubscription(uri)).body;
   }
 
-  static Future<SubscriptionResponse> fetchSubscription(Uri uri) async {
+  static Future<SubscriptionResponse> fetchSubscription(
+    Uri uri, {
+    int? proxyPort,
+  }) async {
     if (uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty) {
       throw const FormatException('订阅必须是 HTTPS 地址，且不能包含 URL 用户名密码');
     }
-    final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 10);
+    final client = networkClient(proxyPort: proxyPort);
     try {
       return await (() async {
         var target = uri;

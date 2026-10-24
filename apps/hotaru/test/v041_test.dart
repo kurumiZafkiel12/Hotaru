@@ -7,8 +7,93 @@ import 'package:hotaru/profiles/profile_store.dart';
 import 'package:hotaru/profiles/overrides.dart';
 import 'package:hotaru/core/proxy_config.dart';
 import 'package:hotaru/platform/app_updater.dart';
+import 'package:hotaru/core/mihomo_controller.dart';
+import 'package:hotaru/platform/network_client.dart';
 
 void main() {
+  test('runtime keeps routing but replaces remote ingress and local authentication', () {
+    final source = {
+      'authentication': ['remote:password'],
+      'mixed-port': 1234,
+      'allow-lan': true,
+      'external-controller': ':9090',
+      'secret': 'remote',
+      'tun': {'enable': true},
+      'dns': {
+        'enable': true,
+        'listen': '0.0.0.0:53',
+        'nameserver': ['1.1.1.1'],
+      },
+      'rules': ['MATCH,DIRECT'],
+    };
+    final before = jsonEncode(source);
+    final config = MihomoController.secureRuntimeConfig(
+      source,
+      mixedPort: 7890,
+      controllerPort: 9090,
+      secret: 's' * 40,
+    );
+    expect(config['authentication'], isEmpty);
+    expect(config['allow-lan'], false);
+    expect(config['tun']['enable'], false);
+    expect(config['dns']['listen'], '');
+    expect(config['dns']['enable'], true);
+    expect(config['rules'], source['rules']);
+    expect(config['external-controller'], '127.0.0.1:9090');
+    expect(jsonEncode(source), before);
+  });
+  test('external network client uses the configured local proxy', () async {
+    final proxy = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    proxy.listen((request) async {
+      request.response.write('proxy-proof');
+      await request.response.close();
+    });
+    final client = networkClient(proxyPort: proxy.port);
+    try {
+      // No server listens at this destination. Only our proxy can answer.
+      final request = await client.getUrl(Uri.parse('http://127.0.0.1:1/test'));
+      final response = await request.close();
+      expect(await response.transform(utf8.decoder).join(), 'proxy-proof');
+    } finally {
+      client.close(force: true);
+      await proxy.close(force: true);
+    }
+  });
+  test(
+    'saving an inactive subscription does not replace the running selection',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('hotaru-inactive-');
+      try {
+        final store = ProfileStore(File('${dir.path}/profiles.json'));
+        final config = {
+          'proxies': [
+            {'name': 'a', 'type': 'direct'},
+          ],
+        };
+        final first = await store.add(
+          name: 'active',
+          mode: ImportMode.fullConfig,
+          source: 'paste',
+          config: config,
+        );
+        await store.add(
+          name: 'next',
+          mode: ImportMode.fullConfig,
+          source: 'paste',
+          config: config,
+          activate: false,
+        );
+        expect(store.profiles.length, 2);
+        expect(store.selectedProfileId, first.id);
+        expect(
+          (await ProfileStore.load(store.file)).selectedProfileId,
+          first.id,
+        );
+      } finally {
+        await dir.delete(recursive: true);
+      }
+    },
+  );
   const providerConfig = '''
 proxy-providers:
   remote:

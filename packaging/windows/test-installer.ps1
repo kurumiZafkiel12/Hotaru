@@ -25,5 +25,5 @@ if($LASTEXITCODE -ne 0){throw 'Optional service install before uninstall failed'
 $process=Start-Process -FilePath "$target/unins000.exe" -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru -WindowStyle Hidden
 if($process.ExitCode -ne 0){throw 'Uninstall failed'}
 if(-not (Test-Path "$data/layout-v1.json")){throw 'Uninstall deleted user data'}
-if(Get-ItemPropertyValue -Path $runKey -Name Hotaru -ErrorAction SilentlyContinue){throw 'Uninstall left autostart behind'}
-if(Get-Service -Name HotaruCoreHost -ErrorAction SilentlyContinue){throw 'Uninstall left optional SCM service behind'}
+if($null -ne (Get-Item -LiteralPath $runKey).GetValue('Hotaru',$null)){throw 'Uninstall left autostart behind'}
+if(@(Get-CimInstance Win32_Service -Filter "Name='HotaruCoreHost'").Count -ne 0){throw 'Uninstall left optional SCM service behind'}

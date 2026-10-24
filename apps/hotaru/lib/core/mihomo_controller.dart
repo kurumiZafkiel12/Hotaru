@@ -125,11 +125,46 @@ class MihomoController {
     if (controllerPort == mixedPort) {
       throw StateError('Unable to allocate distinct ports');
     }
+    final config = secureRuntimeConfig(
+      runtimeConfig,
+      mixedPort: mixedPort,
+      controllerPort: controllerPort,
+      secret: secret,
+    );
+    await _start(
+      executable: executable,
+      directory: directory,
+      fileName: 'runtime.json',
+      config: config,
+      controllerPort: controllerPort,
+      secret: secret,
+      runtimeMixedPort: mixedPort,
+      failureMessage: '代理启动失败：请检查内核路径、配置内容与本地端口是否被占用。',
+    );
+  }
+
+  /// Client-owned loopback entry points always win after source/overrides.
+  static Map<String, dynamic> secureRuntimeConfig(
+    Map<String, dynamic> runtimeConfig, {
+    required int mixedPort,
+    required int controllerPort,
+    required String secret,
+  }) {
+    if (mixedPort < 1024 ||
+        mixedPort > 65535 ||
+        controllerPort < 1024 ||
+        controllerPort > 65535 ||
+        controllerPort == mixedPort ||
+        secret.length < 32) {
+      throw ArgumentError('Invalid runtime endpoints');
+    }
+    final copied =
+        jsonDecode(jsonEncode(runtimeConfig)) as Map<String, dynamic>;
     final config = <String, dynamic>{
-      ...jsonDecode(jsonEncode(runtimeConfig)) as Map<String, dynamic>,
+      ...copied,
       'profile': {
         'store-selected': true,
-        ...?runtimeConfig['profile'] as Map<String, dynamic>?,
+        ...?copied['profile'] as Map<String, dynamic>?,
       },
       'mixed-port': mixedPort,
       'allow-lan': false,
@@ -139,6 +174,9 @@ class MihomoController {
       'redir-port': 0,
       'tproxy-port': 0,
       'listeners': <Object>[],
+      'authentication': <String>[],
+      'skip-auth-prefixes': <String>[],
+      'dns': {...?copied['dns'] as Map<String, dynamic>?, 'listen': ''},
       'external-controller-tls': '',
       'external-controller-unix': '',
       'external-controller-pipe': '',
@@ -162,16 +200,7 @@ class MihomoController {
         }
       }
     }
-    await _start(
-      executable: executable,
-      directory: directory,
-      fileName: 'runtime.json',
-      config: config,
-      controllerPort: controllerPort,
-      secret: secret,
-      runtimeMixedPort: mixedPort,
-      failureMessage: '代理启动失败：请检查内核路径、配置内容与本地端口是否被占用。',
-    );
+    return config;
   }
 
   Future<void> _start({

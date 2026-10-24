@@ -191,6 +191,7 @@ class ProfileStore {
     required Map<String, dynamic> config,
     String? sourceUrl,
     String? userInfo,
+    bool activate = true,
   }) => _change(() {
     final random = Random.secure().nextInt(1 << 32).toRadixString(16);
     final profile = StoredProfile(
@@ -205,8 +206,10 @@ class ProfileStore {
       updatedAt: DateTime.now(),
     );
     profiles.add(profile);
-    selectedProfileId = profile.id;
-    selectedNode = profile.nodeNames.firstOrNull;
+    if (activate || selectedProfileId == null) {
+      selectedProfileId = profile.id;
+      selectedNode = profile.nodeNames.firstOrNull;
+    }
     return profile;
   });
 

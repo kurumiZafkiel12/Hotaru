@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
+import 'network_client.dart';
+
 class AppUpdate {
   final String tag;
   final Uri download;
@@ -54,9 +56,8 @@ class AppUpdater {
     return uri;
   }
 
-  static Future<AppUpdate?> check() async {
-    final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 10);
+  static Future<AppUpdate?> check({int? proxyPort}) async {
+    final client = networkClient(proxyPort: proxyPort);
     try {
       return await (() async {
         final request = await client.getUrl(
@@ -102,9 +103,8 @@ class AppUpdater {
     }
   }
 
-  static Future<File> download(AppUpdate update) async {
-    final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 10);
+  static Future<File> download(AppUpdate update, {int? proxyPort}) async {
+    final client = networkClient(proxyPort: proxyPort);
     final dir = await Directory.systemTemp.createTemp('hotaru-update-');
     final file = File('${dir.path}/setup.exe');
     try {

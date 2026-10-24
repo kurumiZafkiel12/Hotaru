@@ -203,7 +203,9 @@ class _ProfilesPageState extends State<ProfilesPage> {
 
   Future<void> _checkUpdate() async {
     try {
-      final update = await AppUpdater.check();
+      final update = await AppUpdater.check(
+        proxyPort: core.api == null ? null : core.mixedPort,
+      );
       if (mounted) {
         setState(() {
           availableUpdate = update;
@@ -280,7 +282,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
       updateMessage = '正在下载并验证安装包…';
     });
     try {
-      final file = await AppUpdater.download(update);
+      final file = await AppUpdater.download(
+        update,
+        proxyPort: core.api == null ? null : core.mixedPort,
+      );
       if (systemProxyOn) await _setSystemProxy(false);
       await core.stop();
       final result = await Process.run(guardian.executable, [
@@ -430,6 +435,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
     try {
       final response = await ProfileImporter.fetchSubscription(
         Uri.parse(profile.sourceUrl!),
+        proxyPort: core.api == null ? null : core.mixedPort,
       );
       final parsed = ProfileImporter.parse(response.body, profile.mode);
       final next = StoredProfile.fromJson({
@@ -883,16 +889,15 @@ class _ProfilesPageState extends State<ProfilesPage> {
   }
 
   Future<void> _import(bool remote) async {
-    if (core.status == CoreStatus.running) {
-      setState(() => importMsg = '导入其他订阅前请先停止代理。');
-      return;
-    }
     final s = store;
     if (s == null || busy) return;
     setState(() => busy = true);
     try {
       final response = remote
-          ? await ProfileImporter.fetchSubscription(Uri.parse(url.text.trim()))
+          ? await ProfileImporter.fetchSubscription(
+              Uri.parse(url.text.trim()),
+              proxyPort: core.api == null ? null : core.mixedPort,
+            )
           : null;
       final text = response?.body ?? content.text;
       final parsed = ProfileImporter.parse(text, mode);
@@ -911,11 +916,12 @@ class _ProfilesPageState extends State<ProfilesPage> {
         config: parsed.config,
         sourceUrl: remote ? url.text.trim() : null,
         userInfo: response?.userInfo,
+        activate: core.status != CoreStatus.running,
       );
       if (mounted) {
         setState(
           () => importMsg =
-              '已保存「${saved.name}」：${saved.nodeNames.length} 个本地节点、${saved.providerCount} 个远程节点集，已设为当前配置。远程节点启动后完整读取。',
+              '已保存「${saved.name}」：${saved.nodeNames.length} 个本地节点、${saved.providerCount} 个远程节点集，${core.status == CoreStatus.running ? '当前连接保持原配置。' : '已设为当前配置。'}远程节点启动后完整读取。',
         );
       }
     } catch (_) {
