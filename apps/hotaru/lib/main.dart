@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'core/mihomo_controller.dart';
 import 'profiles/import_page.dart';
+import 'dashboard.dart';
 
 void main() => runApp(const HotaruApp());
 
@@ -22,7 +23,7 @@ class HotaruApp extends StatelessWidget {
       ),
       useMaterial3: true,
     ),
-    home: const CorePage(),
+    home: const Dashboard(diagnostic: CorePage()),
   );
 }
 

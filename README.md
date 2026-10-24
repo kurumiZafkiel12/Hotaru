@@ -51,3 +51,6 @@ apps/hotaru/ 已建立 Flutter Windows、Android、Linux 工程；当前界面�
 
 ## 导入预览（M2a）
 原生诊断页新增“导入预览”：支持显式 proxies 的 Mihomo YAML/JSON、SOCKS5/HTTP(S)/基础 Trojan URI，以及有超时和大小限制的 HTTPS 订阅下载。提供节点提取和完整配置两种结构检查模式。结果尚不保存、不应用；完整订阅管理与其他协议仍在开发。见 [导入范围与验收](docs/M2-IMPORT.md)。
+
+## Windows 界面预览
+原生首页已加入可添加、移除、拖动排序并保存的小组件，以及工具箱、导入预览入口。main 分支的 Windows 工作流在检查和构建通过后自动发布带 SHA256 的预发布 ZIP，见 [Releases](https://github.com/kurumiZafkiel12/Hotaru/releases)。下载后完整解压，运行 hotaru.exe，不要单独移动 EXE。这是未签名界面预览，不是可用代理客户端；不含 Mihomo，未启用系统代理或 TUN。原生诊断版此前已成功通过 Windows CI 编译，新界面的构建结果请以对应 Release 为准。

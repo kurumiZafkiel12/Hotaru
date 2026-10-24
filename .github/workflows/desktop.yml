@@ -1,7 +1,7 @@
 name: Flutter desktop checks
 on: [push, pull_request, workflow_dispatch]
 permissions:
-  contents: read
+  contents: write
 jobs:
   windows:
     runs-on: windows-latest
@@ -23,3 +23,17 @@ jobs:
         with:
           name: hotaru-windows-diagnostic-preview
           path: apps/hotaru/build/windows/x64/runner/Release/
+      - name: Package UI preview
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Hotaru-windows-x64-preview.zip
+          (Get-FileHash Hotaru-windows-x64-preview.zip -Algorithm SHA256).Hash + '  Hotaru-windows-x64-preview.zip' | Set-Content SHA256SUMS.txt
+      - name: Publish downloadable preview
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = 'preview-' + '${{ github.run_number }}'
+          gh release create $tag Hotaru-windows-x64-preview.zip SHA256SUMS.txt --target '${{ github.sha }}' --prerelease --title 'Hotaru Windows UI preview' --notes 'Windows 10/11 x64 UI preview. Extract the entire ZIP and run hotaru.exe. Unsigned development build. Widget dashboard, toolbox and import preview; not a functioning proxy client. Mihomo is not bundled. No system proxy or TUN. Build and automated tests passed; interactive Windows behavior still needs user feedback.'
