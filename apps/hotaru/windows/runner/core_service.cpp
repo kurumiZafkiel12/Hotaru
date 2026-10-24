@@ -198,8 +198,9 @@ int wmain(int argc, wchar_t** argv) {
   SC_HANDLE service = scm ? OpenServiceW(scm, kService, SERVICE_QUERY_STATUS) : nullptr;
   SERVICE_STATUS_PROCESS status{}; DWORD needed = 0;
   const bool ready = service && QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, reinterpret_cast<BYTE*>(&status), sizeof(status), &needed) && status.dwCurrentState == SERVICE_RUNNING;
+  const bool installed = service != nullptr;
   if (service) CloseServiceHandle(service); if (scm) CloseServiceHandle(scm);
-  if (action == L"status") return ready ? 0 : 3;
+  if (action == L"status") return ready ? 0 : (installed ? 4 : 3);
   if (action != L"run" || argc != 3 || !ready) return 3;
   if (!WaitNamedPipeW(kPipe, 5000)) return 3;
   HANDLE pipe = CreateFileW(kPipe, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);

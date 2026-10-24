@@ -27,6 +27,15 @@ bool Restore(HKEY key, const wchar_t* name, const Value& v) {
                             : RegDeleteValueW(key, name);
   return code == ERROR_SUCCESS || code == ERROR_FILE_NOT_FOUND;
 }
+DWORD DetachedFlags(const wchar_t* parent_pid) {
+  const auto name = L"Local\\HotaruCoreJob-" + std::wstring(parent_pid);
+  HANDLE job = OpenJobObjectW(JOB_OBJECT_QUERY, FALSE, name.c_str());
+  BOOL inherited = FALSE;
+  if (job) { IsProcessInJob(GetCurrentProcess(), job, &inherited); CloseHandle(job); }
+  // A CI/terminal host may own a different job that forbids breakaway. Such
+  // a job does not close when the UI/test parent exits. Escape only our job.
+  return CREATE_NO_WINDOW | (inherited ? CREATE_BREAKAWAY_FROM_JOB : 0);
+}
 int wmain(int argc, wchar_t** argv) {
   if (argc < 3) return 2;
   if (argc == 4 && (std::wstring(argv[1]) == L"update" || std::wstring(argv[1]) == L"apply")) {
@@ -46,7 +55,7 @@ int wmain(int argc, wchar_t** argv) {
     STARTUPINFOW startup{}; startup.cb = sizeof(startup);
     PROCESS_INFORMATION process{};
     const bool created = CreateProcessW(path.c_str(), command.data(), nullptr, nullptr, FALSE,
-      CREATE_NO_WINDOW | (launch ? CREATE_BREAKAWAY_FROM_JOB : 0), nullptr, nullptr, &startup, &process) != FALSE;
+      launch ? DetachedFlags(argv[2]) : CREATE_NO_WINDOW, nullptr, nullptr, &startup, &process) != FALSE;
     if (created) { CloseHandle(process.hThread); CloseHandle(process.hProcess); }
     return created ? 0 : 3;
   }
@@ -74,7 +83,7 @@ int wmain(int argc, wchar_t** argv) {
     PROCESS_INFORMATION process{};
     // Escapes only Hotaru's job, leaving the core in the kill-on-close job.
     const bool created = CreateProcessW(exe, command.data(), nullptr, nullptr, FALSE,
-      CREATE_BREAKAWAY_FROM_JOB | CREATE_NO_WINDOW, nullptr, nullptr, &startup, &process) != FALSE;
+      DetachedFlags(argv[3]), nullptr, nullptr, &startup, &process) != FALSE;
     DWORD result = WAIT_FAILED;
     if (created) {
       HANDLE handles[] = {ready, process.hProcess};

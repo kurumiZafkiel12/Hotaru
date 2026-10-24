@@ -38,6 +38,7 @@ class _DashboardState extends State<Dashboard> {
   int page = 0;
   bool editing = false;
   String connectionSummary = '代理未启动';
+  Map<String, String> metrics = {};
   bool loaded = false;
   String? warning;
   Future<void> writes = Future.value();
@@ -124,10 +125,10 @@ class _DashboardState extends State<Dashboard> {
         Text(
           [
             connectionSummary,
-            '— KB/s',
-            '在节点页选择',
+            metrics['traffic'] ?? '— KB/s',
+            metrics['node'] ?? '在节点页选择',
             '待检测',
-            '— GB',
+            metrics['quota'] ?? '尚未导入订阅',
             '准备好，再出发。',
           ][id],
           style: const TextStyle(fontSize: 26),
@@ -136,7 +137,7 @@ class _DashboardState extends State<Dashboard> {
         Text(
           [
             '在节点页启动代理；切换页面后保持连接。TUN 尚未接入。',
-            '接入实际代理连接后显示流量',
+            '内核 API 实时流量，不包含未经过代理的连接',
             '在「配置」页导入订阅，在「节点」页选择代理组',
             '不会显示模拟 IP 地址',
             '在配置页查看来源提供的用量与到期时间',
@@ -211,7 +212,16 @@ class _DashboardState extends State<Dashboard> {
     children: [
       const Text('网络工具箱', style: TextStyle(fontSize: 28)),
       const SizedBox(height: 24),
-      for (final name in ['节点测速', '出口 IP', 'IP 质量', 'DNS 诊断'])
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.speed),
+          title: const Text('节点测速'),
+          subtitle: const Text('TCP、真连接延迟与全组测试'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => setState(() => page = 2),
+        ),
+      ),
+      for (final name in ['出口 IP', 'IP 质量', 'DNS 诊断'])
         Card(
           child: ListTile(
             leading: const Icon(Icons.insights),
@@ -268,6 +278,11 @@ class _DashboardState extends State<Dashboard> {
           toolbox(),
           ProfilesPage(
             panel: page == 3 ? 'config' : 'nodes',
+            onMetricsChanged: (value) {
+              if (mounted && jsonEncode(value) != jsonEncode(metrics)) {
+                setState(() => metrics = value);
+              }
+            },
             onConnectionChanged: (value) {
               if (mounted && connectionSummary != value) {
                 setState(() => connectionSummary = value);

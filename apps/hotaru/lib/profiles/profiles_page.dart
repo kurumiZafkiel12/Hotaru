@@ -28,6 +28,7 @@ class ProfilesPage extends StatefulWidget {
   final SystemProxyAdapter? systemProxyAdapter;
   final bool? systemProxySupported;
   final ValueChanged<String>? onConnectionChanged;
+  final ValueChanged<Map<String, String>>? onMetricsChanged;
 
   const ProfilesPage({
     super.key,
@@ -37,6 +38,7 @@ class ProfilesPage extends StatefulWidget {
     this.systemProxyAdapter,
     this.systemProxySupported,
     this.onConnectionChanged,
+    this.onMetricsChanged,
   });
 
   @override
@@ -80,6 +82,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
   bool polling = false;
   bool autostart = false;
   bool serviceReady = false;
+  bool serviceInstalled = false;
   bool useService = false;
   String routing = 'rule';
   int upload = 0, download = 0;
@@ -131,6 +134,19 @@ class _ProfilesPageState extends State<ProfilesPage> {
               ? '内核已退出'
               : '代理未启动',
         );
+        final profile = store?.selectedProfile;
+        final current = liveProxies[chosenGroup] ?? liveProxies['HOTARU'];
+        widget.onMetricsChanged?.call({
+          'traffic': core.api == null
+              ? '— KB/s'
+              : '↑ ${(upload / 1024).toStringAsFixed(1)} / ↓ ${(download / 1024).toStringAsFixed(1)} KB/s',
+          'node': current is Map && current['now'] is String
+              ? current['now'] as String
+              : (store?.selectedNode ?? '在节点页选择'),
+          'quota': profile == null
+              ? '尚未导入订阅'
+              : _profileSummary(profile).split('\n').first,
+        });
       }
       if (mounted && core.api != null && !polling) unawaited(_refreshLive());
       if (desktopEnabled) {
@@ -210,6 +226,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
       if (mounted) {
         setState(() {
           serviceReady = result.exitCode == 0;
+          serviceInstalled = result.exitCode == 0 || result.exitCode == 4;
           useService = serviceReady;
         });
       }
@@ -432,6 +449,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final script = TextEditingController(text: profile.script);
     final interval = TextEditingController(text: '${profile.updateHours}');
     String? error;
+    var saving = false;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -448,12 +466,14 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   ),
                   TextField(
                     controller: interval,
+                    enabled: !saving,
                     decoration: const InputDecoration(
                       labelText: '更新间隔（小时，0 为关闭，最大 720）',
                     ),
                   ),
                   TextField(
                     controller: merge,
+                    enabled: !saving,
                     minLines: 4,
                     maxLines: 8,
                     decoration: const InputDecoration(
@@ -462,6 +482,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   ),
                   TextField(
                     controller: script,
+                    enabled: !saving,
                     minLines: 4,
                     maxLines: 8,
                     decoration: const InputDecoration(
@@ -476,34 +497,48 @@ class _ProfilesPageState extends State<ProfilesPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: saving ? null : () => Navigator.pop(context),
               child: const Text('取消'),
             ),
             FilledButton(
-              onPressed: () async {
-                try {
-                  final hours = int.parse(interval.text);
-                  if (hours < 0 || hours > 720) throw const FormatException();
-                  final overlay = ProfileOverrides.parseMerge(merge.text);
-                  await ProfileOverrides.apply(
-                    profile.config,
-                    overlay,
-                    script.text,
-                  );
-                  await store!.replace(
-                    StoredProfile.fromJson({
-                      ...profile.toJson(),
-                      'merge': overlay,
-                      'script': script.text,
-                      'updateHours': hours,
-                    }),
-                  );
-                  if (context.mounted) Navigator.pop(context);
-                  if (mounted) setState(() {});
-                } catch (_) {
-                  update(() => error = '保存失败：检查 Merge、Script 和更新间隔；旧设置未改动。');
-                }
-              },
+              onPressed: saving
+                  ? null
+                  : () async {
+                      update(() => saving = true);
+                      try {
+                        final hours = int.parse(interval.text);
+                        if (hours < 0 || hours > 720) {
+                          throw const FormatException();
+                        }
+                        final overlay = ProfileOverrides.parseMerge(merge.text);
+                        final scriptValue = script.text;
+                        final transformed = await ProfileOverrides.apply(
+                          profile.config,
+                          overlay,
+                          scriptValue,
+                        );
+                        await _validateCandidate(transformed, profile.mode);
+                        await store!.replace(
+                          StoredProfile.fromJson({
+                            ...profile.toJson(),
+                            'merge': overlay,
+                            'script': scriptValue,
+                            'updateHours': hours,
+                          }),
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        if (mounted) setState(() {});
+                      } catch (_) {
+                        if (context.mounted) {
+                          update(
+                            () => error =
+                                '保存失败：检查 Merge、Script、内核配置和更新间隔；旧设置未改动。',
+                          );
+                        }
+                      } finally {
+                        if (context.mounted) update(() => saving = false);
+                      }
+                    },
               child: const Text('检查并保存'),
             ),
           ],
@@ -741,6 +776,38 @@ class _ProfilesPageState extends State<ProfilesPage> {
         importMsg = '订阅文件读取失败，已从空白开始；旧文件未被覆盖，直到下一次保存。';
       }
     });
+    if (hasBackup && systemProxySupported) {
+      try {
+        final journal = jsonDecode(await bf.readAsString()) as Map;
+        if (journal['owned'] is String) await _restoreLeftover();
+      } catch (_) {
+        /* Keep recovery available if the journal cannot be read. */
+      }
+    }
+  }
+
+  Future<void> _validateCandidate(
+    Map<String, dynamic> config,
+    ImportMode importMode,
+  ) async {
+    final candidate = ProxyConfigBuilder.build(
+      profileConfig: config,
+      mode: importMode,
+      selectedNode:
+          ((config['proxies'] as List?)?.firstOrNull?['name'] as String?) ?? '',
+    );
+    final validator = MihomoController();
+    final directory = Directory('${storeFile!.parent.path}/validation/check');
+    try {
+      await validator.startRuntime(
+        exePath.text.trim(),
+        directory,
+        runtimeConfig: candidate,
+        mixedPort: await MihomoController.findFreePort(),
+      );
+    } finally {
+      await validator.dispose();
+    }
   }
 
   Future<void> _import(bool remote) async {
@@ -757,6 +824,9 @@ class _ProfilesPageState extends State<ProfilesPage> {
           : null;
       final text = response?.body ?? content.text;
       final parsed = ProfileImporter.parse(text, mode);
+      if (desktopEnabled && await File(exePath.text.trim()).exists()) {
+        await _validateCandidate(parsed.config, mode);
+      }
       final fallback = remote
           ? (Uri.tryParse(url.text.trim())?.host ?? '订阅')
           : ((parsed.config['proxies'] as List?)?.firstOrNull?['name']
@@ -937,8 +1007,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
           await systemProxy.enable('127.0.0.1:${core.mixedPort}');
         } catch (_) {
           try {
-            await guardian.cancel();
             await systemProxy.restore(current);
+            await guardian.cancel();
             await bf.delete();
           } catch (_) {
             if (mounted) setState(() => leftoverBackup = true);
@@ -953,7 +1023,6 @@ class _ProfilesPageState extends State<ProfilesPage> {
           });
         }
       } else {
-        await guardian.cancel();
         if (bf != null && await bf.exists()) {
           final saved = SavedProxyState.decode(await bf.readAsString());
           final current = await systemProxy.read();
@@ -961,8 +1030,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
               current.server == '127.0.0.1:${core.mixedPort}') {
             await systemProxy.restore(saved);
           }
+          await guardian.cancel();
           await bf.delete();
         }
+        await guardian.cancel();
         if (mounted) {
           setState(() {
             systemProxyOn = false;
@@ -984,9 +1055,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
       final saved = SavedProxyState.decode(await bf.readAsString());
       final journal = jsonDecode(await bf.readAsString()) as Map;
       final current = await systemProxy.read();
-      if (journal['owned'] != null &&
-          current.enable == true &&
-          current.server == journal['owned']) {
+      if (journal['owned'] == null ||
+          (current.enable == true && current.server == journal['owned'])) {
         await systemProxy.restore(saved);
       }
       await bf.delete();
@@ -1036,7 +1106,34 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final s = store;
     final running = core.status == CoreStatus.running;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.panel == 'config' ? '配置' : '节点')),
+      appBar: AppBar(
+        title: Text(widget.panel == 'config' ? '配置' : '节点'),
+        actions: [
+          if (widget.panel != 'config') ...[
+            IconButton(
+              tooltip: running ? '停止代理' : '启动代理',
+              onPressed: busy || s == null ? null : _toggleProxy,
+              icon: Icon(
+                running
+                    ? Icons.stop_circle_outlined
+                    : Icons.play_circle_outline,
+              ),
+            ),
+            if (systemProxySupported)
+              IconButton(
+                tooltip: systemProxyOn ? '关闭系统代理' : '开启系统代理',
+                onPressed:
+                    !running ||
+                        busy ||
+                        proxyChanging ||
+                        (leftoverBackup && !systemProxyOn)
+                    ? null
+                    : () => _action(() => _setSystemProxy(!systemProxyOn)),
+                icon: Icon(systemProxyOn ? Icons.public : Icons.public_off),
+              ),
+          ],
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -1279,9 +1376,9 @@ class _ProfilesPageState extends State<ProfilesPage> {
             TextButton(
               onPressed: busy || running
                   ? null
-                  : () => _manageService(!serviceReady),
+                  : () => _manageService(!serviceInstalled),
               child: Text(
-                serviceReady
+                serviceInstalled
                     ? '卸载 Windows 服务（管理员授权）'
                     : '安装 Windows 服务（一次管理员授权）',
               ),

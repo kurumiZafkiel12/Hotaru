@@ -27,6 +27,14 @@ class AppUpdater {
       RegExp(r'\d+').allMatches(tag).map((m) => int.parse(m[0]!)).toList();
   static bool newer(String tag, String current) {
     final a = version(tag), b = version(current);
+    for (var i = 0; i < 3; i++) {
+      final result = (i < a.length ? a[i] : 0).compareTo(
+        i < b.length ? b[i] : 0,
+      );
+      if (result != 0) return result > 0;
+    }
+    if (a.length == 3 && b.length > 3) return true;
+    if (a.length > 3 && b.length == 3) return false;
     for (var i = 0; i < a.length || i < b.length; i++) {
       final result = (i < a.length ? a[i] : 0).compareTo(
         i < b.length ? b[i] : 0,

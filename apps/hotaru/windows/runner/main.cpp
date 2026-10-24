@@ -1,6 +1,7 @@
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
 #include <windows.h>
+#include <string>
 
 #include "flutter_window.h"
 #include "utils.h"
@@ -17,7 +18,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
   // Child cores inherit this job. Windows closes this process-owned handle
   // even on a forced exit, terminating remaining children with it.
-  HANDLE job = CreateJobObjectW(nullptr, nullptr);
+  const std::wstring job_name = L"Local\\HotaruCoreJob-" + std::to_wstring(GetCurrentProcessId());
+  HANDLE job = CreateJobObjectW(nullptr, job_name.c_str());
   if (job) {
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION info{};
     info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
