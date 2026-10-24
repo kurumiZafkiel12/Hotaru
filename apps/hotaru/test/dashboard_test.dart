@@ -70,7 +70,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
       await tester.tap(find.byTooltip('移除连接状态'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      // Poll instead of a fixed sleep: slow CI runners need longer.
+      for (var i = 0; i < 50 && file.readAsStringSync() != '[1,2,3]'; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
     });
     await tester.pumpAndSettle();
     expect(file.readAsStringSync(), '[1,2,3]');

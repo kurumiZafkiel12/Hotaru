@@ -8,7 +8,15 @@ Future<void> writeTextAtomically(File file, String content) async {
   await file.parent.create(recursive: true);
   final tmp = File('${file.path}.tmp');
   await tmp.writeAsString(content, flush: true);
-  await tmp.rename(file.path);
+  try {
+    await tmp.rename(file.path);
+  } on FileSystemException {
+    // Some Windows environments refuse rename-over-existing (locked or
+    // replace-restricted targets). Fall back to delete-then-rename: a tiny
+    // non-atomic window, still far better than failing the save outright.
+    if (await file.exists()) await file.delete();
+    await tmp.rename(file.path);
+  }
 }
 
 Future<void> writeJsonAtomically(File file, Object? data) =>
