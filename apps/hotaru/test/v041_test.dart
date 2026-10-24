@@ -121,5 +121,7 @@ rules: ["RULE-SET,local,DIRECT", "MATCH,手动"]
     expect(AppUpdater.newer('v0.4.1-preview.11', 'v0.4.1-preview.9'), true);
     expect(AppUpdater.newer('v0.4.0-preview.99', 'v0.4.1-preview.1'), false);
     expect(AppUpdater.newer('v0.4.1-preview.2', 'v0.4.1-preview.2'), false);
+    expect(AppUpdater.newer('v0.4.1', 'v0.4.1-preview.99'), true);
+    expect(AppUpdater.newer('v0.4.1-preview.100', 'v0.4.1'), false);
   });
 }

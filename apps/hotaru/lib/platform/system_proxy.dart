@@ -160,10 +160,13 @@ class WindowsSystemProxy implements SystemProxyAdapter {
       await _add('ProxyServer', 'REG_SZ', saved.server!);
     }
     if (saved.enable == null) {
-      await _delete('ProxyEnable');
+      // Explicitly disable while refreshing WinINet, then restore absence.
+      await _add('ProxyEnable', 'REG_DWORD', '0');
     } else {
       await _add('ProxyEnable', 'REG_DWORD', saved.enable! ? '1' : '0');
     }
     _notify();
+    if (saved.server == null) await _delete('ProxyServer');
+    if (saved.enable == null) await _delete('ProxyEnable');
   }
 }

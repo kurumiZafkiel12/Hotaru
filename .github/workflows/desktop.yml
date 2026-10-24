@@ -21,6 +21,7 @@ jobs:
       - run: flutter test
       - run: flutter build windows --release --dart-define=HOTARU_RELEASE_TAG=v0.4.1-preview.${{ github.run_number }}
       - name: Bundle verified core
+        id: bundle
         shell: pwsh
         run: |
           ../../packaging/windows/prepare-core.ps1 -BuildDir build/windows/x64/runner/Release
@@ -38,6 +39,7 @@ jobs:
       - name: Crash guardian isolated registry tests
         run: dart run tool/guardian_smoke.dart "${{ github.workspace }}/apps/hotaru/build/windows/x64/runner/Release/Hotaru.Guardian.exe"
       - name: SCM service host isolated tests
+        if: ${{ !cancelled() && steps.bundle.outcome == 'success' }}
         shell: pwsh
         run: ../../packaging/windows/test-service.ps1 -BuildDir build/windows/x64/runner/Release
       - name: Build installer

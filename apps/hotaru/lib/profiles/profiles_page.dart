@@ -335,6 +335,18 @@ class _ProfilesPageState extends State<ProfilesPage> {
         }
         ruleProviders = (values[2]['providers'] as Map? ?? {})
             .cast<String, dynamic>();
+        if (chosenGroup != '*' &&
+            (chosenGroup == null || !liveProxies.containsKey(chosenGroup))) {
+          chosenGroup = liveProxies.entries
+              .where(
+                (e) =>
+                    e.key != 'GLOBAL' &&
+                    e.value is Map &&
+                    e.value['all'] is List,
+              )
+              .firstOrNull
+              ?.key;
+        }
         connections = values[3]['connections'] as List? ?? [];
         routing = values[4]['mode'] as String? ?? 'rule';
       });
@@ -646,7 +658,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
           for (final g in groups)
             ChoiceChip(
               label: Text('${g.key} · ${g.value['type']}'),
-              selected: group?.key == g.key,
+              selected: chosenGroup != '*' && group?.key == g.key,
               onSelected: (_) => setState(() => chosenGroup = g.key),
             ),
           ChoiceChip(
@@ -667,7 +679,9 @@ class _ProfilesPageState extends State<ProfilesPage> {
             onPressed: testing
                 ? null
                 : () => _testNodes(
-                    chosenGroup == '*' ? liveProxies.keys.toList() : names,
+                    group == null || chosenGroup == '*'
+                        ? liveProxies.keys.toList()
+                        : (group.value['all'] as List).cast<String>(),
                   ),
             child: const Text('全组真连接测速'),
           ),
@@ -675,7 +689,9 @@ class _ProfilesPageState extends State<ProfilesPage> {
             onPressed: testing
                 ? null
                 : () => _testNodes(
-                    chosenGroup == '*' ? liveProxies.keys.toList() : names,
+                    group == null || chosenGroup == '*'
+                        ? liveProxies.keys.toList()
+                        : (group.value['all'] as List).cast<String>(),
                     tcp: true,
                   ),
             child: const Text('全组 TCP 测速'),
@@ -935,6 +951,11 @@ class _ProfilesPageState extends State<ProfilesPage> {
           mixedPort: port,
         );
         activeProfileId = profile.id;
+        latency.clear();
+        tcpLatency.clear();
+        logs.clear();
+        upload = 0;
+        download = 0;
         String? group;
         if (core.api != null &&
             node != null &&

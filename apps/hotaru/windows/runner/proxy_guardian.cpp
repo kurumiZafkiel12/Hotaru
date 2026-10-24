@@ -6,7 +6,6 @@
 #include <cwchar>
 #include <cstring>
 #pragma comment(lib, "advapi32.lib")
-#pragma comment(lib, "wininet.lib")
 
 constexpr auto kKey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
 struct Value {
@@ -119,8 +118,20 @@ int wmain(int argc, wchar_t** argv) {
       // Restore endpoint first so a partial failure cannot keep a dead local endpoint.
       ok = Restore(key, L"ProxyServer", server);
       ok = Restore(key, L"ProxyEnable", enable) && ok;
-      InternetSetOptionW(nullptr, INTERNET_OPTION_SETTINGS_CHANGED, nullptr, 0);
-      InternetSetOptionW(nullptr, INTERNET_OPTION_REFRESH, nullptr, 0);
+      // Load WinINet only after capturing the snapshot. Its initialization or
+      // refresh may materialize absent default values on a fresh account.
+      HMODULE internet = LoadLibraryW(L"wininet.dll");
+      if (internet) {
+        using SetOption = BOOL(WINAPI*)(HINTERNET, DWORD, LPVOID, DWORD);
+        const auto notify = reinterpret_cast<SetOption>(GetProcAddress(internet, "InternetSetOptionW"));
+        if (notify) {
+          notify(nullptr, INTERNET_OPTION_SETTINGS_CHANGED, nullptr, 0);
+          notify(nullptr, INTERNET_OPTION_REFRESH, nullptr, 0);
+        }
+        FreeLibrary(internet);
+      }
+      if (!server.exists) ok = Restore(key, L"ProxyServer", server) && ok;
+      if (!enable.exists) ok = Restore(key, L"ProxyEnable", enable) && ok;
     }
   }
   RegCloseKey(key);

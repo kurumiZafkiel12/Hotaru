@@ -78,7 +78,7 @@ HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settin
 
     final proxy = WindowsSystemProxy(run: fakeRun);
     await proxy.restore(const SavedProxyState());
-    expect(verbs, ['delete', 'delete']);
+    expect(verbs, ['delete', 'add', 'delete', 'delete']);
   });
 
   test('saved state round-trips through JSON', () {

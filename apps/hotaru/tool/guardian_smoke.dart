@@ -37,13 +37,16 @@ Future<void> main(List<String> args) async {
       if (current.encode() == state.encode()) return;
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
-    throw StateError('Guardian did not restore expected proxy values');
+    throw StateError(
+      'Guardian did not restore expected proxy values: expected=${state.encode()}, actual=${(await adapter.read()).encode()}',
+    );
   }
 
   try {
     for (final scenario in ['parent', 'core', 'cancel', 'foreign', 'absent']) {
       final before = scenario == 'absent' ? const SavedProxyState() : baseline;
       await adapter.restore(before);
+      await eventually(before);
       final parent = await sleeper(), core = await sleeper();
       final token = MihomoController.newSecret().replaceAll(
         RegExp('[^a-zA-Z0-9-]'),
