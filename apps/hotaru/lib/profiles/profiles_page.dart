@@ -223,11 +223,22 @@ class _ProfilesPageState extends State<ProfilesPage> {
         '${File(Platform.resolvedExecutable).parent.path}/Hotaru.Service.exe',
         ['status'],
       );
+      var preferred = true;
+      final prefs = File('${storeFile!.parent.path}/preferences-v1.json');
+      if (await prefs.exists()) {
+        try {
+          preferred =
+              (jsonDecode(await prefs.readAsString()) as Map)['useService'] !=
+              false;
+        } catch (_) {
+          preferred = false;
+        }
+      }
       if (mounted) {
         setState(() {
           serviceReady = result.exitCode == 0;
           serviceInstalled = result.exitCode == 0 || result.exitCode == 4;
-          useService = serviceReady;
+          useService = serviceReady && preferred;
         });
       }
     } catch (_) {
@@ -244,6 +255,19 @@ class _ProfilesPageState extends State<ProfilesPage> {
       );
       await Future<void>.delayed(const Duration(seconds: 1));
       await _serviceStatus();
+    });
+    if (mounted) setState(() => busy = false);
+  }
+
+  Future<void> _preferService(bool value) async {
+    if (busy) return;
+    setState(() => busy = true);
+    await _action(() async {
+      await writeJsonAtomically(
+        File('${storeFile!.parent.path}/preferences-v1.json'),
+        {'useService': value},
+      );
+      if (mounted) setState(() => useService = value);
     });
     if (mounted) setState(() => busy = false);
   }
@@ -724,8 +748,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
                   await _refreshLive();
                 }),
         ),
-      for (final entry in providers.entries)
-        ListTile(
+      for (final entry in providers.entries.where((e) => e.key != 'default'))
+        ExpansionTile(
           title: Text('节点集 · ${entry.key}'),
           subtitle: Text(
             '${(entry.value['proxies'] as List?)?.length ?? 0} 个节点',
@@ -734,6 +758,29 @@ class _ProfilesPageState extends State<ProfilesPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () => _action(() => core.api!.updateProvider(entry.key)),
           ),
+          children: [
+            for (final node in (entry.value['proxies'] as List? ?? []))
+              ListTile(
+                title: Text(node['name'] as String),
+                subtitle: Text('${node['type']} · 来源：${entry.key}'),
+                trailing: Text(
+                  latency.containsKey('${entry.key}/${node['name']}')
+                      ? '${latency['${entry.key}/${node['name']}'] ?? '失败'} ms'
+                      : '未测',
+                ),
+                onTap: () => _action(() async {
+                  final ms = await core.api!.delay(
+                    node['name'] as String,
+                    provider: entry.key,
+                  );
+                  if (mounted) {
+                    setState(
+                      () => latency['${entry.key}/${node['name']}'] = ms,
+                    );
+                  }
+                }),
+              ),
+          ],
         ),
       ExpansionTile(
         title: Text('远程规则集 · ${ruleProviders.length}'),
@@ -859,7 +906,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
       if (mounted) {
         setState(
           () => importMsg =
-              '已保存「${saved.name}」：${saved.nodeNames.length} 个节点，已设为当前选择。启动代理后生效。',
+              '已保存「${saved.name}」：${saved.nodeNames.length} 个本地节点、${saved.providerCount} 个远程节点集，已设为当前配置。远程节点启动后完整读取。',
         );
       }
     } catch (_) {
@@ -1229,7 +1276,7 @@ class _ProfilesPageState extends State<ProfilesPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${profile.name} · ${profile.nodeNames.length} 个节点 · '
+                      '${profile.name} · ${profile.nodeNames.length} 个本地节点 / ${profile.providerCount} 个远程节点集 · '
                       '${profile.mode == ImportMode.fullConfig ? '完整配置' : '仅节点'}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -1388,11 +1435,13 @@ class _ProfilesPageState extends State<ProfilesPage> {
               subtitle: Text(
                 serviceReady
                     ? '已安装 · 日常启动无需 UAC；当前服务以 LocalService 运行，TUN 下一阶段开放。'
+                    : serviceInstalled
+                    ? '服务已安装但尚未就绪，可卸载后重装；普通模式仍可使用。'
                     : '可选安装需要一次管理员授权，普通系统代理无需安装服务。',
               ),
               onChanged: busy || running || !serviceReady
                   ? null
-                  : (v) => setState(() => useService = v),
+                  : _preferService,
             ),
             TextButton(
               onPressed: busy || running

@@ -210,6 +210,7 @@ int wmain(int argc, wchar_t** argv) {
   if (!GetNamedPipeServerProcessId(pipe, &server_pid) || server_pid != status.dwProcessId) { CloseHandle(pipe); return 3; }
   std::ifstream file(std::filesystem::path(argv[2]), std::ios::binary);
   std::string config((std::istreambuf_iterator<char>(file)), {});
+  file.close(); // The UI deletes this credential-bearing file after API readiness.
   DWORD size = static_cast<DWORD>(config.size()), ack = 0;
   bool ok = size > 0 && size <= 4 * 1024 * 1024 && Transfer(pipe, &size, sizeof(size), true) &&
     Transfer(pipe, config.data(), size, true) && Transfer(pipe, &ack, sizeof(ack), false) && ack == 1;

@@ -43,6 +43,7 @@ class StoredProfile {
   ];
 
   List<String> get nodeNames => [for (final n in nodes) n['name'] as String];
+  int get providerCount => (config['proxy-providers'] as Map?)?.length ?? 0;
 
   Map<String, dynamic> toJson() => {
     'id': id,
