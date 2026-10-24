@@ -13,6 +13,57 @@ void main() {
     ],
   };
 
+  test(
+    'failed save rolls back in-memory selection and imported profiles',
+    () async {
+      final dir = await Directory.systemTemp.createTemp(
+        'hotaru-write-failure-',
+      );
+      final blocked = Directory('${dir.path}/profiles.json')..createSync();
+      final store = ProfileStore(File(blocked.path));
+      try {
+        await expectLater(
+          store.add(
+            name: 'bad',
+            mode: ImportMode.nodesOnly,
+            source: 'paste',
+            config: config,
+          ),
+          throwsA(isA<FileSystemException>()),
+        );
+        expect(store.profiles, isEmpty);
+        expect(store.selectedNode, isNull);
+      } finally {
+        await dir.delete(recursive: true);
+      }
+    },
+  );
+
+  test(
+    'concurrent profile mutations are serialized without losing entries',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('hotaru-concurrent-');
+      try {
+        final file = File('${dir.path}/profiles.json');
+        final store = ProfileStore(file);
+        await Future.wait(
+          List.generate(
+            10,
+            (i) => store.add(
+              name: 'p$i',
+              mode: ImportMode.nodesOnly,
+              source: 'paste',
+              config: config,
+            ),
+          ),
+        );
+        expect((await ProfileStore.load(file)).profiles.length, 10);
+      } finally {
+        await dir.delete(recursive: true);
+      }
+    },
+  );
+
   test('add, select, reload and remove persist atomically', () async {
     final dir = await Directory.systemTemp.createTemp('hotaru-store-');
     final file = File('${dir.path}/profiles.json');

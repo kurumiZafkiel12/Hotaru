@@ -76,6 +76,31 @@ class ProfileStore {
   String? selectedProfileId;
   String? selectedNode;
   bool loadWarning = false;
+  Future<void> _writes = Future.value();
+
+  Future<T> _change<T>(T Function() action) {
+    final next = _writes.then<T>((_) async {
+      final before = jsonDecode(jsonEncode(toJson())) as Map<String, dynamic>;
+      try {
+        final value = action();
+        await save();
+        return value;
+      } catch (_) {
+        profiles
+          ..clear()
+          ..addAll(
+            (before['profiles'] as List).map(
+              (p) => StoredProfile.fromJson(p as Map<String, dynamic>),
+            ),
+          );
+        selectedProfileId = before['selectedProfileId'] as String?;
+        selectedNode = before['selectedNode'] as String?;
+        rethrow;
+      }
+    });
+    _writes = next.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return next;
+  }
 
   ProfileStore(
     this.file, {
@@ -138,7 +163,7 @@ class ProfileStore {
     required ImportMode mode,
     required String source,
     required Map<String, dynamic> config,
-  }) async {
+  }) => _change(() {
     final random = Random.secure().nextInt(1 << 32).toRadixString(16);
     final profile = StoredProfile(
       id: '${DateTime.now().microsecondsSinceEpoch}-$random',
@@ -151,28 +176,25 @@ class ProfileStore {
     profiles.add(profile);
     selectedProfileId = profile.id;
     selectedNode = profile.nodeNames.first;
-    await save();
     return profile;
-  }
+  });
 
-  Future<void> remove(String id) async {
+  Future<void> remove(String id) => _change<void>(() {
     profiles.removeWhere((p) => p.id == id);
     if (selectedProfileId == id) {
       selectedProfileId = profiles.isEmpty ? null : profiles.first.id;
       selectedNode = profiles.isEmpty ? null : profiles.first.nodeNames.first;
     }
-    await save();
-  }
+  });
 
-  Future<void> select(String profileId, String nodeName) async {
+  Future<void> select(String profileId, String nodeName) => _change<void>(() {
     final profile = byId(profileId);
     if (profile == null || !profile.nodeNames.contains(nodeName)) {
       throw ArgumentError('Unknown profile or node');
     }
     selectedProfileId = profileId;
     selectedNode = nodeName;
-    await save();
-  }
+  });
 
   Map<String, dynamic> toJson() => {
     'version': 1,

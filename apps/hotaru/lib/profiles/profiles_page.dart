@@ -173,11 +173,12 @@ class _ProfilesPageState extends State<ProfilesPage> {
 
   Future<void> _select(StoredProfile profile, String node) async {
     final s = store;
-    if (s == null) return;
+    if (s == null || busy) return;
     if (core.status == CoreStatus.running && activeProfileId != profile.id) {
       setState(() => proxyMsg = '切换订阅前请先停止代理，再选择并重新启动。');
       return;
     }
+    setState(() => busy = true);
     try {
       await s.select(profile.id, node);
       if (core.status == CoreStatus.running && core.api != null) {
@@ -193,6 +194,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
       if (mounted) setState(() {});
     } catch (_) {
       if (mounted) setState(() => proxyMsg = '节点切换或保存失败，请重试。');
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
