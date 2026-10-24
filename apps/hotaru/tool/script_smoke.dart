@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:hotaru/profiles/overrides.dart';
+import 'package:hotaru/profiles/importer.dart';
 
 Future<void> main(List<String> args) async {
   final node = args.single;
@@ -13,6 +14,25 @@ Future<void> main(List<String> args) async {
     nodeExecutable: node,
   );
   if (result['mode'] != 'global') throw StateError('Script did not execute');
+  final runtime = await ProfileOverrides.buildRuntime(
+    source: {
+      'proxies': [
+        {'name': 'a', 'type': 'direct'},
+      ],
+    },
+    mode: ImportMode.nodesOnly,
+    selectedNode: 'a',
+    overlay: {
+      'rules': ['MATCH,REJECT'],
+    },
+    script: 'function main(config) { config.mode = "direct"; return config; }',
+    nodeExecutable: node,
+  );
+  if (runtime['mode'] != 'direct' ||
+      runtime['rules'].single != 'MATCH,REJECT' ||
+      runtime['proxy-groups'] is! List) {
+    throw StateError('Runtime generation overwrote user overlays');
+  }
   for (final script in [
     'function main(c) { while(true){} }',
     'function main(c) { return require("node:fs").readFileSync("secret"); }',

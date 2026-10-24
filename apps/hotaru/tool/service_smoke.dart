@@ -27,6 +27,9 @@ Future<void> main(List<String> args) async {
       },
       mixedPort: port,
     );
+    stdout.writeln(
+      'Service core ready: mixed=$port target=${server.port} wrapper=${core.processId}',
+    );
     client.findProxy = (_) => 'PROXY 127.0.0.1:$port';
     final response = await (await client.getUrl(
       Uri.parse('http://127.0.0.1:${server.port}/'),

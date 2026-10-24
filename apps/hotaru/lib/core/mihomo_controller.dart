@@ -114,7 +114,17 @@ class MihomoController {
       throw ArgumentError('Invalid mixed port');
     }
     final secret = newSecret();
-    final controllerPort = await findFreePort();
+    var controllerPort = await findFreePort();
+    for (
+      var attempt = 0;
+      controllerPort == mixedPort && attempt < 10;
+      attempt++
+    ) {
+      controllerPort = await findFreePort();
+    }
+    if (controllerPort == mixedPort) {
+      throw StateError('Unable to allocate distinct ports');
+    }
     final config = <String, dynamic>{
       ...jsonDecode(jsonEncode(runtimeConfig)) as Map<String, dynamic>,
       'profile': {
@@ -262,6 +272,27 @@ class MihomoController {
       if (version == null || !identical(_process, child)) {
         throw TimeoutException('Core health check failed');
       }
+      if (runtimeMixedPort != null) {
+        var listening = false;
+        for (var attempt = 0; attempt < 50; attempt++) {
+          if (!identical(_process, child)) {
+            throw StateError('Core exited before proxy readiness');
+          }
+          try {
+            final socket = await Socket.connect(
+              '127.0.0.1',
+              runtimeMixedPort,
+              timeout: const Duration(milliseconds: 200),
+            );
+            socket.destroy();
+            listening = true;
+            break;
+          } on SocketException {
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+          }
+        }
+        if (!listening) throw StateError('Proxy listener did not become ready');
+      }
       coreVersion = version;
       mixedPort = runtimeMixedPort;
       status = CoreStatus.running;
@@ -275,8 +306,24 @@ class MihomoController {
       // once startup finishes (the core has already read it by then).
       try {
         if (configFile != null && await configFile.exists()) {
-          await configFile.delete();
+          for (var attempt = 0; ; attempt++) {
+            try {
+              await configFile.delete();
+              break;
+            } on FileSystemException catch (error) {
+              final transient =
+                  Platform.isWindows &&
+                  [5, 32, 33].contains(error.osError?.errorCode);
+              if (!transient || attempt >= 19) rethrow;
+              await Future<void>.delayed(const Duration(milliseconds: 100));
+            }
+          }
         }
+      } catch (_) {
+        await _terminate();
+        status = CoreStatus.failed;
+        error = '临时配置清理失败，代理已停止。请检查数据目录权限后重试。';
+        rethrow;
       } finally {
         _busy = false;
       }

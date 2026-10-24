@@ -26,6 +26,8 @@ Future<void> main(List<String> args) async {
   final core = MihomoController();
   Process? upstream;
   HttpServer? target;
+  final slowArrived = Completer<void>();
+  final releaseSlow = Completer<void>();
   try {
     // 1) Target HTTP server (the "website").
     target = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -33,7 +35,8 @@ Future<void> main(List<String> args) async {
     unawaited(
       target.forEach((request) async {
         if (request.uri.path == '/slow') {
-          await Future<void>.delayed(const Duration(milliseconds: 1500));
+          if (!slowArrived.isCompleted) slowArrived.complete();
+          await releaseSlow.future;
         }
         request.response.write('hotaru-proxy-ok');
         await request.response.close();
@@ -122,7 +125,13 @@ Future<void> main(List<String> args) async {
         .getUrl(Uri.parse('http://127.0.0.1:$targetPort/slow'))
         .then((r) => r.close())
         .then((r) => r.transform(utf8.decoder).join());
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    unawaited(
+      slowFuture.catchError((Object error, StackTrace stack) {
+        if (!slowArrived.isCompleted) slowArrived.completeError(error, stack);
+        return '';
+      }),
+    );
+    await slowArrived.future.timeout(const Duration(seconds: 10));
     final snapshot = await core.api!.connections();
     final connections = snapshot['connections'];
     if (connections is! List || connections.isEmpty) {
@@ -135,7 +144,8 @@ Future<void> main(List<String> args) async {
     if (!chains.contains('upstream-node')) {
       throw StateError('connection chain lacks upstream-node: $chains');
     }
-    final body = await slowFuture;
+    releaseSlow.complete();
+    final body = await slowFuture.timeout(const Duration(seconds: 10));
     if (body != 'hotaru-proxy-ok') throw StateError('unexpected body: $body');
     client.close(force: true);
     stdout.writeln('proxied request ok; chain evidence: $chains');
@@ -162,6 +172,7 @@ Future<void> main(List<String> args) async {
       '(chain verified) -> stop (port closed)',
     );
   } finally {
+    if (!releaseSlow.isCompleted) releaseSlow.complete();
     await core.dispose();
     upstream?.kill();
     if (upstream != null) {

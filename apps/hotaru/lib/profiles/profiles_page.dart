@@ -439,33 +439,16 @@ class _ProfilesPageState extends State<ProfilesPage> {
         'updatedAt': DateTime.now().toIso8601String(),
       });
       // Validate the result after user overrides before replacing the saved source.
-      final transformed = await ProfileOverrides.apply(
-        next.config,
-        next.merge,
-        next.script,
-      );
-      final candidate = ProxyConfigBuilder.build(
-        profileConfig: transformed,
+      final candidate = await ProfileOverrides.buildRuntime(
+        source: next.config,
         mode: next.mode,
         selectedNode: next.nodeNames.contains(store!.selectedNode)
             ? store!.selectedNode!
             : (next.nodeNames.firstOrNull ?? ''),
+        overlay: next.merge,
+        script: next.script,
       );
-      final validation = MihomoController();
-      final dir = Directory(
-        '${storeFile!.parent.path}/validation/${profile.id}',
-      );
-      try {
-        await validation.startRuntime(
-          exePath.text.trim(),
-          dir,
-          runtimeConfig: candidate,
-          mixedPort: await MihomoController.findFreePort(),
-        );
-        await validation.stop();
-      } finally {
-        await validation.dispose();
-      }
+      await _validateRuntime(candidate);
       await store!.replace(next);
       if (mounted) {
         setState(
@@ -483,6 +466,8 @@ class _ProfilesPageState extends State<ProfilesPage> {
   }
 
   Future<void> _editOverrides(StoredProfile profile) async {
+    if (busy) return;
+    setState(() => busy = true);
     final merge = TextEditingController(
       text: const JsonEncoder.withIndent('  ').convert(profile.merge),
     );
@@ -490,101 +475,117 @@ class _ProfilesPageState extends State<ProfilesPage> {
     final interval = TextEditingController(text: '${profile.updateHours}');
     String? error;
     var saving = false;
-    await showDialog<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, update) => AlertDialog(
-          title: Text('${profile.name} · 覆写'),
-          content: SizedBox(
-            width: 700,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    '顺序：原订阅 → Merge → Script。字典递归合并，数组整体替换。仅运行你信任并主动填写的脚本；保存不会立即改变当前连接。',
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => StatefulBuilder(
+          builder: (context, update) => PopScope(
+            canPop: !saving,
+            child: AlertDialog(
+              title: Text('${profile.name} · 覆写'),
+              content: SizedBox(
+                width: 700,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '顺序：原订阅 → Merge → Script。字典递归合并，数组整体替换。仅运行你信任并主动填写的脚本；保存不会立即改变当前连接。',
+                      ),
+                      TextField(
+                        controller: interval,
+                        enabled: !saving,
+                        decoration: const InputDecoration(
+                          labelText: '更新间隔（小时，0 为关闭，最大 720）',
+                        ),
+                      ),
+                      TextField(
+                        controller: merge,
+                        enabled: !saving,
+                        minLines: 4,
+                        maxLines: 8,
+                        decoration: const InputDecoration(
+                          labelText: 'Merge · YAML/JSON',
+                        ),
+                      ),
+                      TextField(
+                        controller: script,
+                        enabled: !saving,
+                        minLines: 4,
+                        maxLines: 8,
+                        decoration: const InputDecoration(
+                          labelText: 'Script · function main(config) { return config; }',
+                        ),
+                      ),
+                      if (error != null) Text(error!),
+                    ],
                   ),
-                  TextField(
-                    controller: interval,
-                    enabled: !saving,
-                    decoration: const InputDecoration(
-                      labelText: '更新间隔（小时，0 为关闭，最大 720）',
-                    ),
-                  ),
-                  TextField(
-                    controller: merge,
-                    enabled: !saving,
-                    minLines: 4,
-                    maxLines: 8,
-                    decoration: const InputDecoration(
-                      labelText: 'Merge · YAML/JSON',
-                    ),
-                  ),
-                  TextField(
-                    controller: script,
-                    enabled: !saving,
-                    minLines: 4,
-                    maxLines: 8,
-                    decoration: const InputDecoration(
-                      labelText:
-                          'Script · function main(config) { return config; }',
-                    ),
-                  ),
-                  if (error != null) Text(error!),
-                ],
+                ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: saving ? null : () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: saving
+                      ? null
+                      : () async {
+                          update(() => saving = true);
+                          try {
+                            final hours = int.parse(interval.text);
+                            if (hours < 0 || hours > 720) {
+                              throw const FormatException();
+                            }
+                            final overlay = ProfileOverrides.parseMerge(
+                              merge.text,
+                            );
+                            final scriptValue = script.text;
+                            final transformed =
+                                await ProfileOverrides.buildRuntime(
+                                  source: profile.config,
+                                  mode: profile.mode,
+                                  selectedNode:
+                                      profile.nodeNames.firstOrNull ?? '',
+                                  overlay: overlay,
+                                  script: scriptValue,
+                                );
+                            await _validateRuntime(transformed);
+                            await store!.replace(
+                              StoredProfile.fromJson({
+                                ...profile.toJson(),
+                                'merge': overlay,
+                                'script': scriptValue,
+                                'updateHours': hours,
+                              }),
+                            );
+                            if (context.mounted) {
+                              update(() => saving = false);
+                              Navigator.pop(context);
+                            }
+                            if (mounted) setState(() {});
+                          } catch (_) {
+                            if (context.mounted) {
+                              update(
+                                () => error =
+                                    '保存失败：检查 Merge、Script、内核配置和更新间隔；旧设置未改动。',
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) update(() => saving = false);
+                          }
+                        },
+                  child: const Text('检查并保存'),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(context),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      update(() => saving = true);
-                      try {
-                        final hours = int.parse(interval.text);
-                        if (hours < 0 || hours > 720) {
-                          throw const FormatException();
-                        }
-                        final overlay = ProfileOverrides.parseMerge(merge.text);
-                        final scriptValue = script.text;
-                        final transformed = await ProfileOverrides.apply(
-                          profile.config,
-                          overlay,
-                          scriptValue,
-                        );
-                        await _validateCandidate(transformed, profile.mode);
-                        await store!.replace(
-                          StoredProfile.fromJson({
-                            ...profile.toJson(),
-                            'merge': overlay,
-                            'script': scriptValue,
-                            'updateHours': hours,
-                          }),
-                        );
-                        if (context.mounted) Navigator.pop(context);
-                        if (mounted) setState(() {});
-                      } catch (_) {
-                        if (context.mounted) {
-                          update(
-                            () => error =
-                                '保存失败：检查 Merge、Script、内核配置和更新间隔；旧设置未改动。',
-                          );
-                        }
-                      } finally {
-                        if (context.mounted) update(() => saving = false);
-                      }
-                    },
-              child: const Text('检查并保存'),
-            ),
-          ],
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
     // Dialog animation may still reference its controllers after completion.
     await Future<void>.delayed(const Duration(milliseconds: 300));
     merge.dispose();
@@ -863,6 +864,10 @@ class _ProfilesPageState extends State<ProfilesPage> {
       selectedNode:
           ((config['proxies'] as List?)?.firstOrNull?['name'] as String?) ?? '',
     );
+    await _validateRuntime(candidate);
+  }
+
+  Future<void> _validateRuntime(Map<String, dynamic> candidate) async {
     final validator = MihomoController();
     final directory = Directory('${storeFile!.parent.path}/validation/check');
     try {
@@ -985,14 +990,12 @@ class _ProfilesPageState extends State<ProfilesPage> {
         runtimeDir = Directory(
           '${storeFile!.parent.path}/runtime/${profile.id}',
         );
-        final config = ProxyConfigBuilder.build(
-          profileConfig: await ProfileOverrides.apply(
-            profile.config,
-            profile.merge,
-            profile.script,
-          ),
+        final config = await ProfileOverrides.buildRuntime(
+          source: profile.config,
           mode: profile.mode,
           selectedNode: node ?? '',
+          overlay: profile.merge,
+          script: profile.script,
         );
         core.serviceMode = useService && serviceReady;
         await core.startRuntime(

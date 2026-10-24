@@ -4,9 +4,30 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import '../core/proxy_config.dart';
+import 'importer.dart';
+
 /// Source subscription -> recursive Merge (lists replace) -> user's Script.
 /// Never executes script supplied by a remote subscription.
 class ProfileOverrides {
+  static Future<Map<String, dynamic>> buildRuntime({
+    required Map<String, dynamic> source,
+    required ImportMode mode,
+    required String selectedNode,
+    Map<String, dynamic> overlay = const {},
+    String script = '',
+    String? nodeExecutable,
+  }) => apply(
+    ProxyConfigBuilder.build(
+      profileConfig: source,
+      mode: mode,
+      selectedNode: selectedNode,
+    ),
+    overlay,
+    script,
+    nodeExecutable: nodeExecutable,
+  );
+
   static Map<String, dynamic> parseMerge(String text) {
     if (text.trim().isEmpty) return {};
     final result = jsonDecode(jsonEncode(loadYaml(text)));

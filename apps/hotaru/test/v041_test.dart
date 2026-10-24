@@ -124,4 +124,30 @@ rules: ["RULE-SET,local,DIRECT", "MATCH,手动"]
     expect(AppUpdater.newer('v0.4.1', 'v0.4.1-preview.99'), true);
     expect(AppUpdater.newer('v0.4.1-preview.100', 'v0.4.1'), false);
   });
+  test(
+    'node-only routing is generated before overrides, never after',
+    () async {
+      final source = {
+        'proxies': [
+          {'name': 'a', 'type': 'direct'},
+        ],
+      };
+      final result = await ProfileOverrides.buildRuntime(
+        source: source,
+        mode: ImportMode.nodesOnly,
+        selectedNode: 'a',
+        overlay: {
+          'mode': 'global',
+          'rules': ['MATCH,REJECT'],
+          'dns': {'ipv6': true},
+        },
+      );
+      expect(result['mode'], 'global');
+      expect(result['rules'], ['MATCH,REJECT']);
+      expect(result['dns']['enable'], true);
+      expect(result['dns']['ipv6'], true);
+      expect((result['proxy-groups'] as List).first['name'], 'HOTARU');
+      expect(source.containsKey('rules'), false);
+    },
+  );
 }
