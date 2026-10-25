@@ -6,7 +6,7 @@
 
 **Download based on your OS:**
 
-Windows-only preview: Android, macOS and Linux builds are not included in this preview.
+Windows x64 release. Android, macOS and Linux packages are not included in this release.
 
 <div align=left>
 <table>
