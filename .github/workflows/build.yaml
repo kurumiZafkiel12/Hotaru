@@ -453,7 +453,7 @@ jobs:
   upload:
     permissions:
       contents: write
-    needs: [ build, dart, plugins, go, android, rust, windows-helper-test ]
+    needs: [ build, dart, plugins, go, rust, windows-helper-test ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
