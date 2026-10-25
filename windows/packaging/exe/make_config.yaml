@@ -1,0 +1,18 @@
+script_template: inno_setup.iss
+app_id: 5BC2F9E8-4E83-4A7D-9CAD-7E5809D5DDE0
+app_name: Hotaru
+publisher: kurumiZafkiel12
+publisher_url: https://github.com/kurumiZafkiel12/Hotaru
+display_name: Hotaru
+executable_name: Hotaru.exe
+output_base_file_name: Hotaru.exe
+# Resolved against the project root: flutter_distributor turns this into an
+# absolute path via Directory.current.
+setup_icon_file: windows\runner\resources\app_icon.ico
+locales:
+  # Written into the .iss verbatim, so this one stays relative to the generated
+  # script in dist/.
+  - lang: zh
+    file: ..\windows\packaging\exe\ChineseSimplified.isl
+  - lang: en
+privileges_required: admin
