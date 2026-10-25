@@ -447,7 +447,6 @@ class ProxiesAction extends _$ProxiesAction {
     );
     pending.apply(acquired: job.held, started: job.startedOnDispatch);
     final enqueueAt = DateTime.now();
-    await latencyDiagnosticsStore.ensureLoaded();
     final diagnosticsOn = latencyDiagnosticsStore.enabled;
     final diagnostics = (
       on: diagnosticsOn,
