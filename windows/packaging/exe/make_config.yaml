@@ -3,7 +3,7 @@ app_id: 5BC2F9E8-4E83-4A7D-9CAD-7E5809D5DDE0
 app_name: Hotaru
 publisher: kurumiZafkiel12
 publisher_url: https://github.com/kurumiZafkiel12/Hotaru
-display_name: Hotaru
+display_name: Hotaru 0.5
 executable_name: Hotaru.exe
 output_base_file_name: Hotaru.exe
 # Resolved against the project root: flutter_distributor turns this into an

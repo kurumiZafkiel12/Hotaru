@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <wininet.h>
 #include <ras.h>
+#include <raserror.h>
 #include <string>
 #include <vector>
 
