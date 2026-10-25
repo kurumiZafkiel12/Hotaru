@@ -551,6 +551,14 @@ jobs:
       - name: Verify package, install, overwrite, and uninstall
         shell: pwsh
         run: ./tool/verify_windows_release.ps1
+      - name: Build isolated UI inspection bundle
+        run: flutter build windows --release --dart-define-from-file=env.json --dart-define=SAFE_MODE=true
+      - name: Save safe mode UI inspection bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hotaru-0.5.0-safe-qa
+          path: build/windows/x64/runner/Release
+          retention-days: 7
       - name: Archive complete corresponding sources
         shell: pwsh
         run: |

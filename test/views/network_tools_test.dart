@@ -59,6 +59,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('offline'), findsNothing);
+    expect(find.text('openai'), findsNothing);
     await tester.tap(find.text('grok'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Run check'));
