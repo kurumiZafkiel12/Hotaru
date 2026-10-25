@@ -571,6 +571,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Available to add",
     ),
+    "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("My widgets"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "Failed to save the change; it has been rolled back",
     ),
@@ -835,6 +836,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("Filter"),
     "filters": MessageLookupByLibrary.simpleMessage("Filters"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("Find process"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Firefly desktop"),
     "floating": MessageLookupByLibrary.simpleMessage("Floating"),
     "followProfile": MessageLookupByLibrary.simpleMessage("Follow profile"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Follow system"),

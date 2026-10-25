@@ -450,6 +450,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("深色"),
     "dashboard": MessageLookupByLibrary.simpleMessage("仪表盘"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("可添加"),
+    "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("我的小组件"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "保存更改失败，已回滚",
     ),
@@ -648,6 +649,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("筛选"),
     "filters": MessageLookupByLibrary.simpleMessage("筛选"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("查找进程"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("萤火桌面"),
     "floating": MessageLookupByLibrary.simpleMessage("悬浮"),
     "followProfile": MessageLookupByLibrary.simpleMessage("跟随配置"),
     "followSystem": MessageLookupByLibrary.simpleMessage("跟随系统"),

@@ -976,5 +976,7 @@
   "addToLocalProxies": "Añadir a proxies locales",
   "addedToLocalProxies": "{name} añadido a proxies locales",
   "alreadyInLocalProxies": "{name} ya está en proxies locales",
-  "authorCommunity": "Comunidad del autor"
+  "authorCommunity": "Comunidad del autor",
+  "fireflyDesktop": "Escritorio Hotaru",
+  "dashboardWidgetsTitle": "Mis widgets"
 }

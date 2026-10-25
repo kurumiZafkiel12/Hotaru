@@ -8177,6 +8177,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Firefly desktop`
+  String get fireflyDesktop {
+    return Intl.message(
+      'Firefly desktop',
+      name: 'fireflyDesktop',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `My widgets`
+  String get dashboardWidgetsTitle {
+    return Intl.message(
+      'My widgets',
+      name: 'dashboardWidgetsTitle',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

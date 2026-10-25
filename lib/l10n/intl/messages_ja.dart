@@ -489,6 +489,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("ダーク"),
     "dashboard": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("追加できるカード"),
+    "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("マイウィジェット"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "変更の保存に失敗したため、元に戻しました",
     ),
@@ -707,6 +708,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("フィルター"),
     "filters": MessageLookupByLibrary.simpleMessage("フィルター"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("プロセス検出"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("蛍のデスクトップ"),
     "floating": MessageLookupByLibrary.simpleMessage("フローティング"),
     "followProfile": MessageLookupByLibrary.simpleMessage("プロファイルに従う"),
     "followSystem": MessageLookupByLibrary.simpleMessage("システムに従う"),

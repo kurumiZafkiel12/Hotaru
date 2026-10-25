@@ -27,26 +27,37 @@ enum ColorStyle {
   };
 }
 
-/// Hotaru fixed palette: soft firefly green on dark blue-grey surfaces.
-/// Dark values are Hotaru's own tokens; the light scheme reuses the same
-/// hues with light surfaces, its primary darkened for contrast.
 ColorScheme hotaruColorScheme(Brightness brightness) {
   if (brightness == Brightness.dark) {
     return const ColorScheme.dark(
-      primary: Color(0xffc7e9a3),
+      primary: Color(0xffbdd99b),
       onPrimary: Color(0xff16211a),
-      surface: Color(0xff111a1c),
-      surfaceContainer: Color(0xff1c2a2e),
-      surfaceContainerHighest: Color(0xff24373c),
-      outline: Color(0xff394a41),
+      surface: Color(0xff141b1a),
+      surfaceContainer: Color(0xff1d2724),
+      surfaceContainerHighest: Color(0xff354339),
+      surfaceContainerLow: Color(0xff18201d),
+      surfaceContainerHigh: Color(0xff28342e),
+      surfaceBright: Color(0xff354339),
+      onSurface: Color(0xffe9eee7),
+      onSurfaceVariant: Color(0xffa1b1a3),
+      primaryContainer: Color(0xff30422a),
+      onPrimaryContainer: Color(0xffdbeed0),
+      outline: Color(0xff657467),
     );
   }
   return const ColorScheme.light(
-    primary: Color(0xff4c7a3d),
+    primary: Color(0xff49633b),
     onPrimary: Color(0xffffffff),
-    surface: Color(0xfff2f5ef),
-    surfaceContainer: Color(0xffe4e9e0),
-    surfaceContainerHighest: Color(0xffd3dbd0),
+    surface: Color(0xfff7f8f3),
+    surfaceContainer: Color(0xffedf1e7),
+    surfaceContainerHighest: Color(0xffdce3d8),
+    surfaceContainerLow: Color(0xfff2f5ed),
+    surfaceContainerHigh: Color(0xffe5ebdf),
+    surfaceBright: Color(0xffffffff),
+    onSurface: Color(0xff202d26),
+    onSurfaceVariant: Color(0xff657467),
+    primaryContainer: Color(0xffe3efd8),
+    onPrimaryContainer: Color(0xff2f4824),
     outline: Color(0xff7d8a7c),
   );
 }

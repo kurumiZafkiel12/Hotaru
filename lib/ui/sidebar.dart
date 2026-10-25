@@ -12,9 +12,9 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _compactWidth = 48.0;
-const _expandedWidth = 220.0;
+const _expandedWidth = 176.0;
 const _itemSize = 40.0;
-const _itemGap = 4.0;
+const _itemGap = 8.0;
 const _toggleGap = 8.0;
 const _verticalInset = 4.0;
 const _maxSideInset = 12.0;
@@ -47,6 +47,7 @@ class NavigationSidebar extends StatefulWidget {
     required this.onSelected,
     this.onToggle,
     this.windowControls = Size.zero,
+    this.brandTitle,
   });
 
   final List<SidebarDestination> destinations;
@@ -55,6 +56,7 @@ class NavigationSidebar extends StatefulWidget {
   final ValueChanged<int> onSelected;
   final VoidCallback? onToggle;
   final Size windowControls;
+  final String? brandTitle;
 
   @override
   State<NavigationSidebar> createState() => _NavigationSidebarState();
@@ -128,6 +130,7 @@ class _NavigationSidebarState extends State<NavigationSidebar>
             padding: safePadding,
             child: _SidebarPane(
               progress: progress,
+              brandTitle: widget.brandTitle,
               windowControls: widget.windowControls,
               expanded: true,
               destinations: widget.destinations,
@@ -148,6 +151,7 @@ class _NavigationSidebarState extends State<NavigationSidebar>
           curve: Easing.standard,
           builder: (context, progress, _) => _SidebarPane(
             progress: progress,
+            brandTitle: widget.brandTitle,
             windowControls: widget.windowControls,
             expanded: widget.expanded,
             destinations: widget.destinations,
@@ -231,7 +235,7 @@ class _SidebarOverlay extends StatelessWidget {
 
 class _SidebarColors {
   _SidebarColors(ColorScheme scheme)
-    : selectedFill = scheme.onSurface.withValues(alpha: 0.08),
+    : selectedFill = scheme.primary.withValues(alpha: 0.12),
       label = scheme.onSurface,
       icon = scheme.onSurfaceVariant,
       indicator = scheme.primary,
@@ -252,6 +256,7 @@ class _SidebarColors {
 class _SidebarPane extends StatelessWidget {
   const _SidebarPane({
     required this.progress,
+    required this.brandTitle,
     required this.windowControls,
     required this.expanded,
     required this.destinations,
@@ -261,6 +266,7 @@ class _SidebarPane extends StatelessWidget {
   });
 
   final double progress;
+  final String? brandTitle;
   final Size windowControls;
   final bool expanded;
   final List<SidebarDestination> destinations;
@@ -314,6 +320,44 @@ class _SidebarPane extends StatelessWidget {
             ),
           ),
           const SizedBox(height: _toggleGap),
+          if (brandTitle case final title?)
+            Padding(
+              padding: EdgeInsets.fromLTRB(sideInset, 12, sideInset, 24),
+              child: SizedBox(
+                height: itemHeight,
+                child: ClipRect(
+                  child: OverflowBox(
+                    alignment: AlignmentDirectional.centerStart,
+                    minWidth: rowWidth,
+                    maxWidth: rowWidth,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: itemWidth,
+                          child: Text(
+                            '蛍',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyle.title1
+                                .of(context)
+                                .copyWith(color: colors.indicator),
+                          ),
+                        ),
+                        const SizedBox(width: _labelGap),
+                        Opacity(
+                          opacity: labelOpacity,
+                          child: Text(
+                            title,
+                            style: AppTextStyle.caption1
+                                .of(context, emphasized: true)
+                                .copyWith(letterSpacing: 1.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: ScrollConfiguration(
               behavior: const HiddenBarScrollBehavior(),
@@ -410,7 +454,10 @@ class _SidebarButton extends StatelessWidget {
                 message: tooltip,
                 excludeFromSemantics: !tooltipIsLabel,
                 child: IconTheme.merge(
-                  data: IconThemeData(size: _iconSize, color: colors.icon),
+                  data: IconThemeData(
+                    size: _iconSize,
+                    color: selected == true ? colors.indicator : colors.icon,
+                  ),
                   child: SizedBox(height: height, child: child),
                 ),
               ),
@@ -480,7 +527,9 @@ class _DestinationRow extends StatelessWidget {
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.ellipsis,
-                  style: style,
+                  style: selected
+                      ? style?.copyWith(color: IconTheme.of(context).color)
+                      : style,
                 ),
               ),
             ),

@@ -617,6 +617,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Disponibles à l’ajout",
     ),
+    "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage(
+      "Mes widgets",
+    ),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "Échec de l’enregistrement de la modification ; elle a été annulée",
     ),
@@ -893,6 +896,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "findProcessMode": MessageLookupByLibrary.simpleMessage(
       "Recherche de processus",
     ),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Bureau Hotaru"),
     "floating": MessageLookupByLibrary.simpleMessage("Flottante"),
     "followProfile": MessageLookupByLibrary.simpleMessage("Suivre le profil"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Suivre le système"),

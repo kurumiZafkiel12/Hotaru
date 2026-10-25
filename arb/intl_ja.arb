@@ -976,5 +976,7 @@
   "addToLocalProxies": "ローカルプロキシに追加",
   "addedToLocalProxies": "{name} をローカルプロキシに追加しました",
   "alreadyInLocalProxies": "{name} はすでにローカルプロキシにあります",
-  "authorCommunity": "作者の交流グループ"
+  "authorCommunity": "作者の交流グループ",
+  "fireflyDesktop": "蛍のデスクトップ",
+  "dashboardWidgetsTitle": "マイウィジェット"
 }

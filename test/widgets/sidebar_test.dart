@@ -35,6 +35,7 @@ Widget _sidebar({
   bool expanded = true,
   ValueChanged<int>? onSelected,
   VoidCallback? onToggle,
+  String? brandTitle,
   Size windowControls = Size.zero,
   EdgeInsets safePadding = EdgeInsets.zero,
 }) {
@@ -48,6 +49,7 @@ Widget _sidebar({
               builder: (context) => MediaQuery(
                 data: MediaQuery.of(context).copyWith(padding: safePadding),
                 child: NavigationSidebar(
+                  brandTitle: brandTitle,
                   destinations: destinations,
                   selectedIndex: selectedIndex,
                   expanded: expanded,
@@ -103,6 +105,26 @@ Finder _rowTooltip(String message) => find.byWidgetPredicate(
 );
 
 void main() {
+  testWidgets('the Hotaru brand fits expanded and collapsed navigation', (
+    tester,
+  ) async {
+    int? selected;
+    await tester.pumpWidget(
+      _sidebar(brandTitle: 'HOTARU', onSelected: (index) => selected = index),
+    );
+    expect(find.text('HOTARU'), findsOneWidget);
+    expect(find.text('蛍'), findsOneWidget);
+    await tester.tap(_shown('Profiles'));
+    expect(selected, 2);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(
+      _sidebar(brandTitle: 'HOTARU', expanded: false, onToggle: () {}),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.getSize(_sidebarFinder).width, 48);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the selected row carries a centered indicator', (tester) async {
     await tester.pumpWidget(_sidebar(selectedIndex: 1));
 
@@ -113,7 +135,7 @@ void main() {
       indicator.center.dy,
       moreOrLessEquals(tester.getCenter(_glyph(AppGlyphs.proxies)).dy),
     );
-    expect(tester.getSize(_sidebarFinder).width, 220);
+    expect(tester.getSize(_sidebarFinder).width, 176);
     expect(_labelOpacities(tester, 'Proxies'), [1]);
     expect(
       tester.getSemantics(find.text('Proxies')),
@@ -180,11 +202,11 @@ void main() {
     await tester.pumpWidget(_sidebar(onToggle: () {}));
     await tester.pump(const Duration(milliseconds: 120));
     final width = tester.getSize(_sidebarFinder).width;
-    expect(width, allOf(greaterThan(48), lessThan(220)));
+    expect(width, allOf(greaterThan(48), lessThan(176)));
     expect(tester.takeException(), isNull);
 
     await tester.pumpAndSettle();
-    expect(tester.getSize(_sidebarFinder).width, 220);
+    expect(tester.getSize(_sidebarFinder).width, 176);
     expect(_rowTooltip('Proxies'), findsNothing);
     expect(find.byTooltip('Collapse'), findsOneWidget);
   });
@@ -268,7 +290,7 @@ void main() {
       _sidebar(onToggle: () {}, windowControls: const Size(78, 32)),
     );
     await tester.pumpAndSettle();
-    expect(tester.getSize(_sidebarFinder).width, 220);
+    expect(tester.getSize(_sidebarFinder).width, 176);
     expect(tester.getCenter(_glyph(AppGlyphs.profiles)), folder);
   });
 
@@ -328,7 +350,7 @@ void main() {
       final pane = tester.getRect(_paneFinder);
       expect(pane.topLeft, sidebar.topLeft);
       expect(pane.height, sidebar.height);
-      expect(pane.width, 220 + safePadding.left);
+      expect(pane.width, 176 + safePadding.left);
       expect(tester.getTopLeft(find.byTooltip('Collapse')), toggle);
     });
 

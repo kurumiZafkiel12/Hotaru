@@ -34,9 +34,8 @@ double _tabHeightOf(DashboardDensity density) => density.isCompact ? 32 : 36;
 
 double _rowHeightOf(DashboardDensity density) => density.isCompact ? 32 : 34;
 
-/// Keeps the pill tabs concentric with the card's corners.
 double _tabInsetOf(DashboardDensity density) =>
-    dashboardCardRadius(density) - _tabHeightOf(density) / 2;
+    dashboardCardPadding(density).top;
 
 double connectionsTableTop(DashboardDensity density, double scale) =>
     _tabInsetOf(density) + _tabHeightOf(density) * scale + _tableGap;
