@@ -73,7 +73,10 @@ class GuardConnections {
     set_(nullptr, INTERNET_OPTION_SETTINGS_CHANGED, nullptr, 0);
     set_(nullptr, INTERNET_OPTION_REFRESH, nullptr, 0);
   }
-  ~GuardConnections() { if (internet_) FreeLibrary(internet_); }
+  void Close() {
+    if (internet_) { FreeLibrary(internet_); internet_ = nullptr; }
+  }
+  ~GuardConnections() { Close(); }
  private:
   using Query = BOOL(WINAPI*)(HINTERNET, DWORD, LPVOID, LPDWORD);
   using Set = BOOL(WINAPI*)(HINTERNET, DWORD, LPVOID, DWORD);

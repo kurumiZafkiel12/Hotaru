@@ -127,6 +127,7 @@ int wmain(int argc, wchar_t** argv) {
       ok = Restore(key, L"ProxyEnable", enable) && ok;
       ok = Restore(key, L"ProxyOverride", bypass) && ok;
       connections.Notify();
+      connections.Close();
       if (!server.exists) ok = Restore(key, L"ProxyServer", server) && ok;
       if (!enable.exists) ok = Restore(key, L"ProxyEnable", enable) && ok;
       ok = Restore(key, L"ProxyOverride", bypass) && ok;
