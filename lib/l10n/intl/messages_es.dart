@@ -1028,9 +1028,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -1894,6 +1895,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "spectrum": MessageLookupByLibrary.simpleMessage("Espectro"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage(
       "Estadísticas de velocidad",
+    ),
+    "speedTest": MessageLookupByLibrary.simpleMessage("Prueba de velocidad"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
+      "Conexión directa (núcleo inactivo)",
+    ),
+    "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
+      "Sin prueba todavía",
+    ),
+    "speedTestProvider": MessageLookupByLibrary.simpleMessage("Proveedor"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
+      "Tráfico a través del proxy actual",
     ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage(
       "Estrategia de división",

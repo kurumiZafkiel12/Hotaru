@@ -1509,6 +1509,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "specialRules": MessageLookupByLibrary.simpleMessage("特殊ルール"),
     "spectrum": MessageLookupByLibrary.simpleMessage("スペクトル"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage("速度統計"),
+    "speedTest": MessageLookupByLibrary.simpleMessage("スピードテスト"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage("直接接続（コア未起動）"),
+    "speedTestNotRun": MessageLookupByLibrary.simpleMessage("未実施"),
+    "speedTestProvider": MessageLookupByLibrary.simpleMessage("プロバイダ"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("現在のプロキシ経由"),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("振り分け戦略"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
       "振り分け戦略は空にできません",

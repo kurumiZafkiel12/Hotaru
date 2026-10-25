@@ -4511,6 +4511,51 @@ class AppLocalizations {
     );
   }
 
+  /// `Speed test`
+  String get speedTest {
+    return Intl.message('Speed test', name: 'speedTest', desc: '', args: []);
+  }
+
+  /// `Direct connection (core is not running)`
+  String get speedTestDirect {
+    return Intl.message(
+      'Direct connection (core is not running)',
+      name: 'speedTestDirect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No test run yet`
+  String get speedTestNotRun {
+    return Intl.message(
+      'No test run yet',
+      name: 'speedTestNotRun',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Provider`
+  String get speedTestProvider {
+    return Intl.message(
+      'Provider',
+      name: 'speedTestProvider',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic goes through the current proxy`
+  String get speedTestViaProxy {
+    return Intl.message(
+      'Traffic goes through the current proxy',
+      name: 'speedTestViaProxy',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `This page has changes. Are you sure you want to reset?`
   String get resetPageChangesTip {
     return Intl.message(
@@ -7943,8 +7988,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',

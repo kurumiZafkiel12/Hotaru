@@ -43,6 +43,7 @@ export 'proxy.dart';
 export 'request.dart';
 export 'search.dart';
 export 'snowflake.dart';
+export 'speed_test.dart';
 export 'string.dart';
 export 'system.dart';
 export 'system_fonts.dart';

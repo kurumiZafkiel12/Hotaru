@@ -17,6 +17,7 @@ import 'config/advanced.dart';
 import 'config/custom_resources.dart';
 import 'developer.dart';
 import 'disclaimer.dart';
+import 'speed_test.dart';
 import 'theme.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
@@ -86,6 +87,7 @@ class _ToolViewState extends ConsumerState<ToolsView> {
           );
         },
       ),
+      generateSection(items: const [_SpeedTestItem()]),
       _getSettingList(),
       _getOtherList(developerMode),
     ];
@@ -104,6 +106,19 @@ class _ToolViewState extends ConsumerState<ToolsView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SpeedTestItem extends StatelessWidget {
+  const _SpeedTestItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem.open(
+      leading: const GlyphIcon(AppGlyphs.speed),
+      title: Text(context.appLocalizations.speedTest),
+      widget: const SpeedTestView(),
     );
   }
 }

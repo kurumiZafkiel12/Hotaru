@@ -1480,6 +1480,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "specialRules": MessageLookupByLibrary.simpleMessage("특수 규칙"),
     "spectrum": MessageLookupByLibrary.simpleMessage("스펙트럼"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage("속도 통계"),
+    "speedTest": MessageLookupByLibrary.simpleMessage("속도 테스트"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage("직접 연결(코어 미실행)"),
+    "speedTestNotRun": MessageLookupByLibrary.simpleMessage("아직 테스트하지 않음"),
+    "speedTestProvider": MessageLookupByLibrary.simpleMessage("제공업체"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("현재 프록시 경유"),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("분할 전략"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
       "분할 전략을 입력하세요",
