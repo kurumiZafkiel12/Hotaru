@@ -169,23 +169,6 @@ bool startProxy(const int port, const flutter::EncodableList& bypassDomain)
   return optionsApplied && settingsNotified;
 }
 
-bool stopProxy()
-{
-  std::vector<INTERNET_PER_CONN_OPTION> options(1);
-
-  INTERNET_PER_CONN_OPTION_LIST list = {};
-  list.dwSize = sizeof(list);
-  list.dwOptionCount = 1;
-  list.pOptions = options.data();
-
-  options[0].dwOption = INTERNET_PER_CONN_FLAGS;
-  options[0].Value.dwValue = PROXY_TYPE_DIRECT;
-
-  const bool optionsApplied = ApplyOptionsToConnections(list);
-  const bool settingsNotified = NotifySettingsChanged();
-  return optionsApplied && settingsNotified;
-}
-
 std::optional<int> ProxyPort(const std::wstring& server)
 {
   const std::wstring prefix = kProxyServerPrefix;

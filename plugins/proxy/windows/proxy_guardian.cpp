@@ -5,6 +5,7 @@
 #include <vector>
 #include <cwchar>
 #include <cstring>
+#include "guardian_connections.h"
 #pragma comment(lib, "advapi32.lib")
 
 constexpr auto kKey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
@@ -99,11 +100,14 @@ int wmain(int argc, wchar_t** argv) {
   HANDLE cancel = CreateEventW(nullptr, TRUE, FALSE, (prefix + L"-cancel").c_str());
   HANDLE restore = CreateEventW(nullptr, TRUE, FALSE, (prefix + L"-restore").c_str());
   HANDLE done = CreateEventW(nullptr, TRUE, FALSE, (prefix + L"-done").c_str());
+  HANDLE failed = CreateEventW(nullptr, TRUE, FALSE, (prefix + L"-failed").c_str());
   HANDLE ready = OpenEventW(EVENT_MODIFY_STATE, FALSE, (prefix + L"-ready").c_str());
   HKEY key = nullptr;
-  if (!parent || !core || !cancel || !restore || !done || !ready ||
+  if (!parent || !core || !cancel || !restore || !done || !failed || !ready ||
       RegOpenKeyExW(HKEY_CURRENT_USER, kKey, 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &key) != ERROR_SUCCESS) return 3;
   const Value enable = Read(key, L"ProxyEnable"), server = Read(key, L"ProxyServer"), bypass = Read(key, L"ProxyOverride");
+  GuardConnections connections;
+  if (!connections.Capture()) return 3;
   SetEvent(ready);
   HANDLE handles[] = {cancel, parent, core, restore};
   const auto result = WaitForMultipleObjects(4, handles, FALSE, INFINITE);
@@ -112,33 +116,27 @@ int wmain(int argc, wchar_t** argv) {
     const Value currentEnable = Read(key, L"ProxyEnable"), currentServer = Read(key, L"ProxyServer");
     const std::wstring owned = argv[5];
     const auto expectedSize = (owned.size() + 1) * sizeof(wchar_t);
-    if (currentEnable.exists && currentEnable.type == REG_DWORD && currentEnable.data.size() == sizeof(DWORD) &&
+    const bool ownsLocal = currentEnable.exists && currentEnable.type == REG_DWORD && currentEnable.data.size() == sizeof(DWORD) &&
         *reinterpret_cast<const DWORD*>(currentEnable.data.data()) == 1 &&
         currentServer.exists && currentServer.type == REG_SZ && currentServer.data.size() == expectedSize &&
-        memcmp(currentServer.data.data(), owned.c_str(), expectedSize) == 0) {
+        memcmp(currentServer.data.data(), owned.c_str(), expectedSize) == 0;
+    ok = connections.Recover(owned, ownsLocal);
+    if (ownsLocal) {
       // Restore endpoint first so a partial failure cannot keep a dead local endpoint.
-      ok = Restore(key, L"ProxyServer", server);
+      ok = Restore(key, L"ProxyServer", server) && ok;
       ok = Restore(key, L"ProxyEnable", enable) && ok;
       ok = Restore(key, L"ProxyOverride", bypass) && ok;
-      // Load WinINet only after capturing the snapshot. Its initialization or
-      // refresh may materialize absent default values on a fresh account.
-      HMODULE internet = LoadLibraryW(L"wininet.dll");
-      if (internet) {
-        using SetOption = BOOL(WINAPI*)(HINTERNET, DWORD, LPVOID, DWORD);
-        const auto notify = reinterpret_cast<SetOption>(GetProcAddress(internet, "InternetSetOptionW"));
-        if (notify) {
-          notify(nullptr, INTERNET_OPTION_SETTINGS_CHANGED, nullptr, 0);
-          notify(nullptr, INTERNET_OPTION_REFRESH, nullptr, 0);
-        }
-        FreeLibrary(internet);
-      }
+      connections.Notify();
       if (!server.exists) ok = Restore(key, L"ProxyServer", server) && ok;
       if (!enable.exists) ok = Restore(key, L"ProxyEnable", enable) && ok;
       ok = Restore(key, L"ProxyOverride", bypass) && ok;
+    } else {
+      connections.Notify();
     }
   }
   RegCloseKey(key);
+  if (!ok) SetEvent(failed);
   SetEvent(done);
-  for (const auto handle : {parent, core, cancel, restore, done, ready}) CloseHandle(handle);
+  for (const auto handle : {parent, core, cancel, restore, done, failed, ready}) CloseHandle(handle);
   return ok ? 0 : 4;
 }

@@ -5,6 +5,7 @@
 namespace hotaru_guard {
 inline HANDLE restore = nullptr;
 inline HANDLE done = nullptr;
+inline HANDLE failed = nullptr;
 inline int owned_port = 0;
 
 inline bool Stop() {
@@ -12,11 +13,13 @@ inline bool Stop() {
   SetEvent(restore);
   const bool finished = WaitForSingleObject(done, 6000) == WAIT_OBJECT_0;
   if (!finished) return false;
+  const bool success = WaitForSingleObject(failed, 0) != WAIT_OBJECT_0;
   CloseHandle(restore);
   CloseHandle(done);
-  restore = done = nullptr;
+  CloseHandle(failed);
+  restore = done = failed = nullptr;
   owned_port = 0;
-  return true;
+  return success;
 }
 
 inline bool Arm(int port) {
@@ -46,10 +49,12 @@ inline bool Arm(int port) {
   if (code != 0) return false;
   restore = OpenEventW(EVENT_MODIFY_STATE, FALSE, (prefix + L"-restore").c_str());
   done = OpenEventW(SYNCHRONIZE, FALSE, (prefix + L"-done").c_str());
-  if (!restore || !done) {
+  failed = OpenEventW(SYNCHRONIZE, FALSE, (prefix + L"-failed").c_str());
+  if (!restore || !done || !failed) {
     if (restore) CloseHandle(restore);
     if (done) CloseHandle(done);
-    restore = done = nullptr;
+    if (failed) CloseHandle(failed);
+    restore = done = failed = nullptr;
     return false;
   }
   owned_port = port;

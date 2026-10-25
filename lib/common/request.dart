@@ -89,7 +89,10 @@ class Request {
   Future<Map<String, dynamic>?> checkForUpdate() async {
     final release = await latestRelease();
     final remoteVersion = release['tag_name'] as String;
-    final version = globalState.packageInfo.version;
+    final info = globalState.packageInfo;
+    final version = info.buildNumber.isEmpty
+        ? info.version
+        : '${info.version}+${info.buildNumber}';
     final hasUpdate =
         compareVersions(remoteVersion.replaceAll('v', ''), version) > 0;
     return hasUpdate ? release : null;

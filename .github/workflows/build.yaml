@@ -567,9 +567,10 @@ jobs:
       - name: Publish verified Windows preview
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.0-preview.${{ github.run_number }}
+          tag_name: v0.5.0+8
           target_commitish: ${{ github.sha }}
           name: Hotaru 0.5.0 Windows
-          prerelease: true
+          prerelease: false
+          make_latest: true
           body_path: docs/RELEASE-0.5.0.md
           files: publish/*
