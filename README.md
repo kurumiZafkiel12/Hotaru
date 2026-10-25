@@ -1,30 +1,66 @@
+<div align="center">
+<img src="assets/images/icon.png" alt="Hotaru 蛍" width="88">
+
 # Hotaru · 蛍
 
-Windows 优先的开源 Mihomo 客户端，简洁小组件首页与独立工具箱，后续支持 Android / Linux。采用 GPL-3.0-or-later。
+简洁、开源的 Mihomo 代理客户端。先把 Windows 做好，再逐步完善其他平台。
 
-从 [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases) 下载最新 `Hotaru-0.4.2-windows-x64-setup.exe`（0.4.1 用户关闭旧版后覆盖安装即可）。包含已校验的 Mihomo v1.19.33 与 Node.js Script 运行时，不需要开发环境。安装包尚未签名。
+[![版本](https://img.shields.io/badge/release-v0.0.1-67b7d1)](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.1)
+[![安装包](https://img.shields.io/badge/Windows-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.1/Hotaru-0.0.1-windows-amd64-setup.exe)
+[![便携版](https://img.shields.io/badge/Windows-下载便携版-67b7d1?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.1/Hotaru-0.0.1-windows-amd64.zip)
 
-使用：**配置页导入 → 节点页启动 → 按需开启系统代理**。默认保留订阅规则，节点页显示策略组与 Provider 节点。关窗隐藏到托盘；右键托盘“退出并恢复系统代理”才会退出。可选服务首次安装需要管理员授权，日常使用无需重复 UAC；TUN 下一阶段开放。
+[发布说明](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.1) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [作者交流群](https://t.me/kurumizafkiel1) · [English](README_en.md)
+</div>
 
-0.4.1 提供订阅定时更新/用量、TCP/真连接批量测速、三态分流、远程节点集与规则集、Merge+Script 覆写、连接/日志/流量、崩溃代理守护、托盘/静默自启、自动检查与校验安装更新。功能边界、升级步骤和限制见 [0.4.1 发布说明](docs/RELEASE-0.4.1.md)，参考实现分析见 [源码对照](docs/REFERENCE-ANALYSIS-0.4.1.md)。0.4.2 在此基础上改版：全新手绘萤火图标、FL 式配置卡片与添加方式（链接/文件/粘贴/聚合订阅/自定义）、底栏按常用度重排（桌面/节点/配置/工具箱）与主题统一、节点页搜索与一键选节点启动、聚合订阅（多源合并、去重改名、全部更新、Base64/JSON 导出）；桌面二维码扫码暂不支持（无摄像头路径），图片识别待后续验证。
+## 项目介绍
 
-本地配置包含节点凭据，保存在 `%APPDATA%/Hotaru`，不会上传；卸载保留。原有 v0.3 与历史交还报告保留用于追溯。
+Hotaru（蛍）基于 [FlClash 0.9.2](https://github.com/chen08209/FlClash/tree/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7) 移植，使用 [Mihomo](https://github.com/MetaCubeX/mihomo) 内核，独立维护产品界面、默认设置和工具箱。功能演进同时参考 Bettbox，重复功能合并成一个入口。项目不提供代理服务器或订阅服务，需要导入你自己的节点或配置。
 
-## 开发检查
+当前正式提供 **Windows 10/11 x64** 安装包和便携包。源码保留上游跨平台结构；Android、Linux、macOS 尚未作为本版本的安装包交付，不代表已经完成实机验收。
 
-```sh
-cd apps/hotaru
+## 已有功能
+
+- 配置管理：订阅链接、配置文件导入、自动更新、多配置切换、编辑与覆写。
+- 节点与分流：节点列表、延迟测试、切换、代理组，以及规则／全局／直连模式；默认沿用订阅的分流规则。
+- Windows 接管：系统代理、TUN、服务承载、托盘和启动设置。
+- 运行状态：实时连接、流量、DNS 与日志。
+- 工具箱：节点带宽测速、IP 质量及网络检查；外部检测结果取决于相应服务。
+- 备份：本地导入导出与 WebDAV。
+
+## v0.0.1 更新
+
+按维护者要求，产品版本从 0.5.x 重新编号为 0.0.1；继续维护现有 FlClash 移植代码。
+
+- 修正默认覆写缺失造成的测量口径差异：统一延迟和 TCP 并发默认开启并实际生效。
+- 默认加入 IPv6（关闭）及 Geo 低内存模式（开启）；测速链接不强制覆写。
+- 首次升级补齐四个覆写项，保留已有开关值、节点和规则；之后仍可自行修改或移除。
+- 延迟结果提供脱敏错误类别、实测耗时及有效统一延迟状态。本地诊断需主动开启，不自动上传。
+- 首次启动直接进入软件，移除强制免责声明、已读确认和复述流程。
+- 清理免责声明入口，修正作者交流群链接，保留许可证与上游致谢。
+
+同一节点在统一延迟关闭和开启时，测量可能包含不同的建连开销。已通过隔离实测复现差异，用户也已确认开启有效覆写后恢复正常；软件不会将数值固定除以某个倍数。节点不可达时仍会如实显示失败或超时。
+
+## 安装与更新
+
+1. 下载上方安装包（推荐）或便携包，并核对发布页的 SHA256SUMS。
+2. 从托盘完全退出正在运行的 Hotaru，再覆盖安装。便携版请解压整个压缩包后运行。
+3. 在「配置」导入订阅或配置，在「代理」查看与选择节点，再按需开启系统代理或 TUN。
+
+这次版本号重置需要手动下载安装，不能依靠旧版的版本号比较自动发现更新。现有配置通常位于 `%APPDATA%\dev.hotaru\Hotaru`，升级前可在工具页备份；不要删除目录来升级。首次启用 TUN 可能需要服务安装授权。安装包尚未数字签名。
+
+## 从源码构建
+
+正式构建使用 Flutter 3.47.6、Go 1.27.1、Rust；Windows 还需要 Visual Studio C++ 桌面组件和 Inno Setup 6。
+
+```bash
+git clone --recursive https://github.com/kurumiZafkiel12/Hotaru.git
+cd Hotaru
 flutter pub get
-dart format lib test tool
-flutter analyze
-flutter test
-flutter build windows --release
+dart setup.dart windows --env stable
 ```
 
-真实内核本地链路：dart run tool/proxy_loop_smoke.dart <mihomo绝对路径>。Windows CI 还会构建安装包、静默安装、覆盖安装和卸载，检查用户布局保留。
+源代码与测试随仓库提供。发布包由 GitHub Actions 构建；详细步骤见 [AGENTS.md](AGENTS.md) 和 [.agents/commands.md](.agents/commands.md)。
 
-## 许可与来源
+## 开源与致谢
 
-Hotaru 自本轮起采用 GPL-3.0-or-later；见 LICENSE。内核与其他组件许可证/源代码见 THIRD-PARTY.md。Windows 发布同时提供固定版本内核源码归档。Flutter 及依赖许可保留在应用许可页和数据目录。
-
-参考 FlClash、Bettbox、Clash Verge Rev 的产品体验，Mihomo 为实际代理内核。
+以 [GPL-3.0](LICENSE) 发布，修改和再分发请遵守许可证。感谢 [FlClash](https://github.com/chen08209/FlClash) 及其贡献者、[Mihomo](https://github.com/MetaCubeX/mihomo)、[Bettbox](https://github.com/appshubcc/Bettbox) 和相关依赖。内核沿用 FlClash 维护的 Mihomo 分支；图标与其他上游素材的原作者署名保留于源码及应用关于页。Hotaru 是独立派生项目。

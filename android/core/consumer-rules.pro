@@ -1,0 +1,2 @@
+-keep class go.** { *; }
+-keep class dev.hotaru.hotaru.core.mobile.** { *; }
