@@ -4,7 +4,6 @@ import 'package:hotaru/ui/color.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_color_utilities/hct/hct.dart';
 
 void main() {
   test(
@@ -19,80 +18,54 @@ void main() {
     },
   );
 
-  test('genColorScheme seeds each brightness from its own dynamic seed', () {
-    const lightSeed = Color(0xFF00FF00);
-    const darkSeed = Color(0xFF0000FF);
+  test('genColorScheme returns the fixed palette regardless of seeds', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     container
         .read(dynamicColorProvider.notifier)
         .seed(
-          lightSeed: lightSeed,
-          darkSeed: darkSeed,
+          lightSeed: const Color(0xFF00FF00),
+          darkSeed: const Color(0xFF0000FF),
           accentColor: const Color(defaultPrimaryColor),
         );
 
-    final style = container.read(themeSettingProvider).colorStyle;
-
     expect(
       container.read(genColorSchemeProvider(Brightness.light)),
-      seededColorScheme(
-        seedColor: lightSeed,
-        brightness: Brightness.light,
-        style: style,
-      ),
+      hotaruColorScheme(Brightness.light),
     );
     expect(
       container.read(genColorSchemeProvider(Brightness.dark)),
-      seededColorScheme(
-        seedColor: darkSeed,
-        brightness: Brightness.dark,
-        style: style,
-      ),
+      hotaruColorScheme(Brightness.dark),
     );
   });
 
-  test('pure black darkens only the dark scheme and keeps surface order', () {
+  test('pure black leaves both schemes unchanged under the fixed palette', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final light = container.read(genColorSchemeProvider(Brightness.light));
+    final dark = container.read(genColorSchemeProvider(Brightness.dark));
     container
         .read(themeSettingProvider.notifier)
         .update((state) => state.copyWith(pureBlack: true));
 
     expect(container.read(genColorSchemeProvider(Brightness.light)), light);
-
-    final dark = container.read(genColorSchemeProvider(Brightness.dark));
-    final tones = [
-      dark.surfaceContainerLowest,
-      dark.surface,
-      dark.surfaceDim,
-      dark.surfaceContainerLow,
-      dark.surfaceContainer,
-      dark.surfaceContainerHigh,
-      dark.surfaceContainerHighest,
-    ].map((color) => Hct.fromInt(color.toARGB32()).tone).toList();
-
-    expect(dark.surface, Colors.black);
-    expect(tones, orderedEquals([...tones]..sort()));
-    expect(tones[3], greaterThan(tones[1]));
+    expect(container.read(genColorSchemeProvider(Brightness.dark)), dark);
   });
 
-  test('genColorScheme falls back to the accent color without a seed', () {
-    const accent = Color(0xFFFF0000);
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    container
-        .read(dynamicColorProvider.notifier)
-        .seed(lightSeed: null, darkSeed: null, accentColor: accent);
+  test(
+    'genColorScheme ignores the accent seed and returns the fixed palette',
+    () {
+      const accent = Color(0xFFFF0000);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container
+          .read(dynamicColorProvider.notifier)
+          .seed(lightSeed: null, darkSeed: null, accentColor: accent);
 
-    expect(
-      container.read(genColorSchemeProvider(Brightness.light)),
-      seededColorScheme(
-        seedColor: accent,
-        brightness: Brightness.light,
-        style: container.read(themeSettingProvider).colorStyle,
-      ),
-    );
-  });
+      expect(
+        container.read(genColorSchemeProvider(Brightness.light)),
+        hotaruColorScheme(Brightness.light),
+      );
+    },
+  );
 }
