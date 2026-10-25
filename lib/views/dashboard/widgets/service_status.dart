@@ -675,6 +675,13 @@ class ServiceStatusSheet extends ConsumerWidget {
             context,
           ).push(PagedSheetRoute(builder: (_) => const ServiceManageView())),
         ),
+        IconButtonData(
+          glyph: AppGlyphs.target,
+          tooltip: localizations.additionalServices,
+          onPressed: () => Navigator.of(context).push(
+            PagedSheetRoute(builder: (_) => const MediaAvailabilityView()),
+          ),
+        ),
       ],
       body: CustomScrollView(
         shrinkWrap: true,
@@ -685,15 +692,8 @@ class ServiceStatusSheet extends ConsumerWidget {
           SliverPadding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + context.bottomInset),
             sliver: SliverList.builder(
-              itemCount: targets.length + 1,
+              itemCount: targets.length,
               itemBuilder: (context, index) {
-                if (index == targets.length) {
-                  return ListItem.open(
-                    leading: const GlyphIcon(AppGlyphs.target),
-                    title: Text(localizations.additionalServices),
-                    widget: const MediaAvailabilityView(),
-                  );
-                }
                 final target = targets[index];
                 return ItemPositionProvider(
                   position: ItemPosition.get(index, targets.length),

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:hotaru/common/network_diagnostics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+class _RealHttpOverrides extends HttpOverrides {}
+
 void main() {
   const diagnostics = NetworkDiagnostics();
 
@@ -43,7 +45,10 @@ void main() {
       await server.close(force: true);
     });
     expect(
-      await diagnostics.http('http://127.0.0.1:${server.port}'),
+      await HttpOverrides.runWithHttpOverrides(
+        () => diagnostics.http('http://127.0.0.1:${server.port}'),
+        _RealHttpOverrides(),
+      ),
       contains('HTTP 302'),
     );
     await expectLater(

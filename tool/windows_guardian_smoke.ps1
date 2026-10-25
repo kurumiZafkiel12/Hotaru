@@ -1,6 +1,41 @@
 param([Parameter(Mandatory=$true)][string]$Guardian)
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Registry smoke test requires isolated CI account' }
+Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+public static class HotaruProxyFixture {
+  [StructLayout(LayoutKind.Explicit, Size=16)] struct Option {
+    [FieldOffset(0)] public uint Kind;
+    [FieldOffset(8)] public uint Flags;
+    [FieldOffset(8)] public IntPtr Text;
+  }
+  [StructLayout(LayoutKind.Sequential)] struct Options {
+    public uint Size;
+    public IntPtr Connection;
+    public uint Count;
+    public uint Error;
+    public IntPtr Values;
+  }
+  [DllImport("wininet.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern bool InternetSetOptionW(IntPtr session, uint option, ref Options value, uint size);
+  [DllImport("wininet.dll", EntryPoint="InternetSetOptionW", SetLastError=true)]
+  static extern bool Notify(IntPtr session, uint option, IntPtr value, uint size);
+  public static void Set(uint flags, string server, string bypass) {
+    var strings=new[] { Marshal.StringToHGlobalUni(server),Marshal.StringToHGlobalUni(bypass) };
+    var buffer=Marshal.AllocHGlobal(48);
+    try {
+      Marshal.StructureToPtr(new Option { Kind=1, Flags=flags },buffer,false);
+      Marshal.StructureToPtr(new Option { Kind=2, Text=strings[0] },IntPtr.Add(buffer,16),false);
+      Marshal.StructureToPtr(new Option { Kind=3, Text=strings[1] },IntPtr.Add(buffer,32),false);
+      var value=new Options { Size=(uint)Marshal.SizeOf<Options>(),Count=3,Values=buffer };
+      if (!InternetSetOptionW(IntPtr.Zero,75,ref value,value.Size)) throw new Win32Exception();
+      Notify(IntPtr.Zero,39,IntPtr.Zero,0); Notify(IntPtr.Zero,37,IntPtr.Zero,0);
+    } finally { foreach(var ptr in strings) Marshal.FreeHGlobal(ptr); Marshal.FreeHGlobal(buffer); }
+  }
+}
+'@
 $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Software\Microsoft\Windows\CurrentVersion\Internet Settings',$true)
 $saved = @{}
 foreach ($name in @('ProxyEnable','ProxyServer','ProxyOverride')) {
@@ -9,11 +44,13 @@ foreach ($name in @('ProxyEnable','ProxyServer','ProxyOverride')) {
 }
 $children = @()
 function Set-Baseline {
+  [HotaruProxyFixture]::Set(1,'previous.example:8080','previous-bypass')
   $key.SetValue('ProxyEnable',0,[Microsoft.Win32.RegistryValueKind]::DWord)
   $key.SetValue('ProxyServer','previous.example:8080')
   $key.SetValue('ProxyOverride','previous-bypass')
 }
 function Set-Owned {
+  [HotaruProxyFixture]::Set(3,'127.0.0.1:17890','hotaru-bypass')
   $key.SetValue('ProxyServer','127.0.0.1:17890')
   $key.SetValue('ProxyEnable',1,[Microsoft.Win32.RegistryValueKind]::DWord)
   $key.SetValue('ProxyOverride','hotaru-bypass')
@@ -43,7 +80,7 @@ try {
       & $Guardian cancel $token
       if ($LASTEXITCODE -ne 0 -or $key.GetValue('ProxyServer') -ne '127.0.0.1:17890') { throw 'Cancel changed proxy' }
     } else {
-      if ($scenario -eq 'foreign-change') { $key.SetValue('ProxyServer','foreign.example:9090') }
+      if ($scenario -eq 'foreign-change') { [HotaruProxyFixture]::Set(3,'foreign.example:9090','foreign-bypass') }
       if ($scenario -eq 'normal-stop') {
         $restore = [Threading.EventWaitHandle]::OpenExisting("Local\HotaruGuard-$token-restore")
         $restore.Set() | Out-Null
