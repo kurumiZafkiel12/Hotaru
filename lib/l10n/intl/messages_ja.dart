@@ -292,6 +292,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "authenticationSystemProxyDesc": MessageLookupByLibrary.simpleMessage(
       "認証が有効な間、システムプロキシは適用されません。",
     ),
+    "authorCommunity": MessageLookupByLibrary.simpleMessage("作者の交流グループ"),
     "authorize": MessageLookupByLibrary.simpleMessage("許可"),
     "authorized": MessageLookupByLibrary.simpleMessage("許可済み"),
     "auto": MessageLookupByLibrary.simpleMessage("自動"),

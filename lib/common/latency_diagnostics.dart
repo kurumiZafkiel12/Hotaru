@@ -134,6 +134,8 @@ Map<String, Object?> latencyRoundRecord({
   required String category,
   String? errorText,
   String? note,
+  bool? unifiedDelay,
+  int? measuredMs,
 }) {
   return {
     'type': 'round',
@@ -150,6 +152,8 @@ Map<String, Object?> latencyRoundRecord({
     'timeoutMs': timeoutMs,
     'status': status,
     'category': category,
+    'effectiveUnifiedDelay': ?unifiedDelay,
+    'measuredMs': ?measuredMs,
     if (errorText != null && errorText.isNotEmpty)
       'error': latencyDesensitize(errorText),
     if (note != null && note.isNotEmpty) 'note': note,

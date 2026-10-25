@@ -192,9 +192,12 @@ type TestDelayParams struct {
 }
 
 type Delay struct {
-	Url   string `json:"url"`
-	Name  string `json:"name"`
-	Value int32  `json:"value"`
+	Url          string `json:"url"`
+	Name         string `json:"name"`
+	Value        int32  `json:"value"`
+	Error        string `json:"error,omitempty"`
+	UnifiedDelay bool   `json:"unifiedDelay"`
+	ElapsedMs    int64  `json:"elapsedMs"`
 }
 
 type ProbeParams struct {

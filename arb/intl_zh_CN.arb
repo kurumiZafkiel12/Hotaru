@@ -975,5 +975,6 @@
   "preferred": "首选",
   "addToLocalProxies": "添加到本地代理",
   "addedToLocalProxies": "已将 {name} 添加到本地代理",
-  "alreadyInLocalProxies": "本地代理中已有 {name}"
+  "alreadyInLocalProxies": "本地代理中已有 {name}",
+  "authorCommunity": "作者交流群"
 }

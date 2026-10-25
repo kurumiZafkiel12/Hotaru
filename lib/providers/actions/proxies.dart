@@ -541,11 +541,15 @@ class ProxiesAction extends _$ProxiesAction {
             coreDelay: value,
             timeoutMs: job.timeout.inMilliseconds,
             status: status,
-            category: latencyErrorCategory(
-              coreDelay: value,
-              error: null,
-              proxyKnown: target.proxyKnown,
-            ),
+            unifiedDelay: delay?.unifiedDelay,
+            measuredMs: delay?.elapsedMs,
+            category:
+                delay?.error ??
+                latencyErrorCategory(
+                  coreDelay: value,
+                  error: null,
+                  proxyKnown: target.proxyKnown,
+                ),
           ),
         );
       }

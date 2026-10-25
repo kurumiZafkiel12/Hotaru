@@ -1,136 +1,66 @@
 <div align="center">
+<img src="assets/images/icon.png" alt="Hotaru 蛍" width="88">
 
-<img src="assets/images/icon.png" alt="Hotaru" width="88">
+# Hotaru · 蛍
 
-# Hotaru
+简洁、开源的 Mihomo 代理客户端。先把 Windows 做好，再逐步完善其他平台。
 
-A multi-platform proxy client based on ClashMeta. Simple to use, open source and ad-free.
+[![版本](https://img.shields.io/badge/release-v0.0.1-67b7d1)](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.1)
+[![安装包](https://img.shields.io/badge/Windows-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.1/Hotaru-0.0.1-windows-amd64-setup.exe)
+[![便携版](https://img.shields.io/badge/Windows-下载便携版-67b7d1?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.1/Hotaru-0.0.1-windows-amd64.zip)
 
-**English** · [简体中文](README_zh_CN.md)
-
-[![Release](https://img.shields.io/github/v/release/kurumiZafkiel12/Hotaru?style=flat-square&label=release)](https://github.com/kurumiZafkiel12/Hotaru/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/kurumiZafkiel12/Hotaru/total?style=flat-square&logo=github)](https://github.com/kurumiZafkiel12/Hotaru/releases)
-[![License](https://img.shields.io/github/license/kurumiZafkiel12/Hotaru?style=flat-square)](LICENSE)
-
-[Website](https://kurumiZafkiel12.github.io/Hotaru) · [Download](#download) · [Changelog](CHANGELOG.md) · [Build from source](#build-from-source)
-
+[发布说明](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.1) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [作者交流群](https://t.me/kurumizafkiel1) · [English](README_en.md)
 </div>
 
-> Forked from [FlClash](https://github.com/chen08209/FlClash) 0.9.2 (commit `7fd417f`).
-> Hotaru is rebranded and developed independently under the same GPL-3.0 license.
+## 项目介绍
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="snapshots/preview-dark.png">
-    <img alt="Hotaru dashboard on a MacBook and a phone" src="snapshots/preview.png" width="92%">
-  </picture>
-</p>
+Hotaru（蛍）基于 [FlClash 0.9.2](https://github.com/chen08209/FlClash/tree/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7) 移植，使用 [Mihomo](https://github.com/MetaCubeX/mihomo) 内核，独立维护产品界面、默认设置和工具箱。功能演进同时参考 Bettbox，重复功能合并成一个入口。项目不提供代理服务器或订阅服务，需要导入你自己的节点或配置。
 
-## Features
+当前正式提供 **Windows 10/11 x64** 安装包和便携包。源码保留上游跨平台结构；Android、Linux、macOS 尚未作为本版本的安装包交付，不代表已经完成实机验收。
 
-- **One app for Android, Windows, macOS and Linux**, with x64 and ARM64 builds on the desktop.
-- **mihomo (Clash.Meta) core** with rule routing, proxy groups, latency tests, system proxy and TUN mode.
-- **Profiles** from a subscription link or a file, with a built-in editor, override scripts, and custom rules,
-  proxies and proxy groups.
-- **Live views** of connections, requests, DNS queries and logs.
-- **Hotaru design with Apple-style interaction**: fixed firefly palette, light and dark themes, continuous corners,
-  sheets that snap between heights, and layouts that adapt from phones to desktops.
-- **Backup and restore** through WebDAV or a local file.
-- **Platform touches**: a Quick Settings tile, per-app proxy and Android TV support on Android; a tray menu and
-  global hotkeys on the desktop.
-- **Open source and ad-free**, licensed under GPL-3.0.
+## 已有功能
 
-## Download
+- 配置管理：订阅链接、配置文件导入、自动更新、多配置切换、编辑与覆写。
+- 节点与分流：节点列表、延迟测试、切换、代理组，以及规则／全局／直连模式；默认沿用订阅的分流规则。
+- Windows 接管：系统代理、TUN、服务承载、托盘和启动设置。
+- 运行状态：实时连接、流量、DNS 与日志。
+- 工具箱：节点带宽测速、IP 质量及网络检查；外部检测结果取决于相应服务。
+- 备份：本地导入导出与 WebDAV。
 
-Get the latest build from [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases/latest), or open the
-[website](https://kurumiZafkiel12.github.io/Hotaru#download), which picks the right file for your device.
+## v0.0.1 更新
 
-| Platform | Packages | Notes |
-| --- | --- | --- |
-| Android | APK for `arm64-v8a`, `armeabi-v7a` and `x86_64` | Most phones use `arm64-v8a`. |
-| Windows 10 and later | Installer (`.exe`) or portable `.zip`, for x64 and ARM64 | Pick ARM64 on Snapdragon and other ARM laptops. |
-| macOS 12 and later | DMG for Apple Silicon and Intel | |
-| Linux | `.deb`, `.rpm` and AppImage, for x64 and ARM64 | See the tray note below. |
+按维护者要求，产品版本从 0.5.x 重新编号为 0.0.1；继续维护现有 FlClash 移植代码。
 
-<p>
-  <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/latest"><img alt="Get it on GitHub" src="snapshots/get-it-on-github.svg" height="56"></a>
-</p>
+- 修正默认覆写缺失造成的测量口径差异：统一延迟和 TCP 并发默认开启并实际生效。
+- 默认加入 IPv6（关闭）及 Geo 低内存模式（开启）；测速链接不强制覆写。
+- 首次升级补齐四个覆写项，保留已有开关值、节点和规则；之后仍可自行修改或移除。
+- 延迟结果提供脱敏错误类别、实测耗时及有效统一延迟状态。本地诊断需主动开启，不自动上传。
+- 首次启动直接进入软件，移除强制免责声明、已读确认和复述流程。
+- 清理免责声明入口，修正作者交流群链接，保留许可证与上游致谢。
 
-**Linux tray icon**
+同一节点在统一延迟关闭和开启时，测量可能包含不同的建连开销。已通过隔离实测复现差异，用户也已确认开启有效覆写后恢复正常；软件不会将数值固定除以某个倍数。节点不可达时仍会如实显示失败或超时。
 
-The `.deb` package installs its own dependencies. With the AppImage or the `.rpm`, install the AyatanaAppIndicator
-library so the tray icon can show:
+## 安装与更新
 
-```bash
-sudo apt-get install libayatana-appindicator3-1   # Debian and Ubuntu
-sudo dnf install libayatana-appindicator-gtk3     # Fedora
-```
+1. 下载上方安装包（推荐）或便携包，并核对发布页的 SHA256SUMS。
+2. 从托盘完全退出正在运行的 Hotaru，再覆盖安装。便携版请解压整个压缩包后运行。
+3. 在「配置」导入订阅或配置，在「代理」查看与选择节点，再按需开启系统代理或 TUN。
 
-**Unattended desktop**
+这次版本号重置需要手动下载安装，不能依靠旧版的版本号比较自动发现更新。现有配置通常位于 `%APPDATA%\dev.hotaru\Hotaru`，升级前可在工具页备份；不要删除目录来升级。首次启用 TUN 可能需要服务安装授权。安装包尚未数字签名。
 
-Hotaru starts the core only after the disclaimer is accepted. Where nobody can click it, such as a container, set
-`HOTARU_ACCEPT_DISCLAIMER=1` in the app's environment to accept it on first launch.
+## 从源码构建
 
-## Usage
-
-**Import a profile from a link.** Opening a link in this form imports the subscription into Hotaru. The `clashmeta://`
-and `hotaru://` schemes work the same way.
-
-```text
-clash://install-config?url=<URL-encoded subscription link>
-```
-
-**Automate on Android.** Tasker, MacroDroid and similar apps can start, stop or toggle the proxy by starting an
-activity with one of these actions:
-
-```text
-dev.hotaru.hotaru.action.START
-dev.hotaru.hotaru.action.STOP
-dev.hotaru.hotaru.action.TOGGLE
-```
-
-From a computer, the same works over adb:
-
-```bash
-adb shell am start -a dev.hotaru.hotaru.action.TOGGLE
-```
-
-## Build from source
-
-You need [Flutter](https://docs.flutter.dev/get-started/install) 3.47 (release builds use 3.47.6),
-[Go](https://go.dev/dl/) 1.27 and [Rust](https://rustup.rs/) installed through rustup. Each platform builds on its own
-host, except Android, which builds anywhere.
+正式构建使用 Flutter 3.47.6、Go 1.27.1、Rust；Windows 还需要 Visual Studio C++ 桌面组件和 Inno Setup 6。
 
 ```bash
 git clone --recursive https://github.com/kurumiZafkiel12/Hotaru.git
 cd Hotaru
 flutter pub get
-dart setup.dart android   # or windows, macos, linux
+dart setup.dart windows --env stable
 ```
 
-Packages land in `dist/`. The Go core and the Rust libraries are compiled as part of the Flutter build.
+源代码与测试随仓库提供。发布包由 GitHub Actions 构建；详细步骤见 [AGENTS.md](AGENTS.md) 和 [.agents/commands.md](.agents/commands.md)。
 
-| Platform | Also needed |
-| --- | --- |
-| Android | Android SDK with the NDK. Add `--arch arm64` to build a single ABI. |
-| Windows | GCC (MinGW-w64) for the core and [Inno Setup](https://jrsoftware.org/isinfo.php) 6 for the installer. |
-| macOS | Xcode and Node.js. The script installs `appdmg` through npm. |
-| Linux | Debian or Ubuntu. The script installs the build packages with apt and downloads `appimagetool`. |
+## 开源与致谢
 
-Run `dart setup.dart --help` for the remaining options, such as `--targets` to build only some package formats.
-
-## Support
-
-Starring the repository is the easiest way to support the project. Questions, bugs and feature requests go to
-[GitHub Issues](https://github.com/kurumiZafkiel12/Hotaru/issues).
-
-<a href="https://star-history.com/#kurumiZafkiel12/Hotaru&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kurumiZafkiel12/Hotaru&type=Date&theme=dark">
-    <img alt="Star history" src="https://api.star-history.com/svg?repos=kurumiZafkiel12/Hotaru&type=Date" width="640">
-  </picture>
-</a>
-
-## License
-
-Hotaru is released under the [GPL-3.0 license](LICENSE).
+以 [GPL-3.0](LICENSE) 发布，修改和再分发请遵守许可证。感谢 [FlClash](https://github.com/chen08209/FlClash) 及其贡献者、[Mihomo](https://github.com/MetaCubeX/mihomo)、[Bettbox](https://github.com/appshubcc/Bettbox) 和相关依赖。内核沿用 FlClash 维护的 Mihomo 分支；图标与其他上游素材的原作者署名保留于源码及应用关于页。Hotaru 是独立派生项目。

@@ -285,6 +285,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "authenticationSystemProxyDesc": MessageLookupByLibrary.simpleMessage(
       "认证启用时，系统代理不生效。",
     ),
+    "authorCommunity": MessageLookupByLibrary.simpleMessage("作者交流群"),
     "authorize": MessageLookupByLibrary.simpleMessage("授权"),
     "authorized": MessageLookupByLibrary.simpleMessage("已授权"),
     "auto": MessageLookupByLibrary.simpleMessage("自动"),

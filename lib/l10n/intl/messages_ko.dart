@@ -289,6 +289,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "authenticationSystemProxyDesc": MessageLookupByLibrary.simpleMessage(
       "인증이 켜져 있는 동안에는 시스템 프록시가 적용되지 않습니다.",
     ),
+    "authorCommunity": MessageLookupByLibrary.simpleMessage("제작자 커뮤니티"),
     "authorize": MessageLookupByLibrary.simpleMessage("허용"),
     "authorized": MessageLookupByLibrary.simpleMessage("허용됨"),
     "auto": MessageLookupByLibrary.simpleMessage("자동"),

@@ -346,6 +346,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "authenticationSystemProxyDesc": MessageLookupByLibrary.simpleMessage(
       "Пока включена аутентификация, системный прокси не применяется.",
     ),
+    "authorCommunity": MessageLookupByLibrary.simpleMessage(
+      "Сообщество автора",
+    ),
     "authorize": MessageLookupByLibrary.simpleMessage("Разрешить"),
     "authorized": MessageLookupByLibrary.simpleMessage("Разрешено"),
     "auto": MessageLookupByLibrary.simpleMessage("Авто"),

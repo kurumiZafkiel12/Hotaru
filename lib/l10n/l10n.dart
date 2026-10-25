@@ -8167,6 +8167,16 @@ class AppLocalizations {
       args: [name],
     );
   }
+
+  /// `Author community`
+  String get authorCommunity {
+    return Intl.message(
+      'Author community',
+      name: 'authorCommunity',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

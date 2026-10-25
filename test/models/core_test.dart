@@ -5,6 +5,30 @@ import 'package:hotaru/models/models.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test(
+    'delay metadata is optional for old cores and survives a round trip',
+    () {
+      final legacy = Delay.fromJson({
+        'name': 'node',
+        'url': 'https://example.com',
+        'value': 42,
+      });
+      expect(legacy.error, isNull);
+      final measured = Delay.fromJson({
+        'name': 'node',
+        'url': 'https://example.com',
+        'value': -2,
+        'error': 'tls',
+        'unifiedDelay': true,
+        'elapsedMs': 230,
+      });
+      expect(Delay.fromJson(jsonDecode(jsonEncode(measured))), measured);
+      expect(measured.error, 'tls');
+      expect(measured.unifiedDelay, isTrue);
+      expect(measured.elapsedMs, 230);
+    },
+  );
+
   group('SetupParams', () {
     test('fromJson uses snake-case keys', () {
       final json = {

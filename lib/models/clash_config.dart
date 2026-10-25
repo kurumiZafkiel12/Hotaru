@@ -9,7 +9,14 @@ part 'generated/clash_config.freezed.dart';
 
 part 'generated/clash_config.g.dart';
 
-const defaultClashConfig = PatchClashConfig();
+const defaultClashConfig = PatchClashConfig(
+  generalOverrideKeys: {
+    GeneralOverrideKey.unifiedDelay,
+    GeneralOverrideKey.tcpConcurrent,
+    GeneralOverrideKey.ipv6,
+    GeneralOverrideKey.geodataLoader,
+  },
+);
 
 const defaultTun = Tun();
 const defaultDns = Dns();

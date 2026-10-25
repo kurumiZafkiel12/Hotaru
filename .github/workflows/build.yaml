@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 env:
-  IS_STABLE: ${{ !contains(github.ref, '-') }}
+  IS_STABLE: ${{ github.ref == 'refs/heads/codex/hotaru-v001' || !contains(github.ref, '-') }}
+  RELEASE_TAG: ${{ github.ref == 'refs/heads/codex/hotaru-v001' && 'v0.0.1' || github.ref_name }}
   # See CI Caches in .agents/commands.md.
   BRANCH_CACHE: ${{ !startsWith(github.ref, 'refs/tags/') }}
   FLUTTER_VERSION: '3.47.6'
@@ -101,7 +102,7 @@ jobs:
 
   desktop:
     name: Desktop ${{ matrix.platform }}
-    if: (github.event_name == 'workflow_dispatch' || !github.event.repository.private) && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+    if: (github.event_name == 'workflow_dispatch' || !github.event.repository.private) && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) && github.ref != 'refs/heads/codex/hotaru-v001'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -324,7 +325,7 @@ jobs:
 
   build:
     # Releases publish where the release links point: the public repository.
-    if: github.repository == 'kurumiZafkiel12/Hotaru' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.repository == 'kurumiZafkiel12/Hotaru' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/codex/hotaru-v001')
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -467,8 +468,12 @@ jobs:
         shell: bash
         env:
           IS_STABLE: ${{ env.IS_STABLE }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.RELEASE_TAG }}
         run: |
+          if [[ "$TAG" == 'v0.0.1' ]]; then
+            cp docs/RELEASE-0.0.1.md release.md
+            exit 0
+          fi
           target=()
           if [[ "$IS_STABLE" == 'true' ]]; then
             target=(--tag "$TAG")
@@ -481,7 +486,7 @@ jobs:
 
       - name: Patch release.md
         run: |
-          version=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          version=$(echo "${{ env.RELEASE_TAG }}" | sed 's/^v//')
           sed "s|VERSION|$version|g" ./.github/release_template.md >> release.md
 
       - name: Generate sha256
@@ -492,6 +497,9 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
           files: ./dist/*
           body_path: './release.md'
           prerelease: ${{ env.IS_STABLE != 'true' }}

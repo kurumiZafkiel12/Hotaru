@@ -2,9 +2,13 @@ package core
 
 import (
 	"context"
+	"errors"
+	"net"
+	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/metacubex/mihomo/adapter"
 	"github.com/metacubex/mihomo/common/utils"
 	"github.com/metacubex/mihomo/constant"
 )
@@ -75,10 +79,11 @@ func handleTestDelay(params *TestDelayParams) *Delay {
 	if url == "" {
 		url = currentTestURL()
 	}
-	result := &Delay{Name: params.ProxyName, Url: url, Value: delayFailed}
+	result := &Delay{Name: params.ProxyName, Url: url, Value: delayFailed, UnifiedDelay: adapter.UnifiedDelay.Load()}
 
 	proxy := lookupProxy(params.ProxyName)
 	if proxy == nil {
+		result.Error = "missing-proxy"
 		reportMissingDelayTestProxy(params.ProxyName)
 		return result
 	}
@@ -91,10 +96,39 @@ func handleTestDelay(params *TestDelayParams) *Delay {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	start := time.Now()
 	delay, err := proxy.URLTest(ctx, url, anyDelayTestStatus)
+	result.ElapsedMs = time.Since(start).Milliseconds()
 	if err != nil {
 		delay = 0
+		result.Error = delayErrorCategory(err)
 	}
 	result.Value = delayValue(delay, ctx.Err() != nil)
 	return result
+}
+
+func delayErrorCategory(err error) string {
+	if err == nil {
+		return ""
+	}
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		return "dns"
+	}
+	var timeout net.Error
+	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &timeout) && timeout.Timeout()) {
+		return "timeout"
+	}
+	text := strings.ToLower(err.Error())
+	for _, item := range []struct{ token, category string }{
+		{"certificate", "tls"}, {"tls", "tls"},
+		{"quic", "udp-quic"}, {"udp", "udp-quic"},
+		{"refused", "connection-refused"}, {"authentication", "authentication"},
+		{"eof", "connection-closed"},
+	} {
+		if strings.Contains(text, item.token) {
+			return item.category
+		}
+	}
+	return "unknown"
 }

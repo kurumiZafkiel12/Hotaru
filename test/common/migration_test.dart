@@ -188,6 +188,73 @@ void main() {
     });
 
     group('upgrade', () {
+      test(
+        'applies unpicked latency defaults once without changing rules',
+        () async {
+          final configMap = _createConfigMap();
+          (configMap['patchClashConfig']!
+                  as Map<String, Object?>)['general-override-keys'] =
+              <String>[];
+          final before = Config.realFromJson(configMap);
+          final store = _FakeMigrationStore(
+            configMap: configMap,
+            version: Migration.currentVersion,
+            upgradeVersion: 4,
+          );
+          final after = await Migration(store: store).run();
+          expect(after.patchClashConfig.generalOverrideJson, {
+            'unified-delay': true,
+            'tcp-concurrent': true,
+            'ipv6': false,
+            'geodata-loader': 'memconservative',
+          });
+          expect(
+            after.copyWith(patchClashConfig: before.patchClashConfig),
+            before,
+          );
+          final later = _FakeMigrationStore(
+            configMap: configMap,
+            version: Migration.currentVersion,
+            upgradeVersion: Migration.upgradeVersion,
+          );
+          expect(
+            (await Migration(
+              store: later,
+            ).run()).patchClashConfig.generalOverrideKeys,
+            isEmpty,
+          );
+        },
+      );
+
+      test(
+        'keeps explicit latency choices during the default migration',
+        () async {
+          for (final patch in [
+            defaultClashConfig.copyWith(
+              generalOverrideKeys: {},
+              unifiedDelay: false,
+            ),
+            defaultClashConfig.copyWith(
+              generalOverrideKeys: {GeneralOverrideKey.ipv6},
+            ),
+          ]) {
+            final configMap = _createConfigMap();
+            configMap['patchClashConfig'] = jsonDecode(jsonEncode(patch));
+            final store = _FakeMigrationStore(
+              configMap: configMap,
+              version: Migration.currentVersion,
+              upgradeVersion: 4,
+            );
+            expect(
+              (await Migration(store: store).run()).patchClashConfig.copyWith(
+                generalOverrideKeys: patch.generalOverrideKeys,
+              ),
+              patch,
+            );
+          }
+        },
+      );
+
       Map<String, Object?> customized() =>
           _createConfigMap()
             ..['themeProps'] = {

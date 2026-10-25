@@ -287,12 +287,18 @@ _Delay _$DelayFromJson(Map<String, dynamic> json) => _Delay(
   name: json['name'] as String,
   url: json['url'] as String,
   value: (json['value'] as num?)?.toInt(),
+  error: json['error'] as String?,
+  unifiedDelay: json['unifiedDelay'] as bool?,
+  elapsedMs: (json['elapsedMs'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$DelayToJson(_Delay instance) => <String, dynamic>{
   'name': instance.name,
   'url': instance.url,
   'value': instance.value,
+  'error': instance.error,
+  'unifiedDelay': instance.unifiedDelay,
+  'elapsedMs': instance.elapsedMs,
 };
 
 _ProbeParams _$ProbeParamsFromJson(Map<String, dynamic> json) => _ProbeParams(

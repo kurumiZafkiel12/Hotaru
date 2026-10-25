@@ -358,6 +358,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "authenticationSystemProxyDesc": MessageLookupByLibrary.simpleMessage(
       "Le proxy système n’est pas appliqué tant que l’authentification est activée.",
     ),
+    "authorCommunity": MessageLookupByLibrary.simpleMessage(
+      "Communauté de l’auteur",
+    ),
     "authorize": MessageLookupByLibrary.simpleMessage("Autoriser"),
     "authorized": MessageLookupByLibrary.simpleMessage("Autorisé"),
     "auto": MessageLookupByLibrary.simpleMessage("Auto"),
