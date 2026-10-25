@@ -1,0 +1,63 @@
+name: Verify v0.0.1 and clean historical Releases
+
+on:
+  push:
+    branches: [codex/hotaru-release-cleanup]
+    paths: [.github/workflows/cleanup-historical-releases.yml]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify release provenance and asset digests before deletion
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const crypto = require('node:crypto');
+            const {owner, repo} = context.repo;
+            const expectedSha = '84a83e7680f985b79a376504c390fa1f4519a70f';
+            const runId = 40199117260;
+            const oldReleases = [{"id":423390123,"tag":"v0.5.2"},{"id":423298150,"tag":"v0.5.1"},{"id":423250898,"tag":"v0.5.0"},{"id":423077410,"tag":"v0.4.2-preview.26"},{"id":423071693,"tag":"v0.4.2-preview.24"},{"id":422707528,"tag":"v0.4.2-preview.23"},{"id":422678341,"tag":"v0.4.1-preview.20"},{"id":422672619,"tag":"v0.4.1-preview.19"},{"id":422645806,"tag":"v0.4.1-preview.18"},{"id":422632904,"tag":"v0.4.1-preview.15"},{"id":422597774,"tag":"v0.4.0-preview.9"},{"id":422596067,"tag":"v0.4.0-preview.8"},{"id":422525054,"tag":"preview-6"},{"id":422475156,"tag":"preview-4"},{"id":422458194,"tag":"preview-3"}];
+            const expectedAssets = [{"name":"Hotaru-0.0.1-windows-amd64-setup.exe","size":43395703,"sha256":"5b1309d4ae91a5c959779e100c8344473e97af37722ef64d31b5df640c39d23e"},{"name":"Hotaru-0.0.1-windows-amd64.zip","size":68918833,"sha256":"6c1e0844a567c2bd00c666f1818158e9b6a52885396c80ee65f9c325fb0c9c67"},{"name":"SHA256SUMS","size":204,"sha256":"a8685ec91b94e6946da316eccc6083eddd065128a209d17a75d5a38d9f78d45a"}];
+            const run = (await github.rest.actions.getWorkflowRun({owner, repo, run_id: runId})).data;
+            if (run.head_sha !== expectedSha || run.status !== 'completed' || run.conclusion !== 'success') {
+              throw new Error('Release checks are not successful for the expected source');
+            }
+            const release = (await github.rest.repos.getReleaseByTag({owner, repo, tag: 'v0.0.1'})).data;
+            if (release.draft || release.prerelease) throw new Error('The replacement is not a published stable Release');
+            const ref = (await github.rest.git.getRef({owner, repo, ref: 'tags/v0.0.1'})).data;
+            if (ref.object.type !== 'commit' || ref.object.sha !== expectedSha) throw new Error('Unexpected release tag source');
+            for (const expected of expectedAssets) {
+              const asset = release.assets.find(a => a.name === expected.name);
+              if (!asset || asset.state !== 'uploaded' || asset.size !== expected.size) throw new Error('Replacement asset missing or size differs');
+              if (asset.digest !== 'sha256:' + expected.sha256) throw new Error('GitHub digest differs from the local verified download');
+              const response = await fetch(asset.browser_download_url);
+              if (!response.ok) throw new Error('Replacement asset cannot be downloaded');
+              const data = Buffer.from(await response.arrayBuffer());
+              if (data.length !== expected.size || crypto.createHash('sha256').update(data).digest('hex') !== expected.sha256) {
+                throw new Error('Replacement download digest mismatch');
+              }
+              core.info('Verified ' + expected.name);
+            }
+            const deleted = [];
+            for (const old of oldReleases) {
+              let existing;
+              try { existing = (await github.rest.repos.getRelease({owner, repo, release_id: old.id})).data; }
+              catch (e) { if (e.status === 404) { core.info('Already absent: ' + old.tag); continue; } throw e; }
+              if (existing.tag_name !== old.tag || existing.id === release.id || existing.tag_name === 'v0.0.1') throw new Error('Deletion target changed');
+              await github.rest.repos.deleteRelease({owner, repo, release_id: old.id});
+              deleted.push(old.tag);
+              core.info('Deleted historical Release ' + old.tag);
+            }
+            const remaining = await github.paginate(github.rest.repos.listReleases, {owner, repo, per_page: 100});
+            if (!remaining.some(r => r.id === release.id)) throw new Error('Replacement Release missing after cleanup');
+            await core.summary.addHeading('Authorized historical Release cleanup')
+              .addRaw('Replacement: v0.0.1; source ' + expectedSha + '\n')
+              .addRaw('Deleted ' + deleted.length + ' historical Releases. Source tags and Git history retained.\n')
+              .addList(deleted)
+              .addRaw('Remaining Releases: ' + remaining.map(r => r.tag_name).join(', '))
+              .write();

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '**'
+      - '!codex/hotaru-release-cleanup'
     tags:
       - 'v*'
   workflow_dispatch:
