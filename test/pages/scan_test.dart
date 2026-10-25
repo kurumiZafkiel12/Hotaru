@@ -4,6 +4,7 @@ import 'package:hotaru/common/app_localizations.dart';
 import 'package:hotaru/pages/scan.dart';
 import 'package:hotaru/providers/config.dart';
 import 'package:hotaru/ui/activate_box.dart';
+import 'package:hotaru/ui/color.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/ui/null_status.dart';
 import 'package:hotaru/ui/surface.dart';
@@ -845,7 +846,10 @@ void main() {
         ),
       );
       expect(theme.brightness, Brightness.dark);
-      expect(theme.colorScheme.surface, Colors.black);
+      expect(
+        theme.colorScheme.surface,
+        hotaruColorScheme(Brightness.dark).surface,
+      );
       expect(theme.extension<ElevatedColorScheme>(), isNotNull);
       expect(theme.textTheme.bodyMedium!.fontFamily, 'Inter');
       expect(theme.actionIconTheme?.backButtonIconBuilder, isNotNull);
