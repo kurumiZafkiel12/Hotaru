@@ -18,9 +18,10 @@ val releaseStorePassword = localProperties.getProperty("storePassword")
 val releaseKeyAlias = localProperties.getProperty("keyAlias")
 val releaseKeyPassword = localProperties.getProperty("keyPassword")
 val hasReleaseSigning = releaseStoreFile.exists() &&
-    releaseStorePassword != null &&
-    releaseKeyAlias != null &&
-    releaseKeyPassword != null
+    releaseStoreFile.length() > 0 &&
+    !releaseStorePassword.isNullOrEmpty() &&
+    !releaseKeyAlias.isNullOrEmpty() &&
+    !releaseKeyPassword.isNullOrEmpty()
 
 android {
     namespace = "dev.hotaru.hotaru"
