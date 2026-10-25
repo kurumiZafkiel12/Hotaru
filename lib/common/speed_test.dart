@@ -87,6 +87,7 @@ class SpeedTestRunner {
     required SpeedTestProvider provider,
     required int durationSeconds,
     required SpeedTestProgress onProgress,
+    bool downloadOnly = false,
   }) async {
     _cancelled = false;
     try {
@@ -95,10 +96,13 @@ class SpeedTestRunner {
       if (_cancelled) {
         return const SpeedTestResult(cancelled: true);
       }
-      onProgress(SpeedTestPhase.latency, 0, 0);
-      final latency = await _measureLatency(target.latencyUrl);
-      if (_cancelled) {
-        return const SpeedTestResult(cancelled: true);
+      double? latency;
+      if (!downloadOnly) {
+        onProgress(SpeedTestPhase.latency, 0, 0);
+        latency = await _measureLatency(target.latencyUrl);
+        if (_cancelled) {
+          return const SpeedTestResult(cancelled: true);
+        }
       }
       onProgress(SpeedTestPhase.download, 0, 0);
       final download = await _measureLoad(
@@ -111,16 +115,19 @@ class SpeedTestRunner {
       if (_cancelled) {
         return const SpeedTestResult(cancelled: true);
       }
-      onProgress(SpeedTestPhase.upload, 0, 0);
-      final upload = await _measureLoad(
-        target.uploadUrl,
-        durationSeconds,
-        false,
-        (liveBps, progress) =>
-            onProgress(SpeedTestPhase.upload, liveBps, progress),
-      );
-      if (_cancelled) {
-        return const SpeedTestResult(cancelled: true);
+      double? upload;
+      if (!downloadOnly) {
+        onProgress(SpeedTestPhase.upload, 0, 0);
+        upload = await _measureLoad(
+          target.uploadUrl,
+          durationSeconds,
+          false,
+          (liveBps, progress) =>
+              onProgress(SpeedTestPhase.upload, liveBps, progress),
+        );
+        if (_cancelled) {
+          return const SpeedTestResult(cancelled: true);
+        }
       }
       onProgress(SpeedTestPhase.done, 0, 1);
       return SpeedTestResult(

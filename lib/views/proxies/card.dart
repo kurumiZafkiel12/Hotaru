@@ -153,7 +153,15 @@ class ProxyCard extends ConsumerWidget {
                 child: _ProxyDesc(proxy: proxy, style: typeStyle),
               ),
               const SizedBox(height: 6),
-              delayText,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 8,
+                children: [
+                  delayText,
+                  if (groupType == GroupType.Selector)
+                    _NodeSpeedTest(groupName: groupName, proxyName: proxy.name),
+                ],
+              ),
             ],
           )
         : SizedBox(
@@ -169,6 +177,8 @@ class ProxyCard extends ConsumerWidget {
                   ),
                 ),
                 delayText,
+                if (groupType == GroupType.Selector)
+                  _NodeSpeedTest(groupName: groupName, proxyName: proxy.name),
               ],
             ),
           );
@@ -404,6 +414,181 @@ class _DelayTextState extends ConsumerState<_DelayText> {
                       ),
                     ),
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NodeSpeedTest extends ConsumerStatefulWidget {
+  const _NodeSpeedTest({required this.groupName, required this.proxyName});
+
+  final String groupName;
+  final String proxyName;
+
+  @override
+  ConsumerState<_NodeSpeedTest> createState() => _NodeSpeedTestState();
+}
+
+class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
+  static const _testDurationSeconds = 10;
+
+  bool _running = false;
+  double? _downloadBps;
+  double _liveBps = 0;
+  String? _error;
+  SpeedTestRunner? _runner;
+
+  @override
+  void dispose() {
+    _runner?.cancel();
+    super.dispose();
+  }
+
+  String _speedText(double? bps) {
+    if (bps == null) {
+      return context.appLocalizations.unknown;
+    }
+    return '${formatSpeedValue(bps)} ${formatSpeedUnit(bps)}';
+  }
+
+  Future<void> _toggle() async {
+    if (_running) {
+      _runner?.cancel();
+      return;
+    }
+    final appLocalizations = context.appLocalizations;
+    final switchFailedText = appLocalizations.changeProxyFailedTip;
+    final directText = appLocalizations.speedTestDirect;
+    final proxiesAction = ref.read(proxiesActionProvider.notifier);
+    final originalName = ref.read(proxyNameProvider(widget.groupName));
+    final isAlreadySelected = originalName == widget.proxyName;
+    setState(() {
+      _running = true;
+      _error = null;
+      _downloadBps = null;
+      _liveBps = 0;
+    });
+    var switched = false;
+    try {
+      if (!isAlreadySelected) {
+        await proxiesAction.changeProxy(
+          groupName: widget.groupName,
+          proxyName: widget.proxyName,
+        );
+        proxiesAction.updateGroupsDebounce();
+        if (mounted) {
+          final selected = ref.read(
+            selectedProxyNameProvider(widget.groupName),
+          );
+          if (selected != widget.proxyName) {
+            setState(() {
+              _error = switchFailedText;
+            });
+            return;
+          }
+        }
+        switched = true;
+      }
+      if (!mounted) {
+        return;
+      }
+      final proxy = HotaruHttpOverrides.findProxyForReader(
+        ref.read,
+        Uri.parse('https://example.com'),
+      );
+      if (!proxy.startsWith('PROXY')) {
+        setState(() {
+          _error = directText;
+        });
+        return;
+      }
+      final runner = SpeedTestRunner(findProxy: (_) => proxy);
+      _runner = runner;
+      final result = await runner.run(
+        provider: SpeedTestProvider.apple,
+        durationSeconds: _testDurationSeconds,
+        downloadOnly: true,
+        onProgress: (phase, liveBps, progress) {
+          if (!mounted || phase != SpeedTestPhase.download) {
+            return;
+          }
+          setState(() {
+            _liveBps = liveBps;
+          });
+        },
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        if (result.cancelled) {
+          _error = null;
+        } else if (result.error != null) {
+          _error = result.error;
+        } else {
+          _downloadBps = result.downloadBps;
+        }
+      });
+    } finally {
+      if (switched &&
+          originalName != null &&
+          originalName.isNotEmpty &&
+          originalName != widget.proxyName) {
+        await proxiesAction.changeProxy(
+          groupName: widget.groupName,
+          proxyName: originalName,
+        );
+        proxiesAction.updateGroupsDebounce();
+      }
+      if (mounted) {
+        setState(() {
+          _running = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final measure = globalState.measure;
+    final size = measure.textHeight(AppTextStyle.caption2);
+    final text = _error != null
+        ? _error!
+        : _running
+        ? _speedText(_liveBps)
+        : _speedText(_downloadBps);
+    Widget textWidget = Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTextStyle.caption2
+          .of(context, emphasized: true)
+          .copyWith(
+            color: _error != null ? Theme.of(context).colorScheme.error : null,
+          ),
+    );
+    if (_error != null) {
+      textWidget = Tooltip(message: _error, child: textWidget);
+    }
+    return SizedBox(
+      height: size,
+      child: Tooltip(
+        message: context.appLocalizations.speedTest,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggle,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 4,
+            children: [
+              if (_running)
+                CommonCircleLoading(size: size)
+              else
+                GlyphIcon(AppGlyphs.speed, size: size),
+              textWidget,
+            ],
           ),
         ),
       ),
