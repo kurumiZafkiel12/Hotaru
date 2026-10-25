@@ -8052,6 +8052,146 @@ class AppLocalizations {
       args: [name],
     );
   }
+
+  /// `Network diagnostics`
+  String get networkDiagnostics {
+    return Intl.message(
+      'Network diagnostics',
+      name: 'networkDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.`
+  String get networkDiagnosticsDesc {
+    return Intl.message(
+      'DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.',
+      name: 'networkDiagnosticsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domain, IP or target address`
+  String get diagnosticTarget {
+    return Intl.message(
+      'Domain, IP or target address',
+      name: 'diagnosticTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run check`
+  String get diagnosticRun {
+    return Intl.message('Run check', name: 'diagnosticRun', desc: '', args: []);
+  }
+
+  /// `Service availability`
+  String get mediaAvailability {
+    return Intl.message(
+      'Service availability',
+      name: 'mediaAvailability',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.`
+  String get mediaAvailabilityDesc {
+    return Intl.message(
+      'Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.',
+      name: 'mediaAvailabilityDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stop`
+  String get diagnosticStop {
+    return Intl.message('Stop', name: 'diagnosticStop', desc: '', args: []);
+  }
+
+  /// `Check failed`
+  String get diagnosticFailed {
+    return Intl.message(
+      'Check failed',
+      name: 'diagnosticFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Available`
+  String get availabilityUnlocked {
+    return Intl.message(
+      'Available',
+      name: 'availabilityUnlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Limited`
+  String get availabilityLimited {
+    return Intl.message(
+      'Limited',
+      name: 'availabilityLimited',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unavailable`
+  String get availabilityBlocked {
+    return Intl.message(
+      'Unavailable',
+      name: 'availabilityBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get availabilityUnknown {
+    return Intl.message(
+      'Unknown',
+      name: 'availabilityUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export legacy 0.4 profiles`
+  String get legacyExport {
+    return Intl.message(
+      'Export legacy 0.4 profiles',
+      name: 'legacyExport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.`
+  String get legacyExportDesc {
+    return Intl.message(
+      'Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.',
+      name: 'legacyExportDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `More service checks`
+  String get additionalServices {
+    return Intl.message(
+      'More service checks',
+      name: 'additionalServices',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

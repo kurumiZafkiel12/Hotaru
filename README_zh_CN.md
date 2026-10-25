@@ -36,6 +36,12 @@
 - **平台细节**：Android 上有快捷设置磁贴、分应用代理和 Android TV 支持；桌面端有托盘菜单和全局快捷键。
 - **开源无广告**，以 GPL-3.0 协议发布。
 
+## 0.5.0 Windows 交付
+
+本轮由 Codex 接续 Muse 的 FlClash 基线，增加 Bettbox 扩展服务检测、网络诊断、0.4 旧配置导出路径与独立 Windows 代理守护。当前只发布 Windows x64；上文跨平台功能是源码继承，不代表本轮全部安装包已发布。
+
+[升级与限制](docs/RELEASE-0.5.0.md) · [双上游功能合并台账](docs/FEATURE-MATRIX-0.5.0.md) · [来源与许可证](THIRD-PARTY.md)。0.4.x 旧数据保留，配置需要通过工具页导出后导入，不能直接复用旧数据库。两上游功能并集仍在继续完成，未移植项已逐条登记。
+
 ## 下载
 
 从 [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) 获取最新版本，或打开

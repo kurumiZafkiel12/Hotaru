@@ -963,5 +963,20 @@
   "preferred": "首选",
   "addToLocalProxies": "添加到本地代理",
   "addedToLocalProxies": "已将 {name} 添加到本地代理",
-  "alreadyInLocalProxies": "本地代理中已有 {name}"
+  "alreadyInLocalProxies": "本地代理中已有 {name}",
+  "networkDiagnostics": "网络诊断",
+  "networkDiagnosticsDesc": "DNS 和 TCP 使用系统网络；HTTP 使用当前应用的代理规则。TCP 是握手延迟，不是带宽测速。IP 信息查询会联系第三方免费来源。",
+  "diagnosticTarget": "域名、IP 或目标地址",
+  "diagnosticRun": "开始检测",
+  "mediaAvailability": "服务可用性",
+  "mediaAvailabilityDesc": "按当前分流规则访问所选服务，检测可达性和区域。结果可能受网站风控影响，不代表账户订阅权益。点击开始后才会发送网络请求。",
+  "diagnosticStop": "停止",
+  "diagnosticFailed": "检测失败",
+  "availabilityUnlocked": "可用",
+  "availabilityLimited": "受限",
+  "availabilityBlocked": "不可用",
+  "availabilityUnknown": "未知",
+  "legacyExport": "导出 0.4.x 旧配置",
+  "legacyExportDesc": "选择旧版 %APPDATA%/Hotaru/profiles.json，再选择输出文件夹。工具保留原文件并导出配置快照、原订阅地址清单和未执行的脚本。随后在配置页通过文件导入 profile-N.json；需要自动更新时重新导入原订阅链接，并重新检查覆写。导出文件含节点凭据，请勿公开上传。",
+  "additionalServices": "更多服务检测"
 }

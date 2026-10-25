@@ -285,6 +285,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Additional parameters",
     ),
     "additionalPrefix": MessageLookupByLibrary.simpleMessage("Name prefix"),
+    "additionalServices": MessageLookupByLibrary.simpleMessage(
+      "More service checks",
+    ),
     "additionalSuffix": MessageLookupByLibrary.simpleMessage("Name suffix"),
     "address": MessageLookupByLibrary.simpleMessage("Address"),
     "addressHelp": MessageLookupByLibrary.simpleMessage(
@@ -363,6 +366,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage(
       "Auto-update interval",
     ),
+    "availabilityBlocked": MessageLookupByLibrary.simpleMessage("Unavailable"),
+    "availabilityLimited": MessageLookupByLibrary.simpleMessage("Limited"),
+    "availabilityUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
+    "availabilityUnlocked": MessageLookupByLibrary.simpleMessage("Available"),
     "back": MessageLookupByLibrary.simpleMessage("Back"),
     "backgroundBlur": MessageLookupByLibrary.simpleMessage("Background blur"),
     "backup": MessageLookupByLibrary.simpleMessage("Backup"),
@@ -608,6 +615,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("Developer mode"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "Developer mode is enabled.",
+    ),
+    "diagnosticFailed": MessageLookupByLibrary.simpleMessage("Check failed"),
+    "diagnosticRun": MessageLookupByLibrary.simpleMessage("Run check"),
+    "diagnosticStop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "diagnosticTarget": MessageLookupByLibrary.simpleMessage(
+      "Domain, IP or target address",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Dialer proxy"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -1087,6 +1100,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "The app exited unexpectedly while it was starting up last time. Automatic setup was skipped for this launch; you can start it manually to retry.",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Layout"),
+    "legacyExport": MessageLookupByLibrary.simpleMessage(
+      "Export legacy 0.4 profiles",
+    ),
+    "legacyExportDesc": MessageLookupByLibrary.simpleMessage(
+      "Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.",
+    ),
     "light": MessageLookupByLibrary.simpleMessage("Light"),
     "lineIssueTip": m44,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Word wrap"),
@@ -1140,6 +1159,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("Max failures"),
     "maxLengthTip": m46,
     "maximize": MessageLookupByLibrary.simpleMessage("Maximize"),
+    "mediaAvailability": MessageLookupByLibrary.simpleMessage(
+      "Service availability",
+    ),
+    "mediaAvailabilityDesc": MessageLookupByLibrary.simpleMessage(
+      "Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.",
+    ),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage(
       "Resident memory",
     ),
@@ -1191,6 +1216,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t connect to the server. Check your network connection or proxy settings",
+    ),
+    "networkDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Network diagnostics",
+    ),
+    "networkDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.",
     ),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t resolve the server address. Check that the URL is correct and DNS is working",

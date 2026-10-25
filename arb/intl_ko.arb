@@ -963,5 +963,20 @@
   "preferred": "우선",
   "addToLocalProxies": "로컬 프록시에 추가",
   "addedToLocalProxies": "{name}을(를) 로컬 프록시에 추가했습니다",
-  "alreadyInLocalProxies": "{name}은(는) 이미 로컬 프록시에 있습니다"
+  "alreadyInLocalProxies": "{name}은(는) 이미 로컬 프록시에 있습니다",
+  "networkDiagnostics": "Network diagnostics",
+  "networkDiagnosticsDesc": "DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.",
+  "diagnosticTarget": "Domain, IP or target address",
+  "diagnosticRun": "Run check",
+  "mediaAvailability": "Service availability",
+  "mediaAvailabilityDesc": "Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.",
+  "diagnosticStop": "Stop",
+  "diagnosticFailed": "Check failed",
+  "availabilityUnlocked": "Available",
+  "availabilityLimited": "Limited",
+  "availabilityBlocked": "Unavailable",
+  "availabilityUnknown": "Unknown",
+  "legacyExport": "Export legacy 0.4 profiles",
+  "legacyExportDesc": "Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.",
+  "additionalServices": "More service checks"
 }

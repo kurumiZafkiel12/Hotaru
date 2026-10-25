@@ -251,6 +251,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addedToLocalProxies": m1,
     "additionalParameters": MessageLookupByLibrary.simpleMessage("追加パラメータ"),
     "additionalPrefix": MessageLookupByLibrary.simpleMessage("名前のプレフィックス"),
+    "additionalServices": MessageLookupByLibrary.simpleMessage(
+      "More service checks",
+    ),
     "additionalSuffix": MessageLookupByLibrary.simpleMessage("名前のサフィックス"),
     "address": MessageLookupByLibrary.simpleMessage("アドレス"),
     "addressHelp": MessageLookupByLibrary.simpleMessage("WebDAVサーバーのアドレス"),
@@ -309,6 +312,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoSetSystemDns": MessageLookupByLibrary.simpleMessage("システムDNSを自動設定"),
     "autoUpdate": MessageLookupByLibrary.simpleMessage("自動更新"),
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage("自動更新間隔"),
+    "availabilityBlocked": MessageLookupByLibrary.simpleMessage("Unavailable"),
+    "availabilityLimited": MessageLookupByLibrary.simpleMessage("Limited"),
+    "availabilityUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
+    "availabilityUnlocked": MessageLookupByLibrary.simpleMessage("Available"),
     "back": MessageLookupByLibrary.simpleMessage("戻る"),
     "backgroundBlur": MessageLookupByLibrary.simpleMessage("背景のぼかし"),
     "backup": MessageLookupByLibrary.simpleMessage("バックアップ"),
@@ -518,6 +525,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("開発者モード"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "開発者モードが有効になりました。",
+    ),
+    "diagnosticFailed": MessageLookupByLibrary.simpleMessage("Check failed"),
+    "diagnosticRun": MessageLookupByLibrary.simpleMessage("Run check"),
+    "diagnosticStop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "diagnosticTarget": MessageLookupByLibrary.simpleMessage(
+      "Domain, IP or target address",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("ダイヤラープロキシ"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -932,6 +945,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "前回、アプリは起動中に予期せず終了しました。今回の自動セットアップはスキップしました。手動で起動して再試行できます。",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("レイアウト"),
+    "legacyExport": MessageLookupByLibrary.simpleMessage(
+      "Export legacy 0.4 profiles",
+    ),
+    "legacyExportDesc": MessageLookupByLibrary.simpleMessage(
+      "Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.",
+    ),
     "light": MessageLookupByLibrary.simpleMessage("ライト"),
     "lineIssueTip": m44,
     "lineWrap": MessageLookupByLibrary.simpleMessage("折り返し"),
@@ -979,6 +998,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("最大失敗回数"),
     "maxLengthTip": m46,
     "maximize": MessageLookupByLibrary.simpleMessage("最大化"),
+    "mediaAvailability": MessageLookupByLibrary.simpleMessage(
+      "Service availability",
+    ),
+    "mediaAvailabilityDesc": MessageLookupByLibrary.simpleMessage(
+      "Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.",
+    ),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage("常駐メモリ"),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("アプリと共有"),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("未使用のヒープ"),
@@ -1022,6 +1047,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "サーバーに接続できませんでした。ネットワーク接続またはプロキシ設定を確認してください",
+    ),
+    "networkDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Network diagnostics",
+    ),
+    "networkDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.",
     ),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "サーバーのアドレスを解決できませんでした。URL が正しいこと、DNS が使えることを確認してください",

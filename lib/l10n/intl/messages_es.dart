@@ -296,6 +296,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "additionalPrefix": MessageLookupByLibrary.simpleMessage(
       "Prefijo del nombre",
     ),
+    "additionalServices": MessageLookupByLibrary.simpleMessage(
+      "More service checks",
+    ),
     "additionalSuffix": MessageLookupByLibrary.simpleMessage(
       "Sufijo del nombre",
     ),
@@ -386,6 +389,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage(
       "Intervalo de actualización automática",
     ),
+    "availabilityBlocked": MessageLookupByLibrary.simpleMessage("Unavailable"),
+    "availabilityLimited": MessageLookupByLibrary.simpleMessage("Limited"),
+    "availabilityUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
+    "availabilityUnlocked": MessageLookupByLibrary.simpleMessage("Available"),
     "back": MessageLookupByLibrary.simpleMessage("Atrás"),
     "backgroundBlur": MessageLookupByLibrary.simpleMessage(
       "Desenfoque de fondo",
@@ -653,6 +660,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("Modo desarrollador"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "El modo desarrollador está activado.",
+    ),
+    "diagnosticFailed": MessageLookupByLibrary.simpleMessage("Check failed"),
+    "diagnosticRun": MessageLookupByLibrary.simpleMessage("Run check"),
+    "diagnosticStop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "diagnosticTarget": MessageLookupByLibrary.simpleMessage(
+      "Domain, IP or target address",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Proxy de marcación"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -1164,6 +1177,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "La última vez, la app se cerró inesperadamente mientras se iniciaba. En este inicio se ha omitido la configuración automática; puedes iniciarla manualmente para reintentarlo.",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Diseño"),
+    "legacyExport": MessageLookupByLibrary.simpleMessage(
+      "Export legacy 0.4 profiles",
+    ),
+    "legacyExportDesc": MessageLookupByLibrary.simpleMessage(
+      "Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.",
+    ),
     "light": MessageLookupByLibrary.simpleMessage("Claro"),
     "lineIssueTip": m44,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Ajuste de línea"),
@@ -1225,6 +1244,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("Máximo de fallos"),
     "maxLengthTip": m46,
     "maximize": MessageLookupByLibrary.simpleMessage("Maximizar"),
+    "mediaAvailability": MessageLookupByLibrary.simpleMessage(
+      "Service availability",
+    ),
+    "mediaAvailabilityDesc": MessageLookupByLibrary.simpleMessage(
+      "Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.",
+    ),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage(
       "Memoria residente",
     ),
@@ -1284,6 +1309,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "No se pudo conectar con el servidor. Comprueba tu conexión de red o los ajustes del proxy",
+    ),
+    "networkDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Network diagnostics",
+    ),
+    "networkDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.",
     ),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "No se pudo resolver la dirección del servidor. Comprueba que la URL sea correcta y que el DNS funcione",

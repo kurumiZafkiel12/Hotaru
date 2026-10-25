@@ -512,3 +512,64 @@ jobs:
           files: ./dist/*
           body_path: './release.md'
           prerelease: ${{ env.IS_STABLE != 'true' }}
+
+  windows-release:
+    name: Hotaru 0.5 Windows installer
+    if: github.ref == 'refs/heads/codex/hotaru-v050' && github.repository == 'kurumiZafkiel12/Hotaru'
+    needs: [dart, plugins, go, rust, windows-helper-test]
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: core/go.sum
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            services/helper
+            plugins/rust_api/rust
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Dependencies
+        run: flutter pub get
+      - name: Verified CA bundle
+        shell: pwsh
+        run: |
+          $bundle = 'core/Clash.Meta/component/ca/ca-certificates.crt'
+          Invoke-WebRequest 'https://curl.se/ca/cacert-2026-09-25.pem' -OutFile $bundle
+          if ((Get-FileHash $bundle -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505') { throw 'CA checksum mismatch' }
+      - name: Build Windows installer and portable package
+        run: dart setup.dart windows --env pre --targets exe,zip -v
+      - name: Verify package, install, overwrite, and uninstall
+        shell: pwsh
+        run: ./tool/verify_windows_release.ps1
+      - name: Archive complete corresponding sources
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:RUNNER_TEMP 'hotaru-source'
+          New-Item -ItemType Directory $source -Force | Out-Null
+          git archive HEAD -o "$env:RUNNER_TEMP/root.tar"
+          tar -xf "$env:RUNNER_TEMP/root.tar" -C $source
+          git -C core/Clash.Meta archive HEAD -o "$env:RUNNER_TEMP/mihomo.tar"
+          New-Item -ItemType Directory "$source/core/Clash.Meta" -Force | Out-Null
+          tar -xf "$env:RUNNER_TEMP/mihomo.tar" -C "$source/core/Clash.Meta"
+          Copy-Item core/Clash.Meta/component/ca/ca-certificates.crt "$source/core/Clash.Meta/component/ca/ca-certificates.crt"
+          tar -czf publish/Hotaru-0.5.0-source.tar.gz -C $source .
+          Get-ChildItem publish -File | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" } | Set-Content publish/SHA256SUMS.txt
+      - name: Publish verified Windows preview
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.5.0-preview.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Hotaru 0.5.0 Windows
+          prerelease: true
+          body_path: docs/RELEASE-0.5.0.md
+          files: publish/*

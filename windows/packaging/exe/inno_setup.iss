@@ -113,8 +113,8 @@ end;
 // windows/runner/Runner.rc.
 procedure RemoveUserData;
 begin
-  DelTree(ExpandConstant('{userappdata}\dev.hotaru\clash'), True, True, True);
-  DelTree(ExpandConstant('{localappdata}\dev.hotaru\clash'), True, True, True);
+  DelTree(ExpandConstant('{userappdata}\dev.hotaru\Hotaru'), True, True, True);
+  DelTree(ExpandConstant('{localappdata}\dev.hotaru\Hotaru'), True, True, True);
   RemoveDir(ExpandConstant('{userappdata}\dev.hotaru'));
   RemoveDir(ExpandConstant('{localappdata}\dev.hotaru'));
 end;

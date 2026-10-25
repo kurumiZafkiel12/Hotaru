@@ -18,6 +18,9 @@ import 'config/custom_resources.dart';
 import 'developer.dart';
 import 'disclaimer.dart';
 import 'theme.dart';
+import 'network_diagnostics.dart';
+import 'dashboard/widgets/service_status.dart';
+import 'legacy_export.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
   const ToolsView({super.key});
@@ -52,9 +55,25 @@ class _ToolViewState extends ConsumerState<ToolsView> {
     return generateSection(
       title: appLocalizations.settings,
       items: [
+        ListItem.open(
+          leading: const GlyphIcon(AppGlyphs.target),
+          title: Text(appLocalizations.networkDiagnostics),
+          widget: const NetworkDiagnosticsView(),
+        ),
+        ListItem.open(
+          leading: const GlyphIcon(AppGlyphs.speed),
+          title: Text(appLocalizations.serviceStatus),
+          widget: const ServiceStatusSheet(),
+        ),
         const _LocaleItem(),
         const _ThemeItem(),
         const _BackupItem(),
+        if (system.isWindows)
+          ListItem.open(
+            leading: const GlyphIcon(AppGlyphs.profiles),
+            title: Text(appLocalizations.legacyExport),
+            widget: const LegacyExportView(),
+          ),
         if (system.isDesktop) const _HotkeyItem(),
         if (system.isAndroid) const _AccessItem(),
         const _AdvancedConfigItem(),

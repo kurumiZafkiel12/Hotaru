@@ -51,8 +51,12 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin wini
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
 # external build triggered from this build file.
+add_executable(HotaruProxyGuardian "proxy_guardian.cpp")
+target_compile_features(HotaruProxyGuardian PRIVATE cxx_std_17)
+target_link_libraries(HotaruProxyGuardian PRIVATE advapi32)
+add_dependencies(${PLUGIN_NAME} HotaruProxyGuardian)
 set(proxy_bundled_libraries
-  ""
+  "$<TARGET_FILE:HotaruProxyGuardian>"
   PARENT_SCOPE
 )
 

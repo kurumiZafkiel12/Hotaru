@@ -252,6 +252,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addedToLocalProxies": m1,
     "additionalParameters": MessageLookupByLibrary.simpleMessage("추가 매개변수"),
     "additionalPrefix": MessageLookupByLibrary.simpleMessage("이름 접두사"),
+    "additionalServices": MessageLookupByLibrary.simpleMessage(
+      "More service checks",
+    ),
     "additionalSuffix": MessageLookupByLibrary.simpleMessage("이름 접미사"),
     "address": MessageLookupByLibrary.simpleMessage("주소"),
     "addressHelp": MessageLookupByLibrary.simpleMessage("WebDAV 서버 주소"),
@@ -306,6 +309,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoSetSystemDns": MessageLookupByLibrary.simpleMessage("시스템 DNS 자동 설정"),
     "autoUpdate": MessageLookupByLibrary.simpleMessage("자동 업데이트"),
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage("자동 업데이트 간격"),
+    "availabilityBlocked": MessageLookupByLibrary.simpleMessage("Unavailable"),
+    "availabilityLimited": MessageLookupByLibrary.simpleMessage("Limited"),
+    "availabilityUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
+    "availabilityUnlocked": MessageLookupByLibrary.simpleMessage("Available"),
     "back": MessageLookupByLibrary.simpleMessage("뒤로"),
     "backgroundBlur": MessageLookupByLibrary.simpleMessage("배경 흐림"),
     "backup": MessageLookupByLibrary.simpleMessage("백업"),
@@ -505,6 +512,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("개발자 모드"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "개발자 모드가 켜졌습니다.",
+    ),
+    "diagnosticFailed": MessageLookupByLibrary.simpleMessage("Check failed"),
+    "diagnosticRun": MessageLookupByLibrary.simpleMessage("Run check"),
+    "diagnosticStop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "diagnosticTarget": MessageLookupByLibrary.simpleMessage(
+      "Domain, IP or target address",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("다이얼러 프록시"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -917,6 +930,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "지난번 시작하는 중에 앱이 예기치 않게 종료되었습니다. 이번 실행에서는 자동 설정을 건너뛰었으니 직접 시작하여 다시 시도하세요.",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("레이아웃"),
+    "legacyExport": MessageLookupByLibrary.simpleMessage(
+      "Export legacy 0.4 profiles",
+    ),
+    "legacyExportDesc": MessageLookupByLibrary.simpleMessage(
+      "Select the old %APPDATA%/Hotaru/profiles.json and an output folder. This preserves the original and exports config snapshots, source URL metadata and unexecuted scripts. Import profile-N.json from the Profiles page. Reimport source URLs for automatic updates and review overrides. Exported files contain credentials; do not publish them.",
+    ),
     "light": MessageLookupByLibrary.simpleMessage("라이트"),
     "lineIssueTip": m44,
     "lineWrap": MessageLookupByLibrary.simpleMessage("자동 줄 바꿈"),
@@ -964,6 +983,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("최대 실패 횟수"),
     "maxLengthTip": m46,
     "maximize": MessageLookupByLibrary.simpleMessage("최대화"),
+    "mediaAvailability": MessageLookupByLibrary.simpleMessage(
+      "Service availability",
+    ),
+    "mediaAvailabilityDesc": MessageLookupByLibrary.simpleMessage(
+      "Checks selected services through the current routing rules for reachability and region. Website restrictions can affect results; this does not verify account entitlements. Requests start only when you run the check.",
+    ),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage("상주 메모리"),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("앱 및 공유"),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("유휴 힙"),
@@ -1007,6 +1032,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "서버에 연결할 수 없습니다. 네트워크 연결이나 프록시 설정을 확인하세요",
+    ),
+    "networkDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Network diagnostics",
+    ),
+    "networkDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "DNS and TCP use the system network; HTTP follows the app proxy rules. TCP measures handshake latency, not bandwidth. IP lookups contact free third-party sources.",
     ),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "서버 주소를 확인할 수 없습니다. URL이 올바른지, DNS가 정상인지 확인하세요",

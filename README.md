@@ -40,6 +40,10 @@ A multi-platform proxy client based on ClashMeta. Simple to use, open source and
   global hotkeys on the desktop.
 - **Open source and ad-free**, licensed under GPL-3.0.
 
+## Hotaru 0.5.0 Windows
+
+This release continues the FlClash baseline, adds Bettbox additional-service checks, network diagnostics, legacy 0.4 config export, and independent Windows proxy recovery. See [release notes](docs/RELEASE-0.5.0.md), the [feature union ledger](docs/FEATURE-MATRIX-0.5.0.md), and [upstream attribution](THIRD-PARTY.md). This delivery targets Windows x64. The complete union remains in progress; inherited cross-platform code is not a claim of platform acceptance.
+
 ## Download
 
 Get the latest build from [GitHub Releases](https://github.com/kurumiZafkiel12/Hotaru/releases/latest), or open the

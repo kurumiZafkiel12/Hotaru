@@ -4,6 +4,7 @@
 #include <ws2ipdef.h>
 
 #include "proxy_plugin.h"
+#include "guardian_bridge.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
@@ -394,7 +395,7 @@ namespace proxy
   {
     if (proxy_applied_ && IsSessionEnding(message, wparam))
     {
-      proxy_applied_ = !stopProxy();
+      proxy_applied_ = !hotaru_guard::Stop();
     }
     return std::nullopt;
   }
@@ -405,7 +406,7 @@ namespace proxy
   {
     if (method_call.method_name() == "StopProxy")
     {
-      const bool stopped = stopProxy();
+      const bool stopped = hotaru_guard::Stop();
       proxy_applied_ = proxy_applied_ && !stopped;
       result->Success(stopped);
     }
@@ -443,6 +444,10 @@ namespace proxy
         return;
       }
       // A start that reports failure can still have written the setting.
+      if (!hotaru_guard::Arm(*port)) {
+        result->Error("guardian_failed", "Cannot protect system proxy recovery");
+        return;
+      }
       proxy_applied_ = true;
       result->Success(startProxy(*port, *bypassDomain));
     }

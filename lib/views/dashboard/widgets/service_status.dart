@@ -19,6 +19,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
+import '../../media_availability.dart';
 
 String _statusLabel(BuildContext context, ServiceProbeStatus status) {
   final localizations = context.appLocalizations;
@@ -684,8 +685,15 @@ class ServiceStatusSheet extends ConsumerWidget {
           SliverPadding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + context.bottomInset),
             sliver: SliverList.builder(
-              itemCount: targets.length,
+              itemCount: targets.length + 1,
               itemBuilder: (context, index) {
+                if (index == targets.length) {
+                  return ListItem.open(
+                    leading: const GlyphIcon(AppGlyphs.target),
+                    title: Text(localizations.additionalServices),
+                    widget: const MediaAvailabilityView(),
+                  );
+                }
                 final target = targets[index];
                 return ItemPositionProvider(
                   position: ItemPosition.get(index, targets.length),

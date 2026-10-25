@@ -248,6 +248,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "addedToLocalProxies": m1,
     "additionalParameters": MessageLookupByLibrary.simpleMessage("附加参数"),
     "additionalPrefix": MessageLookupByLibrary.simpleMessage("名称前缀"),
+    "additionalServices": MessageLookupByLibrary.simpleMessage("更多服务检测"),
     "additionalSuffix": MessageLookupByLibrary.simpleMessage("名称后缀"),
     "address": MessageLookupByLibrary.simpleMessage("地址"),
     "addressHelp": MessageLookupByLibrary.simpleMessage("WebDAV服务器地址"),
@@ -300,6 +301,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoSetSystemDns": MessageLookupByLibrary.simpleMessage("自动设置系统DNS"),
     "autoUpdate": MessageLookupByLibrary.simpleMessage("自动更新"),
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage("自动更新间隔"),
+    "availabilityBlocked": MessageLookupByLibrary.simpleMessage("不可用"),
+    "availabilityLimited": MessageLookupByLibrary.simpleMessage("受限"),
+    "availabilityUnknown": MessageLookupByLibrary.simpleMessage("未知"),
+    "availabilityUnlocked": MessageLookupByLibrary.simpleMessage("可用"),
     "back": MessageLookupByLibrary.simpleMessage("返回"),
     "backgroundBlur": MessageLookupByLibrary.simpleMessage("背景模糊"),
     "backup": MessageLookupByLibrary.simpleMessage("备份"),
@@ -476,6 +481,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "detectionTip": MessageLookupByLibrary.simpleMessage("依赖第三方api，仅供参考"),
     "developerMode": MessageLookupByLibrary.simpleMessage("开发者模式"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage("开发者模式已启用。"),
+    "diagnosticFailed": MessageLookupByLibrary.simpleMessage("检测失败"),
+    "diagnosticRun": MessageLookupByLibrary.simpleMessage("开始检测"),
+    "diagnosticStop": MessageLookupByLibrary.simpleMessage("停止"),
+    "diagnosticTarget": MessageLookupByLibrary.simpleMessage("域名、IP 或目标地址"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("拨号代理"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "拨号代理为连接 NTP 服务器使用的出站。",
@@ -847,6 +856,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "应用上次在启动过程中意外退出。已跳过本次自动配置，你可以手动启动重试。",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("布局"),
+    "legacyExport": MessageLookupByLibrary.simpleMessage("导出 0.4.x 旧配置"),
+    "legacyExportDesc": MessageLookupByLibrary.simpleMessage(
+      "选择旧版 %APPDATA%/Hotaru/profiles.json，再选择输出文件夹。工具保留原文件并导出配置快照、原订阅地址清单和未执行的脚本。随后在配置页通过文件导入 profile-N.json；需要自动更新时重新导入原订阅链接，并重新检查覆写。导出文件含节点凭据，请勿公开上传。",
+    ),
     "light": MessageLookupByLibrary.simpleMessage("浅色"),
     "lineIssueTip": m44,
     "lineWrap": MessageLookupByLibrary.simpleMessage("自动换行"),
@@ -892,6 +905,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("最大失败次数"),
     "maxLengthTip": m46,
     "maximize": MessageLookupByLibrary.simpleMessage("最大化"),
+    "mediaAvailability": MessageLookupByLibrary.simpleMessage("服务可用性"),
+    "mediaAvailabilityDesc": MessageLookupByLibrary.simpleMessage(
+      "按当前分流规则访问所选服务，检测可达性和区域。结果可能受网站风控影响，不代表账户订阅权益。点击开始后才会发送网络请求。",
+    ),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage("常驻内存"),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("应用及共享"),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("堆内存空闲"),
@@ -931,6 +948,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkCancelledError": MessageLookupByLibrary.simpleMessage("请求已取消"),
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "无法连接到服务器，请检查网络连接或代理设置",
+    ),
+    "networkDiagnostics": MessageLookupByLibrary.simpleMessage("网络诊断"),
+    "networkDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "DNS 和 TCP 使用系统网络；HTTP 使用当前应用的代理规则。TCP 是握手延迟，不是带宽测速。IP 信息查询会联系第三方免费来源。",
     ),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "无法解析服务器地址，请确认链接正确且 DNS 可用",
