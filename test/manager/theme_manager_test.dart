@@ -33,7 +33,7 @@ void main() {
     expect(scaled, closeTo(13, 1e-9));
   });
 
-  testWidgets('a theme setting the theme does not read keeps the same theme', (
+  testWidgets('settings the fixed theme ignores keep the same theme', (
     tester,
   ) async {
     final container = ProviderContainer();
@@ -63,6 +63,8 @@ void main() {
 
     expect(themes, hasLength(3));
     expect(themes[1], same(themes[0]));
-    expect(themes[2], isNot(same(themes[1])));
+    // The fixed Hotaru palette ignores pure black too, so its toggle
+    // also keeps the cached theme instead of producing a new one.
+    expect(themes[2], same(themes[1]));
   });
 }
