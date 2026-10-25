@@ -976,5 +976,7 @@
   "addToLocalProxies": "Добавить в локальные прокси",
   "addedToLocalProxies": "«{name}» добавлен в локальные прокси",
   "alreadyInLocalProxies": "«{name}» уже есть в локальных прокси",
-  "authorCommunity": "Сообщество автора"
+  "authorCommunity": "Сообщество автора",
+  "fireflyDesktop": "Рабочий стол Hotaru",
+  "dashboardWidgetsTitle": "Мои виджеты"
 }

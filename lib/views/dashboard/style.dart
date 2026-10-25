@@ -85,13 +85,9 @@ abstract final class DashboardShadows {
   static double _blur(double cssBlur) =>
       cssBlur <= 1 ? 0 : (cssBlur / 2 - 0.5) / 0.57735;
 
-  static final _e1Light = [
-    _shadow(0x0D, 0.5, 1),
-    _shadow(0x0A, 2, 6),
-    _shadow(0x17, 12, 32, -6),
-  ];
+  static final _e1Light = [_shadow(0x08, 2, 6)];
 
-  static final _e1Dark = [_shadow(0x80, 1, 2), _shadow(0x8C, 10, 28, -6)];
+  static final _e1Dark = [_shadow(0x20, 2, 6)];
 
   static final _e2Light = [
     _shadow(0x0F, 1, 3),
@@ -102,13 +98,11 @@ abstract final class DashboardShadows {
   static final _e2Dark = [_shadow(0x80, 2, 6), _shadow(0xB3, 32, 64, -12)];
 }
 
-/// Off the [AppCorner] scale: a dashboard card is taller than any other
-/// surface in the app and keeps a larger corner than a sheet.
 abstract final class DashboardCorner {
-  static const desktopCard = 32.0;
-  static const mobileCard = 34.0;
-  static const block = 20.0;
-  static const mobileBlock = 22.0;
+  static const desktopCard = AppCorner.lg;
+  static const mobileCard = AppCorner.xl;
+  static const block = AppCorner.md;
+  static const mobileBlock = AppCorner.md;
   static const tab = 16.0;
   static const tableHeader = 12.0;
   static const badge = 14.0;

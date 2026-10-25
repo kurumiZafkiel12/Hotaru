@@ -159,6 +159,7 @@ class _Sidebar extends ConsumerWidget {
     );
     final version = ref.watch(versionProvider);
     return NavigationSidebar(
+      brandTitle: 'HOTARU',
       destinations: [
         for (final item in items)
           SidebarDestination(glyph: item.glyph, label: item.label.label),

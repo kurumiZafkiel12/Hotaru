@@ -21,7 +21,7 @@ import 'widgets/widgets.dart';
 // the grid stacks them in one.
 const _servicePairColumnMin = 290.0;
 
-const _maxColumnWidth = 440.0;
+const _maxColumnWidth = 360.0;
 
 class DashboardView extends ConsumerStatefulWidget {
   const DashboardView({super.key, this.platform});
@@ -62,7 +62,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
-          : appLocalizations.dashboard,
+          : appLocalizations.fireflyDesktop,
       actions: [if (!editing && coreLib == null) const CoreStatusButton()],
       confirmationAction: editing
           ? IconButtonData(
@@ -107,9 +107,6 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   }
 }
 
-/// Four columns fill the window, the tables taking what the rows above them
-/// leave. A window too short for the tables, and every two column one, gets
-/// the summary cards instead, so no list scrolls inside a page that scrolls.
 class _DesktopDashboard extends StatelessWidget {
   const _DesktopDashboard({
     required this.platform,
@@ -127,12 +124,13 @@ class _DesktopDashboard extends StatelessWidget {
     final compact = density.isCompact;
     final scale = DashboardDensityScope.scaleOf(context);
     final base = EdgeInsetsDirectional.fromSTEB(
-      16,
+      24,
       context.contentTopPadding,
       24,
       24 + MediaQuery.paddingOf(context).bottom,
     );
-    final topHeight = (compact ? 176 : 208) * scale;
+    final topHeight = (compact ? 184 : 208) * scale;
+    final speedHeight = (compact ? 152 : 176) * scale;
     final controlHeight = (compact ? 56 : 64) * scale;
     final middleHeight = (compact ? 152 : 176) * scale;
     final tablesHeight = connectionsTableMinHeight(density, scale);
@@ -210,17 +208,27 @@ class _DesktopDashboard extends StatelessWidget {
           );
         }
         final rows = [
-          sized(
-            topHeight,
-            row(const [
-              (2, CurrentOutboundCard()),
-              (1, SpeedCard(direction: TrafficDirection.upload)),
-              (1, SpeedCard(direction: TrafficDirection.download)),
-            ]),
-          ),
+          sized(topHeight, const RepaintBoundary(child: CurrentOutboundCard())),
           sized(
             controlHeight,
             row([(2, const OutboundModeBar()), ...switches]),
+          ),
+          sized(
+            28 * scale,
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                context.appLocalizations.dashboardWidgetsTitle,
+                style: AppTextStyle.headline.of(context),
+              ),
+            ),
+          ),
+          sized(
+            speedHeight,
+            row(const [
+              (2, SpeedCard(direction: TrafficDirection.download)),
+              (2, SpeedCard(direction: TrafficDirection.upload)),
+            ]),
           ),
           sized(
             middleHeight,
@@ -240,9 +248,11 @@ class _DesktopDashboard extends StatelessWidget {
         final rowsHeight =
             padding.vertical +
             topHeight +
+            speedHeight +
+            28 * scale +
             controlHeight +
             middleHeight +
-            gap * 3;
+            gap * 5;
         final tablesFit = constraints.maxHeight >= rowsHeight + tablesHeight;
         final fills = constraints.maxHeight >= rowsHeight + summaryHeight;
         return SingleChildScrollView(

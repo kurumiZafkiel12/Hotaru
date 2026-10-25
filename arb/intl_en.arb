@@ -976,5 +976,7 @@
   "addToLocalProxies": "Add to local proxies",
   "addedToLocalProxies": "Added {name} to local proxies",
   "alreadyInLocalProxies": "{name} is already in local proxies",
-  "authorCommunity": "Author community"
+  "authorCommunity": "Author community",
+  "fireflyDesktop": "Firefly desktop",
+  "dashboardWidgetsTitle": "My widgets"
 }

@@ -27,10 +27,6 @@ bool isBuiltinOutbound(String name) => _builtinOutbounds.contains(name);
 
 const _ipMask = '*****';
 
-const _decorationGrowth = 0.12;
-
-const _decorationTurn = 2 * math.pi / 12;
-
 /// The address the proxied traffic leaves by, next to the start button.
 class CurrentOutboundCard extends ConsumerStatefulWidget {
   const CurrentOutboundCard({super.key});
@@ -86,8 +82,6 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     final loading = ipInfo == null ? !failed : qualityLoading;
     final metrics = _OutboundMetrics.of(density);
     final appLocalizations = context.appLocalizations;
-    final colorScheme = context.colorScheme;
-    final colors = DashboardColors.of(context);
     final (chipLabel, chipTone) = suspended
         ? (appLocalizations.suspended, DashboardChipTone.warn)
         : isStart
@@ -95,109 +89,66 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
         : (appLocalizations.notRunning, DashboardChipTone.idle);
     return DashboardCard(
       padding: EdgeInsets.zero,
+      highlighted: true,
       semanticLabel: appLocalizations.status,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipPath(
-              clipper: ShapeBorderClipper(
-                shape: AppShape.all(dashboardCardRadius(density)),
-                textDirection: Directionality.of(context),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
+      child: Padding(
+        padding: metrics.padding,
+        child: Row(
+          spacing: metrics.gap,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PositionedDirectional(
-                    end: metrics.decorationEnd,
-                    top: metrics.decorationTop,
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(end: isStart ? 1 : 0),
-                      duration: context.motionDuration(_morphDuration),
-                      curve: Curves.easeOutBack,
-                      builder: (_, progress, _) => Transform.rotate(
-                        angle: _decorationTurn * progress,
-                        child: Transform.scale(
-                          scale: 1 + _decorationGrowth * progress,
-                          child: ShapeBadge(
-                            shape: MaterialShapes.cookie12Sided,
-                            color: Color.lerp(
-                              colors.tone,
-                              Color.alphaBlend(
-                                colorScheme.primary.withValues(alpha: 0.1),
-                                colors.card,
-                              ),
-                              progress.clamp(0, 1),
-                            )!,
-                            size: metrics.decorationSize,
-                          ),
-                        ),
+                  DashboardCardHeader(
+                    glyph: AppGlyphs.status,
+                    title: appLocalizations.status,
+                    leading: [
+                      DashboardChip(
+                        label: chipLabel,
+                        tone: chipTone,
+                        dot: isStart,
                       ),
-                    ),
+                    ],
+                  ),
+                  SizedBox(height: metrics.ipTop),
+                  _ExitRow(
+                    info: ipInfo,
+                    failed: failed,
+                    loading: loading,
+                    checking: phase == ProbePhase.probing || qualityLoading,
+                    onRefresh: () => _refresh(ipInfo?.ip),
+                    quality: quality,
+                    active: isStart,
+                    metrics: metrics,
+                    large: !density.isDesktop,
+                  ),
+                  if (density.isDesktop)
+                    const Spacer()
+                  else
+                    const SizedBox(height: 16),
+                  _Cells(
+                    quality: quality,
+                    loading: loading,
+                    active: isStart && !suspended,
+                    gap: metrics.cellGap,
                   ),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: metrics.padding,
-            child: Row(
-              spacing: metrics.gap,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DashboardCardHeader(
-                        glyph: AppGlyphs.status,
-                        title: appLocalizations.status,
-                        leading: [
-                          DashboardChip(
-                            label: chipLabel,
-                            tone: chipTone,
-                            dot: isStart,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: metrics.ipTop),
-                      _ExitRow(
-                        info: ipInfo,
-                        failed: failed,
-                        loading: loading,
-                        checking: phase == ProbePhase.probing || qualityLoading,
-                        onRefresh: () => _refresh(ipInfo?.ip),
-                        quality: quality,
-                        active: isStart,
-                        metrics: metrics,
-                        large: !density.isDesktop,
-                      ),
-                      if (density.isDesktop)
-                        const Spacer()
-                      else
-                        const SizedBox(height: 16),
-                      _Cells(
-                        quality: quality,
-                        loading: loading,
-                        active: isStart && !suspended,
-                        gap: metrics.cellGap,
-                      ),
-                    ],
-                  ),
+            SizedBox(
+              width: metrics.buttonSlot,
+              child: Center(
+                child: _StartToggle(
+                  size: metrics.buttonSize,
+                  enabled: hasProfile,
+                  running: isStart,
+                  suspended: suspended,
                 ),
-                SizedBox(
-                  width: metrics.buttonSlot,
-                  child: Center(
-                    child: _StartToggle(
-                      size: metrics.buttonSize,
-                      enabled: hasProfile,
-                      running: isStart,
-                      suspended: suspended,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -213,9 +164,6 @@ class _OutboundMetrics {
     required this.ip,
     required this.buttonSize,
     required this.buttonSlot,
-    required this.decorationSize,
-    required this.decorationEnd,
-    required this.decorationTop,
   });
 
   factory _OutboundMetrics.of(DashboardDensity density) => switch (density) {
@@ -228,9 +176,6 @@ class _OutboundMetrics {
       ip: AppTextStyle.title1,
       buttonSize: 104,
       buttonSlot: 120,
-      decorationSize: 290,
-      decorationEnd: -64,
-      decorationTop: -87,
     ),
     DashboardDensity.compact => _OutboundMetrics(
       padding: dashboardCardPadding(density),
@@ -241,9 +186,6 @@ class _OutboundMetrics {
       ip: AppTextStyle.title2,
       buttonSize: 84,
       buttonSlot: 100,
-      decorationSize: 250,
-      decorationEnd: -64,
-      decorationTop: -75,
     ),
     DashboardDensity.mobile => const _OutboundMetrics(
       padding: EdgeInsetsDirectional.fromSTEB(20, 18, 16, 18),
@@ -254,9 +196,6 @@ class _OutboundMetrics {
       ip: AppTextStyle.title2,
       buttonSize: 88,
       buttonSlot: 88,
-      decorationSize: 240,
-      decorationEnd: -60,
-      decorationTop: -66,
     ),
   };
 
@@ -268,9 +207,6 @@ class _OutboundMetrics {
   final AppTextStyle ip;
   final double buttonSize;
   final double buttonSlot;
-  final double decorationSize;
-  final double decorationEnd;
-  final double decorationTop;
 }
 
 class _ExitRow extends StatelessWidget {
@@ -558,14 +494,13 @@ class _CountryBadgeState extends State<_CountryBadge>
                       color: foreground,
                     )
                   : Text(
-                      code.toUpperCase(),
+                      code.countryFlagEmoji,
                       maxLines: 1,
-                      style: AppTextStyle.footnote
-                          .of(context, emphasized: true)
-                          .copyWith(
-                            color: foreground,
-                            letterSpacing: 0.04 * AppTextStyle.footnote.size,
-                          ),
+                      style: AppTextStyle.custom(
+                        context,
+                        size: size * 0.52,
+                        leading: size * 0.62,
+                      ).copyWith(fontFamily: FontFamily.twEmoji.value),
                     ),
             ),
           ),

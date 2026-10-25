@@ -976,5 +976,7 @@
   "addToLocalProxies": "로컬 프록시에 추가",
   "addedToLocalProxies": "{name}을(를) 로컬 프록시에 추가했습니다",
   "alreadyInLocalProxies": "{name}은(는) 이미 로컬 프록시에 있습니다",
-  "authorCommunity": "제작자 커뮤니티"
+  "authorCommunity": "제작자 커뮤니티",
+  "fireflyDesktop": "반딧불 데스크톱",
+  "dashboardWidgetsTitle": "내 위젯"
 }
