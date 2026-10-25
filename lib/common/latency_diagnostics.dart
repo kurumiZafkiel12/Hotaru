@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 const latencyDiagnosticsPrefsKey = 'latencyDiagnosticsEnabled';
 const latencyDiagnosticsLogFileName = 'latency_diagnostics.jsonl';
 const latencyDiagnosticsMaxLogBytes = 2000000;
-const latencyDiagnosticsMaxKeptLines = 1000;
 
 const latencyErrorTimeout = 'timeout';
 const latencyErrorDns = 'dns';

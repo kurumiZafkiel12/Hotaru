@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:hotaru/common/common.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LatencyDiagnosticsStore {
   LatencyDiagnosticsStore._();
+
+  @visibleForTesting
+  LatencyDiagnosticsStore.forTesting();
 
   static final instance = LatencyDiagnosticsStore._();
 
@@ -44,6 +49,7 @@ class LatencyDiagnosticsStore {
   }
 
   Future<void> record(Map<String, Object?> entry) {
+    if (!_enabled) return Future.value();
     _writeChain = _writeChain.then((_) => _append(entry));
     return _writeChain;
   }
@@ -57,19 +63,24 @@ class LatencyDiagnosticsStore {
   }
 
   Future<void> _append(Map<String, Object?> entry) async {
+    if (!_enabled) return;
     try {
       final path = await logFilePath;
       final file = File(path);
-      var lines = <String>[];
+      final line = '${json.encode(entry)}\n';
+      final bytes = utf8.encode(line);
+      if (bytes.length > latencyDiagnosticsMaxLogBytes) return;
       if (await file.exists()) {
-        lines = await file.readAsLines();
-        if (await file.length() > latencyDiagnosticsMaxLogBytes &&
-            lines.length > latencyDiagnosticsMaxKeptLines) {
-          lines = lines.sublist(lines.length - latencyDiagnosticsMaxKeptLines);
+        final size = await file.length();
+        if (size > latencyDiagnosticsMaxLogBytes) {
+          await file.writeAsString('');
+        } else if (size + bytes.length > latencyDiagnosticsMaxLogBytes) {
+          final previous = File('$path.previous');
+          if (await previous.exists()) await previous.delete();
+          await file.rename(previous.path);
         }
       }
-      lines.add(json.encode(entry));
-      await file.writeAsString('${lines.join('\n')}\n');
+      await file.writeAsBytes(bytes, mode: FileMode.append);
     } catch (_) {
       // Diagnostic logging must never break delay tests.
     }
@@ -77,22 +88,46 @@ class LatencyDiagnosticsStore {
 
   Future<List<Map<String, Object?>>> readRecords({int limit = 500}) async {
     try {
-      final file = File(await logFilePath);
-      if (!await file.exists()) {
-        return [];
-      }
-      final records = <Map<String, Object?>>[];
-      for (final line in await file.readAsLines()) {
-        final decoded = json.decode(line);
-        if (decoded is Map<String, Object?>) {
-          records.add(decoded);
-        }
-      }
-      return records.reversed.take(limit).toList();
+      await _writeChain;
+      final path = await logFilePath;
+      return await Isolate.run(() => _readDiagnosticTail(path, limit));
     } catch (_) {
       return [];
     }
   }
+}
+
+List<Map<String, Object?>> _readDiagnosticTail(String path, int limit) {
+  final records = <Map<String, Object?>>[];
+  for (final candidate in [path, '$path.previous']) {
+    if (records.length >= limit) break;
+    final file = File(candidate);
+    if (!file.existsSync()) continue;
+    final handle = file.openSync();
+    try {
+      final length = handle.lengthSync();
+      final start = (length - latencyDiagnosticsMaxLogBytes).clamp(0, length);
+      handle.setPositionSync(start);
+      final bytes = handle.readSync(length - start);
+      var text = utf8.decode(bytes, allowMalformed: true);
+      if (start > 0) {
+        final newline = text.indexOf('\n');
+        text = newline < 0 ? '' : text.substring(newline + 1);
+      }
+      for (final line in text.split('\n').reversed) {
+        if (records.length >= limit) break;
+        try {
+          final decoded = json.decode(line);
+          if (decoded is Map<String, Object?>) records.add(decoded);
+        } on FormatException {
+          continue;
+        }
+      }
+    } finally {
+      handle.closeSync();
+    }
+  }
+  return records;
 }
 
 final latencyDiagnosticsStore = LatencyDiagnosticsStore.instance;
