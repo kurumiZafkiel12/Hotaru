@@ -435,19 +435,6 @@ class ProxiesAction extends _$ProxiesAction {
     if (targets.isEmpty) {
       return;
     }
-    await latencyDiagnosticsStore.ensureLoaded();
-    final diagnosticsOn = latencyDiagnosticsStore.enabled;
-    final diagnostics = (
-      on: diagnosticsOn,
-      roundId: diagnosticsOn
-          ? '${DateTime.now().millisecondsSinceEpoch}-${_diagnosticRoundCounter++}'
-          : '',
-      single:
-          batches.fold<int>(0, (sum, batch) => sum + batch.proxies.length) == 1,
-      enqueueTimes: diagnosticsOn
-          ? {for (final target in targets) target.key: DateTime.now()}
-          : const <String, DateTime>{},
-    );
     final pending = ref.read(pendingDelayTestsProvider.notifier);
     final job = _DelayTestJob(
       targets.map((target) => target.key),
@@ -459,6 +446,20 @@ class ProxiesAction extends _$ProxiesAction {
       targets.take(_delayTestPool.idleSlots).map((target) => target.key),
     );
     pending.apply(acquired: job.held, started: job.startedOnDispatch);
+    final enqueueAt = DateTime.now();
+    await latencyDiagnosticsStore.ensureLoaded();
+    final diagnosticsOn = latencyDiagnosticsStore.enabled;
+    final diagnostics = (
+      on: diagnosticsOn,
+      roundId: diagnosticsOn
+          ? '${DateTime.now().millisecondsSinceEpoch}-${_diagnosticRoundCounter++}'
+          : '',
+      single:
+          batches.fold<int>(0, (sum, batch) => sum + batch.proxies.length) == 1,
+      enqueueTimes: diagnosticsOn
+          ? {for (final target in targets) target.key: enqueueAt}
+          : const <String, DateTime>{},
+    );
     try {
       await Future.wait(
         targets.map(
