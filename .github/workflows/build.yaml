@@ -330,7 +330,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - platform: android
+            - platform: android
           os: ubuntu-latest
           - platform: windows
             os: Windows-2022
