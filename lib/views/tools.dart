@@ -17,6 +17,7 @@ import 'config/advanced.dart';
 import 'config/custom_resources.dart';
 import 'developer.dart';
 import 'disclaimer.dart';
+import 'latency_diagnostics.dart';
 import 'speed_test.dart';
 import 'theme.dart';
 
@@ -87,7 +88,9 @@ class _ToolViewState extends ConsumerState<ToolsView> {
           );
         },
       ),
-      generateSection(items: const [_SpeedTestItem()]),
+      generateSection(
+        items: const [_SpeedTestItem(), _LatencyDiagnosticsItem()],
+      ),
       _getSettingList(),
       _getOtherList(developerMode),
     ];
@@ -119,6 +122,19 @@ class _SpeedTestItem extends StatelessWidget {
       leading: const GlyphIcon(AppGlyphs.speed),
       title: Text(context.appLocalizations.speedTest),
       widget: const SpeedTestView(),
+    );
+  }
+}
+
+class _LatencyDiagnosticsItem extends StatelessWidget {
+  const _LatencyDiagnosticsItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem.open(
+      leading: const GlyphIcon(AppGlyphs.logs),
+      title: Text(context.appLocalizations.latencyDiagnostics),
+      widget: const LatencyDiagnosticsView(),
     );
   }
 }

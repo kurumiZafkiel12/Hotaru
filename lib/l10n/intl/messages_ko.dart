@@ -912,6 +912,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("언어"),
     "large": MessageLookupByLibrary.simpleMessage("크게"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("마지막 업데이트"),
+    "latencyDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Latency diagnostics",
+    ),
+    "latencyDiagnosticsCopyPath": MessageLookupByLibrary.simpleMessage(
+      "Copy log path",
+    ),
+    "latencyDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "Record per-round delay diagnostics to a local log only. Off by default; nothing is uploaded. The unified-delay split cannot be observed from the delay wrapper.",
+    ),
+    "latencyDiagnosticsHysteriaSummary": MessageLookupByLibrary.simpleMessage(
+      "Hysteria2 failure categories",
+    ),
+    "latencyDiagnosticsLogPath": MessageLookupByLibrary.simpleMessage(
+      "Diagnostic log",
+    ),
+    "latencyDiagnosticsNoRecords": MessageLookupByLibrary.simpleMessage(
+      "No diagnostic records yet",
+    ),
+    "latencyDiagnosticsRefresh": MessageLookupByLibrary.simpleMessage(
+      "Refresh",
+    ),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("시작이 완료되지 않음"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "지난번 시작하는 중에 앱이 예기치 않게 종료되었습니다. 이번 실행에서는 자동 설정을 건너뛰었으니 직접 시작하여 다시 시도하세요.",

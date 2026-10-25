@@ -842,6 +842,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("语言"),
     "large": MessageLookupByLibrary.simpleMessage("大"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("上次更新"),
+    "latencyDiagnostics": MessageLookupByLibrary.simpleMessage("延迟诊断"),
+    "latencyDiagnosticsCopyPath": MessageLookupByLibrary.simpleMessage(
+      "复制日志路径",
+    ),
+    "latencyDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "仅在本地记录每轮延迟诊断。默认关闭，不上传任何数据。统一延迟的两次请求拆分无法从延迟包装层观测。",
+    ),
+    "latencyDiagnosticsHysteriaSummary": MessageLookupByLibrary.simpleMessage(
+      "Hysteria2 失败分类",
+    ),
+    "latencyDiagnosticsLogPath": MessageLookupByLibrary.simpleMessage("诊断日志"),
+    "latencyDiagnosticsNoRecords": MessageLookupByLibrary.simpleMessage(
+      "暂无诊断记录",
+    ),
+    "latencyDiagnosticsRefresh": MessageLookupByLibrary.simpleMessage("刷新"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("启动未完成"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "应用上次在启动过程中意外退出。已跳过本次自动配置，你可以手动启动重试。",

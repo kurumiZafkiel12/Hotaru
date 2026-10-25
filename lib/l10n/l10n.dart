@@ -4556,6 +4556,76 @@ class AppLocalizations {
     );
   }
 
+  /// `Latency diagnostics`
+  String get latencyDiagnostics {
+    return Intl.message(
+      'Latency diagnostics',
+      name: 'latencyDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Record per-round delay diagnostics to a local log only. Off by default; nothing is uploaded. The unified-delay split cannot be observed from the delay wrapper.`
+  String get latencyDiagnosticsDesc {
+    return Intl.message(
+      'Record per-round delay diagnostics to a local log only. Off by default; nothing is uploaded. The unified-delay split cannot be observed from the delay wrapper.',
+      name: 'latencyDiagnosticsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Diagnostic log`
+  String get latencyDiagnosticsLogPath {
+    return Intl.message(
+      'Diagnostic log',
+      name: 'latencyDiagnosticsLogPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy log path`
+  String get latencyDiagnosticsCopyPath {
+    return Intl.message(
+      'Copy log path',
+      name: 'latencyDiagnosticsCopyPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No diagnostic records yet`
+  String get latencyDiagnosticsNoRecords {
+    return Intl.message(
+      'No diagnostic records yet',
+      name: 'latencyDiagnosticsNoRecords',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hysteria2 failure categories`
+  String get latencyDiagnosticsHysteriaSummary {
+    return Intl.message(
+      'Hysteria2 failure categories',
+      name: 'latencyDiagnosticsHysteriaSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh`
+  String get latencyDiagnosticsRefresh {
+    return Intl.message(
+      'Refresh',
+      name: 'latencyDiagnosticsRefresh',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `This page has changes. Are you sure you want to reset?`
   String get resetPageChangesTip {
     return Intl.message(

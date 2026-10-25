@@ -22,6 +22,8 @@ export 'iterable.dart';
 export 'javascript.dart';
 export 'keyboard.dart';
 export 'l10n_labels.dart';
+export 'latency_diagnostics.dart';
+export 'latency_diagnostics_store.dart';
 export 'layout.dart';
 export 'link.dart';
 export 'link_receiver.dart';

@@ -5,12 +5,25 @@ class _DelayTestTarget {
     required this.proxyName,
     required this.testUrl,
     required this.key,
+    required this.protocol,
+    required this.urlSource,
+    required this.proxyKnown,
   });
 
   final String proxyName;
   final String testUrl;
   final String key;
+  final String protocol;
+  final String urlSource;
+  final bool proxyKnown;
 }
+
+typedef _DelayRoundContext = ({
+  bool on,
+  String roundId,
+  bool single,
+  Map<String, DateTime> enqueueTimes,
+});
 
 typedef _DelayTestBatch = ({List<Proxy> proxies, String? testUrl});
 
@@ -30,6 +43,8 @@ class ProxiesAction extends _$ProxiesAction {
   final TaskPool _delayTestPool = TaskPool(maxConcurrentDelayTests);
 
   final List<_DelayTestJob> _delayTestJobs = [];
+
+  int _diagnosticRoundCounter = 0;
 
   final List<Delay> _bufferedDelays = [];
 
@@ -365,6 +380,14 @@ class ProxiesAction extends _$ProxiesAction {
     final selectedMap = ref.read(
       currentProfileProvider.select((state) => state?.selectedMap ?? {}),
     );
+    final proxyTypes = {
+      for (final group in groups)
+        for (final proxy in group.all) proxy.name: proxy.type,
+    };
+    final groupNames = groups.map((group) => group.name).toSet();
+    final patchTestUrl = ref.read(
+      patchClashConfigProvider.select((state) => state.testUrl),
+    );
     final seen = <String>{};
     final targets = <_DelayTestTarget>[];
     for (final batch in batches) {
@@ -383,11 +406,23 @@ class ProxiesAction extends _$ProxiesAction {
         if (!seen.add(key)) {
           continue;
         }
+        final urlSource = (state.testUrl ?? '').trim().isNotEmpty
+            ? 'group'
+            : batch.testUrl != null && batch.testUrl!.trim().isNotEmpty
+            ? 'batch'
+            : patchTestUrl.trim().isNotEmpty
+            ? 'global'
+            : 'default';
         targets.add(
           _DelayTestTarget(
             proxyName: state.proxyName,
             testUrl: currentTestUrl,
             key: key,
+            protocol: proxyTypes[state.proxyName] ?? '',
+            urlSource: urlSource,
+            proxyKnown:
+                proxyTypes.containsKey(state.proxyName) ||
+                groupNames.contains(state.proxyName),
           ),
         );
       }
@@ -400,6 +435,19 @@ class ProxiesAction extends _$ProxiesAction {
     if (targets.isEmpty) {
       return;
     }
+    await latencyDiagnosticsStore.ensureLoaded();
+    final diagnosticsOn = latencyDiagnosticsStore.enabled;
+    final diagnostics = (
+      on: diagnosticsOn,
+      roundId: diagnosticsOn
+          ? '${DateTime.now().millisecondsSinceEpoch}-${_diagnosticRoundCounter++}'
+          : '',
+      single:
+          batches.fold<int>(0, (sum, batch) => sum + batch.proxies.length) == 1,
+      enqueueTimes: diagnosticsOn
+          ? {for (final target in targets) target.key: DateTime.now()}
+          : const <String, DateTime>{},
+    );
     final pending = ref.read(pendingDelayTestsProvider.notifier);
     final job = _DelayTestJob(
       targets.map((target) => target.key),
@@ -414,7 +462,8 @@ class ProxiesAction extends _$ProxiesAction {
     try {
       await Future.wait(
         targets.map(
-          (target) => _delayTestPool.run(() => _runDelayTest(job, target)),
+          (target) =>
+              _delayTestPool.run(() => _runDelayTest(job, target, diagnostics)),
         ),
       );
     } finally {
@@ -431,7 +480,11 @@ class ProxiesAction extends _$ProxiesAction {
     }
   }
 
-  Future<void> _runDelayTest(_DelayTestJob job, _DelayTestTarget target) async {
+  Future<void> _runDelayTest(
+    _DelayTestJob job,
+    _DelayTestTarget target,
+    _DelayRoundContext diagnostics,
+  ) async {
     if (job.cancelled) {
       return;
     }
@@ -439,7 +492,15 @@ class ProxiesAction extends _$ProxiesAction {
       _bufferedStarts.add(target.key);
       _scheduleDelayFlush();
     }
+    final queueStart = diagnostics.on ? DateTime.now() : null;
+    final diagnosticTarget = diagnostics.on
+        ? latencySafeTarget(
+            target.testUrl.trim().isEmpty ? defaultTestUrl : target.testUrl,
+          )
+        : '';
+    DateTime? coreStart;
     try {
+      coreStart = diagnostics.on ? DateTime.now() : null;
       final delay = await _core.getDelay(
         target.testUrl,
         target.proxyName,
@@ -447,6 +508,46 @@ class ProxiesAction extends _$ProxiesAction {
       );
       if (delay != null && !job.cancelled) {
         setDelay(delay);
+      }
+      if (diagnostics.on) {
+        final value = delay?.value;
+        final status = job.cancelled
+            ? 'cancelled'
+            : value == null
+            ? 'failed'
+            : value == -1
+            ? 'timeout'
+            : value == -2
+            ? 'failed'
+            : 'ok';
+        await latencyDiagnosticsStore.record(
+          latencyRoundRecord(
+            roundId: diagnostics.roundId,
+            single: diagnostics.single,
+            nodeId: latencyNodeId(target.proxyName),
+            protocol: target.protocol.isEmpty ? 'unknown' : target.protocol,
+            testTarget: diagnosticTarget,
+            urlSource: target.urlSource,
+            queueMs: queueStart == null
+                ? 0
+                : queueStart
+                      .difference(
+                        diagnostics.enqueueTimes[target.key] ?? queueStart,
+                      )
+                      .inMilliseconds,
+            coreMs: coreStart == null
+                ? 0
+                : DateTime.now().difference(coreStart).inMilliseconds,
+            coreDelay: value,
+            timeoutMs: job.timeout.inMilliseconds,
+            status: status,
+            category: latencyErrorCategory(
+              coreDelay: value,
+              error: null,
+              proxyKnown: target.proxyKnown,
+            ),
+          ),
+        );
       }
     } catch (error) {
       if (error is CoreMethodException && error.isCoreUnavailable) {
@@ -456,6 +557,44 @@ class ProxiesAction extends _$ProxiesAction {
         'Delay test failed for ${target.proxyName}: $error',
         logLevel: coreFailureLogLevel(error),
       );
+      if (diagnostics.on) {
+        final coreUnavailable =
+            error is CoreMethodException && error.isCoreUnavailable;
+        await latencyDiagnosticsStore.record(
+          latencyRoundRecord(
+            roundId: diagnostics.roundId,
+            single: diagnostics.single,
+            nodeId: latencyNodeId(target.proxyName),
+            protocol: target.protocol.isEmpty ? 'unknown' : target.protocol,
+            testTarget: diagnosticTarget,
+            urlSource: target.urlSource,
+            queueMs: queueStart == null
+                ? 0
+                : queueStart
+                      .difference(
+                        diagnostics.enqueueTimes[target.key] ?? queueStart,
+                      )
+                      .inMilliseconds,
+            coreMs: coreStart == null
+                ? 0
+                : DateTime.now().difference(coreStart).inMilliseconds,
+            coreDelay: null,
+            timeoutMs: job.timeout.inMilliseconds,
+            status: coreUnavailable
+                ? 'core-unavailable'
+                : job.cancelled
+                ? 'cancelled'
+                : 'failed',
+            category: latencyErrorCategory(
+              coreDelay: null,
+              error: error,
+              proxyKnown: target.proxyKnown,
+            ),
+            errorText: error.toString().replaceAll(target.proxyName, '[NODE]'),
+            note: coreUnavailable ? 'core-unavailable' : null,
+          ),
+        );
+      }
     } finally {
       if (job.held.remove(target.key)) {
         _bufferedFinishes.add(target.key);

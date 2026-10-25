@@ -927,6 +927,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("言語"),
     "large": MessageLookupByLibrary.simpleMessage("大"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("最終更新"),
+    "latencyDiagnostics": MessageLookupByLibrary.simpleMessage(
+      "Latency diagnostics",
+    ),
+    "latencyDiagnosticsCopyPath": MessageLookupByLibrary.simpleMessage(
+      "Copy log path",
+    ),
+    "latencyDiagnosticsDesc": MessageLookupByLibrary.simpleMessage(
+      "Record per-round delay diagnostics to a local log only. Off by default; nothing is uploaded. The unified-delay split cannot be observed from the delay wrapper.",
+    ),
+    "latencyDiagnosticsHysteriaSummary": MessageLookupByLibrary.simpleMessage(
+      "Hysteria2 failure categories",
+    ),
+    "latencyDiagnosticsLogPath": MessageLookupByLibrary.simpleMessage(
+      "Diagnostic log",
+    ),
+    "latencyDiagnosticsNoRecords": MessageLookupByLibrary.simpleMessage(
+      "No diagnostic records yet",
+    ),
+    "latencyDiagnosticsRefresh": MessageLookupByLibrary.simpleMessage(
+      "Refresh",
+    ),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("起動が完了しませんでした"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "前回、アプリは起動中に予期せず終了しました。今回の自動セットアップはスキップしました。手動で起動して再試行できます。",
