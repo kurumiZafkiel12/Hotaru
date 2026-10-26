@@ -1,0 +1,71 @@
+name: Android signing metadata audit
+on:
+  push:
+    branches: [codex/hotaru-signing-audit]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report binding presence only
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE != '' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS != '' }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD != '' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD != '' }}
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE != '' }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS != '' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD != '' }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY != '' }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD != '' }}
+          ALIAS: ${{ secrets.ALIAS != '' }}
+          VARIABLE_KEYSTORE: ${{ vars.KEYSTORE != '' }}
+          VARIABLE_ANDROID_KEYSTORE: ${{ vars.ANDROID_KEYSTORE != '' }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          names = ('KEYSTORE', 'KEY_ALIAS', 'STORE_PASSWORD', 'KEY_PASSWORD', 'ANDROID_KEYSTORE', 'ANDROID_KEYSTORE_BASE64', 'ANDROID_KEY_ALIAS', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_PASSWORD', 'SIGNING_KEY', 'KEY_STORE_PASSWORD', 'ALIAS', 'VARIABLE_KEYSTORE', 'VARIABLE_ANDROID_KEYSTORE')
+          result = {name: os.environ[name] == 'true' for name in names}
+          print(json.dumps(result, sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Signing binding presence (no values)\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
+          PY
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compare public certificate fingerprint
+        env:
+          SIGNING_KEYSTORE_INPUT: ${{ secrets.KEYSTORE }}
+          SIGNING_PASSWORD_INPUT: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, re, ssl, subprocess, tempfile
+          encoded = os.environ.pop('SIGNING_KEYSTORE_INPUT', '')
+          password = os.environ.pop('SIGNING_PASSWORD_INPUT', '')
+          result = {'primary_keystore_and_password_available': bool(encoded and password)}
+          if encoded and password:
+              with tempfile.TemporaryDirectory() as folder:
+                  key = pathlib.Path(folder) / 'signing-store'
+                  try:
+                      key.write_bytes(base64.b64decode(''.join(encoded.split()), validate=True))
+                      key.chmod(0o600)
+                      env = os.environ.copy()
+                      env['AUDIT_STORE_PASSWORD'] = password
+                      process = subprocess.run(['keytool', '-list', '-rfc', '-keystore', str(key), '-storepass:env', 'AUDIT_STORE_PASSWORD'], env=env, text=True, capture_output=True)
+                      result['keystore_readable'] = process.returncode == 0
+                      if process.returncode == 0:
+                          certificates = re.findall(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----', process.stdout, re.S)
+                          fingerprints = sorted({hashlib.sha256(ssl.PEM_cert_to_DER_cert(cert)).hexdigest() for cert in certificates})
+                          result['certificate_sha256'] = fingerprints
+                          result['matches_v001'] = '78ea82d1520042384ac945c7f04bf9493dd59a9b6f95412c60915a9d85f6360b' in fingerprints
+                  except Exception:
+                      result['keystore_readable'] = False
+          print(json.dumps(result, sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Public certificate comparison\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
+          PY
