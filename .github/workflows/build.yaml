@@ -372,15 +372,23 @@ jobs:
             throw "Release version $releaseVersion differs from pubspec $packageVersion"
           }
 
+      - name: Setup Java for Android signing
+        if: startsWith(matrix.platform,'android')
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
-        run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
-          {
-            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
-            echo "storePassword=${{ secrets.STORE_PASSWORD }}"
-            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
-          } >> android/local.properties
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SIGNING_CONFIG_PATH: android/local.properties
+          SIGNING_KEYSTORE_PATH: android/app/keystore.jks
+        run: java tool/FormalSigningPreflight.java
 
       - name: Setup Go
         uses: actions/setup-go@v5
