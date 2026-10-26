@@ -371,6 +371,13 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .toList();
   }
   injectSpeedTestRoute(rawConfig);
+  if (realPatchConfig.blockCommonStun) {
+    rules = [
+      'AND,((NETWORK,UDP),(DST-PORT,3478)),REJECT',
+      'AND,((NETWORK,UDP),(DST-PORT,19302)),REJECT',
+      ...rules,
+    ];
+  }
   rawConfig['rules'] = rules;
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
   return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));

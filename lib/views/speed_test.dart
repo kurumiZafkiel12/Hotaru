@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
-import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
@@ -27,7 +26,6 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
   double? _uploadBps;
   bool _uploadUnsupported = false;
   String _serverLabel = '';
-  String _exitNode = '';
   String? _error;
   bool _running = false;
   bool _routed = false;
@@ -85,21 +83,6 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
       Uri.parse('https://example.com'),
     );
     final routed = proxy.startsWith('PROXY');
-    var exitNode = '';
-    if (routed) {
-      try {
-        final data = await ref.read(coreHandlerProvider).getProxies();
-        final chain = resolveProxyChain(data.proxies, 'GLOBAL');
-        if (chain.length > 1) {
-          exitNode = chain.last;
-        }
-      } catch (_) {
-        exitNode = '';
-      }
-    }
-    if (!mounted) {
-      return;
-    }
     final runner = SpeedTestRunner(findProxy: (_) => proxy);
     _runner = runner;
     setState(() {
@@ -113,7 +96,6 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
       _uploadBps = null;
       _uploadUnsupported = false;
       _serverLabel = '';
-      _exitNode = exitNode;
       _routed = routed;
       _samples.clear();
     });
@@ -220,58 +202,56 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
             active: _running,
           ),
           const SizedBox(height: 16),
-          _PhaseSteps(
-            current: switch (_phase) {
-              null => -1,
-              SpeedTestPhase.connecting => 0,
-              SpeedTestPhase.latency => 1,
-              SpeedTestPhase.download => 2,
-              SpeedTestPhase.upload => 3,
-              SpeedTestPhase.done => 4,
-            },
-          ),
           if (_samples.length > 1) ...[
             const SizedBox(height: 16),
             _LiveTrace(samples: _samples, liveBps: _liveBps),
           ],
           const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _StatCard(
-                  glyph: AppGlyphs.clock,
-                  label: appLocalizations.delay,
-                  value: _latencyText(_latencyMs),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth < 600 ? 2 : 4;
+              final width =
+                  (constraints.maxWidth - (columns - 1) * 8) / columns;
+              final stats = [
+                (
+                  AppGlyphs.clock,
+                  appLocalizations.delay,
+                  _latencyText(_latencyMs),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(
-                  glyph: AppGlyphs.target,
-                  label: appLocalizations.speedTestJitter,
-                  value: _latencyText(_jitterMs),
+                (
+                  AppGlyphs.target,
+                  appLocalizations.speedTestJitter,
+                  _latencyText(_jitterMs),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(
-                  glyph: AppGlyphs.arrowDown,
-                  label: appLocalizations.download,
-                  value: _speedText(_downloadBps),
+                (
+                  AppGlyphs.arrowDown,
+                  appLocalizations.download,
+                  _speedText(_downloadBps),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(
-                  glyph: AppGlyphs.arrowUp,
-                  label: appLocalizations.upload,
-                  value: _uploadUnsupported
+                (
+                  AppGlyphs.arrowUp,
+                  appLocalizations.upload,
+                  _uploadUnsupported
                       ? appLocalizations.speedTestNotSupported
                       : _speedText(_uploadBps),
                 ),
-              ),
-            ],
+              ];
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (glyph, label, value) in stats)
+                    SizedBox(
+                      width: width,
+                      child: _StatCard(
+                        glyph: glyph,
+                        label: label,
+                        value: value,
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           generateSection(
@@ -286,9 +266,7 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
               ),
               ListItem(
                 title: Text(appLocalizations.speedTestExitNode),
-                trailing: Text(
-                  _exitNode.isEmpty ? appLocalizations.unknown : _exitNode,
-                ),
+                trailing: Text(appLocalizations.speedTestRouteEvidence),
               ),
             ],
           ),
@@ -368,104 +346,15 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               value,
-              style: AppTextStyle.headline.of(context, emphasized: true),
-              maxLines: 1,
+              style: AppTextStyle.headline
+                  .of(context, emphasized: true)
+                  .toJetBrainsMono,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-/// The run's stages as a connected track, so the gauge is not the only
-/// thing that moves while a test runs.
-class _PhaseSteps extends StatelessWidget {
-  const _PhaseSteps({required this.current});
-
-  /// Index of the active stage, or -1 before a run starts.
-  final int current;
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final labels = [
-      appLocalizations.connecting,
-      appLocalizations.delay,
-      appLocalizations.download,
-      appLocalizations.upload,
-      appLocalizations.result,
-    ];
-    final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < labels.length; i++) ...[
-          if (i > 0)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 13),
-                child: Container(
-                  height: 2,
-                  color: i <= current
-                      ? colorScheme.primary
-                      : context.raisedSurfaceLevel.colorOf(colorScheme),
-                ),
-              ),
-            ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DecoratedBox(
-                decoration: ShapeDecoration(
-                  color:
-                      i < current ||
-                          current == labels.length - 1 && i == current
-                      ? colorScheme.primary
-                      : i == current
-                      ? colorScheme.primary.withValues(alpha: 0.18)
-                      : context.raisedSurfaceLevel.colorOf(colorScheme),
-                  shape: AppShape.full,
-                ),
-                child: SizedBox.square(
-                  dimension: 28,
-                  child: Center(
-                    child:
-                        i < current ||
-                            current == labels.length - 1 && i == current
-                        ? GlyphIcon(
-                            AppGlyphs.check,
-                            size: 14,
-                            color: colorScheme.onPrimary,
-                          )
-                        : DecoratedBox(
-                            decoration: ShapeDecoration(
-                              color: i == current
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
-                              shape: AppShape.full,
-                            ),
-                            child: const SizedBox.square(dimension: 8),
-                          ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                labels[i],
-                style: AppTextStyle.caption1
-                    .of(context)
-                    .copyWith(
-                      color: i <= current
-                          ? colorScheme.onSurface
-                          : colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
-        ],
-      ],
     );
   }
 }
@@ -598,13 +487,19 @@ class _SpeedGauge extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            CustomPaint(
-              size: const Size.square(_size),
-              painter: _GaugePainter(
-                fraction: fraction,
-                trackColor: context.raisedSurfaceLevel.colorOf(colorScheme),
-                valueColor: colorScheme.primary,
-                glowColor: colorScheme.tertiary,
+            TweenAnimationBuilder<double>(
+              tween: Tween(end: fraction),
+              duration: context.motionDuration(
+                const Duration(milliseconds: 180),
+              ),
+              builder: (context, value, _) => CustomPaint(
+                size: const Size.square(_size),
+                painter: _GaugePainter(
+                  fraction: value,
+                  trackColor: context.raisedSurfaceLevel.colorOf(colorScheme),
+                  valueColor: colorScheme.primary,
+                  glowColor: const Color(0xff76c8d5),
+                ),
               ),
             ),
             for (final mark in [0.0, 0.25, 0.5, 0.75, 1.0])
@@ -635,7 +530,9 @@ class _SpeedGauge extends StatelessWidget {
               children: [
                 Text(
                   formatSpeedValue(bps),
-                  style: AppTextStyle.largeTitle.of(context, emphasized: true),
+                  style: AppTextStyle.largeTitle
+                      .of(context, emphasized: true)
+                      .toJetBrainsMono,
                 ),
                 Text(
                   formatSpeedUnit(bps),
@@ -695,20 +592,20 @@ class _GaugePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const strokeWidth = 14.0;
+    const strokeWidth = 2.5;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 26;
     final rect = Rect.fromCircle(center: center, radius: radius);
     final ticks = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
+      ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
-    for (var i = 0; i <= 36; i++) {
-      final angle = _startAngle + _sweepAngle * i / 36;
-      final major = i % 9 == 0;
+    for (var i = 0; i <= 24; i++) {
+      final angle = _startAngle + _sweepAngle * i / 24;
+      final major = i % 6 == 0;
       final outer = size.width / 2 - 2;
-      final inner = outer - (major ? 11 : 6);
+      final inner = outer - (major ? 7 : 3);
       canvas.drawLine(
         center + Offset(math.cos(angle), math.sin(angle)) * inner,
         center + Offset(math.cos(angle), math.sin(angle)) * outer,
@@ -721,13 +618,20 @@ class _GaugePainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
     canvas.drawArc(rect, _startAngle, _sweepAngle, false, track);
+    canvas.drawArc(
+      rect.deflate(8),
+      _startAngle,
+      _sweepAngle,
+      false,
+      track..color = trackColor.withValues(alpha: 0.5),
+    );
     if (fraction > 0) {
       final glow = Paint()
-        ..color = valueColor.withValues(alpha: 0.35)
+        ..color = valueColor.withValues(alpha: 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth + 8
+        ..strokeWidth = strokeWidth + 3
         ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
       canvas.drawArc(rect, _startAngle, _sweepAngle * fraction, false, glow);
       final value = Paint()
         ..shader = SweepGradient(
@@ -743,7 +647,7 @@ class _GaugePainter extends CustomPainter {
       final endAngle = _startAngle + _sweepAngle * fraction;
       canvas.drawCircle(
         center + Offset(math.cos(endAngle), math.sin(endAngle)) * radius,
-        6,
+        3,
         Paint()..color = glowColor,
       );
     }

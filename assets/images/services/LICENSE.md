@@ -11,3 +11,12 @@ Simple Icons 13.0.0 carries no Disney+ icon; it is a generic streaming mark, not
 a reproduction of any Disney brand asset.
 
 Brand names and marks belong to their respective owners.
+
+Additional service glyphs (apple, crunchyroll, epic, grok, iqiyi, netease,
+perplexity, poe, reddit, steam, telegram, tencent, wikipedia and x) are taken
+from appshubcc/Bettbox, assets/images/platforms, revision
+1fb8806fdf8275a3694cda31eec7ed2062330aee. Source:
+https://github.com/appshubcc/Bettbox/tree/1fb8806fdf8275a3694cda31eec7ed2062330aee/assets/images/platforms
+Bettbox is distributed under GPL-3.0; its copyright and original asset
+authorship remain with their respective owners. Brand marks are identifiers,
+not an endorsement.

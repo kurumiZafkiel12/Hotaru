@@ -2,6 +2,7 @@ package dev.hotaru.hotaru
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.graphics.drawable.Icon
 import android.service.quicksettings.Tile
 import dev.hotaru.hotaru.common.QuickAction
 import dev.hotaru.hotaru.common.quickIntent
@@ -41,6 +42,8 @@ class TileService : android.service.quicksettings.TileService() {
 
     private fun updateTile(runState: RunState) {
         qsTile?.apply {
+            icon = Icon.createWithResource(this@TileService, R.drawable.ic)
+            label = getString(R.string.app_name)
             state = when (runState) {
                 RunState.STARTED -> Tile.STATE_ACTIVE
                 RunState.STARTING, RunState.STOPPING -> Tile.STATE_UNAVAILABLE

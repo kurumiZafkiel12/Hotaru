@@ -19,7 +19,7 @@ typedef _RowMetrics = ({
 });
 
 const _RowMetrics _cardRowMetrics = (
-  padding: EdgeInsets.fromLTRB(10, 8, 12, 8),
+  padding: EdgeInsets.fromLTRB(10, 4, 12, 4),
   titleStart: 14,
   radius: 20,
   icon: 38,
@@ -129,31 +129,19 @@ class NetworkTakeoverCard extends StatelessWidget {
             glyph: AppGlyphs.shuffle,
             title: appLocalizations.networkTakeover,
           ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final showIcon = DashboardSwitchRow.iconFits(
-                context,
-                width: constraints.maxWidth,
-                iconSize: metrics.icon,
-                padding: metrics.padding,
-                titles: [
-                  for (final kind in TakeoverSwitch.values)
-                    _titleOf(context, kind),
-                ],
-              );
-              return Column(
-                spacing: 8,
-                children: [
-                  for (final kind in TakeoverSwitch.values)
-                    _TakeoverRow(
-                      kind: kind,
-                      metrics: metrics,
-                      showIcon: showIcon,
-                    ),
-                ],
-              );
-            },
+          const SizedBox(height: 6),
+          Row(
+            spacing: 10,
+            children: [
+              for (final kind in TakeoverSwitch.values)
+                Expanded(
+                  child: _TakeoverRow(
+                    kind: kind,
+                    metrics: metrics,
+                    showIcon: false,
+                  ),
+                ),
+            ],
           ),
         ],
       ),

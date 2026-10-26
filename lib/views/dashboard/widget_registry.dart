@@ -59,18 +59,18 @@ extension DashboardWidgetView on DashboardWidget {
 
   /// The card's one fixed size in the desktop grid.
   DashboardTier get tier => switch (this) {
-    DashboardWidget.currentOutbound => DashboardTier.short,
+    DashboardWidget.currentOutbound => DashboardTier.mid,
     DashboardWidget.networkSpeed => DashboardTier.mid,
     DashboardWidget.outboundMode => DashboardTier.short,
     DashboardWidget.vpnButton => DashboardTier.short,
-    DashboardWidget.networkTakeover => DashboardTier.mid,
+    DashboardWidget.networkTakeover => DashboardTier.short,
     DashboardWidget.serviceStatus => DashboardTier.narrow,
     DashboardWidget.profiles => DashboardTier.narrow,
     DashboardWidget.proxyGroups => DashboardTier.tall,
     DashboardWidget.connectionStats => DashboardTier.short,
     DashboardWidget.intranetIp => DashboardTier.narrow,
     DashboardWidget.memoryInfo => DashboardTier.narrow,
-    DashboardWidget.speedTest => DashboardTier.short,
+    DashboardWidget.speedTest => DashboardTier.mid,
     DashboardWidget.connectionsTable => DashboardTier.wide,
   };
 

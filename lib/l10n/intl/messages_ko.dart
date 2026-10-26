@@ -282,6 +282,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "appendSystemDns": MessageLookupByLibrary.simpleMessage("시스템 DNS 추가"),
     "applied": MessageLookupByLibrary.simpleMessage("적용했습니다"),
     "applyNow": MessageLookupByLibrary.simpleMessage("지금 적용"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("AI 및 모델"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage("인증 필요"),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage("봇 방지 확인"),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "지역과 웹 응답을 확인합니다. 계정 사용은 별도 검사해야 합니다. 차단되면 미국, 일본, 싱가포르 등 지원 지역의 출구를 사용하세요.",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage("개발 및 생산성"),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "예상 경로: DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "DIRECT를 예상했으나 프록시 경로 관측",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("국내 미디어"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("게임 및 스토어"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage("판단할 증거 부족"),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("해외 미디어"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "웹 페이지 또는 지역 API 결과입니다. 저작권 재생, 주거용 회선 자격, 구독은 웹 응답만으로 확인할 수 없습니다.",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("연결 가능 · 제한 해제 미확인"),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
+      "성공한 연결 체인이 관측되지 않음",
+    ),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("관측된 규칙 없음"),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "연결 가능이 제한 해제를 뜻하지는 않습니다. 계정, 구독, DRM, 재생은 별도 확인이 필요합니다. 시작한 후에만 요청을 보냅니다.",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage("소셜 및 통신"),
+    "auditStale": MessageLookupByLibrary.simpleMessage("경로 변경됨 · 다시 검사하세요"),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "서비스 57개 · 실제 규칙, 그룹, 출구",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "웹 연결과 DC1–DC5 MTProto 핸드셰이크를 검사합니다. 계정에 로그인하거나 현재 세션의 DC를 추론하지 않습니다.",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage("서비스 지역 제한 및 라우팅 검사"),
     "authentication": MessageLookupByLibrary.simpleMessage("인증"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "인증을 켜면 로컬 프록시 포트에서 사용자 이름과 비밀번호를 요구합니다.",
@@ -476,6 +513,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("다크"),
     "dashboard": MessageLookupByLibrary.simpleMessage("대시보드"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("추가 가능"),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("카드 크기 조정"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "기본 레이아웃 복원",
     ),
@@ -511,6 +549,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "개발자 모드가 켜졌습니다.",
     ),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage("보안 DoH 사용"),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
+      "검사 완료 · 증거 검토",
+    ),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "Cloudflare 및 Google DoH로 앱 DNS 덮어쓰기를 켭니다. 프로필에 특별한 도메인 DNS 요구가 있다면 적용 후 확인하세요.",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("검사 실패 · 증거 확인"),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "라우팅 검사 전에 프로필을 선택하고 Hotaru를 시작하세요.",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("관측된 증거"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("다이얼러 프록시"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "다이얼러 프록시는 NTP 서버에 연결할 때 사용하는 아웃바운드입니다.",
@@ -610,6 +660,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "추가하지 않으면 53번 포트로 가는 모든 DNS 쿼리를 하이재킹합니다(any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("DNS 하이재킹"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "중국 ISP 리졸버가 관측되었습니다. 프록시 전용 DNS를 예상했다면 TUN DNS 가로채기 및 보안 DoH를 확인하세요. 직결 도메인에서는 의도된 동작일 수 있습니다.",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "시스템 DNS로 고유 도메인 16개를 조회하고 bash.ws의 권한 서버 기록을 읽습니다. 이용 불가 시 Akamai 단일 관측으로 전환합니다. 모든 앱과 브라우저의 안전을 증명하지 않습니다.",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage("리졸버 출구와 운영 기관 관측"),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("DNS 누출 검사"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "리졸버 분류 미완료 · 누출 없음 판정 불가",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("DNS 모드"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "여기에 추가한 항목은 모든 URL 및 파일 프로필의 DNS를 대체합니다. 추가하지 않은 항목은 프로필 자체 설정을 유지합니다. 사용자 지정 프로필은 내용에서 DNS를 설정합니다.",
@@ -700,7 +761,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("필터"),
     "filters": MessageLookupByLibrary.simpleMessage("필터"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("프로세스 찾기"),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("반딧불 데스크톱"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("대시보드"),
     "floating": MessageLookupByLibrary.simpleMessage("플로팅"),
     "followProfile": MessageLookupByLibrary.simpleMessage("프로필 따르기"),
     "followSystem": MessageLookupByLibrary.simpleMessage("시스템 설정 따르기"),
@@ -877,6 +938,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("플래그"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("조직"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "네트워크 유형과 평판은 타사 추정입니다. 주거용 IP가 원생 또는 무위험을 보장하지 않습니다. Google 결과는 이번 요청만 설명합니다.",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "ISP 분류 및 Google 확인 화면 검사",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage("IP 프로필 및 평판"),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage(
       "IP 유형을 확인할 수 없습니다",
     ),
@@ -1042,6 +1110,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkNotFoundError": m54,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "요청이 너무 많습니다(HTTP 429). 잠시 후 다시 시도하세요",
+    ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("DNS 캐시"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage(
+      "시스템 프록시 및 PAC",
+    ),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "현재 사용자의 시스템 프록시와 PAC를 지우고 DNS를 비웁니다. Hotaru가 실행 중이었다면 다시 시작하여 TUN을 복구합니다. 다른 어댑터는 변경하지 않습니다.",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "프록시/PAC 초기화, DNS 비우기, Hotaru TUN 복구",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "새 시작/중지 요청으로 TUN 복구가 대체되었습니다.",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Windows 네트워크 복구",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage(
+      "Hotaru TUN 수명 주기",
     ),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("네트워크 시크릿"),
@@ -1511,16 +1598,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "speedTestBusy": MessageLookupByLibrary.simpleMessage(
       "노드 속도 테스트가 이미 실행 중입니다",
     ),
-    "speedTestDirect": MessageLookupByLibrary.simpleMessage("직접 연결(코어 미실행)"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
+      "시스템 네트워크 경로를 사용합니다. VPN 또는 TUN을 경유할 수 있습니다.",
+    ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("출구 노드"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("지터"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("아직 테스트하지 않음"),
     "speedTestNotSupported": MessageLookupByLibrary.simpleMessage("지원 안 함"),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("제공업체"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "대상별 라우팅 · 실시간 연결 참조",
+    ),
     "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
       "전체 테스트는 수백 MB의 데이터를 사용할 수 있습니다",
     ),
-    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("현재 프록시 경유"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
+      "현재 규칙에 따라 코어를 경유합니다. 대상별로 출구가 다를 수 있습니다.",
+    ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("분할 전략"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
       "분할 전략을 입력하세요",
@@ -1642,6 +1736,25 @@ class MessageLookup extends MessageLookupByLibrary {
       "VPN은 VpnService를 통해 모든 시스템 트래픽을 자동으로 라우팅합니다.",
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV 구성"),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage("일반 STUN 포트 차단"),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "UDP 3478 및 19302의 되돌릴 수 있는 규칙을 추가합니다. 통화에 영향을 줄 수 있습니다. HTTPS TURN 및 모든 WebRTC 경로를 차단하지는 않습니다. 규칙 모드에서만 적용됩니다.",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "이번 STUN 주소가 측정된 출구와 같습니다. 다른 브라우저 경로는 검사하지 않았습니다.",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "STUN 공인 주소가 프록시 출구와 다릅니다. UDP 라우팅과 브라우저 WebRTC 정책을 확인하세요. IPv4 및 IPv6는 별도 검증이 필요합니다.",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "네이티브 STUN은 UDP 경로를 검사합니다. 브라우저 ICE, mDNS, TURN은 다를 수 있습니다. 사설 주소만으로 공인 IP 누출을 의미하지 않습니다.",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "UDP 반사 주소와 프록시 출구 비교",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "WebRTC / STUN 누출 검사",
+    ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("화이트리스트 모드"),
     "writeToSystem": MessageLookupByLibrary.simpleMessage("시스템에 기록"),
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(

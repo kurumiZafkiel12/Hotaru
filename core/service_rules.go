@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"net/url"
 	"regexp"
 	"slices"
@@ -46,20 +45,18 @@ func firstSubmatch(pattern *regexp.Regexp, body string) string {
 }
 
 func checkClaude(env serviceEnv) ServiceCheckItem {
-	result := env.get("https://claude.ai/cdn-cgi/trace", serviceSmallMaxBody)
-	item := itemFrom(result)
-	if !answered(item, result) {
-		return item
-	}
-	region := normalizeRegion(traceValue(result.Body, "loc"))
-	if region == "" {
-		item.Status = serviceFailed
-		return item
-	}
-	item.Region = region
-	item.Status = serviceAvailable
-	if slices.Contains(claudeBlockedRegions, region) {
-		item.Status = serviceUnsupportedRegion
+	trace := env.get("https://claude.ai/cdn-cgi/trace", serviceSmallMaxBody)
+	web := env.get("https://claude.ai/login", serviceHtmlMaxBody)
+	return classifyClaude(trace, web)
+}
+
+func classifyClaude(trace, web *ProbeResult) ServiceCheckItem {
+	item := classifyServiceEndpoint(web)
+	if trace != nil && trace.Error == "" && trace.StatusCode == http.StatusOK {
+		item.Region = normalizeRegion(traceValue(trace.Body, "loc"))
+		if slices.Contains(claudeBlockedRegions, item.Region) {
+			item.Status = serviceUnsupportedRegion
+		}
 	}
 	return item
 }
@@ -297,83 +294,48 @@ func checkPrimeVideo(env serviceEnv) ServiceCheckItem {
 }
 
 func checkNetflix(env serviceEnv) ServiceCheckItem {
-	if item := netflixFromCdn(env); item.Status == serviceAvailable || item.Status == serviceBlocked {
+	original := env.get("https://www.netflix.com/title/80057281", serviceHtmlMaxBody)
+	licensed := env.get("https://www.netflix.com/title/70143836", serviceHtmlMaxBody)
+	item := classifyNetflixTitles(original, licensed)
+	item.Region = netflixRegion(env)
+	return item
+}
+
+var netflixPlayablePattern = regexp.MustCompile(`"isPlayable"\s*:\s*true`)
+
+func classifyNetflixTitles(original, licensed *ProbeResult) ServiceCheckItem {
+	item := classifyServiceEndpoint(original)
+	if item.Status != serviceReachable {
 		return item
 	}
-
-	first := env.get("https://www.netflix.com/title/81280792", 0)
-	firstItem := itemFrom(first)
-	if !answered(firstItem, first) {
-		return firstItem
-	}
-	second := env.get("https://www.netflix.com/title/70143836", 0)
-	secondItem := itemFrom(second)
-	if !answered(secondItem, second) {
-		return secondItem
-	}
-
-	item := firstItem
+	licenseItem := classifyServiceEndpoint(licensed)
 	switch {
-	case first.StatusCode == http.StatusNotFound && second.StatusCode == http.StatusNotFound:
+	case !netflixPlayablePattern.MatchString(original.Body):
+		item.Status = serviceReachable
+	case licensed != nil && licensed.Error == "" && licensed.StatusCode == http.StatusNotFound:
 		item.Status = serviceOriginalsOnly
-	case first.StatusCode == http.StatusForbidden || second.StatusCode == http.StatusForbidden:
-		item.Status = serviceUnsupportedRegion
-	case netflixServed(first.StatusCode) || netflixServed(second.StatusCode):
+	case licenseItem.Status == serviceReachable && netflixPlayablePattern.MatchString(licensed.Body):
 		item.Status = serviceAvailable
-		item.Region = netflixRegion(env)
 	default:
-		item.Status = statusFromCode(first.StatusCode)
+		item.Status = serviceInconclusive
 	}
 	return item
 }
 
-func netflixServed(code int) bool {
-	return code == http.StatusOK || code == http.StatusMovedPermanently
-}
-
-// netflixRegion reads the country out of the redirect Netflix would send a
-// visitor to, so the redirect must not be followed.
 func netflixRegion(env serviceEnv) string {
-	result := env.send(probeRequest{
-		method:     http.MethodGet,
-		url:        "https://www.netflix.com/title/80018499",
-		noRedirect: true,
-	})
+	result := env.send(probeRequest{method: http.MethodGet, url: "https://www.netflix.com/title/80057281", noRedirect: true})
 	if result == nil || result.Error != "" || result.header == nil {
 		return ""
 	}
-	segments := strings.Split(result.header.Get("Location"), "/")
-	if len(segments) < 4 {
+	location, err := url.Parse(result.header.Get("Location"))
+	if err != nil {
 		return ""
 	}
-	return normalizeRegion(strings.Split(segments[3], "-")[0])
-}
-
-func netflixFromCdn(env serviceEnv) ServiceCheckItem {
-	const url = "https://api.fast.com/netflix/speedtest/v2?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=5"
-	result := env.get(url, serviceSmallMaxBody)
-	item := itemFrom(result)
-	if !answered(item, result) {
-		return item
+	segments := strings.Split(strings.Trim(location.Path, "/"), "/")
+	if len(segments) == 0 {
+		return ""
 	}
-	if result.StatusCode == http.StatusForbidden {
-		item.Status = serviceBlocked
-		return item
-	}
-	var payload struct {
-		Targets []struct {
-			Location struct {
-				Country string `json:"country"`
-			} `json:"location"`
-		} `json:"targets"`
-	}
-	if err := json.Unmarshal([]byte(result.Body), &payload); err != nil || len(payload.Targets) == 0 {
-		item.Status = serviceFailed
-		return item
-	}
-	item.Region = normalizeRegion(payload.Targets[0].Location.Country)
-	item.Status = serviceAvailable
-	return item
+	return normalizeRegion(strings.Split(segments[0], "-")[0])
 }
 
 // checkDisneyPlus walks the browser hand-shake: register a device, exchange the

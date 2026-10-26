@@ -42,6 +42,18 @@ class SystemProxyQueue {
     return _enqueue(_stop);
   }
 
+  Future<bool> recover(Future<bool> Function() clearPac) async {
+    var recovered = false;
+    await _enqueue(() async {
+      if (_closed) return;
+      final cleared = await clearPac();
+      final stopped = await _proxy.stopProxy();
+      if (stopped) _applied = false;
+      recovered = cleared && stopped;
+    });
+    return recovered;
+  }
+
   Future<void> _stop() async {
     if (!_applied) {
       return;

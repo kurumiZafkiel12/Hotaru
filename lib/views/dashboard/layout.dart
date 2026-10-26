@@ -11,10 +11,6 @@ const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
-/// The only sizes a desktop dashboard card can take. Every card is
-/// assigned exactly one tier; the user reorders cards, never resizes them.
-/// Heights land on three bands — 122, 189 and 256 at the standard unit —
-/// so a row of cards never mixes bespoke heights.
 enum DashboardTier {
   narrow,
   short,
@@ -34,7 +30,7 @@ enum DashboardTier {
 
 /// The height of one grid unit; a card spanning n units is
 /// n units plus the gaps between them tall.
-double dashboardUnitHeight({required bool compact}) => compact ? 50 : 55;
+double dashboardUnitHeight({required bool compact}) => compact ? 40 : 44;
 
 /// Where one card lands in the cell grid.
 class DashboardPlacement {
@@ -59,20 +55,29 @@ class DashboardPlacement {
 List<DashboardPlacement> placeDashboardWidgets(
   List<DashboardWidget> order,
   Map<DashboardWidget, DashboardTier> tiers,
-  int columns,
-) {
+  int columns, {
+  Map<String, int> spans = const {},
+}) {
   final occupied = <int>{};
   final placements = <DashboardPlacement>[];
   for (final widget in order) {
     final tier = tiers[widget] ?? DashboardTier.mid;
-    final (wantColumns, wantRows) = tier.cells(columns);
-    final width = math.min(wantColumns, columns);
+    final fallback = tier.cells(columns);
+    final span = spans[widget.name];
+    final (wantColumns, wantRows) = span == null
+        ? fallback
+        : ((span ~/ 10).clamp(1, columns), 2 + (span % 10).clamp(0, 2));
+    final width = math.min(
+      math.max(wantColumns, tier == DashboardTier.narrow ? 1 : 2),
+      columns,
+    );
+    final rows = math.max(wantRows, fallback.$2);
     var row = 0;
     while (true) {
       var placed = false;
       for (var column = 0; column + width <= columns; column++) {
         var free = true;
-        for (var y = row; y < row + wantRows && free; y++) {
+        for (var y = row; y < row + rows && free; y++) {
           for (var x = column; x < column + width; x++) {
             if (occupied.contains(y * columns + x)) {
               free = false;
@@ -81,7 +86,7 @@ List<DashboardPlacement> placeDashboardWidgets(
           }
         }
         if (free) {
-          for (var y = row; y < row + wantRows; y++) {
+          for (var y = row; y < row + rows; y++) {
             for (var x = column; x < column + width; x++) {
               occupied.add(y * columns + x);
             }
@@ -92,7 +97,7 @@ List<DashboardPlacement> placeDashboardWidgets(
               column: column,
               row: row,
               columns: width,
-              rows: wantRows,
+              rows: rows,
             ),
           );
           placed = true;

@@ -5,10 +5,21 @@ on:
     branches:
       - '**'
       - '!release/windows/**'
+      - '!release/both/**'
     tags:
       - 'v*'
   workflow_call:
     inputs:
+      include_android:
+        description: 'Build Android with the Windows release'
+        required: false
+        default: false
+        type: boolean
+      draft_release:
+        description: 'Retain assets as a draft for final download inspection'
+        required: false
+        default: false
+        type: boolean
       release_version:
         description: 'Windows x64 version to publish; empty runs checks only'
         required: false
@@ -182,6 +193,10 @@ jobs:
       - name: Build debug bundle
         run: flutter build ${{ matrix.platform }} --debug
 
+      - name: Verify Windows recovery against the registry
+        if: matrix.platform == 'windows'
+        run: flutter test test/common/network_diagnostics_windows_test.dart
+
   go:
     name: Go core
     if: *checks
@@ -342,8 +357,9 @@ jobs:
     if: github.repository == 'kurumiZafkiel12/Hotaru' && ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || inputs.release_version != '')
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        include: ${{ fromJSON(inputs.release_version != '' && '[{"platform":"windows","os":"Windows-2022","arch":"amd64"}]' || '[{"platform":"android","os":"ubuntu-latest"},{"platform":"windows","os":"Windows-2022","arch":"amd64"}]') }}
+        include: ${{ fromJSON(inputs.release_version != '' && !inputs.include_android && '[{"platform":"windows","os":"Windows-2022","arch":"amd64"}]' || '[{"platform":"android","os":"ubuntu-latest"},{"platform":"windows","os":"Windows-2022","arch":"amd64"}]') }}
 
     steps:
       - name: Setup rust
@@ -456,6 +472,10 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.build-ndk.outputs.ndk-path }}
         run: dart setup.dart ${{ matrix.platform }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} -v
 
+      - name: Verify persistent Android release identity
+        if: startsWith(matrix.platform, 'android')
+        run: python3 tool/verify_android_release.py
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -519,7 +539,11 @@ jobs:
       - name: Patch release.md
         run: |
           version=$(echo "${{ env.RELEASE_TAG }}" | sed 's/^v//')
-          sed "s|VERSION|$version|g" ./.github/release_template.md >> release.md
+          template=.github/release_template.md
+          if [[ '${{ inputs.include_android }}' == 'true' || '${{ github.ref }}' == refs/tags/* ]]; then
+            template=.github/release_template_both.md
+          fi
+          sed "s|VERSION|$version|g" "$template" >> release.md
 
       - name: Generate sha256
         run: |
@@ -531,7 +555,8 @@ jobs:
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
-          make_latest: true
+          make_latest: ${{ !inputs.draft_release }}
+          draft: ${{ inputs.draft_release || false }}
           files: ./dist/*
           body_path: './release.md'
           prerelease: ${{ env.IS_STABLE != 'true' }}

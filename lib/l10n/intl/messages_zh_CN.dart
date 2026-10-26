@@ -278,6 +278,41 @@ class MessageLookup extends MessageLookupByLibrary {
     "appendSystemDns": MessageLookupByLibrary.simpleMessage("追加系统DNS"),
     "applied": MessageLookupByLibrary.simpleMessage("已应用"),
     "applyNow": MessageLookupByLibrary.simpleMessage("立即应用"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("AI 与大模型"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage("需要登录或 API 密钥"),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage("触发网站风控或验证码"),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "地区信号不等于账号可用；风控单独判断。若地区封锁，可尝试美、日、新等受支持出口。",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage("开发者与生产力"),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "分流对照：预期 DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "预期直连，实际观测到代理路线",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("国内影音与版权分流"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("游戏与应用商店"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage("证据不足，无法判定"),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("国际影音"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "网页或地区接口结果不能证明版权播放、家宽资格或订阅权益。",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("可连接 · 解锁未确认"),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage("尚未观测到成功建立的连接链"),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("未观测到命中规则"),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "连通不等于解锁。账号、订阅、DRM 与实际播放仍可能需要单独验证。点击开始后才会发送探测请求。",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage("社交通讯"),
+    "auditStale": MessageLookupByLibrary.simpleMessage("路线已变化，请重新检测"),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "57 项服务 · 实际命中规则、策略组与出口",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "检查网页连通性与 DC1–DC5 的 MTProto 握手；不会登录账号，也不能据此判断当前账号会话使用哪个 DC。",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage("服务解锁与分流体检"),
     "authentication": MessageLookupByLibrary.simpleMessage("认证"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "认证开启后，使用本地代理端口需要账号密码。",
@@ -450,6 +485,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("深色"),
     "dashboard": MessageLookupByLibrary.simpleMessage("仪表盘"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("可添加"),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("调整卡片大小"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage("恢复默认布局"),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("我的小组件"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
@@ -479,6 +515,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "detectionTip": MessageLookupByLibrary.simpleMessage("依赖第三方api，仅供参考"),
     "developerMode": MessageLookupByLibrary.simpleMessage("开发者模式"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage("开发者模式已启用。"),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage("配置安全 DoH"),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage("探测完成，请核对证据"),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "启用应用 DNS 覆写，使用 Cloudflare 和 Google DoH。订阅可能有特定域名解析要求，请应用后核对。",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("探测失败，请查看证据"),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "请先加载配置并启动 Hotaru，再检测实际分流路线。",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("观测证据"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("拨号代理"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "拨号代理为连接 NTP 服务器使用的出站。",
@@ -564,6 +610,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "未添加时劫持所有发往 53 端口的 DNS 请求（any:53）。",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("DNS劫持"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "观测到国内运营商解析器。若预期 DNS 全程代理，请检查 TUN DNS 劫持并配置安全 DoH；直连域名使用国内解析器也可能是正常策略。",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "经操作系统 DNS 路径发送 16 个独立域名探针，由 bash.ws 权威侧回执解析器出口；不可用时回退 Akamai 单点观测。结果只覆盖本次样本，不能证明所有浏览器和应用均无泄漏。",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage("观测递归解析器出口与归属"),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("DNS 泄漏测试"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "解析器归属证据不完整，不能判定无泄漏",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("DNS模式"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "添加的项会覆写所有 URL 和文件配置的 DNS，未添加的项沿用配置自身的设置。自定义配置的 DNS 在其内容中设置。",
@@ -650,7 +707,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("筛选"),
     "filters": MessageLookupByLibrary.simpleMessage("筛选"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("查找进程"),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("萤火桌面"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("仪表盘"),
     "floating": MessageLookupByLibrary.simpleMessage("悬浮"),
     "followProfile": MessageLookupByLibrary.simpleMessage("跟随配置"),
     "followSystem": MessageLookupByLibrary.simpleMessage("跟随系统"),
@@ -811,6 +868,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("命中标记"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("组织"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "网络类型和信誉是第三方估计；住宅不等于原生或绝对纯净。Google 结果仅代表本次请求。",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "有来源的网络类型与 Google 验证码探测",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage("IP 深度画像与纯净度"),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage("类型查询失败"),
     "ipQualityGood": MessageLookupByLibrary.simpleMessage("优"),
     "ipQualityLevel": MessageLookupByLibrary.simpleMessage("等级"),
@@ -959,6 +1023,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "请求过于频繁（HTTP 429），请稍后再试",
     ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("DNS 缓存"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage("系统代理与 PAC"),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "停止 Hotaru 网络，清理当前用户系统代理与 PAC、刷新 DNS；若原先正在运行，则重启 Hotaru。不会重置其它网卡。",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "清理代理/PAC、刷新 DNS、恢复 Hotaru 虚拟网卡",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "检测到新的启停操作，已跳过虚拟网卡恢复。",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Windows 网络急救箱",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage("Hotaru 虚拟网卡恢复"),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("网络密码"),
     "networkServerError": m56,
@@ -1389,16 +1468,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "speedStatistics": MessageLookupByLibrary.simpleMessage("网速统计"),
     "speedTest": MessageLookupByLibrary.simpleMessage("测速"),
     "speedTestBusy": MessageLookupByLibrary.simpleMessage("已有节点测速正在进行"),
-    "speedTestDirect": MessageLookupByLibrary.simpleMessage("直连（内核未运行）"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
+      "使用系统网络路径；系统 VPN 或 TUN 仍可能接管流量。",
+    ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("出口节点"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("抖动"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("尚未测速"),
     "speedTestNotSupported": MessageLookupByLibrary.simpleMessage("不支持"),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("测速服务"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "按目标分流，见实时连接",
+    ),
     "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
       "完整测速可能消耗数百 MB 流量",
     ),
-    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("流量走当前代理"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
+      "请求进入内核并按当前规则分流，不同测速目标的出口可能不同。",
+    ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("分流策略"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage("分流策略不能为空"),
     "ssidsEmpty": MessageLookupByLibrary.simpleMessage("SSIDs为空"),
@@ -1510,6 +1596,25 @@ class MessageLookup extends MessageLookupByLibrary {
       "VPN 通过 VpnService 自动路由系统所有流量。",
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage("阻断常用 STUN 端口"),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "添加可撤销的 UDP 3478、19302 阻断规则，可能影响通话；不覆盖 HTTPS TURN 或所有 WebRTC 路径。 仅在规则模式生效。",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "本次 STUN 地址与探测出口一致，其它浏览器路径仍未验证。",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "STUN 公网地址与代理出口不同，请检查 UDP 路由及浏览器 WebRTC 策略；IPv4/IPv6 地址族不同仍需分别核验。",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "原生 STUN 会主动探测 UDP 路径；浏览器 ICE、mDNS 与 TURN 行为可能不同。仅发现内网地址不等于公网 IP 泄漏。",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "对比 UDP 反射地址与代理出口",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "WebRTC / STUN 穿透测试",
+    ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
     "writeToSystem": MessageLookupByLibrary.simpleMessage("写入系统"),
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(

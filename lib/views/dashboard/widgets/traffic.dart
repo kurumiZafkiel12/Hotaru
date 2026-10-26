@@ -264,7 +264,7 @@ class _SpeedTile extends StatelessWidget {
   static const _minChartHeight = 36.0;
   static const _maxChartHeight = 110.0;
 
-  static const _stripChartHeight = 34.0;
+  static const _stripChartHeight = 24.0;
 
   Widget _stripTile(BuildContext context) {
     final color = direction.glyphColorOf(context);
@@ -287,12 +287,7 @@ class _SpeedTile extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              14,
-              10,
-              14,
-              _stripChartHeight + 4,
-            ),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -318,8 +313,8 @@ class _SpeedTile extends StatelessWidget {
                 _Figure(
                   show: show,
                   unit: _speedUnit(show),
-                  style: AppTextStyle.title2,
-                  unitStyle: AppTextStyle.footnote,
+                  style: AppTextStyle.title1,
+                  unitStyle: AppTextStyle.caption2,
                 ),
                 Text(
                   context.appLocalizations.trafficTotal(

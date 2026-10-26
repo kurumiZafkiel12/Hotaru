@@ -78,7 +78,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
-          : appLocalizations.fireflyDesktop,
+          : appLocalizations.dashboard,
       actions: [if (!editing && coreLib == null) const CoreStatusButton()],
       confirmationAction: editing && !isDesktop
           ? IconButtonData(
@@ -97,17 +97,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       ],
       // The providers learn a resize a frame late, too late for the cards.
       body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.8),
-            radius: 1.5,
-            colors: [
-              context.colorScheme.primary.withValues(alpha: 0.055),
-              context.colorScheme.primary.withValues(alpha: 0),
-            ],
-            stops: const [0, 0.55],
-          ),
-        ),
+        decoration: const BoxDecoration(),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final room = constraints.biggest / scale;

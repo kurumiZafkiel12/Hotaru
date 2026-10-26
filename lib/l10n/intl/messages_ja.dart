@@ -285,6 +285,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "appendSystemDns": MessageLookupByLibrary.simpleMessage("システムDNSを追加"),
     "applied": MessageLookupByLibrary.simpleMessage("適用しました"),
     "applyNow": MessageLookupByLibrary.simpleMessage("今すぐ適用"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("AI・大規模モデル"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage("認証が必要"),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage("ボット対策の検証"),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "地域と Web 応答を確認します。アカウント利用は別途確認してください。制限された場合は米国・日本・シンガポールなど対応地域の出口を試してください。",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage("開発・生産性"),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "期待する経路：DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "DIRECT を期待しましたがプロキシを観測しました",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("国内メディア"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("ゲーム・ストア"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage("判定できません"),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("海外メディア"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "ページ・地域 API の結果です。作品の再生、住宅回線の資格、契約の有無は Web 応答だけでは確定しません。",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("接続可能・解放は未確認"),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
+      "成功した接続チェーンは観測されませんでした",
+    ),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("観測されたルールなし"),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "接続できても解放済みとは限りません。アカウント、契約、DRM、再生は別途確認が必要です。開始後にのみリクエストを送信します。",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage("SNS・通信"),
+    "auditStale": MessageLookupByLibrary.simpleMessage("経路が変わりました・再実行してください"),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "57 サービス · 実際のルール・グループ・出口",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "Web 接続と DC1–DC5 の MTProto ハンドシェイクを確認します。アカウントへのログインは行わず、利用中のセッションの DC は特定しません。",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage("サービス解放・分流チェック"),
     "authentication": MessageLookupByLibrary.simpleMessage("認証"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "認証を有効にすると、ローカルプロキシポートの利用にユーザー名とパスワードが必要になります。",
@@ -489,6 +526,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("ダーク"),
     "dashboard": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("追加できるカード"),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("カードのサイズを変更"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "デフォルトに戻す",
     ),
@@ -524,6 +562,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "開発者モードが有効になりました。",
     ),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage("安全な DoH を使用"),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
+      "テスト完了・証拠を確認してください",
+    ),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "Cloudflare・Google DoH のアプリ DNS 上書きを有効にします。プロファイル固有の DNS 要件がある場合は適用後に確認してください。",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
+      "テスト失敗・証拠を確認してください",
+    ),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "経路テスト前にプロファイルを選び Hotaru を起動してください。",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("観測した証拠"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("ダイヤラープロキシ"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "ダイヤラープロキシは NTP サーバーへの接続に使用するアウトバウンドです。",
@@ -621,6 +673,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "追加しない場合、ポート 53 宛てのすべての DNS 問い合わせをハイジャックします（any:53）。",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("DNSハイジャック"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "中国の ISP リゾルバーを観測しました。プロキシ専用 DNS を想定する場合は TUN の DNS 取得と安全な DoH を確認してください。直接接続ドメインでは意図した動作の場合があります。",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "システム DNS で 16 個の固有ドメインを照会し、bash.ws の権威側記録を読みます。利用できない場合は Akamai の単一点に戻ります。全アプリ・ブラウザーの安全性は証明しません。",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage("リゾルバーの出口と組織を観測"),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("DNS 漏洩テスト"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "リゾルバーの分類が不完全です・漏洩なしとは判定できません",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("DNSモード"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "ここで追加した項目は、すべての URL・ファイルプロファイルの DNS を上書きします。追加していない項目はプロファイル自身の設定のままです。カスタムプロファイルの DNS はその内容で設定します。",
@@ -711,7 +774,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("フィルター"),
     "filters": MessageLookupByLibrary.simpleMessage("フィルター"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("プロセス検出"),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("蛍のデスクトップ"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "floating": MessageLookupByLibrary.simpleMessage("フローティング"),
     "followProfile": MessageLookupByLibrary.simpleMessage("プロファイルに従う"),
     "followSystem": MessageLookupByLibrary.simpleMessage("システムに従う"),
@@ -890,6 +953,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("検出"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("組織"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "回線種別と評価は第三者の推定です。住宅回線でも安全性・原生性は保証されません。Google の結果は今回のリクエストのみを表します。",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "ISP 分類と Google 検証画面を調査",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage("IP の詳細・評価"),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage(
       "IP タイプを判定できませんでした",
     ),
@@ -1057,6 +1127,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkNotFoundError": m54,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "リクエストが多すぎます（HTTP 429）。しばらく待ってから再試行してください",
+    ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("DNS キャッシュ"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage(
+      "システムプロキシ・PAC",
+    ),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "現在のユーザーのプロキシと PAC を解除し DNS キャッシュを消去します。Hotaru が実行中なら再起動して TUN を復旧します。他のアダプターは変更しません。",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "プロキシ・PAC 解除、DNS 消去、Hotaru TUN 復旧",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "新しい開始・停止要求により TUN 復旧が置き換えられました。",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Windows ネットワーク復旧",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage(
+      "Hotaru TUN のライフサイクル",
     ),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("ネットワークシークレット"),
@@ -1538,16 +1627,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "speedStatistics": MessageLookupByLibrary.simpleMessage("速度統計"),
     "speedTest": MessageLookupByLibrary.simpleMessage("スピードテスト"),
     "speedTestBusy": MessageLookupByLibrary.simpleMessage("ノード速度テストが既に実行中です"),
-    "speedTestDirect": MessageLookupByLibrary.simpleMessage("直接接続（コア未起動）"),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
+      "システムの経路を使用します。VPN や TUN が通信を処理する場合があります。",
+    ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("出口ノード"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("ジッター"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("未実施"),
     "speedTestNotSupported": MessageLookupByLibrary.simpleMessage("未対応"),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("プロバイダ"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "宛先ごとに分流・接続一覧を参照",
+    ),
     "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
       "フルテストでは数百 MB のデータを消費する場合があります",
     ),
-    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("現在のプロキシ経由"),
+    "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
+      "現在のルールで分流します。宛先により出口が異なる場合があります。",
+    ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("振り分け戦略"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
       "振り分け戦略は空にできません",
@@ -1665,6 +1761,27 @@ class MessageLookup extends MessageLookupByLibrary {
       "VPN は VpnService でシステムの全トラフィックを自動的にルーティングします。",
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV設定"),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage(
+      "一般的な STUN ポートを遮断",
+    ),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "UDP 3478・19302 の可逆ルールを追加します。通話に影響する場合があります。HTTPS の TURN や全 WebRTC 経路は遮断しません。ルールモードでのみ有効です。",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "今回の STUN アドレスは測定した出口と一致しました。他のブラウザー経路は未検証です。",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "STUN の公開 IP がプロキシ出口と異なります。UDP 経路とブラウザーの WebRTC 設定を確認してください。IPv4 と IPv6 は別途検証が必要です。",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "ネイティブ STUN は UDP 経路を調べます。ブラウザーの ICE、mDNS、TURN は異なる場合があります。プライベート IP だけでは公開 IP の漏洩を意味しません。",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "UDP の反射アドレスとプロキシ出口を比較",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "WebRTC / STUN 漏洩テスト",
+    ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("ホワイトリストモード"),
     "writeToSystem": MessageLookupByLibrary.simpleMessage("システムに書き込む"),
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(

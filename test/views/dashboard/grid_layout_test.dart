@@ -22,12 +22,12 @@ void main() {
       expect(byWidget[DashboardWidget.currentOutbound]!.column, 0);
       expect(byWidget[DashboardWidget.currentOutbound]!.row, 0);
       expect(byWidget[DashboardWidget.currentOutbound]!.columns, 2);
-      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 2);
+      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 3);
       expect(byWidget[DashboardWidget.networkSpeed]!.column, 2);
       expect(byWidget[DashboardWidget.networkSpeed]!.row, 0);
       expect(byWidget[DashboardWidget.networkSpeed]!.rows, 3);
       expect(byWidget[DashboardWidget.outboundMode]!.column, 0);
-      expect(byWidget[DashboardWidget.outboundMode]!.row, 2);
+      expect(byWidget[DashboardWidget.outboundMode]!.row, 3);
       expect(byWidget[DashboardWidget.intranetIp]!.column, 2);
       expect(byWidget[DashboardWidget.intranetIp]!.row, 3);
       expect(byWidget[DashboardWidget.profiles]!.column, 3);
@@ -58,14 +58,49 @@ void main() {
       expect(placements.last.row, 4);
       expect(placements.last.columns, 2);
     });
+
+    test(
+      'persisted resize changes one footprint without overlapping cards',
+      () {
+        final order = [
+          DashboardWidget.currentOutbound,
+          DashboardWidget.networkSpeed,
+          DashboardWidget.outboundMode,
+        ];
+        final tiers = {for (final widget in order) widget: widget.tier};
+        final normal = placeDashboardWidgets(order, tiers, 4);
+        final resized = placeDashboardWidgets(
+          order,
+          tiers,
+          4,
+          spans: const {'currentOutbound': 42},
+        );
+        expect(normal.first.columns, 2);
+        expect(resized.first.columns, 4);
+        expect(resized.first.rows, 4);
+        expect(resized[1].row, 4);
+        final cells = <(int, int)>{};
+        for (final item in resized) {
+          for (var row = item.row; row < item.row + item.rows; row++) {
+            for (
+              var column = item.column;
+              column < item.column + item.columns;
+              column++
+            ) {
+              expect(cells.add((row, column)), isTrue);
+            }
+          }
+        }
+      },
+    );
   });
 
-  group('fixed tiers', () {
-    test('every widget has exactly one fixed tier', () {
+  group('default tiers', () {
+    test('each widget has a default tier, with a larger status hero', () {
       for (final widget in DashboardWidget.values) {
         expect(widget.tier, isNotNull, reason: '$widget');
       }
-      expect(DashboardWidget.currentOutbound.tier, DashboardTier.short);
+      expect(DashboardWidget.currentOutbound.tier, DashboardTier.mid);
       expect(DashboardWidget.connectionsTable.tier, DashboardTier.wide);
       expect(DashboardTier.narrow.cells(4), (1, 3));
       expect(DashboardTier.short.cells(4), (2, 2));
@@ -81,11 +116,11 @@ void main() {
         return rows * dashboardUnitHeight(compact: false) + (rows - 1) * gap;
       }
 
-      expect(height(DashboardTier.short), 122);
-      expect(height(DashboardTier.mid), 189);
-      expect(height(DashboardTier.narrow), 189);
-      expect(height(DashboardTier.tall), 256);
-      expect(height(DashboardTier.wide), 256);
+      expect(height(DashboardTier.short), 100);
+      expect(height(DashboardTier.mid), 156);
+      expect(height(DashboardTier.narrow), 156);
+      expect(height(DashboardTier.tall), 212);
+      expect(height(DashboardTier.wide), 212);
     });
   });
 

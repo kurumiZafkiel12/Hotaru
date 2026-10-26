@@ -98,23 +98,21 @@ void main() {
     final hero = rectOf(tester, CurrentOutboundCard);
     final speed = rectOf(tester, NetworkSpeedCard);
     final mode = rectOf(tester, OutboundModeCard);
-    // Short tier: two cells wide, two units tall (122); the mid speed
-    // card interlocks beside it and the next short fills the cells below.
     expect(hero.left, 16);
     expect(hero.width, 288 * 2 + 12);
-    expect(hero.height, 122);
+    expect(hero.height, 156);
     expect(speed.left, hero.right + 12);
     expect(speed.top, hero.top);
-    expect(speed.height, 189);
+    expect(speed.height, 156);
     expect(mode.left, hero.left);
     expect(mode.top, hero.bottom + 12);
     expect(mode.width, hero.width);
-    expect(find.byType(ProfilesCard), findsOneWidget);
-    expect(find.byType(IntranetIpCard), findsOneWidget);
-    expect(find.byType(ServiceStatusCard), findsOneWidget);
+    expect(find.byType(ProfilesCard), findsNothing);
+    expect(find.byType(IntranetIpCard), findsNothing);
+    expect(find.byType(ServiceStatusCard), findsNothing);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
-    expect(find.byType(ConnectionStatsCard), findsOneWidget);
-    expect(find.byType(ProxyGroupsCard), findsOneWidget);
+    expect(find.byType(ConnectionStatsCard), findsNothing);
+    expect(find.byType(ProxyGroupsCard), findsNothing);
     // Not in the default layout; they stay one edit away.
     expect(find.byType(MemoryInfo), findsNothing);
     expect(find.byType(ConnectionsTableCard), findsNothing);
@@ -124,6 +122,11 @@ void main() {
 
   testWidgets('short windows scroll without dropping widgets', (tester) async {
     seedGroups(12);
+    container
+        .read(appSettingProvider.notifier)
+        .update(
+          (state) => state.copyWith(dashboardWidgets: DashboardWidget.values),
+        );
     await pumpDashboard(tester, const Size(1220, 560));
     expect(scrollExtentOf(tester), greaterThan(0));
     // The page scrolls as one; the full proxy-groups card scrolls internally.
@@ -131,7 +134,7 @@ void main() {
     expect(find.byType(ConnectionStatsCard), findsOneWidget);
     expect(find.byType(ProxyGroupsCard), findsOneWidget);
     expect(find.byType(ServiceStatusCard), findsOneWidget);
-    expect(find.byType(MemoryInfo), findsNothing);
+    expect(find.byType(MemoryInfo), findsOneWidget);
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
@@ -160,11 +163,11 @@ void main() {
     expect(rectOf(tester, OutboundModeCard).width, hero.width);
     expect(find.byType(NetworkSpeedCard), findsOneWidget);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
-    expect(find.byType(IntranetIpCard), findsOneWidget);
-    expect(find.byType(ProfilesCard), findsOneWidget);
-    expect(find.byType(ServiceStatusCard), findsOneWidget);
-    expect(find.byType(ConnectionStatsCard), findsOneWidget);
-    expect(find.byType(ProxyGroupsCard), findsOneWidget);
+    expect(find.byType(IntranetIpCard), findsNothing);
+    expect(find.byType(ProfilesCard), findsNothing);
+    expect(find.byType(ServiceStatusCard), findsNothing);
+    expect(find.byType(ConnectionStatsCard), findsNothing);
+    expect(find.byType(ProxyGroupsCard), findsNothing);
     expect(find.byType(MemoryInfo), findsNothing);
     expect(find.byType(Scrollable), findsOneWidget);
     expect(tester.takeException(), isNull);

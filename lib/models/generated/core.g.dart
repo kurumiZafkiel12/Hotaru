@@ -410,6 +410,8 @@ _ServiceCheckParams _$ServiceCheckParamsFromJson(Map<String, dynamic> json) =>
           (json['names'] as List<dynamic>?)?.map((e) => e as String).toList() ??
           const [],
       timeout: (json['timeout'] as num).toInt(),
+      runId: json['run-id'] as String? ?? '',
+      cancel: json['cancel'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
@@ -417,28 +419,34 @@ Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
       'proxy-name': instance.proxyName,
       'names': instance.names,
       'timeout': instance.timeout,
+      'run-id': instance.runId,
+      'cancel': instance.cancel,
     };
 
-_ServiceCheckItem _$ServiceCheckItemFromJson(Map<String, dynamic> json) =>
-    _ServiceCheckItem(
-      name: json['name'] as String? ?? '',
-      status: json['status'] as String? ?? '',
-      region: json['region'] as String? ?? '',
-      delay: (json['delay'] as num?)?.toInt() ?? 0,
-      chains:
-          (json['chains'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      checkedAt: (json['checked-at'] as num?)?.toInt() ?? 0,
-      coreEpoch: (json['core-epoch'] as num?)?.toInt() ?? 0,
-      routeVersion: (json['route-version'] as num?)?.toInt() ?? 0,
-      hits:
-          (json['hits'] as List<dynamic>?)
-              ?.map((e) => RouteHit.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-    );
+_ServiceCheckItem _$ServiceCheckItemFromJson(
+  Map<String, dynamic> json,
+) => _ServiceCheckItem(
+  name: json['name'] as String? ?? '',
+  status: json['status'] as String? ?? '',
+  region: json['region'] as String? ?? '',
+  delay: (json['delay'] as num?)?.toInt() ?? 0,
+  chains:
+      (json['chains'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  checkedAt: (json['checked-at'] as num?)?.toInt() ?? 0,
+  coreEpoch: (json['core-epoch'] as num?)?.toInt() ?? 0,
+  routeVersion: (json['route-version'] as num?)?.toInt() ?? 0,
+  hits:
+      (json['hits'] as List<dynamic>?)
+          ?.map((e) => RouteHit.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  observations:
+      (json['observations'] as List<dynamic>?)
+          ?.map((e) => ServiceObservation.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+);
 
 Map<String, dynamic> _$ServiceCheckItemToJson(_ServiceCheckItem instance) =>
     <String, dynamic>{
@@ -451,6 +459,31 @@ Map<String, dynamic> _$ServiceCheckItemToJson(_ServiceCheckItem instance) =>
       'core-epoch': instance.coreEpoch,
       'route-version': instance.routeVersion,
       'hits': instance.hits,
+      'observations': instance.observations,
+    };
+
+_ServiceObservation _$ServiceObservationFromJson(Map<String, dynamic> json) =>
+    _ServiceObservation(
+      url: json['url'] as String? ?? '',
+      statusCode: (json['status-code'] as num?)?.toInt() ?? 0,
+      rule: json['rule'] as String? ?? '',
+      rulePayload: json['rule-payload'] as String? ?? '',
+      chains:
+          (json['chains'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      error: json['error'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$ServiceObservationToJson(_ServiceObservation instance) =>
+    <String, dynamic>{
+      'url': instance.url,
+      'status-code': instance.statusCode,
+      'rule': instance.rule,
+      'rule-payload': instance.rulePayload,
+      'chains': instance.chains,
+      'error': instance.error,
     };
 
 _CoreMemoryStats _$CoreMemoryStatsFromJson(Map<String, dynamic> json) =>

@@ -2959,7 +2959,7 @@ final class ShownPageLabelProvider
   }
 }
 
-String _$shownPageLabelHash() => r'1378d52f1b4cb8fc3291b3e76f2ce2c4e23bfe0e';
+String _$shownPageLabelHash() => r'26b37a67a3f197a005c8cb0c06692f69ac73bc57';
 
 @ProviderFor(navigationState)
 final navigationStateProvider = NavigationStateProvider._();
@@ -3090,7 +3090,7 @@ final class MoreToolsSelectorStateProvider
 }
 
 String _$moreToolsSelectorStateHash() =>
-    r'c47987547d0e59da10ec4bbd9c8cf1416f8477f3';
+    r'f49c78204d1c3a166d7fb22ef7007bb82485b8b4';
 
 @ProviderFor(overlayTopOffset)
 final overlayTopOffsetProvider = OverlayTopOffsetProvider._();

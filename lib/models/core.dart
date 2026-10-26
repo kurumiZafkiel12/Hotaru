@@ -294,6 +294,8 @@ abstract class ServiceCheckParams with _$ServiceCheckParams {
     @JsonKey(name: 'proxy-name') @Default('') String proxyName,
     @Default([]) List<String> names,
     required int timeout,
+    @JsonKey(name: 'run-id') @Default('') String runId,
+    @Default(false) bool cancel,
   }) = _ServiceCheckParams;
 
   factory ServiceCheckParams.fromJson(Map<String, Object?> json) =>
@@ -312,10 +314,26 @@ abstract class ServiceCheckItem with _$ServiceCheckItem {
     @JsonKey(name: 'core-epoch') @Default(0) int coreEpoch,
     @JsonKey(name: 'route-version') @Default(0) int routeVersion,
     @Default([]) List<RouteHit> hits,
+    @Default([]) List<ServiceObservation> observations,
   }) = _ServiceCheckItem;
 
   factory ServiceCheckItem.fromJson(Map<String, Object?> json) =>
       _$ServiceCheckItemFromJson(json);
+}
+
+@freezed
+abstract class ServiceObservation with _$ServiceObservation {
+  const factory ServiceObservation({
+    @Default('') String url,
+    @JsonKey(name: 'status-code') @Default(0) int statusCode,
+    @Default('') String rule,
+    @JsonKey(name: 'rule-payload') @Default('') String rulePayload,
+    @Default([]) List<String> chains,
+    @Default('') String error,
+  }) = _ServiceObservation;
+
+  factory ServiceObservation.fromJson(Map<String, Object?> json) =>
+      _$ServiceObservationFromJson(json);
 }
 
 @freezed

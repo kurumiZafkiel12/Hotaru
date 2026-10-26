@@ -111,8 +111,8 @@ final List<HotKeyAction> defaultHotKeyActions = system.isWindows
 
 /// Desktop grid sizes per widget name, encoded width * 10 + height index.
 const Map<String, int> defaultDashboardWidgetSpans = {
-  'currentOutbound': 40,
-  'networkSpeed': 20,
+  'currentOutbound': 21,
+  'networkSpeed': 21,
   'outboundMode': 20,
   'vpnButton': 20,
   'networkTakeover': 20,
@@ -124,13 +124,8 @@ const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.currentOutbound,
   DashboardWidget.networkSpeed,
   DashboardWidget.outboundMode,
-  DashboardWidget.vpnButton,
   DashboardWidget.networkTakeover,
-  DashboardWidget.intranetIp,
-  DashboardWidget.serviceStatus,
-  DashboardWidget.profiles,
-  DashboardWidget.proxyGroups,
-  DashboardWidget.connectionStats,
+  DashboardWidget.vpnButton,
 ];
 
 /// A phone starts without the VPN switch and the diagnostic cards, which stay
@@ -140,8 +135,7 @@ final List<DashboardWidget> platformDefaultDashboardWidgets = system.isAndroid
         DashboardWidget.currentOutbound,
         DashboardWidget.networkSpeed,
         DashboardWidget.outboundMode,
-        DashboardWidget.profiles,
-        DashboardWidget.proxyGroups,
+        DashboardWidget.vpnButton,
       ]
     : defaultDashboardWidgets;
 

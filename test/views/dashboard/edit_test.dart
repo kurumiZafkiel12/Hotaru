@@ -1,4 +1,6 @@
 import 'package:hotaru/enum/enum.dart';
+import 'dart:convert';
+import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/views/dashboard/dashboard.dart';
@@ -22,6 +24,7 @@ void main() {
       overrides: [profilesProvider.overrideWith(TestProfiles.new)],
     );
     globalState.container = container;
+    container.listen(appSettingProvider, (_, _) {});
   });
 
   tearDown(() => container.dispose());
@@ -487,6 +490,147 @@ void main() {
     expect(find.byType(DesktopDashboardEditor), findsOneWidget);
     expect(find.byType(DashboardEditor), findsNothing);
 
+    await teardown(tester);
+  });
+
+  testWidgets(
+    'desktop resize previews without moving cards and persists only on Done',
+    (tester) async {
+      seed(const [
+        DashboardWidget.currentOutbound,
+        DashboardWidget.networkSpeed,
+      ]);
+      await pumpEditor(
+        tester,
+        platform: SupportPlatform.Windows,
+        size: const Size(1220, 900),
+      );
+      final hero = find.byType(CurrentOutboundCard);
+      final speed = find.byType(NetworkSpeedCard);
+      final before = tester.getRect(hero);
+      final speedBefore = tester.getRect(speed);
+      final handle = find.byKey(const ValueKey('resize-currentOutbound'));
+      final gesture = await tester.startGesture(
+        tester.getCenter(handle),
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(30, 20));
+      await tester.pump();
+      await gesture.moveBy(const Offset(310, 40));
+      await tester.pump();
+      expect(tester.getRect(hero), before);
+      expect(tester.getRect(speed), speedBefore);
+      expect(
+        container
+            .read(appSettingProvider)
+            .dashboardWidgetSpans['currentOutbound'],
+        21,
+      );
+      await gesture.up();
+      await settle(tester);
+      expect(tester.getRect(hero).width, greaterThan(before.width));
+      expect(
+        container
+            .read(appSettingProvider)
+            .dashboardWidgetSpans['currentOutbound'],
+        21,
+      );
+      await tester.tap(find.text('Done'));
+      await settle(tester);
+      final settings = container.read(appSettingProvider);
+      expect(settings.dashboardWidgetSpans['currentOutbound'], 32);
+      expect(
+        AppSettingProps.fromJson(
+          jsonDecode(jsonEncode(settings.toJson())) as Map<String, dynamic>,
+        ).dashboardWidgetSpans,
+        settings.dashboardWidgetSpans,
+      );
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
+  testWidgets(
+    'cancelled resize clears its offset before the next independent gesture',
+    (tester) async {
+      seed(const [
+        DashboardWidget.currentOutbound,
+        DashboardWidget.networkSpeed,
+      ]);
+      await pumpEditor(
+        tester,
+        platform: SupportPlatform.Windows,
+        size: const Size(1220, 900),
+      );
+      final before = tester.getRect(find.byType(CurrentOutboundCard));
+      final handle = find.byKey(const ValueKey('resize-currentOutbound'));
+      final first = await tester.startGesture(
+        tester.getCenter(handle),
+        kind: PointerDeviceKind.mouse,
+      );
+      await first.moveBy(const Offset(40, 30));
+      await tester.pump();
+      await first.moveBy(const Offset(250, 100));
+      await tester.pump();
+      await first.cancel();
+      await settle(tester);
+      expect(tester.getRect(find.byType(CurrentOutboundCard)), before);
+      final second = await tester.startGesture(
+        tester.getCenter(handle),
+        kind: PointerDeviceKind.mouse,
+      );
+      await second.moveBy(const Offset(0, 20));
+      await tester.pump();
+      await second.moveBy(const Offset(0, 3));
+      await tester.pump();
+      await second.up();
+      await settle(tester);
+      expect(tester.getRect(find.byType(CurrentOutboundCard)), before);
+      await tester.tap(find.text('Done'));
+      await settle(tester);
+      expect(
+        container
+            .read(appSettingProvider)
+            .dashboardWidgetSpans['currentOutbound'],
+        21,
+      );
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
+  testWidgets('desktop reorder holds the other card rectangles until drop', (
+    tester,
+  ) async {
+    final original = [
+      DashboardWidget.currentOutbound,
+      DashboardWidget.networkSpeed,
+      DashboardWidget.outboundMode,
+    ];
+    seed(original);
+    await pumpEditor(
+      tester,
+      platform: SupportPlatform.Windows,
+      size: const Size(1220, 900),
+    );
+    final heroBefore = tester.getRect(find.byType(CurrentOutboundCard));
+    final speedBefore = tester.getRect(find.byType(NetworkSpeedCard));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(OutboundModeCard)),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump(const Duration(milliseconds: 20));
+    await gesture.moveTo(heroBefore.center);
+    await tester.pump();
+    expect(tester.getRect(find.byType(CurrentOutboundCard)), heroBefore);
+    expect(tester.getRect(find.byType(NetworkSpeedCard)), speedBefore);
+    expect(saved(), original);
+    await gesture.up();
+    await settle(tester);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(saved().first, DashboardWidget.outboundMode);
+    expect(tester.takeException(), isNull);
     await teardown(tester);
   });
 }

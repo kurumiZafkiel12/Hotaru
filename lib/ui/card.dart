@@ -138,7 +138,13 @@ class CommonCard extends StatelessWidget {
     required bool ringed,
   }) {
     if (!ringed || !states.contains(WidgetState.focused)) {
-      return BorderSide.none;
+      return BorderSide(
+        color:
+            (context.colorScheme.brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black)
+                .withValues(alpha: 0.06),
+      );
     }
     final colorScheme = context.colorScheme;
     final side = focusRingSide(colorScheme);

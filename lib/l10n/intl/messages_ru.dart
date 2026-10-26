@@ -339,6 +339,59 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "applied": MessageLookupByLibrary.simpleMessage("Применено"),
     "applyNow": MessageLookupByLibrary.simpleMessage("Применить сейчас"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("ИИ и модели"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage(
+      "Требуется авторизация",
+    ),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage(
+      "Проверка защиты от ботов",
+    ),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "Проверяются регион и веб-ответ, а не доступ к аккаунту. При блокировке попробуйте выход в поддерживаемом регионе: США, Японии или Сингапуре.",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage(
+      "Разработка и продуктивность",
+    ),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "Ожидаемый маршрут: DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "Ожидался DIRECT, обнаружен прокси",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("Местные медиа"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("Игры и магазины"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно данных",
+    ),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("Зарубежные медиа"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "Результат страницы или регионального API. Веб-ответ не доказывает воспроизведение по лицензии, соответствие домашнему IP или наличие подписки.",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage(
+      "Доступен · снятие ограничений не подтверждено",
+    ),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
+      "Успешная цепочка подключения не обнаружена",
+    ),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage(
+      "Правило не наблюдалось",
+    ),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "Доступность не означает снятие ограничений. Учётная запись, подписка, DRM и воспроизведение требуют отдельной проверки. Запросы отправляются только после запуска теста.",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage("Соцсети и связь"),
+    "auditStale": MessageLookupByLibrary.simpleMessage(
+      "Маршрут изменён · повторите тест",
+    ),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "57 сервисов · фактические правила, группы и выходы",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "Проверяются веб-доступ и обмен MTProto с DC1–DC5. Вход в аккаунт не выполняется, DC текущей сессии не определяется.",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage(
+      "Проверка сервисов и маршрутов",
+    ),
     "authentication": MessageLookupByLibrary.simpleMessage("Аутентификация"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "Аутентификация требует логин и пароль для локального порта прокси.",
@@ -593,6 +646,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Можно добавить",
     ),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage(
+      "Изменить размер карточки",
+    ),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "Сбросить раскладку",
     ),
@@ -637,6 +693,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("Режим разработчика"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "Режим разработчика включён.",
+    ),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage(
+      "Использовать защищённый DoH",
+    ),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
+      "Тест завершён; изучите наблюдения",
+    ),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "Включает переопределение DNS приложения на Cloudflare и Google DoH. После применения проверьте особые требования DNS профиля.",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
+      "Тест не выполнен; см. наблюдения",
+    ),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "Перед проверкой маршрута запустите Hotaru с профилем.",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
+      "Наблюдаемые данные",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage(
       "Прокси для подключения",
@@ -759,6 +833,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Без этого параметра TUN перехватывает все DNS-запросы на порт 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("Перехват DNS"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "Обнаружен резолвер китайского провайдера. Если DNS должен идти только через прокси, проверьте перехват DNS в TUN и защищённый DoH. Для прямых доменов это может быть намеренно.",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Отправляет 16 уникальных запросов через системный DNS и читает авторитетные записи bash.ws; при сбое используется одно наблюдение Akamai. Не охватывает все браузеры и приложения.",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Выход и оператор DNS-резолвера",
+    ),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("Тест утечек DNS"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "Классификация неполна; отсутствие утечки не подтверждено",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("Режим DNS"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "Добавленные здесь параметры заменяют DNS всех профилей из URL и файлов; остальные остаются такими, как в профиле. DNS пользовательского профиля задаётся в его содержимом.",
@@ -875,9 +962,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("Фильтр"),
     "filters": MessageLookupByLibrary.simpleMessage("Фильтры"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("Поиск процесса"),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage(
-      "Рабочий стол Hotaru",
-    ),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Панель"),
     "floating": MessageLookupByLibrary.simpleMessage("Плавающая"),
     "followProfile": MessageLookupByLibrary.simpleMessage("Как в профиле"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Как в системе"),
@@ -1081,6 +1166,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Метки"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Организация"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "Тип сети и репутация — оценки сторонних служб. Домашний IP не гарантирует нативность или отсутствие риска. Результат Google относится только к этому запросу.",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Классификация провайдера и проверка защиты Google",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage(
+      "Профиль и репутация IP",
+    ),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось определить тип IP",
     ),
@@ -1286,6 +1380,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkNotFoundError": m54,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Слишком много запросов (HTTP 429). Подождите немного и повторите попытку",
+    ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("Кэш DNS"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage(
+      "Системный прокси и PAC",
+    ),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "Удаляет системный прокси и PAC текущего пользователя, очищает DNS. Перезапускает Hotaru, если он работал, для восстановления TUN. Другие адаптеры не сбрасываются.",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "Сброс прокси/PAC, очистка DNS и восстановление TUN Hotaru",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "Новый запрос запуска или остановки заменил восстановление TUN.",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Восстановление сети Windows",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage(
+      "Жизненный цикл TUN Hotaru",
     ),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("Секрет сети"),
@@ -1874,7 +1987,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Тест скорости узла уже выполняется",
     ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
-      "Прямое соединение (ядро не запущено)",
+      "Используется системный маршрут; трафик может идти через VPN или TUN.",
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Выходной узел"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Джиттер"),
@@ -1885,11 +1998,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Не поддерживается",
     ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Провайдер"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "По цели; см. текущие соединения",
+    ),
     "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
       "Полный тест может израсходовать сотни МБ трафика",
     ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
-      "Трафик идёт через текущий прокси",
+      "Запросы следуют правилам ядра. Выход может различаться для разных целей.",
     ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage(
       "Стратегия распределения",
@@ -2037,6 +2153,27 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage(
       "Настройка WebDAV",
+    ),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage(
+      "Блокировать стандартные порты STUN",
+    ),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "Добавляет обратимые UDP-правила для 3478 и 19302. Может влиять на звонки. Не блокирует TURN через HTTPS и все пути WebRTC. Действует только в режиме правил.",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "Этот STUN-адрес совпадает с измеренным выходом; другие пути браузера не проверены.",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "Публичный STUN-адрес отличается от выхода прокси. Проверьте UDP и политику WebRTC браузера. IPv4 и IPv6 нужно проверять отдельно.",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Нативный STUN проверяет UDP-маршрут. ICE, mDNS и TURN браузера могут работать иначе. Локальный адрес сам по себе не означает утечку публичного IP.",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Сравнение отражённого UDP-адреса с выходом прокси",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "Тест утечек WebRTC / STUN",
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage(
       "Режим белого списка",

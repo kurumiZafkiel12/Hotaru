@@ -110,14 +110,6 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                         dot: isStart,
                       ),
                     ],
-                    trailing: [
-                      if (density == DashboardDensity.standard && !failed)
-                        _IpChips(
-                          quality: quality,
-                          loading: loading,
-                          large: false,
-                        ),
-                    ],
                   ),
                   SizedBox(height: metrics.ipTop),
                   _ExitRow(
@@ -129,7 +121,7 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                     quality: quality,
                     active: isStart,
                     metrics: metrics,
-                    large: !density.isDesktop,
+                    large: true,
                   ),
                   if (density.isDesktop)
                     const Spacer()
@@ -639,21 +631,6 @@ class _RunTimeValue extends ConsumerWidget {
   }
 }
 
-const _morphDuration = Duration(milliseconds: 450);
-const _stateDuration = Duration(milliseconds: 150);
-
-final _startMorph = Morph(MaterialShapes.circle, MaterialShapes.cookie9Sided);
-
-Path _morphPath(double progress) => _startMorph.toPath(
-  progress: progress,
-  rotationPivotX: 0.5,
-  rotationPivotY: 0.5,
-);
-
-double _morphTurn(double progress) => progress * 2 * math.pi / 9;
-
-/// A circle with a play glyph while stopped that grows the cookie-9 of a
-/// running tunnel, the way the M3 Expressive loader morphs between shapes.
 class _StartToggle extends ConsumerStatefulWidget {
   const _StartToggle({
     required this.size,
@@ -673,136 +650,102 @@ class _StartToggle extends ConsumerStatefulWidget {
 
 class _StartToggleState extends ConsumerState<_StartToggle>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
+  bool _pressed = false;
+  late final AnimationController _wave = AnimationController(
     vsync: this,
-    duration: _morphDuration,
-    value: widget.running ? 1 : 0,
+    duration: const Duration(seconds: 4),
   );
-  late final CurvedAnimation _progress = CurvedAnimation(
-    parent: _controller,
-    curve: Curves.easeOutBack,
-    reverseCurve: Curves.easeInCubic,
-  );
-  var _hovered = false;
-  var _pressed = false;
-  var _focused = false;
 
-  /// The M3 state layer, painted inside the shape: the card's decoration
-  /// covers the button, so ink on the card's Material would never show.
-  double get _overlay => !widget.enabled
-      ? 0
-      : _focused
-      ? 0.1
-      : _hovered
-      ? 0.08
-      : 0;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncMotion();
+  }
 
   @override
   void didUpdateWidget(_StartToggle oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.running != widget.running) {
-      widget.running ? _controller.forward() : _controller.reverse();
+    _syncMotion();
+  }
+
+  void _syncMotion() {
+    if (widget.running &&
+        !widget.suspended &&
+        !MediaQuery.disableAnimationsOf(context)) {
+      if (!_wave.isAnimating) _wave.repeat();
+    } else {
+      _wave.stop();
     }
   }
 
   @override
   void dispose() {
-    _progress.dispose();
-    _controller.dispose();
+    _wave.dispose();
     super.dispose();
-  }
-
-  void _toggle() {
-    ref.read(commonActionProvider.notifier).toggleRunning();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final appLocalizations = context.appLocalizations;
-    final glass = LiquidGlassScope.of(context);
-    final size = widget.size;
-    final enabled = widget.enabled;
-    final fill = enabled
-        ? colorScheme.primary
-        : DashboardColors.of(context).tone2;
-    final ink = enabled ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
-    final tooltip = widget.suspended
-        ? appLocalizations.suspended
+    final l10n = context.appLocalizations;
+    final label = widget.suspended
+        ? l10n.suspended
         : widget.running
-        ? appLocalizations.stop
-        : appLocalizations.start;
-    final stateDuration = context.motionDuration(_stateDuration);
+        ? l10n.stop
+        : l10n.start;
+    final foreground = SizedBox.square(
+      dimension: widget.size,
+      child: Center(
+        child: GlyphIcon(
+          widget.suspended
+              ? AppGlyphs.wifiOff
+              : AppGlyphs.playPause(widget.running ? 1 : 0),
+          size: widget.size * 0.32,
+          color: widget.enabled
+              ? Colors.white
+              : context.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
     return Tooltip(
-      message: tooltip,
+      message: label,
       child: Semantics(
         button: true,
-        enabled: enabled,
-        label: tooltip,
-        child: InkResponse(
-          onTap: enabled ? _toggle : null,
-          onHover: (value) => setState(() => _hovered = value),
-          onHighlightChanged: (value) => setState(() => _pressed = value),
-          onFocusChange: (value) => setState(() => _focused = value),
-          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-          splashFactory: NoSplash.splashFactory,
-          child: ElasticPress(
-            enabled: enabled,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(end: _overlay),
-              duration: stateDuration,
-              builder: (_, overlay, child) => AnimatedBuilder(
-                animation: _progress,
-                builder: (_, child) {
-                  final progress = _progress.value;
-                  final color = Color.alphaBlend(
-                    ink.withValues(alpha: overlay),
-                    fill,
-                  );
-                  return CustomPaint(
-                    painter: _MorphPainter(
-                      progress: progress,
-                      color: glass ? null : color,
-                      shadow: enabled
-                          ? colorScheme.primary.withValues(alpha: 0.3)
-                          : Colors.transparent,
-                      ring: _focused
-                          ? focusRingSide(colorScheme, standsOff: true)
-                          : null,
+        enabled: widget.enabled,
+        label: label,
+        child: FocusRing(
+          shape: AppShape.full,
+          child: InkResponse(
+            onHighlightChanged: (pressed) => setState(() => _pressed = pressed),
+            onTap: widget.enabled
+                ? () => ref.read(commonActionProvider.notifier).toggleRunning()
+                : null,
+            customBorder: AppShape.full,
+            child: ElasticPress(
+              enabled: widget.enabled,
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _wave,
+                  builder: (context, child) => CustomPaint(
+                    painter: _WavePainter(
+                      phase: _wave.value * math.pi * 2,
+                      active: widget.running && !widget.suspended,
+                      enabled: widget.enabled,
                     ),
-                    child: glass
-                        ? LiquidGlass(
-                            style: LiquidGlassStyle.tinted(colorScheme, color),
-                            clipper: _MorphClipper(progress),
-                            pressed: _pressed,
-                            child: child,
-                          )
-                        : child,
-                  );
-                },
-                child: child,
-              ),
-              child: SizedBox.square(
-                dimension: size,
-                child: Center(
-                  child: widget.suspended
-                      ? GlyphIcon(
-                          AppGlyphs.wifiOff,
-                          size: size * 0.34,
-                          color: ink,
-                          fill: 1,
-                        )
-                      : TweenAnimationBuilder<double>(
-                          tween: Tween(end: widget.running ? 1 : 0),
-                          duration: _morphDuration,
-                          curve: Curves.easeOutBack,
-                          builder: (_, progress, _) => GlyphIcon(
-                            AppGlyphs.playPause(progress),
-                            size: size * 0.34,
-                            color: ink,
-                            fill: 1,
+                    child: child,
+                  ),
+                  child: LiquidGlassScope.of(context)
+                      ? LiquidGlass(
+                          style: LiquidGlassStyle.tinted(
+                            context.colorScheme,
+                            const Color(0xff235269),
                           ),
-                        ),
+                          clipper: const ShapeBorderClipper(
+                            shape: AppShape.full,
+                          ),
+                          pressed: _pressed,
+                          child: foreground,
+                        )
+                      : foreground,
                 ),
               ),
             ),
@@ -813,93 +756,72 @@ class _StartToggleState extends ConsumerState<_StartToggle>
   }
 }
 
-/// Fills the morph, or with no [color] leaves its inside to glass and casts
-/// [shadow] only outside it, as one under glass would show through.
-class _MorphPainter extends CustomPainter {
-  const _MorphPainter({
-    required this.progress,
-    required this.color,
-    required this.shadow,
-    required this.ring,
+class _WavePainter extends CustomPainter {
+  const _WavePainter({
+    required this.phase,
+    required this.active,
+    required this.enabled,
   });
 
-  static const _shadowOffset = Offset(0, 6);
-  static const _shadowBlur = 14.0;
-
-  final double progress;
-  final Color? color;
-  final Color shadow;
-  final BorderSide? ring;
+  final double phase;
+  final bool active;
+  final bool enabled;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = _morphPath(progress);
-    final color = this.color;
-    canvas
-      ..save()
-      ..translate(size.width / 2, size.height / 2)
-      ..rotate(_morphTurn(progress))
-      ..scale(size.width, size.height)
-      ..translate(-0.5, -0.5);
-    if (shadow.a > 0) {
-      canvas.save();
-      if (color == null) {
-        canvas.clipPath(
-          Path()
-            ..fillType = PathFillType.evenOdd
-            ..addRect(const Rect.fromLTRB(-1, -1, 2, 2))
-            ..addPath(path, Offset.zero),
-        );
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - 3;
+    final outline = Path();
+    for (var i = 0; i <= 120; i++) {
+      final angle = math.pi * 2 * i / 120;
+      final r = radius + (active ? math.sin(angle * 3 + phase) * 1.5 : 0);
+      final point = center + Offset(math.cos(angle), math.sin(angle)) * r;
+      if (i == 0) {
+        outline.moveTo(point.dx, point.dy);
+      } else {
+        outline.lineTo(point.dx, point.dy);
       }
-      canvas
-        ..translate(
-          _shadowOffset.dx / size.width,
-          _shadowOffset.dy / size.height,
-        )
-        ..drawPath(
-          path,
-          Paint()
-            ..color = shadow
-            ..maskFilter = MaskFilter.blur(
-              BlurStyle.normal,
-              _shadowBlur / 2 / size.width,
-            ),
-        )
-        ..restore();
     }
-    if (color != null) {
-      canvas.drawPath(path, Paint()..color = color);
+    outline.close();
+    canvas.drawPath(outline, Paint()..color = const Color(0xff202e3b));
+    canvas.save();
+    canvas.clipPath(outline);
+    final wave = Path()..moveTo(0, size.height);
+    for (var x = 0.0; x <= size.width; x += 2) {
+      final y =
+          size.height * (active ? 0.4 : 0.72) +
+          math.sin(x / size.width * math.pi * 2 + phase) * size.height * 0.055;
+      wave.lineTo(x, y);
     }
-    if (ring case final ring?) {
-      strokeUnitShape(canvas, path, size.width, ring);
-    }
+    wave
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(
+      wave,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: enabled
+              ? const [Color(0xff438d9d), Color(0xff235269)]
+              : const [Color(0xff303943), Color(0xff27313a)],
+        ).createShader(Offset.zero & size),
+    );
     canvas.restore();
+    canvas.drawPath(
+      outline,
+      Paint()
+        ..color = const Color(
+          0xff75bac5,
+        ).withValues(alpha: active ? 0.65 : 0.25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   }
 
   @override
-  bool shouldRepaint(_MorphPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.color != color ||
-      oldDelegate.shadow != shadow ||
-      oldDelegate.ring != ring;
-}
-
-class _MorphClipper extends CustomClipper<Path> {
-  const _MorphClipper(this.progress);
-
-  final double progress;
-
-  @override
-  Path getClip(Size size) {
-    final transform =
-        Matrix4.translationValues(size.width / 2, size.height / 2, 0)
-          ..rotateZ(_morphTurn(progress))
-          ..scaleByDouble(size.width, size.height, 1, 1)
-          ..translateByDouble(-0.5, -0.5, 0, 1);
-    return _morphPath(progress).transform(transform.storage);
-  }
-
-  @override
-  bool shouldReclip(_MorphClipper oldClipper) =>
-      oldClipper.progress != progress;
+  bool shouldRepaint(_WavePainter oldDelegate) =>
+      phase != oldDelegate.phase ||
+      active != oldDelegate.active ||
+      enabled != oldDelegate.enabled;
 }

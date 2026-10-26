@@ -97,7 +97,15 @@ class DesktopDashboardGrid extends ConsumerWidget {
       for (final widget in saved)
         if (widget.platforms.contains(platform)) widget,
     ];
-    final placements = placeDashboardWidgets(order, _tiersOf(order), columns);
+    final spans = ref.watch(
+      appSettingProvider.select((state) => state.dashboardWidgetSpans),
+    );
+    final placements = placeDashboardWidgets(
+      order,
+      _tiersOf(order),
+      columns,
+      spans: spans,
+    );
     final duration = _motionOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -173,6 +181,9 @@ class DesktopDashboardEditor extends ConsumerStatefulWidget {
 class _DesktopDashboardEditorState
     extends ConsumerState<DesktopDashboardEditor> {
   late List<DashboardWidget> _order;
+  late Map<String, int> _spans;
+  List<DashboardWidget>? _dropOrder;
+  final _preview = ValueNotifier<Rect?>(null);
   DashboardWidget? _dragging;
   final _gridKey = GlobalKey();
 
@@ -180,10 +191,31 @@ class _DesktopDashboardEditorState
   void initState() {
     super.initState();
     final setting = ref.read(appSettingProvider);
+    _spans = {...setting.dashboardWidgetSpans};
     _order = [
       for (final item in setting.dashboardWidgets)
         if (item.platforms.contains(widget.platform)) item,
     ];
+  }
+
+  @override
+  void dispose() {
+    _preview.dispose();
+    super.dispose();
+  }
+
+  void _finishDrag({required bool accept}) {
+    if (_dragging == null && _dropOrder == null && _preview.value == null) {
+      return;
+    }
+    setState(() {
+      if (accept && _dropOrder != null) {
+        _order = _dropOrder!;
+      }
+      _dropOrder = null;
+      _dragging = null;
+      _preview.value = null;
+    });
   }
 
   void _save() {
@@ -195,6 +227,7 @@ class _DesktopDashboardEditorState
               state.dashboardWidgets,
               _order,
             ),
+            dashboardWidgetSpans: _spans,
           ),
         );
     widget.onDone();
@@ -224,6 +257,9 @@ class _DesktopDashboardEditorState
           if (item.platforms.contains(widget.platform)) item,
       ];
       _dragging = null;
+      _dropOrder = null;
+      _spans = {...defaultDashboardWidgetSpans};
+      _preview.value = null;
     });
   }
 
@@ -274,13 +310,11 @@ class _DesktopDashboardEditorState
       }
       candidate.insert(index, dragged);
     }
-    var changed = candidate.length != _order.length;
-    for (var i = 0; !changed && i < candidate.length; i++) {
-      changed = candidate[i] != _order[i];
-    }
-    if (changed) {
-      setState(() => _order = candidate);
-    }
+    _dropOrder = candidate;
+    final previewPlacement = placements.firstWhere(
+      (item) => item.widget == (target ?? dragged),
+    );
+    _preview.value = geometry.rectOf(previewPlacement, widget.gap);
   }
 
   @override
@@ -293,6 +327,7 @@ class _DesktopDashboardEditorState
       _order,
       _tiersOf(_order),
       widget.columns,
+      spans: _spans,
     );
     final addable = [
       for (final item in DashboardWidget.values)
@@ -322,15 +357,34 @@ class _DesktopDashboardEditorState
             spacing: widget.gap,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              Wrap(
                 spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
                 children: [
+                  TonalButton(
+                    glyph: AppGlyphs.add,
+                    label: appLocalizations.dashboardAddableSection,
+                    onPressed: addable.isEmpty
+                        ? null
+                        : () async {
+                            final added = await showExtend<DashboardWidget>(
+                              context,
+                              builder: (_) =>
+                                  _AddDashboardWidget(items: addable),
+                            );
+                            if (added != null &&
+                                mounted &&
+                                !_order.contains(added)) {
+                              setState(() => _order = [..._order, added]);
+                            }
+                          },
+                  ),
                   TonalButton(
                     glyph: AppGlyphs.reset,
                     label: appLocalizations.dashboardRestoreDefaults,
                     onPressed: _resetDefaults,
                   ),
-                  const Spacer(),
                   TonalButton(
                     label: appLocalizations.cancel,
                     onPressed: widget.onCancel,
@@ -342,9 +396,13 @@ class _DesktopDashboardEditorState
                 ],
               ),
               DragTarget<DashboardWidget>(
-                onWillAcceptWithDetails: (_) => _dragging != null,
+                onWillAcceptWithDetails: (details) =>
+                    _order.contains(details.data),
                 onMove: (details) => _dragMoved(details, placements, geometry),
-                onAcceptWithDetails: (_) => setState(() => _dragging = null),
+                onAcceptWithDetails: (details) {
+                  _dragMoved(details, placements, geometry);
+                  _finishDrag(accept: true);
+                },
                 builder: (context, _, _) => SizedBox(
                   key: _gridKey,
                   width: geometry.contentWidth,
@@ -359,28 +417,20 @@ class _DesktopDashboardEditorState
                           duration,
                           colorScheme,
                         ),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: ValueListenableBuilder<Rect?>(
+                            valueListenable: _preview,
+                            builder: (context, rect, _) => CustomPaint(
+                              painter: _GhostPainter(rect, colorScheme.primary),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-              if (addable.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  appLocalizations.dashboardAddableSection,
-                  style: AppTextStyle.footnote.of(context, emphasized: true),
-                ),
-                for (final item in addable)
-                  ListItem(
-                    leading: GlyphIcon(item.glyph),
-                    title: Text(item.label(context)),
-                    trailing: IconButton(
-                      tooltip: '${appLocalizations.add} ${item.label(context)}',
-                      onPressed: () =>
-                          setState(() => _order = [..._order, item]),
-                      icon: const GlyphIcon(AppGlyphs.add),
-                    ),
-                  ),
-              ],
             ],
           ),
         );
@@ -420,19 +470,77 @@ class _DesktopDashboardEditorState
       child: Stack(
         children: [
           LongPressDraggable<DashboardWidget>(
+            delay: widget.platform == SupportPlatform.Android
+                ? const Duration(milliseconds: 350)
+                : Duration.zero,
             data: item,
             feedback: Material(
               type: MaterialType.transparency,
-              child: Opacity(opacity: 0.9, child: cardContent(keyed: false)),
+              child: SizedBox(
+                width: rect.width,
+                height: rect.height,
+                child: CustomPaint(
+                  painter: _GhostPainter(
+                    Offset.zero & rect.size,
+                    colorScheme.primary,
+                  ),
+                ),
+              ),
             ),
             childWhenDragging: Opacity(
               opacity: 0.25,
               child: cardContent(keyed: false),
             ),
-            onDragStarted: () => setState(() => _dragging = item),
-            onDragEnd: (_) => setState(() => _dragging = null),
-            onDraggableCanceled: (_, _) => setState(() => _dragging = null),
+            onDragStarted: () => setState(() {
+              _dragging = item;
+              _dropOrder = null;
+            }),
+            onDragEnd: (_) => _finishDrag(accept: false),
+            onDraggableCanceled: (_, _) => _finishDrag(accept: false),
             child: cardContent(keyed: true),
+          ),
+          PositionedDirectional(
+            bottom: 0,
+            end: 0,
+            child: _ResizeHandle(
+              key: ValueKey('resize-${item.name}'),
+              label: context.appLocalizations.dashboardResizeCard,
+              onUpdate: (delta) {
+                final width = (rect.width + delta.dx).clamp(
+                  geometry.cellWidth * math.min(2, widget.columns) +
+                      widget.gap * (math.min(2, widget.columns) - 1),
+                  geometry.contentWidth,
+                );
+                final minimumRows = item.tier.cells(widget.columns).$2;
+                final height = (rect.height + delta.dy).clamp(
+                  geometry.unit * minimumRows + widget.gap * (minimumRows - 1),
+                  geometry.unit * 4 + widget.gap * 3,
+                );
+                _preview.value = Rect.fromLTWH(
+                  rect.left,
+                  rect.top,
+                  width,
+                  height,
+                );
+              },
+              onEnd: (commit) {
+                final preview = _preview.value;
+                _preview.value = null;
+                if (!commit || preview == null) return;
+                final columns =
+                    ((preview.width + widget.gap) /
+                            (geometry.cellWidth + widget.gap))
+                        .round()
+                        .clamp(math.min(2, widget.columns), widget.columns)
+                        .toInt();
+                final rows =
+                    ((preview.height + widget.gap) /
+                            (geometry.unit + widget.gap))
+                        .round()
+                        .clamp(2, 4);
+                setState(() => _spans[item.name] = columns * 10 + rows - 2);
+              },
+            ),
           ),
           if (item.removable)
             PositionedDirectional(
@@ -465,4 +573,124 @@ class _DesktopDashboardEditorState
       ),
     );
   }
+}
+
+class _AddDashboardWidget extends StatelessWidget {
+  const _AddDashboardWidget({required this.items});
+
+  final List<DashboardWidget> items;
+
+  @override
+  Widget build(BuildContext context) => BaseScaffold(
+    title: context.appLocalizations.dashboardAddableSection,
+    body: ListView(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        context.appBarInset,
+        16,
+        context.bottomInset + 16,
+      ),
+      children: [
+        for (final item in items)
+          ListItem(
+            leading: GlyphIcon(item.glyph),
+            title: Text(item.label(context)),
+            trailing: IconButton(
+              tooltip: '${context.appLocalizations.add} ${item.label(context)}',
+              onPressed: () => Navigator.of(context).pop(item),
+              icon: const GlyphIcon(AppGlyphs.add),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+class _ResizeHandle extends StatefulWidget {
+  const _ResizeHandle({
+    super.key,
+    required this.label,
+    required this.onUpdate,
+    required this.onEnd,
+  });
+
+  final String label;
+  final ValueChanged<Offset> onUpdate;
+  final ValueChanged<bool> onEnd;
+
+  @override
+  State<_ResizeHandle> createState() => _ResizeHandleState();
+}
+
+class _ResizeHandleState extends State<_ResizeHandle> {
+  Offset _delta = Offset.zero;
+  bool _active = false;
+
+  void _finish(bool commit) {
+    if (!_active) {
+      return;
+    }
+    _active = false;
+    _delta = Offset.zero;
+    widget.onEnd(commit);
+  }
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: widget.label,
+    child: MouseRegion(
+      cursor: SystemMouseCursors.resizeUpLeftDownRight,
+      child: Listener(
+        onPointerCancel: (_) => _finish(false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanStart: (_) {
+            _active = true;
+            _delta = Offset.zero;
+          },
+          onPanUpdate: (details) {
+            _delta += details.delta;
+            widget.onUpdate(_delta);
+          },
+          onPanEnd: (_) => _finish(true),
+          onPanCancel: () => _finish(false),
+          child: const SizedBox.square(
+            dimension: 36,
+            child: Center(child: GlyphIcon(AppGlyphs.arrowDown, size: 18)),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _GhostPainter extends CustomPainter {
+  const _GhostPainter(this.rect, this.color);
+
+  final Rect? rect;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = this.rect;
+    if (rect == null) return;
+    final path = AppShape.lg.getOuterPath(rect);
+    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.10));
+    final stroke = Paint()
+      ..color = color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final metric in path.computeMetrics()) {
+      for (var at = 0.0; at < metric.length; at += 12) {
+        canvas.drawPath(
+          metric.extractPath(at, math.min(at + 6, metric.length)),
+          stroke,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GhostPainter oldDelegate) =>
+      rect != oldDelegate.rect || color != oldDelegate.color;
 }

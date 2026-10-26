@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#121212</item>
-        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@drawable/ic_launcher_foreground</item>
+<resources>
+    <style name="LaunchTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#111317</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/hotaru_splash</item>
         <item name="postSplashScreenTheme">@style/NormalTheme</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#111317</item>
+        <item name="android:navigationBarColor">#111317</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">#111317</item>
+    </style>
+    <style name="TransparentTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 </resources>

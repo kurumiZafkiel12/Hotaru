@@ -1,5 +1,12 @@
 # Surfaces
 
+Hotaru 0.0.4 follows the user's 2026-10-27 redesign: cold slate surfaces and
+mint accents in `hotaruColorScheme`, with a neutral 6% one-dp outline on
+`CommonCard` and `DashboardCard`. This explicitly supersedes the upstream
+no-card-outline guidance below. Focus still takes its stronger two-dp ring;
+status color stays on text and small marks. Keep the shared surface levels,
+superellipse shapes, reduced-motion behavior and light-mode contrast.
+
 FlClash draws structure with fills and keeps color for state. A surface stands out from what it sits on by a step in
 lightness, never by a border. Color appears where something is selected, on, failing, or the one action a screen is
 for. The dashboard set this direction; every other screen follows it, and Material components keep their behavior

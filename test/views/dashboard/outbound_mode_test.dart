@@ -170,7 +170,7 @@ void main() {
       ),
       width: 600,
     );
-    expect(tester.getSize(buttonOf(Mode.rule)).height, 64 - 8 * 2);
+    expect(tester.getSize(buttonOf(Mode.rule)).height, 64 - 8 * 2 - 2);
 
     await tester.tap(buttonOf(Mode.global));
     await tester.pumpAndSettle();

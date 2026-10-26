@@ -861,6 +861,7 @@ Map<String, dynamic> _$ClashConfigToJson(_ClashConfig instance) =>
 
 _PatchClashConfig _$PatchClashConfigFromJson(Map<String, dynamic> json) =>
     _PatchClashConfig(
+      blockCommonStun: json['blockCommonStun'] as bool? ?? false,
       mixedPort: (json['mixed-port'] as num?)?.toInt() ?? defaultMixedPort,
       socksPort: (json['socks-port'] as num?)?.toInt() ?? 0,
       port: (json['port'] as num?)?.toInt() ?? 0,
@@ -941,6 +942,7 @@ _PatchClashConfig _$PatchClashConfigFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PatchClashConfigToJson(_PatchClashConfig instance) =>
     <String, dynamic>{
+      'blockCommonStun': instance.blockCommonStun,
       'mixed-port': instance.mixedPort,
       'socks-port': instance.socksPort,
       'port': instance.port,

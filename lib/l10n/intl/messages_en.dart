@@ -331,6 +331,59 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "applied": MessageLookupByLibrary.simpleMessage("Applied"),
     "applyNow": MessageLookupByLibrary.simpleMessage("Apply now"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("AI & models"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage(
+      "Authentication required",
+    ),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage(
+      "Anti-bot challenge",
+    ),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "Region signal only; account and anti-bot checks are separate. If blocked, try a supported US, JP or SG exit.",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage(
+      "Development & productivity",
+    ),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "Expected route: DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "Expected DIRECT, observed a proxy route",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("Domestic media"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("Games & stores"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage("Inconclusive"),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("International media"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "Page or regional endpoint result; licensed playback, residential eligibility and subscription are not established by a web response.",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage(
+      "Reachable · unlock unconfirmed",
+    ),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
+      "No successful connection chain was observed",
+    ),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage(
+      "No observed rule",
+    ),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "Reachable does not mean unlocked. Account, subscription, DRM and playback can require separate verification. Tests send requests only after you start.",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage(
+      "Social & communication",
+    ),
+    "auditStale": MessageLookupByLibrary.simpleMessage(
+      "Route changed · run again",
+    ),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "57 services · actual rules, groups and exits",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "Checks web connectivity and MTProto handshakes to DC1–DC5 without signing in. It does not identify the DC used by your account session.",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage(
+      "Service unlock & routing check",
+    ),
     "authentication": MessageLookupByLibrary.simpleMessage("Authentication"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "Authentication asks for a username and password on the local proxy port.",
@@ -571,6 +624,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Available to add",
     ),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("Resize card"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "Restore defaults",
     ),
@@ -613,6 +667,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("Developer mode"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "Developer mode is enabled.",
+    ),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage(
+      "Use secure DoH",
+    ),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
+      "Probe completed; review evidence",
+    ),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
+      "Probe failed; see evidence",
+    ),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "Start Hotaru with a profile before testing the routed path.",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
+      "Observed evidence",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Dialer proxy"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -731,6 +803,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Without this entry, TUN hijacks every DNS query to port 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("DNS hijacking"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "Domestic ISP resolver observed. If you expected proxy-only DNS, review TUN DNS hijack and use secure DoH. A domestic resolver may be intentional for direct domains.",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Observe resolver egress and ownership",
+    ),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("DNS leak test"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "Resolver classification incomplete; no clean verdict",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("DNS mode"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "Entries added here replace the DNS of every URL and file profile; anything not added keeps the profile\'s own setting. Custom profiles set their DNS in their content.",
@@ -839,7 +924,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "filter": MessageLookupByLibrary.simpleMessage("Filter"),
     "filters": MessageLookupByLibrary.simpleMessage("Filters"),
     "findProcessMode": MessageLookupByLibrary.simpleMessage("Find process"),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Firefly desktop"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Dashboard"),
     "floating": MessageLookupByLibrary.simpleMessage("Floating"),
     "followProfile": MessageLookupByLibrary.simpleMessage("Follow profile"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Follow system"),
@@ -1041,6 +1126,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Flags"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Organization"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "Network type and reputation are third-party estimates. Residential does not mean native or risk-free. Google results describe this single request.",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Sourced ISP classification and Google challenge probe",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage(
+      "IP profile & reputation",
+    ),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t determine the IP type",
     ),
@@ -1226,6 +1320,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkNotFoundError": m54,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Too many requests (HTTP 429). Wait a moment and try again",
+    ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("DNS cache"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage(
+      "System proxy and PAC",
+    ),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "Stops Hotaru networking, clears the current user system proxy and PAC, flushes DNS, then restarts Hotaru if it was running. Other adapters are not reset.",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "Reset proxy / PAC, flush DNS and recover Hotaru TUN",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "A newer start/stop request superseded TUN recovery.",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Windows network recovery",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage(
+      "Hotaru TUN lifecycle",
     ),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("Network secret"),
@@ -1786,7 +1899,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "A node speed test is already running",
     ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
-      "Direct connection (core is not running)",
+      "Uses the system network path; a system VPN or TUN may still carry traffic.",
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Exit node"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Jitter"),
@@ -1795,11 +1908,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Not supported",
     ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Provider"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "Per target; inspect live connections",
+    ),
     "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
       "A full test can use hundreds of MB of data",
     ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
-      "Traffic goes through the current proxy",
+      "Requests enter the core and follow the current routing rules. The exit can differ by target.",
     ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("Split strategy"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
@@ -1933,6 +2049,27 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage(
       "WebDAV configuration",
+    ),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage(
+      "Block common STUN ports",
+    ),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "Adds reversible UDP rules for ports 3478 and 19302. This may affect calls and does not block TURN over HTTPS or every WebRTC path. Effective in rule mode only.",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "This STUN address matches the measured proxy egress; other browser paths remain untested.",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Compare UDP reflexive address with proxy egress",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "WebRTC / STUN leak test",
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("Whitelist mode"),
     "writeToSystem": MessageLookupByLibrary.simpleMessage("Write to system"),

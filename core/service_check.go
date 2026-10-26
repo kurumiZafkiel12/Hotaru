@@ -14,7 +14,7 @@ const (
 	// It therefore runs in waves, and a rule like Disney+ spends several
 	// requests in sequence, so the run gets a multiple of the request budget.
 	serviceCheckConcurrency  = 4
-	serviceSweepBudgetFactor = 6
+	serviceSweepBudgetFactor = 24
 
 	// Region markers sit deep inside these pages; endpoints that answer with a
 	// few lines get the small cap.
@@ -38,6 +38,10 @@ const (
 	serviceComingSoon        = "coming-soon"
 	serviceTimeout           = "timeout"
 	serviceFailed            = "failed"
+	serviceReachable         = "reachable"
+	serviceAuthentication    = "authentication-required"
+	serviceChallenge         = "challenge"
+	serviceInconclusive      = "inconclusive"
 )
 
 // An empty Names runs every check.
@@ -45,19 +49,31 @@ type ServiceCheckParams struct {
 	ProxyName string   `json:"proxy-name"`
 	Names     []string `json:"names"`
 	Timeout   int64    `json:"timeout"`
+	RunID     string   `json:"run-id"`
+	Cancel    bool     `json:"cancel"`
 }
 
 // runServiceCheck stamps Name; a blank Status means a rule has yet to judge it.
 type ServiceCheckItem struct {
-	Name         string     `json:"name"`
-	Status       string     `json:"status"`
-	Region       string     `json:"region,omitempty"`
-	Delay        int64      `json:"delay,omitempty"`
-	Chains       []string   `json:"chains,omitempty"`
-	CheckedAt    int64      `json:"checked-at"`
-	CoreEpoch    uint64     `json:"core-epoch"`
-	RouteVersion uint64     `json:"route-version"`
-	Hits         []RouteHit `json:"hits,omitempty"`
+	Name         string               `json:"name"`
+	Status       string               `json:"status"`
+	Region       string               `json:"region,omitempty"`
+	Delay        int64                `json:"delay,omitempty"`
+	Chains       []string             `json:"chains,omitempty"`
+	CheckedAt    int64                `json:"checked-at"`
+	CoreEpoch    uint64               `json:"core-epoch"`
+	RouteVersion uint64               `json:"route-version"`
+	Hits         []RouteHit           `json:"hits,omitempty"`
+	Observations []ServiceObservation `json:"observations,omitempty"`
+}
+
+type ServiceObservation struct {
+	URL         string   `json:"url"`
+	StatusCode  int      `json:"status-code"`
+	Rule        string   `json:"rule"`
+	RulePayload string   `json:"rule-payload"`
+	Chains      []string `json:"chains"`
+	Error       string   `json:"error,omitempty"`
 }
 
 var (
@@ -65,13 +81,46 @@ var (
 
 	serviceClaimsMu sync.Mutex
 	serviceClaims   = map[string]*context.CancelFunc{}
+	serviceRunsMu   sync.Mutex
+	serviceRuns     = map[string]*serviceRun{}
 )
 
+type serviceRun struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+	users  int
+}
+
+func acquireServiceRun(id string) (context.Context, func()) {
+	if id == "" {
+		return context.Background(), func() {}
+	}
+	serviceRunsMu.Lock()
+	run := serviceRuns[id]
+	if run == nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		run = &serviceRun{ctx: ctx, cancel: cancel}
+		serviceRuns[id] = run
+	}
+	run.users++
+	serviceRunsMu.Unlock()
+	return run.ctx, func() {
+		serviceRunsMu.Lock()
+		defer serviceRunsMu.Unlock()
+		run.users--
+		if run.users == 0 {
+			run.cancel()
+			delete(serviceRuns, id)
+		}
+	}
+}
+
 type serviceEnv struct {
-	ctx       context.Context
-	proxyName string
-	timeout   time.Duration
-	hits      *hitRecorder
+	ctx          context.Context
+	proxyName    string
+	timeout      time.Duration
+	hits         *hitRecorder
+	observations *[]ServiceObservation
 }
 
 func (e serviceEnv) get(url string, maxBody int64) *ProbeResult {
@@ -91,7 +140,14 @@ func (e serviceEnv) send(req probeRequest) *ProbeResult {
 		headers[name] = value
 	}
 	req.headers = headers
-	return runProbe(e.ctx, req)
+	result := runProbe(e.ctx, req)
+	if result != nil && e.observations != nil {
+		*e.observations = append(*e.observations, ServiceObservation{
+			URL: result.Url, StatusCode: result.StatusCode, Rule: result.Rule,
+			RulePayload: result.RulePayload, Chains: result.Chains, Error: result.Error,
+		})
+	}
+	return result
 }
 
 type serviceChecker struct {
@@ -100,8 +156,8 @@ type serviceChecker struct {
 }
 
 var serviceCheckers = []serviceChecker{
-	{name: "google", check: checkReachable("https://www.google.com/generate_204")},
-	{name: "github", check: checkReachable("https://github.com/")},
+	{name: "google", check: checkServiceEndpoint("https://workspace.google.com/")},
+	{name: "github", check: checkGitHub},
 	{name: "youtube", check: checkYouTubePremium},
 	{name: "chatgpt", check: checkChatGpt},
 	{name: "claude", check: checkClaude},
@@ -116,6 +172,16 @@ var serviceCheckers = []serviceChecker{
 }
 
 func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
+	if params.Cancel {
+		serviceRunsMu.Lock()
+		if run := serviceRuns[params.RunID]; run != nil {
+			run.cancel()
+		}
+		serviceRunsMu.Unlock()
+		return []ServiceCheckItem{}
+	}
+	parent, releaseRun := acquireServiceRun(params.RunID)
+	defer releaseRun()
 	wanted := selectedCheckers(params.Names)
 	items := make([]ServiceCheckItem, len(wanted))
 	if len(wanted) == 0 {
@@ -123,7 +189,7 @@ func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
 	}
 
 	timeout := timeoutFromMillis(params.Timeout, defaultProbeTimeout)
-	ctx, cancel := context.WithTimeout(context.Background(), timeout*serviceSweepBudgetFactor)
+	ctx, cancel := context.WithTimeout(parent, timeout*serviceSweepBudgetFactor)
 	defer cancel()
 
 	// Claimed before queueing, so a check waiting for a slot is cancelled the
@@ -150,6 +216,7 @@ func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
 func runServiceCheck(ctx context.Context, checker serviceChecker, proxyName string, timeout time.Duration) (item ServiceCheckItem) {
 	epoch, version := routeStamp()
 	hits := &hitRecorder{}
+	observations := []ServiceObservation{}
 	item = ServiceCheckItem{Status: serviceFailed}
 	defer func() {
 		if recovered := recover(); recovered != nil {
@@ -160,11 +227,12 @@ func runServiceCheck(ctx context.Context, checker serviceChecker, proxyName stri
 		item.CoreEpoch = epoch
 		item.RouteVersion = version
 		item.Hits = hits.list()
+		item.Observations = observations
 	}()
 	if ctx.Err() != nil {
 		return item
 	}
-	env := serviceEnv{ctx: ctx, proxyName: proxyName, timeout: timeout, hits: hits}
+	env := serviceEnv{ctx: ctx, proxyName: proxyName, timeout: timeout, hits: hits, observations: &observations}
 	item = checker.check(env)
 	if item.Status == serviceTimeout && hasBudget(ctx, timeout) {
 		item = checker.check(env)
