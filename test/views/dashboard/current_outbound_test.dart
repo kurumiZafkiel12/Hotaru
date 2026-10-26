@@ -165,6 +165,12 @@ DashboardChip _chip(WidgetTester tester, String label) =>
       find.ancestor(of: find.text(label), matching: find.byType(DashboardChip)),
     );
 
+Future<void> settleWave(WidgetTester tester) async {
+  for (var frame = 0; frame < 12; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
 void main() {
   setUpAll(() => registerFallbackValue(const OutboundIpParams(timeout: 0)));
 
@@ -251,7 +257,7 @@ void main() {
       expect(_cloverTurn(tester), isNot(turn));
 
       quality.complete(_residential);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(find.byType(SkeletonPill), findsNothing);
       expect(find.text('Residential'), findsOneWidget);
@@ -279,7 +285,7 @@ void main() {
       expect(find.text('Unknown type'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Retry'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(calls, 2);
       verify(() => core.outboundIp(any())).called(2);
@@ -315,11 +321,11 @@ void main() {
       await tester.pump();
 
       await tester.tap(find.text('Example Broadband'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       expect(find.text('iplocate.io'), findsNothing);
 
       await tester.tap(find.text(_ip));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(find.text('Good'), findsOneWidget);
       expect(find.text('Residential'), findsNWidgets(2));
@@ -357,14 +363,14 @@ void main() {
       await tester.pump();
 
       await tester.tap(find.byTooltip('Outbound IP details'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(find.text("Couldn't determine the IP type"), findsOneWidget);
       expect(find.text('Different outbound IP'), findsOneWidget);
       expect(find.text('Rate limited'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Check again'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(calls, 2);
     });
@@ -375,15 +381,15 @@ void main() {
       await tester.pump();
 
       await tester.tap(find.byTooltip('Outbound IP details'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       await tester.scrollUntilVisible(
         find.text('Hide IP'),
         100,
         scrollable: find.byType(Scrollable).last,
       );
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       await tester.tap(find.text('Hide IP'));
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       expect(find.text(_ip), findsNothing);
       expect(find.text('*****'), findsNWidgets(2));
@@ -434,7 +440,7 @@ void main() {
           .read(routeTrackerProvider.notifier)
           .applySnapshot(const RouteSnapshot(coreEpoch: 2, routeVersion: 1));
       await tester.pump(probeSettleDuration);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       await tester.pump(const Duration(milliseconds: 700));
       expect(find.text(_ip), findsOneWidget);
       expect(find.byType(SkeletonText), findsNothing);
@@ -470,7 +476,7 @@ void main() {
       await tester.tap(find.byTooltip('Retry'));
       await tester.pump();
       expect(asked, [directOutbound, routedOutbound, routedOutbound]);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       await tester.pump(const Duration(milliseconds: 700));
       expect(find.text('Check failed'), findsOneWidget);
       expect(find.byType(SkeletonText), findsNothing);
@@ -532,13 +538,13 @@ void main() {
       await tester.tap(startButton());
       expect(action.requests, [false]);
       expect(container.read(isStartProvider), isFalse);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       expect(find.byTooltip('Start'), findsOneWidget);
 
       await tester.tap(startButton());
       expect(action.requests, [false, true]);
       expect(container.read(isStartProvider), isTrue);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       expect(find.byTooltip('Stop'), findsOneWidget);
     });
 
@@ -548,7 +554,7 @@ void main() {
       container = containerWith(suspended: true);
       container.read(runTimeProvider.notifier).value = 1;
       await pumpCard(tester);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
 
       final context = tester.element(find.byType(CurrentOutboundCard));
       expect(
@@ -565,7 +571,7 @@ void main() {
       container = containerWith();
       container.read(runTimeProvider.notifier).value = 1;
       await pumpCard(tester, glass: true);
-      await tester.pumpAndSettle();
+      await settleWave(tester);
       final glass = tester.widget<LiquidGlass>(
         find.descendant(of: startButton(), matching: find.byType(LiquidGlass)),
       );
@@ -585,7 +591,7 @@ void main() {
         isA<TransformLayer>(),
       );
       await gesture.cancel();
-      await tester.pumpAndSettle();
+      await settleWave(tester);
     });
 
     testWidgets('is off without a profile', (tester) async {

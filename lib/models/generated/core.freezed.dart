@@ -5239,7 +5239,7 @@ as List<RouteHit>,
 /// @nodoc
 mixin _$ServiceCheckParams {
 
-@JsonKey(name: 'proxy-name') String get proxyName; List<String> get names; int get timeout;
+@JsonKey(name: 'proxy-name') String get proxyName; List<String> get names; int get timeout;@JsonKey(name: 'run-id') String get runId; bool get cancel;
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5253,20 +5253,20 @@ $ServiceCheckParamsCopyWith<ServiceCheckParams> get copyWith => _$ServiceCheckPa
 @override
 bool operator ==(Object other) {
   final _this = this as ServiceCheckParams;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckParams&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName)&&const DeepCollectionEquality().equals(other.names, _this.names)&&(identical(other.timeout, _this.timeout) || other.timeout == _this.timeout));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckParams&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName)&&const DeepCollectionEquality().equals(other.names, _this.names)&&(identical(other.timeout, _this.timeout) || other.timeout == _this.timeout)&&(identical(other.runId, _this.runId) || other.runId == _this.runId)&&(identical(other.cancel, _this.cancel) || other.cancel == _this.cancel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ServiceCheckParams;
-  return Object.hash(runtimeType,_this.proxyName,const DeepCollectionEquality().hash(_this.names),_this.timeout);
+  return Object.hash(runtimeType,_this.proxyName,const DeepCollectionEquality().hash(_this.names),_this.timeout,_this.runId,_this.cancel);
 }
 
 @override
 String toString() {
   final _this = this as ServiceCheckParams;
-  return 'ServiceCheckParams(proxyName: ${_this.proxyName}, names: ${_this.names}, timeout: ${_this.timeout})';
+  return 'ServiceCheckParams(proxyName: ${_this.proxyName}, names: ${_this.names}, timeout: ${_this.timeout}, runId: ${_this.runId}, cancel: ${_this.cancel})';
 }
 
 
@@ -5277,7 +5277,7 @@ abstract mixin class $ServiceCheckParamsCopyWith<$Res>  {
   factory $ServiceCheckParamsCopyWith(ServiceCheckParams value, $Res Function(ServiceCheckParams) _then) = _$ServiceCheckParamsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout
+@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel
 });
 
 
@@ -5294,12 +5294,14 @@ class _$ServiceCheckParamsCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,}) {
   return _then(ServiceCheckParams(
 proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,names: null == names ? _self.names : names // ignore: cast_nullable_to_non_nullable
 as List<String>,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
-as int,
+as int,runId: null == runId ? _self.runId : runId // ignore: cast_nullable_to_non_nullable
+as String,cancel: null == cancel ? _self.cancel : cancel // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -5384,10 +5386,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams() when $default != null:
-return $default(_that.proxyName,_that.names,_that.timeout);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
   return orElse();
 
 }
@@ -5405,10 +5407,10 @@ return $default(_that.proxyName,_that.names,_that.timeout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams():
-return $default(_that.proxyName,_that.names,_that.timeout);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5425,10 +5427,10 @@ return $default(_that.proxyName,_that.names,_that.timeout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)?  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams() when $default != null:
-return $default(_that.proxyName,_that.names,_that.timeout);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
   return null;
 
 }
@@ -5440,7 +5442,7 @@ return $default(_that.proxyName,_that.names,_that.timeout);case _:
 @JsonSerializable()
 
 class _ServiceCheckParams implements ServiceCheckParams {
-  const _ServiceCheckParams({@JsonKey(name: 'proxy-name') this.proxyName = '',  List<String> names = const [], required this.timeout}): _names = names;
+  const _ServiceCheckParams({@JsonKey(name: 'proxy-name') this.proxyName = '',  List<String> names = const [], required this.timeout, @JsonKey(name: 'run-id') this.runId = '', this.cancel = false}): _names = names;
   factory _ServiceCheckParams.fromJson(Map<String, dynamic> json) => _$ServiceCheckParamsFromJson(json);
 
 @override@JsonKey(name: 'proxy-name') final  String proxyName;
@@ -5452,6 +5454,8 @@ class _ServiceCheckParams implements ServiceCheckParams {
 }
 
 @override final  int timeout;
+@override@JsonKey(name: 'run-id') final  String runId;
+@override@JsonKey() final  bool cancel;
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
@@ -5466,18 +5470,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckParams&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName)&&const DeepCollectionEquality().equals(other.names, _names)&&(identical(other.timeout, timeout) || other.timeout == timeout));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckParams&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName)&&const DeepCollectionEquality().equals(other.names, _names)&&(identical(other.timeout, timeout) || other.timeout == timeout)&&(identical(other.runId, runId) || other.runId == runId)&&(identical(other.cancel, cancel) || other.cancel == cancel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,proxyName,const DeepCollectionEquality().hash(_names),timeout);
+    return Object.hash(runtimeType,proxyName,const DeepCollectionEquality().hash(_names),timeout,runId,cancel);
 }
 
 @override
 String toString() {
-    return 'ServiceCheckParams(proxyName: $proxyName, names: $names, timeout: $timeout)';
+    return 'ServiceCheckParams(proxyName: $proxyName, names: $names, timeout: $timeout, runId: $runId, cancel: $cancel)';
 }
 
 
@@ -5488,7 +5492,7 @@ abstract mixin class _$ServiceCheckParamsCopyWith<$Res> implements $ServiceCheck
   factory _$ServiceCheckParamsCopyWith(_ServiceCheckParams value, $Res Function(_ServiceCheckParams) _then) = __$ServiceCheckParamsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout
+@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel
 });
 
 
@@ -5505,12 +5509,14 @@ class __$ServiceCheckParamsCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,}) {
   return _then(_ServiceCheckParams(
 proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,names: null == names ? _self._names : names // ignore: cast_nullable_to_non_nullable
 as List<String>,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
-as int,
+as int,runId: null == runId ? _self.runId : runId // ignore: cast_nullable_to_non_nullable
+as String,cancel: null == cancel ? _self.cancel : cancel // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -5521,7 +5527,7 @@ as int,
 /// @nodoc
 mixin _$ServiceCheckItem {
 
- String get name; String get status; String get region; int get delay; List<String> get chains;@JsonKey(name: 'checked-at') int get checkedAt;@JsonKey(name: 'core-epoch') int get coreEpoch;@JsonKey(name: 'route-version') int get routeVersion; List<RouteHit> get hits;
+ String get name; String get status; String get region; int get delay; List<String> get chains;@JsonKey(name: 'checked-at') int get checkedAt;@JsonKey(name: 'core-epoch') int get coreEpoch;@JsonKey(name: 'route-version') int get routeVersion; List<RouteHit> get hits; List<ServiceObservation> get observations;
 /// Create a copy of ServiceCheckItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5535,20 +5541,20 @@ $ServiceCheckItemCopyWith<ServiceCheckItem> get copyWith => _$ServiceCheckItemCo
 @override
 bool operator ==(Object other) {
   final _this = this as ServiceCheckItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckItem&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.region, _this.region) || other.region == _this.region)&&(identical(other.delay, _this.delay) || other.delay == _this.delay)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.checkedAt, _this.checkedAt) || other.checkedAt == _this.checkedAt)&&(identical(other.coreEpoch, _this.coreEpoch) || other.coreEpoch == _this.coreEpoch)&&(identical(other.routeVersion, _this.routeVersion) || other.routeVersion == _this.routeVersion)&&const DeepCollectionEquality().equals(other.hits, _this.hits));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckItem&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.region, _this.region) || other.region == _this.region)&&(identical(other.delay, _this.delay) || other.delay == _this.delay)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.checkedAt, _this.checkedAt) || other.checkedAt == _this.checkedAt)&&(identical(other.coreEpoch, _this.coreEpoch) || other.coreEpoch == _this.coreEpoch)&&(identical(other.routeVersion, _this.routeVersion) || other.routeVersion == _this.routeVersion)&&const DeepCollectionEquality().equals(other.hits, _this.hits)&&const DeepCollectionEquality().equals(other.observations, _this.observations));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ServiceCheckItem;
-  return Object.hash(runtimeType,_this.name,_this.status,_this.region,_this.delay,const DeepCollectionEquality().hash(_this.chains),_this.checkedAt,_this.coreEpoch,_this.routeVersion,const DeepCollectionEquality().hash(_this.hits));
+  return Object.hash(runtimeType,_this.name,_this.status,_this.region,_this.delay,const DeepCollectionEquality().hash(_this.chains),_this.checkedAt,_this.coreEpoch,_this.routeVersion,const DeepCollectionEquality().hash(_this.hits),const DeepCollectionEquality().hash(_this.observations));
 }
 
 @override
 String toString() {
   final _this = this as ServiceCheckItem;
-  return 'ServiceCheckItem(name: ${_this.name}, status: ${_this.status}, region: ${_this.region}, delay: ${_this.delay}, chains: ${_this.chains}, checkedAt: ${_this.checkedAt}, coreEpoch: ${_this.coreEpoch}, routeVersion: ${_this.routeVersion}, hits: ${_this.hits})';
+  return 'ServiceCheckItem(name: ${_this.name}, status: ${_this.status}, region: ${_this.region}, delay: ${_this.delay}, chains: ${_this.chains}, checkedAt: ${_this.checkedAt}, coreEpoch: ${_this.coreEpoch}, routeVersion: ${_this.routeVersion}, hits: ${_this.hits}, observations: ${_this.observations})';
 }
 
 
@@ -5559,7 +5565,7 @@ abstract mixin class $ServiceCheckItemCopyWith<$Res>  {
   factory $ServiceCheckItemCopyWith(ServiceCheckItem value, $Res Function(ServiceCheckItem) _then) = _$ServiceCheckItemCopyWithImpl;
 @useResult
 $Res call({
- String name, String status, String region, int delay, List<String> chains,@JsonKey(name: 'checked-at') int checkedAt,@JsonKey(name: 'core-epoch') int coreEpoch,@JsonKey(name: 'route-version') int routeVersion, List<RouteHit> hits
+ String name, String status, String region, int delay, List<String> chains,@JsonKey(name: 'checked-at') int checkedAt,@JsonKey(name: 'core-epoch') int coreEpoch,@JsonKey(name: 'route-version') int routeVersion, List<RouteHit> hits, List<ServiceObservation> observations
 });
 
 
@@ -5576,7 +5582,7 @@ class _$ServiceCheckItemCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? status = null,Object? region = null,Object? delay = null,Object? chains = null,Object? checkedAt = null,Object? coreEpoch = null,Object? routeVersion = null,Object? hits = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? status = null,Object? region = null,Object? delay = null,Object? chains = null,Object? checkedAt = null,Object? coreEpoch = null,Object? routeVersion = null,Object? hits = null,Object? observations = null,}) {
   return _then(ServiceCheckItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -5587,7 +5593,8 @@ as List<String>,checkedAt: null == checkedAt ? _self.checkedAt : checkedAt // ig
 as int,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
 as int,routeVersion: null == routeVersion ? _self.routeVersion : routeVersion // ignore: cast_nullable_to_non_nullable
 as int,hits: null == hits ? _self.hits : hits // ignore: cast_nullable_to_non_nullable
-as List<RouteHit>,
+as List<RouteHit>,observations: null == observations ? _self.observations : observations // ignore: cast_nullable_to_non_nullable
+as List<ServiceObservation>,
   ));
 }
 
@@ -5672,10 +5679,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits,  List<ServiceObservation> observations)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ServiceCheckItem() when $default != null:
-return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits);case _:
+return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits,_that.observations);case _:
   return orElse();
 
 }
@@ -5693,10 +5700,10 @@ return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits,  List<ServiceObservation> observations)  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckItem():
-return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits);case _:
+return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits,_that.observations);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5713,10 +5720,10 @@ return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String status,  String region,  int delay,  List<String> chains, @JsonKey(name: 'checked-at')  int checkedAt, @JsonKey(name: 'core-epoch')  int coreEpoch, @JsonKey(name: 'route-version')  int routeVersion,  List<RouteHit> hits,  List<ServiceObservation> observations)?  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckItem() when $default != null:
-return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits);case _:
+return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_that.checkedAt,_that.coreEpoch,_that.routeVersion,_that.hits,_that.observations);case _:
   return null;
 
 }
@@ -5728,7 +5735,7 @@ return $default(_that.name,_that.status,_that.region,_that.delay,_that.chains,_t
 @JsonSerializable()
 
 class _ServiceCheckItem implements ServiceCheckItem {
-  const _ServiceCheckItem({this.name = '', this.status = '', this.region = '', this.delay = 0,  List<String> chains = const [], @JsonKey(name: 'checked-at') this.checkedAt = 0, @JsonKey(name: 'core-epoch') this.coreEpoch = 0, @JsonKey(name: 'route-version') this.routeVersion = 0,  List<RouteHit> hits = const []}): _chains = chains,_hits = hits;
+  const _ServiceCheckItem({this.name = '', this.status = '', this.region = '', this.delay = 0,  List<String> chains = const [], @JsonKey(name: 'checked-at') this.checkedAt = 0, @JsonKey(name: 'core-epoch') this.coreEpoch = 0, @JsonKey(name: 'route-version') this.routeVersion = 0,  List<RouteHit> hits = const [],  List<ServiceObservation> observations = const []}): _chains = chains,_hits = hits,_observations = observations;
   factory _ServiceCheckItem.fromJson(Map<String, dynamic> json) => _$ServiceCheckItemFromJson(json);
 
 @override@JsonKey() final  String name;
@@ -5752,6 +5759,13 @@ class _ServiceCheckItem implements ServiceCheckItem {
   return EqualUnmodifiableListView(_hits);
 }
 
+ final  List<ServiceObservation> _observations;
+@override@JsonKey() List<ServiceObservation> get observations {
+  if (_observations is EqualUnmodifiableListView) return _observations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_observations);
+}
+
 
 /// Create a copy of ServiceCheckItem
 /// with the given fields replaced by the non-null parameter values.
@@ -5766,18 +5780,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckItem&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.region, region) || other.region == region)&&(identical(other.delay, delay) || other.delay == delay)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.checkedAt, checkedAt) || other.checkedAt == checkedAt)&&(identical(other.coreEpoch, coreEpoch) || other.coreEpoch == coreEpoch)&&(identical(other.routeVersion, routeVersion) || other.routeVersion == routeVersion)&&const DeepCollectionEquality().equals(other.hits, _hits));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckItem&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.region, region) || other.region == region)&&(identical(other.delay, delay) || other.delay == delay)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.checkedAt, checkedAt) || other.checkedAt == checkedAt)&&(identical(other.coreEpoch, coreEpoch) || other.coreEpoch == coreEpoch)&&(identical(other.routeVersion, routeVersion) || other.routeVersion == routeVersion)&&const DeepCollectionEquality().equals(other.hits, _hits)&&const DeepCollectionEquality().equals(other.observations, _observations));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,status,region,delay,const DeepCollectionEquality().hash(_chains),checkedAt,coreEpoch,routeVersion,const DeepCollectionEquality().hash(_hits));
+    return Object.hash(runtimeType,name,status,region,delay,const DeepCollectionEquality().hash(_chains),checkedAt,coreEpoch,routeVersion,const DeepCollectionEquality().hash(_hits),const DeepCollectionEquality().hash(_observations));
 }
 
 @override
 String toString() {
-    return 'ServiceCheckItem(name: $name, status: $status, region: $region, delay: $delay, chains: $chains, checkedAt: $checkedAt, coreEpoch: $coreEpoch, routeVersion: $routeVersion, hits: $hits)';
+    return 'ServiceCheckItem(name: $name, status: $status, region: $region, delay: $delay, chains: $chains, checkedAt: $checkedAt, coreEpoch: $coreEpoch, routeVersion: $routeVersion, hits: $hits, observations: $observations)';
 }
 
 
@@ -5788,7 +5802,7 @@ abstract mixin class _$ServiceCheckItemCopyWith<$Res> implements $ServiceCheckIt
   factory _$ServiceCheckItemCopyWith(_ServiceCheckItem value, $Res Function(_ServiceCheckItem) _then) = __$ServiceCheckItemCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String status, String region, int delay, List<String> chains,@JsonKey(name: 'checked-at') int checkedAt,@JsonKey(name: 'core-epoch') int coreEpoch,@JsonKey(name: 'route-version') int routeVersion, List<RouteHit> hits
+ String name, String status, String region, int delay, List<String> chains,@JsonKey(name: 'checked-at') int checkedAt,@JsonKey(name: 'core-epoch') int coreEpoch,@JsonKey(name: 'route-version') int routeVersion, List<RouteHit> hits, List<ServiceObservation> observations
 });
 
 
@@ -5805,7 +5819,7 @@ class __$ServiceCheckItemCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? status = null,Object? region = null,Object? delay = null,Object? chains = null,Object? checkedAt = null,Object? coreEpoch = null,Object? routeVersion = null,Object? hits = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? status = null,Object? region = null,Object? delay = null,Object? chains = null,Object? checkedAt = null,Object? coreEpoch = null,Object? routeVersion = null,Object? hits = null,Object? observations = null,}) {
   return _then(_ServiceCheckItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -5816,7 +5830,299 @@ as List<String>,checkedAt: null == checkedAt ? _self.checkedAt : checkedAt // ig
 as int,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
 as int,routeVersion: null == routeVersion ? _self.routeVersion : routeVersion // ignore: cast_nullable_to_non_nullable
 as int,hits: null == hits ? _self._hits : hits // ignore: cast_nullable_to_non_nullable
-as List<RouteHit>,
+as List<RouteHit>,observations: null == observations ? _self._observations : observations // ignore: cast_nullable_to_non_nullable
+as List<ServiceObservation>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$ServiceObservation {
+
+ String get url;@JsonKey(name: 'status-code') int get statusCode; String get rule;@JsonKey(name: 'rule-payload') String get rulePayload; List<String> get chains; String get error;
+/// Create a copy of ServiceObservation
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ServiceObservationCopyWith<ServiceObservation> get copyWith => _$ServiceObservationCopyWithImpl<ServiceObservation>(this as ServiceObservation, _$identity);
+
+  /// Serializes this ServiceObservation to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ServiceObservation;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceObservation&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.statusCode, _this.statusCode) || other.statusCode == _this.statusCode)&&(identical(other.rule, _this.rule) || other.rule == _this.rule)&&(identical(other.rulePayload, _this.rulePayload) || other.rulePayload == _this.rulePayload)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.error, _this.error) || other.error == _this.error));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as ServiceObservation;
+  return Object.hash(runtimeType,_this.url,_this.statusCode,_this.rule,_this.rulePayload,const DeepCollectionEquality().hash(_this.chains),_this.error);
+}
+
+@override
+String toString() {
+  final _this = this as ServiceObservation;
+  return 'ServiceObservation(url: ${_this.url}, statusCode: ${_this.statusCode}, rule: ${_this.rule}, rulePayload: ${_this.rulePayload}, chains: ${_this.chains}, error: ${_this.error})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ServiceObservationCopyWith<$Res>  {
+  factory $ServiceObservationCopyWith(ServiceObservation value, $Res Function(ServiceObservation) _then) = _$ServiceObservationCopyWithImpl;
+@useResult
+$Res call({
+ String url,@JsonKey(name: 'status-code') int statusCode, String rule,@JsonKey(name: 'rule-payload') String rulePayload, List<String> chains, String error
+});
+
+
+
+
+}
+/// @nodoc
+class _$ServiceObservationCopyWithImpl<$Res>
+    implements $ServiceObservationCopyWith<$Res> {
+  _$ServiceObservationCopyWithImpl(this._self, this._then);
+
+  final ServiceObservation _self;
+  final $Res Function(ServiceObservation) _then;
+
+/// Create a copy of ServiceObservation
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? statusCode = null,Object? rule = null,Object? rulePayload = null,Object? chains = null,Object? error = null,}) {
+  return _then(ServiceObservation(
+url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,statusCode: null == statusCode ? _self.statusCode : statusCode // ignore: cast_nullable_to_non_nullable
+as int,rule: null == rule ? _self.rule : rule // ignore: cast_nullable_to_non_nullable
+as String,rulePayload: null == rulePayload ? _self.rulePayload : rulePayload // ignore: cast_nullable_to_non_nullable
+as String,chains: null == chains ? _self.chains : chains // ignore: cast_nullable_to_non_nullable
+as List<String>,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ServiceObservation].
+extension ServiceObservationPatterns on ServiceObservation {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ServiceObservation value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ServiceObservation() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ServiceObservation value)  $default,){
+final _that = this;
+switch (_that) {
+case _ServiceObservation():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ServiceObservation value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ServiceObservation() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String url, @JsonKey(name: 'status-code')  int statusCode,  String rule, @JsonKey(name: 'rule-payload')  String rulePayload,  List<String> chains,  String error)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ServiceObservation() when $default != null:
+return $default(_that.url,_that.statusCode,_that.rule,_that.rulePayload,_that.chains,_that.error);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String url, @JsonKey(name: 'status-code')  int statusCode,  String rule, @JsonKey(name: 'rule-payload')  String rulePayload,  List<String> chains,  String error)  $default,) {final _that = this;
+switch (_that) {
+case _ServiceObservation():
+return $default(_that.url,_that.statusCode,_that.rule,_that.rulePayload,_that.chains,_that.error);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String url, @JsonKey(name: 'status-code')  int statusCode,  String rule, @JsonKey(name: 'rule-payload')  String rulePayload,  List<String> chains,  String error)?  $default,) {final _that = this;
+switch (_that) {
+case _ServiceObservation() when $default != null:
+return $default(_that.url,_that.statusCode,_that.rule,_that.rulePayload,_that.chains,_that.error);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ServiceObservation implements ServiceObservation {
+  const _ServiceObservation({this.url = '', @JsonKey(name: 'status-code') this.statusCode = 0, this.rule = '', @JsonKey(name: 'rule-payload') this.rulePayload = '',  List<String> chains = const [], this.error = ''}): _chains = chains;
+  factory _ServiceObservation.fromJson(Map<String, dynamic> json) => _$ServiceObservationFromJson(json);
+
+@override@JsonKey() final  String url;
+@override@JsonKey(name: 'status-code') final  int statusCode;
+@override@JsonKey() final  String rule;
+@override@JsonKey(name: 'rule-payload') final  String rulePayload;
+ final  List<String> _chains;
+@override@JsonKey() List<String> get chains {
+  if (_chains is EqualUnmodifiableListView) return _chains;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_chains);
+}
+
+@override@JsonKey() final  String error;
+
+/// Create a copy of ServiceObservation
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ServiceObservationCopyWith<_ServiceObservation> get copyWith => __$ServiceObservationCopyWithImpl<_ServiceObservation>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ServiceObservationToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceObservation&&(identical(other.url, url) || other.url == url)&&(identical(other.statusCode, statusCode) || other.statusCode == statusCode)&&(identical(other.rule, rule) || other.rule == rule)&&(identical(other.rulePayload, rulePayload) || other.rulePayload == rulePayload)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.error, error) || other.error == error));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,url,statusCode,rule,rulePayload,const DeepCollectionEquality().hash(_chains),error);
+}
+
+@override
+String toString() {
+    return 'ServiceObservation(url: $url, statusCode: $statusCode, rule: $rule, rulePayload: $rulePayload, chains: $chains, error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ServiceObservationCopyWith<$Res> implements $ServiceObservationCopyWith<$Res> {
+  factory _$ServiceObservationCopyWith(_ServiceObservation value, $Res Function(_ServiceObservation) _then) = __$ServiceObservationCopyWithImpl;
+@override @useResult
+$Res call({
+ String url,@JsonKey(name: 'status-code') int statusCode, String rule,@JsonKey(name: 'rule-payload') String rulePayload, List<String> chains, String error
+});
+
+
+
+
+}
+/// @nodoc
+class __$ServiceObservationCopyWithImpl<$Res>
+    implements _$ServiceObservationCopyWith<$Res> {
+  __$ServiceObservationCopyWithImpl(this._self, this._then);
+
+  final _ServiceObservation _self;
+  final $Res Function(_ServiceObservation) _then;
+
+/// Create a copy of ServiceObservation
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? url = null,Object? statusCode = null,Object? rule = null,Object? rulePayload = null,Object? chains = null,Object? error = null,}) {
+  return _then(_ServiceObservation(
+url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,statusCode: null == statusCode ? _self.statusCode : statusCode // ignore: cast_nullable_to_non_nullable
+as int,rule: null == rule ? _self.rule : rule // ignore: cast_nullable_to_non_nullable
+as String,rulePayload: null == rulePayload ? _self.rulePayload : rulePayload // ignore: cast_nullable_to_non_nullable
+as String,chains: null == chains ? _self._chains : chains // ignore: cast_nullable_to_non_nullable
+as List<String>,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

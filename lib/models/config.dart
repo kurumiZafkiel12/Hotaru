@@ -109,17 +109,23 @@ final List<HotKeyAction> defaultHotKeyActions = system.isWindows
         _defaultHotKeyAction(HotAction.delayTest, PhysicalKeyboardKey.keyD),
       ];
 
+/// Desktop grid sizes per widget name, encoded width * 10 + height index.
+const Map<String, int> defaultDashboardWidgetSpans = {
+  'currentOutbound': 21,
+  'networkSpeed': 21,
+  'outboundMode': 20,
+  'vpnButton': 20,
+  'networkTakeover': 20,
+  'connectionStats': 20,
+  'proxyGroups': 20,
+};
+
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.currentOutbound,
   DashboardWidget.networkSpeed,
   DashboardWidget.outboundMode,
-  DashboardWidget.vpnButton,
   DashboardWidget.networkTakeover,
-  DashboardWidget.intranetIp,
-  DashboardWidget.serviceStatus,
-  DashboardWidget.profiles,
-  DashboardWidget.proxyGroups,
-  DashboardWidget.connectionStats,
+  DashboardWidget.vpnButton,
 ];
 
 /// A phone starts without the VPN switch and the diagnostic cards, which stay
@@ -129,8 +135,7 @@ final List<DashboardWidget> platformDefaultDashboardWidgets = system.isAndroid
         DashboardWidget.currentOutbound,
         DashboardWidget.networkSpeed,
         DashboardWidget.outboundMode,
-        DashboardWidget.profiles,
-        DashboardWidget.proxyGroups,
+        DashboardWidget.vpnButton,
       ]
     : defaultDashboardWidgets;
 
@@ -241,6 +246,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(defaultDashboardWidgets)
     @JsonKey(fromJson: dashboardWidgetsFromJson)
     List<DashboardWidget> dashboardWidgets,
+    @Default(defaultDashboardWidgetSpans) Map<String, int> dashboardWidgetSpans,
     @Default(false) bool onlyStatisticsProxy,
     @Default(true) bool showNotificationStopAction,
     @Default(false) bool autoLaunch,

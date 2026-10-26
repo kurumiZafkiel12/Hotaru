@@ -8,4 +8,5 @@ export 'outbound_mode.dart';
 export 'profiles.dart';
 export 'proxy_groups.dart';
 export 'service_status.dart';
+export 'speed_test_card.dart';
 export 'traffic.dart';

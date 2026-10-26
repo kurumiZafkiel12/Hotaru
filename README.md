@@ -3,20 +3,20 @@
 
 # Hotaru · 蛍
 
-简洁、开源的 Mihomo 代理客户端。先把 Windows 做好，再逐步完善其他平台。
+简洁、开源的 Mihomo 代理客户端。Windows 与 Android 共享核心功能和品牌体验。
 
-[![版本](https://img.shields.io/badge/release-v0.0.2-67b7d1)](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.2)
-[![安装包](https://img.shields.io/badge/Windows-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.2/Hotaru-0.0.2-windows-amd64-setup.exe)
-[![便携版](https://img.shields.io/badge/Windows-下载便携版-67b7d1?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.2/Hotaru-0.0.2-windows-amd64.zip)
+[![版本](https://img.shields.io/badge/release-v0.0.4-67b7d1)](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.4)
+[![安装包](https://img.shields.io/badge/Windows-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.4/Hotaru-0.0.4-windows-amd64-setup.exe)
+[![便携版](https://img.shields.io/badge/Windows-下载便携版-67b7d1?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.4/Hotaru-0.0.4-windows-amd64.zip)
 
-[发布说明](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.2) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [作者交流群](https://t.me/kurumizafkiel1) · [English](README_en.md)
+[安卓 ARM64 下载](https://github.com/kurumiZafkiel12/Hotaru/releases/download/v0.0.4/Hotaru-0.0.4-android-arm64-v8a.apk) · [发布说明](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.4) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [作者交流群](https://t.me/kurumizafkiel1) · [English](README_en.md)
 </div>
 
 ## 项目介绍
 
 Hotaru（蛍）基于 [FlClash 0.9.2](https://github.com/chen08209/FlClash/tree/7fd417fb9a9a277c6a9339a8ac87f907df7c25f7) 移植，使用 [Mihomo](https://github.com/MetaCubeX/mihomo) 内核，独立维护产品界面、默认设置和工具箱。功能演进同时参考 Bettbox，重复功能合并成一个入口。项目不提供代理服务器或订阅服务，需要导入你自己的节点或配置。
 
-当前正式提供 **Windows 10/11 x64** 安装包和便携包。源码保留上游跨平台结构；Android、Linux、macOS 尚未作为本版本的安装包交付，不代表已经完成实机验收。
+v0.0.4 同时构建 **Windows 10/11 x64** 安装包、便携包与 **Android** 三架构 APK。以 Releases 中已公开的资产为准；Linux、macOS 暂无本版安装包。
 
 ## 已有功能
 
@@ -26,6 +26,14 @@ Hotaru（蛍）基于 [FlClash 0.9.2](https://github.com/chen08209/FlClash/tree/
 - 运行状态：实时连接、流量、DNS 与日志。
 - 工具箱：节点带宽测速、IP 质量及网络检查；外部检测结果取决于相应服务。
 - 备份：本地导入导出与 WebDAV。
+
+## v0.0.4 更新
+
+- 首页正名「仪表盘」，采用冷黑与石板灰、薄荷强调色和等宽数值；默认只展示四组核心组件，其余可添加。
+- 桌面拖拽与缩放使用虚线预览，松手提交；可恢复比例并保存尺寸。
+- 57 项服务体检提供分类、单项重试与实际规则/策略链；连通、验证拦截、地区限制、证据不足分别呈现。
+- 独立 DNS、原生 STUN、IP 画像和 Windows 急救工具；安卓启动过渡、快捷磁贴与通知统一为 Hotaru 品牌。
+- 安卓延续固定正式签名；同架构正式包可覆盖升级。具体检测边界及实机待验项见[本版说明](docs/RELEASE-0.0.4.md)。
 
 ## v0.0.2 更新
 

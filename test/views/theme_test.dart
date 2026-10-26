@@ -176,7 +176,7 @@ void main() {
       await tester.pumpAndSettle();
       final count = readTheme().primaryColors.length;
 
-      await editColor(tester, 0xFFCB30E0, 'C7E9A3');
+      await editColor(tester, 0xFFCB30E0, '34D399');
 
       expect(readTheme().primaryColors, hasLength(count - 1));
       expect(readTheme().primaryColors, isNot(contains(0xFFCB30E0)));

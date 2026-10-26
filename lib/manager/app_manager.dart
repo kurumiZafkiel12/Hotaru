@@ -6,6 +6,7 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
+import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/ui/ui.dart';
 import 'package:hotaru/widgets/icon.dart';
 import 'package:flutter/foundation.dart';
@@ -144,12 +145,16 @@ class _Sidebar extends ConsumerWidget {
     required this.currentIndex,
     required this.viewMode,
     required this.onSelected,
+    required this.settingsSelected,
+    required this.onSettingsSelected,
   });
 
   final List<NavigationItem> items;
   final int currentIndex;
   final ViewMode viewMode;
   final void Function(int index) onSelected;
+  final bool settingsSelected;
+  final VoidCallback onSettingsSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,6 +186,12 @@ class _Sidebar extends ConsumerWidget {
         isMacOS: system.isMacOS,
         version: version,
       ),
+      footerDestination: SidebarDestination(
+        glyph: AppGlyphs.settings,
+        label: context.appLocalizations.settings,
+      ),
+      footerSelected: settingsSelected,
+      onFooterTap: onSettingsSelected,
     );
   }
 }
@@ -221,6 +232,7 @@ class AppSidebarContainer extends ConsumerWidget {
     final navigationItems = navigationState.navigationItems;
     final viewMode = navigationState.viewMode;
     final currentIndex = navigationState.currentIndex;
+    final settingsSelected = navigationState.pageLabel == PageLabel.settings;
     final backdropOpacity = ref.watch(windowBlurProvider);
     final page = SurfaceLevel.page.colorOf(context.colorScheme);
     final chrome = context.colorScheme.chromeSurface;
@@ -247,9 +259,14 @@ class AppSidebarContainer extends ConsumerWidget {
                 removeRight: isLtr,
                 child: _Sidebar(
                   items: navigationItems,
-                  currentIndex: currentIndex,
+                  currentIndex: settingsSelected
+                      ? navigationItems.length
+                      : currentIndex,
                   viewMode: viewMode,
                   onSelected: onSelected,
+                  settingsSelected: settingsSelected,
+                  onSettingsSelected: () =>
+                      _handleToPage(ref, PageLabel.settings),
                 ),
               ),
             ),

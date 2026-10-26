@@ -185,6 +185,10 @@ class CoreController {
     return result;
   }
 
+  Future<ProxiesData> getProxies() {
+    return _interface.getProxies();
+  }
+
   Future<List<Group>> getProxiesGroups({
     required ProxiesSortType sortType,
     required DelayMap delayMap,

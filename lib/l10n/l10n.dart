@@ -1466,9 +1466,14 @@ class AppLocalizations {
     return Intl.message('Paste', name: 'paste', desc: '', args: []);
   }
 
-  /// `Test URL`
+  /// `Latency test URL`
   String get testUrl {
-    return Intl.message('Test URL', name: 'testUrl', desc: '', args: []);
+    return Intl.message(
+      'Latency test URL',
+      name: 'testUrl',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Delay test timeout`
@@ -4516,10 +4521,10 @@ class AppLocalizations {
     return Intl.message('Speed test', name: 'speedTest', desc: '', args: []);
   }
 
-  /// `Direct connection (core is not running)`
+  /// `Uses the system network path; a system VPN or TUN may still carry traffic.`
   String get speedTestDirect {
     return Intl.message(
-      'Direct connection (core is not running)',
+      'Uses the system network path; a system VPN or TUN may still carry traffic.',
       name: 'speedTestDirect',
       desc: '',
       args: [],
@@ -4536,6 +4541,51 @@ class AppLocalizations {
     );
   }
 
+  /// `A node speed test is already running`
+  String get speedTestBusy {
+    return Intl.message(
+      'A node speed test is already running',
+      name: 'speedTestBusy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Jitter`
+  String get speedTestJitter {
+    return Intl.message('Jitter', name: 'speedTestJitter', desc: '', args: []);
+  }
+
+  /// `Not supported`
+  String get speedTestNotSupported {
+    return Intl.message(
+      'Not supported',
+      name: 'speedTestNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Exit node`
+  String get speedTestExitNode {
+    return Intl.message(
+      'Exit node',
+      name: 'speedTestExitNode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A full test can use hundreds of MB of data`
+  String get speedTestTrafficWarning {
+    return Intl.message(
+      'A full test can use hundreds of MB of data',
+      name: 'speedTestTrafficWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Provider`
   String get speedTestProvider {
     return Intl.message(
@@ -4546,10 +4596,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Traffic goes through the current proxy`
+  /// `Per target; inspect live connections`
+  String get speedTestRouteEvidence {
+    return Intl.message(
+      'Per target; inspect live connections',
+      name: 'speedTestRouteEvidence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Requests enter the core and follow the current routing rules. The exit can differ by target.`
   String get speedTestViaProxy {
     return Intl.message(
-      'Traffic goes through the current proxy',
+      'Requests enter the core and follow the current routing rules. The exit can differ by target.',
       name: 'speedTestViaProxy',
       desc: '',
       args: [],
@@ -8054,6 +8114,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Restore defaults`
+  String get dashboardRestoreDefaults {
+    return Intl.message(
+      'Restore defaults',
+      name: 'dashboardRestoreDefaults',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `{count, plural, =1{1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules} other{{label} SUB-RULE rules were dropped, since custom profiles do not support sub-rules}}`
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
@@ -8178,10 +8248,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Firefly desktop`
+  /// `Dashboard`
   String get fireflyDesktop {
     return Intl.message(
-      'Firefly desktop',
+      'Dashboard',
       name: 'fireflyDesktop',
       desc: '',
       args: [],
@@ -8193,6 +8263,511 @@ class AppLocalizations {
     return Intl.message(
       'My widgets',
       name: 'dashboardWidgetsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resize card`
+  String get dashboardResizeCard {
+    return Intl.message(
+      'Resize card',
+      name: 'dashboardResizeCard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Service unlock & routing check`
+  String get auditTitle {
+    return Intl.message(
+      'Service unlock & routing check',
+      name: 'auditTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `57 services · actual rules, groups and exits`
+  String get auditSubtitle {
+    return Intl.message(
+      '57 services · actual rules, groups and exits',
+      name: 'auditSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reachable does not mean unlocked. Account, subscription, DRM and playback can require separate verification. Tests send requests only after you start.`
+  String get auditScope {
+    return Intl.message(
+      'Reachable does not mean unlocked. Account, subscription, DRM and playback can require separate verification. Tests send requests only after you start.',
+      name: 'auditScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reachable · unlock unconfirmed`
+  String get auditReachable {
+    return Intl.message(
+      'Reachable · unlock unconfirmed',
+      name: 'auditReachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected`
+  String get auditReachableSummary {
+    return Intl.message(
+      'Connected',
+      name: 'auditReachableSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authentication required`
+  String get auditAuthentication {
+    return Intl.message(
+      'Authentication required',
+      name: 'auditAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Anti-bot challenge`
+  String get auditChallenge {
+    return Intl.message(
+      'Anti-bot challenge',
+      name: 'auditChallenge',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Inconclusive`
+  String get auditInconclusive {
+    return Intl.message(
+      'Inconclusive',
+      name: 'auditInconclusive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Route changed · run again`
+  String get auditStale {
+    return Intl.message(
+      'Route changed · run again',
+      name: 'auditStale',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No observed rule`
+  String get auditRuleUnknown {
+    return Intl.message(
+      'No observed rule',
+      name: 'auditRuleUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expected route: DIRECT`
+  String get auditDirectExpected {
+    return Intl.message(
+      'Expected route: DIRECT',
+      name: 'auditDirectExpected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expected DIRECT, observed a proxy route`
+  String get auditDirectMismatch {
+    return Intl.message(
+      'Expected DIRECT, observed a proxy route',
+      name: 'auditDirectMismatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No successful connection chain was observed`
+  String get auditRouteMissing {
+    return Intl.message(
+      'No successful connection chain was observed',
+      name: 'auditRouteMissing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Region signal only; account and anti-bot checks are separate. If blocked, try a supported US, JP or SG exit.`
+  String get auditClaudeHint {
+    return Intl.message(
+      'Region signal only; account and anti-bot checks are separate. If blocked, try a supported US, JP or SG exit.',
+      name: 'auditClaudeHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checks web connectivity and MTProto handshakes to DC1–DC5 without signing in. It does not identify the DC used by your account session.`
+  String get auditTelegramHint {
+    return Intl.message(
+      'Checks web connectivity and MTProto handshakes to DC1–DC5 without signing in. It does not identify the DC used by your account session.',
+      name: 'auditTelegramHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Page or regional endpoint result; licensed playback, residential eligibility and subscription are not established by a web response.`
+  String get auditMediaHint {
+    return Intl.message(
+      'Page or regional endpoint result; licensed playback, residential eligibility and subscription are not established by a web response.',
+      name: 'auditMediaHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `AI & models`
+  String get auditAI {
+    return Intl.message('AI & models', name: 'auditAI', desc: '', args: []);
+  }
+
+  /// `International media`
+  String get auditMedia {
+    return Intl.message(
+      'International media',
+      name: 'auditMedia',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domestic media`
+  String get auditDomestic {
+    return Intl.message(
+      'Domestic media',
+      name: 'auditDomestic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Social & communication`
+  String get auditSocial {
+    return Intl.message(
+      'Social & communication',
+      name: 'auditSocial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Development & productivity`
+  String get auditDeveloper {
+    return Intl.message(
+      'Development & productivity',
+      name: 'auditDeveloper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Games & stores`
+  String get auditGames {
+    return Intl.message(
+      'Games & stores',
+      name: 'auditGames',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS leak test`
+  String get dnsLeakTitle {
+    return Intl.message(
+      'DNS leak test',
+      name: 'dnsLeakTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Observe resolver egress and ownership`
+  String get dnsLeakSubtitle {
+    return Intl.message(
+      'Observe resolver egress and ownership',
+      name: 'dnsLeakSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.`
+  String get dnsLeakScope {
+    return Intl.message(
+      'Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.',
+      name: 'dnsLeakScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domestic ISP resolver observed. If you expected proxy-only DNS, review TUN DNS hijack and use secure DoH. A domestic resolver may be intentional for direct domains.`
+  String get dnsLeakRisk {
+    return Intl.message(
+      'Domestic ISP resolver observed. If you expected proxy-only DNS, review TUN DNS hijack and use secure DoH. A domestic resolver may be intentional for direct domains.',
+      name: 'dnsLeakRisk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resolver classification incomplete; no clean verdict`
+  String get dnsLeakUnknown {
+    return Intl.message(
+      'Resolver classification incomplete; no clean verdict',
+      name: 'dnsLeakUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebRTC / STUN leak test`
+  String get webrtcLeakTitle {
+    return Intl.message(
+      'WebRTC / STUN leak test',
+      name: 'webrtcLeakTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Compare UDP reflexive address with proxy egress`
+  String get webrtcLeakSubtitle {
+    return Intl.message(
+      'Compare UDP reflexive address with proxy egress',
+      name: 'webrtcLeakSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.`
+  String get webrtcLeakScope {
+    return Intl.message(
+      'Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.',
+      name: 'webrtcLeakScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.`
+  String get webrtcLeakRisk {
+    return Intl.message(
+      'STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.',
+      name: 'webrtcLeakRisk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This STUN address matches the measured proxy egress; other browser paths remain untested.`
+  String get webrtcLeakMatch {
+    return Intl.message(
+      'This STUN address matches the measured proxy egress; other browser paths remain untested.',
+      name: 'webrtcLeakMatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Block common STUN ports`
+  String get webrtcBlockAction {
+    return Intl.message(
+      'Block common STUN ports',
+      name: 'webrtcBlockAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adds reversible UDP rules for ports 3478 and 19302. This may affect calls and does not block TURN over HTTPS or every WebRTC path. Effective in rule mode only.`
+  String get webrtcBlockScope {
+    return Intl.message(
+      'Adds reversible UDP rules for ports 3478 and 19302. This may affect calls and does not block TURN over HTTPS or every WebRTC path. Effective in rule mode only.',
+      name: 'webrtcBlockScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP profile & reputation`
+  String get ipPortraitTitle {
+    return Intl.message(
+      'IP profile & reputation',
+      name: 'ipPortraitTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sourced ISP classification and Google challenge probe`
+  String get ipPortraitSubtitle {
+    return Intl.message(
+      'Sourced ISP classification and Google challenge probe',
+      name: 'ipPortraitSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network type and reputation are third-party estimates. Residential does not mean native or risk-free. Google results describe this single request.`
+  String get ipPortraitScope {
+    return Intl.message(
+      'Network type and reputation are third-party estimates. Residential does not mean native or risk-free. Google results describe this single request.',
+      name: 'ipPortraitScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Windows network recovery`
+  String get networkRecoveryTitle {
+    return Intl.message(
+      'Windows network recovery',
+      name: 'networkRecoveryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset proxy / PAC, flush DNS and recover Hotaru TUN`
+  String get networkRecoverySubtitle {
+    return Intl.message(
+      'Reset proxy / PAC, flush DNS and recover Hotaru TUN',
+      name: 'networkRecoverySubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stops Hotaru networking, clears the current user system proxy and PAC, flushes DNS, then restarts Hotaru if it was running. Other adapters are not reset.`
+  String get networkRecoveryScope {
+    return Intl.message(
+      'Stops Hotaru networking, clears the current user system proxy and PAC, flushes DNS, then restarts Hotaru if it was running. Other adapters are not reset.',
+      name: 'networkRecoveryScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System proxy and PAC`
+  String get networkRecoveryProxy {
+    return Intl.message(
+      'System proxy and PAC',
+      name: 'networkRecoveryProxy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS cache`
+  String get networkRecoveryDns {
+    return Intl.message(
+      'DNS cache',
+      name: 'networkRecoveryDns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hotaru TUN lifecycle`
+  String get networkRecoveryTun {
+    return Intl.message(
+      'Hotaru TUN lifecycle',
+      name: 'networkRecoveryTun',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Probe failed; see evidence`
+  String get diagnosticsFailed {
+    return Intl.message(
+      'Probe failed; see evidence',
+      name: 'diagnosticsFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Probe completed; review evidence`
+  String get diagnosticsCompleted {
+    return Intl.message(
+      'Probe completed; review evidence',
+      name: 'diagnosticsCompleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start Hotaru with a profile before testing the routed path.`
+  String get diagnosticsNeedCore {
+    return Intl.message(
+      'Start Hotaru with a profile before testing the routed path.',
+      name: 'diagnosticsNeedCore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Observed evidence`
+  String get diagnosticsRawEvidence {
+    return Intl.message(
+      'Observed evidence',
+      name: 'diagnosticsRawEvidence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use secure DoH`
+  String get diagnosticsApplyDoh {
+    return Intl.message(
+      'Use secure DoH',
+      name: 'diagnosticsApplyDoh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.`
+  String get diagnosticsDohScope {
+    return Intl.message(
+      'Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.',
+      name: 'diagnosticsDohScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A newer start/stop request superseded TUN recovery.`
+  String get networkRecoverySuperseded {
+    return Intl.message(
+      'A newer start/stop request superseded TUN recovery.',
+      name: 'networkRecoverySuperseded',
       desc: '',
       args: [],
     );

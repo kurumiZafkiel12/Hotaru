@@ -285,6 +285,11 @@ func runProbe(parent context.Context, req probeRequest) *ProbeResult {
 	defer func() {
 		result.hits = dialer.hits(req.proxyName)
 		req.recorder.add(result.hits)
+		if route := dialer.route(); route != nil {
+			result.Chains = route.chains
+			result.Rule = route.rule
+			result.RulePayload = route.rulePayload
+		}
 	}()
 	tlsConfig, err := ca.GetTLSConfig(ca.Option{})
 	if err != nil {

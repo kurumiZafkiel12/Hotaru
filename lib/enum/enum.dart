@@ -491,7 +491,9 @@ enum DashboardWidget {
   proxyGroups,
   connectionStats,
   intranetIp,
-  memoryInfo;
+  memoryInfo,
+  speedTest,
+  connectionsTable(platforms: desktopPlatforms);
 
   final List<SupportPlatform> platforms;
 
@@ -560,6 +562,7 @@ enum PageLabel {
   proxies,
   profiles,
   tools,
+  settings,
   logs,
   requests,
   resources,

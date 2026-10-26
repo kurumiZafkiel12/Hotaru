@@ -14,6 +14,7 @@ import 'package:hotaru/plugins/app.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/ui/ui.dart';
+import 'package:hotaru/ui/app_arrival.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -186,7 +187,7 @@ class ApplicationState extends ConsumerState<Application> {
           theme: watchAppTheme(ref, Brightness.light),
           darkTheme: watchAppTheme(ref, Brightness.dark),
           themeAnimationStyle: AnimationStyle.noAnimation,
-          home: KeyboardInsetHold(child: child!),
+          home: KeyboardInsetHold(child: AppArrival(child: child!)),
         );
       },
       child: const HomePage(),

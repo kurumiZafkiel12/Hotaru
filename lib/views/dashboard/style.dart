@@ -142,7 +142,11 @@ abstract final class DashboardText {
   }) => style
       .of(context, emphasized: true)
       .toTabular
-      .copyWith(color: color, letterSpacing: -0.02 * style.size);
+      .copyWith(
+        fontFamily: FontFamily.jetBrainsMono.value,
+        color: color,
+        letterSpacing: -0.02 * style.size,
+      );
 
   static TextStyle unit(
     BuildContext context, [

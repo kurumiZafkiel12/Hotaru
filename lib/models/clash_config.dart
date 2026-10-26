@@ -2120,6 +2120,7 @@ Map<String, Object?> _withLegacyGeneralOverrideKeys(Map<String, Object?> json) {
 @freezed
 abstract class PatchClashConfig with _$PatchClashConfig {
   const factory PatchClashConfig({
+    @Default(false) bool blockCommonStun,
     @Default(defaultMixedPort) @JsonKey(name: 'mixed-port') int mixedPort,
     @Default(0) @JsonKey(name: 'socks-port') int socksPort,
     @Default(0) @JsonKey(name: 'port') int port,

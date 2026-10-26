@@ -10,9 +10,9 @@ const routedOutbound = '';
 
 /// [id] must match the checker name registered in core/service_check.go.
 enum ServiceTarget {
-  google('google', 'Google', 'google'),
+  google('google', 'Google Workspace', 'google'),
   github('github', 'GitHub', 'github'),
-  youtube('youtube', 'YouTube', 'youtube'),
+  youtube('youtube', 'YouTube Premium', 'youtube'),
   chatgpt('chatgpt', 'ChatGPT', 'openai'),
   claude('claude', 'Claude', 'claude'),
   gemini('gemini', 'Gemini', 'gemini'),
@@ -22,13 +22,113 @@ enum ServiceTarget {
   spotify('spotify', 'Spotify', 'spotify'),
   tiktok('tiktok', 'TikTok', 'tiktok'),
   discord('discord', 'Discord', 'discord'),
-  bilibili('bilibili', 'Bilibili', 'bilibili');
+  bilibili('bilibili', 'Bilibili · Regional', 'bilibili'),
+  openaiApi('openai-api', 'OpenAI API', 'openai'),
+  claudeApi('claude-api', 'Claude API', 'claude'),
+  copilot('copilot', 'Copilot', ''),
+  perplexity('perplexity', 'Perplexity', 'perplexity'),
+  grok('grok', 'Grok', 'grok'),
+  poe('poe', 'Poe', 'poe'),
+  midjourney('midjourney', 'Midjourney', ''),
+  deepseek('deepseek', 'DeepSeek', ''),
+  kimi('kimi', 'Kimi', ''),
+  doubao('doubao', 'Doubao', ''),
+  appleTv('apple-tv', 'Apple TV+', 'apple'),
+  hboMax('hbo-max', 'HBO Max', ''),
+  hulu('hulu', 'Hulu', ''),
+  paramount('paramount', 'Paramount+', ''),
+  bbc('bbc', 'BBC iPlayer', ''),
+  dazn('dazn', 'DAZN', ''),
+  crunchyroll('crunchyroll', 'Crunchyroll', 'crunchyroll'),
+  twitch('twitch', 'Twitch', ''),
+  abema('abema', 'AbemaTV', ''),
+  tver('tver', 'TVer', ''),
+  bahamut('bahamut', 'Bahamut Anime', ''),
+  viu('viu', 'Viu', ''),
+  bilibiliMain('bilibili-main', 'Bilibili · Main', 'bilibili'),
+  iqiyi('iqiyi', 'iQIYI', 'iqiyi'),
+  tencentVideo('tencent-video', 'Tencent Video', 'tencent'),
+  netease('netease', 'NetEase Music', 'netease'),
+  qqMusic('qq-music', 'QQ Music', ''),
+  telegram('telegram', 'Telegram', 'telegram'),
+  x('x', 'X (Twitter)', 'x'),
+  reddit('reddit', 'Reddit', 'reddit'),
+  instagram('instagram', 'Instagram', ''),
+  whatsapp('whatsapp', 'WhatsApp', ''),
+  line('line', 'LINE', ''),
+  wechat('wechat', 'WeChat Web', ''),
+  docker('docker', 'Docker Hub', ''),
+  huggingface('huggingface', 'Hugging Face', ''),
+  office('office', 'OneDrive / Office 365', ''),
+  notion('notion', 'Notion', ''),
+  wikipedia('wikipedia', 'Wikipedia', 'wikipedia'),
+  steam('steam', 'Steam Store / Community', 'steam'),
+  epic('epic', 'Epic Games', 'epic'),
+  psn('psn', 'PlayStation Network', ''),
+  nintendo('nintendo', 'Nintendo eShop', ''),
+  googlePlay('google-play', 'Google Play', '');
 
   const ServiceTarget(this.id, this.label, this.icon);
 
   final String id;
   final String label;
   final String icon;
+
+  String get category => switch (this) {
+    google ||
+    github ||
+    docker ||
+    huggingface ||
+    office ||
+    notion ||
+    wikipedia => 'developer',
+    youtube ||
+    netflix ||
+    disneyPlus ||
+    primeVideo ||
+    spotify ||
+    appleTv ||
+    hboMax ||
+    hulu ||
+    paramount ||
+    bbc ||
+    dazn ||
+    crunchyroll ||
+    twitch ||
+    abema ||
+    tver ||
+    bahamut ||
+    viu => 'media',
+    bilibili ||
+    bilibiliMain ||
+    iqiyi ||
+    tencentVideo ||
+    netease ||
+    qqMusic => 'domestic',
+    telegram ||
+    discord ||
+    x ||
+    reddit ||
+    instagram ||
+    tiktok ||
+    whatsapp ||
+    line ||
+    wechat => 'social',
+    steam || epic || psn || nintendo || googlePlay => 'games',
+    _ => 'ai',
+  };
+
+  bool get expectsDirect => const {
+    ServiceTarget.deepseek,
+    ServiceTarget.kimi,
+    ServiceTarget.doubao,
+    ServiceTarget.bilibiliMain,
+    ServiceTarget.iqiyi,
+    ServiceTarget.tencentVideo,
+    ServiceTarget.netease,
+    ServiceTarget.qqMusic,
+    ServiceTarget.wechat,
+  }.contains(this);
 
   static ServiceTarget? byId(String id) {
     for (final target in values) {
@@ -48,6 +148,10 @@ enum ServiceProbeStatus {
   originalsOnly('originals-only'),
   comingSoon('coming-soon'),
   timeout('timeout'),
+  reachable('reachable'),
+  authenticationRequired('authentication-required'),
+  challenge('challenge'),
+  inconclusive('inconclusive'),
   failed('failed');
 
   const ServiceProbeStatus(this.id);
@@ -79,6 +183,7 @@ class ServiceCheck {
     this.coreEpoch = 0,
     this.routeVersion = 0,
     this.hits = const [],
+    this.observations = const [],
   });
 
   factory ServiceCheck.of(ServiceCheckItem item) {
@@ -93,6 +198,7 @@ class ServiceCheck {
       coreEpoch: item.coreEpoch,
       routeVersion: item.routeVersion,
       hits: item.hits,
+      observations: item.observations,
     );
   }
 
@@ -104,6 +210,7 @@ class ServiceCheck {
   final int coreEpoch;
   final int routeVersion;
   final List<RouteHit> hits;
+  final List<ServiceObservation> observations;
 
   String? get node => chains.firstOrNull;
 
@@ -117,7 +224,8 @@ class ServiceCheck {
       other.checkedAt == checkedAt &&
       other.coreEpoch == coreEpoch &&
       other.routeVersion == routeVersion &&
-      listEquals(other.hits, hits);
+      listEquals(other.hits, hits) &&
+      listEquals(other.observations, observations);
 
   @override
   int get hashCode => Object.hash(
@@ -129,6 +237,7 @@ class ServiceCheck {
     coreEpoch,
     routeVersion,
     Object.hashAll(hits),
+    Object.hashAll(observations),
   );
 
   @override

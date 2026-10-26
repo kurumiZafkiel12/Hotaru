@@ -88,7 +88,7 @@ Duration coreGuardFor(int timeout, {int budgetFactor = 2}) =>
 Duration probeGuardDuration(ProbeParams params) => coreGuardFor(params.timeout);
 
 /// Kept in step with serviceSweepBudgetFactor in core/service_check.go.
-const serviceSweepBudgetFactor = 6;
+const serviceSweepBudgetFactor = 24;
 
 const coreConnectionWaitDuration = Duration(seconds: 10);
 
@@ -163,7 +163,7 @@ const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
 const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0xFFC7E9A3;
+const defaultPrimaryColor = 0xFF34D399;
 
 const maxLogsLength = 5000;
 const maxRequestsLength = 2000;

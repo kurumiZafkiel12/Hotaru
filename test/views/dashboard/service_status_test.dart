@@ -346,7 +346,7 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is Tooltip &&
-            widget.message == 'Google\nRegion not supported',
+            widget.message == 'Google Workspace\nRegion not supported',
       ),
       findsOneWidget,
     );
@@ -860,7 +860,7 @@ void main() {
         )
         .map((text) => text.data)
         .take(3);
-    expect(labels, ['Claude', 'Google', 'YouTube']);
+    expect(labels, ['Claude', 'Google Workspace', 'YouTube Premium']);
     expect(find.text(ServiceTarget.github.label), findsNothing);
   });
 

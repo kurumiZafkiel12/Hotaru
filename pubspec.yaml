@@ -1,7 +1,7 @@
 name: hotaru
 description: Hotaru, a multi-platform proxy client based on ClashMeta, simple and easy to use, open-source and ad-free.
 publish_to: 'none'
-version: 0.0.2+11
+version: 0.0.4+13
 environment:
   sdk: '>=3.10.0 <4.0.0'
 
@@ -100,6 +100,7 @@ flutter:
     - assets/images/
     - assets/images/avatar/
     - assets/images/services/
+    - assets/fonts/JetBrainsMono-OFL.txt
     - core/Clash.Meta/component/ca/ca-certificates.crt
     - path: assets/images/tray/unix/
       platforms: [ linux, macos ]
@@ -113,6 +114,8 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
     - family: Twemoji
       fonts:
         - asset: assets/fonts/Twemoji.Mozilla.ttf

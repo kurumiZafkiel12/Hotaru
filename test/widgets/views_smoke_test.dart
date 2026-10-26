@@ -53,6 +53,7 @@ void main() {
     'resources': const ResourcesView(),
     'logs': const LogsView(),
     'tools': const ToolsView(),
+    'settings': const SettingsView(),
     'general settings': const GeneralView(),
     'dns config': const DnsView(),
     'ntp config': NtpView(1),
@@ -116,7 +117,7 @@ void main() {
     });
   }
 
-  final toolDestinations = <String, Type>{
+  final settingsDestinations = <String, Type>{
     'Theme': ThemeView,
     'Backup and restore': BackupAndRestore,
     'General': GeneralView,
@@ -124,8 +125,8 @@ void main() {
     'Custom profile resources': CustomResourcesView,
   };
 
-  for (final entry in toolDestinations.entries) {
-    testWidgets('tools opens ${entry.key}', (tester) async {
+  for (final entry in settingsDestinations.entries) {
+    testWidgets('settings opens ${entry.key}', (tester) async {
       tester.view.physicalSize = const Size(1400, 1000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -143,7 +144,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const TestApp(child: ToolsView()),
+          child: const TestApp(child: SettingsView()),
         ),
       );
       await tester.pump();

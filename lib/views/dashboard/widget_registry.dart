@@ -1,6 +1,7 @@
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/ui/icons/icons.dart';
+import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dashboard/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -17,6 +18,8 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.connectionStats => const ConnectionStatsCard(),
     DashboardWidget.intranetIp => const IntranetIpCard(),
     DashboardWidget.memoryInfo => const MemoryInfo(),
+    DashboardWidget.speedTest => const SpeedTestShortcutCard(),
+    DashboardWidget.connectionsTable => const ConnectionsTableCard(),
   };
 
   Glyph get glyph => switch (this) {
@@ -31,6 +34,8 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.connectionStats => AppGlyphs.connections,
     DashboardWidget.intranetIp => AppGlyphs.devices,
     DashboardWidget.memoryInfo => AppGlyphs.memory,
+    DashboardWidget.speedTest => AppGlyphs.speed,
+    DashboardWidget.connectionsTable => AppGlyphs.connections,
   };
 
   String label(BuildContext context) {
@@ -47,8 +52,27 @@ extension DashboardWidgetView on DashboardWidget {
       DashboardWidget.connectionStats => appLocalizations.connectionStats,
       DashboardWidget.intranetIp => appLocalizations.intranetIP,
       DashboardWidget.memoryInfo => appLocalizations.memoryInfo,
+      DashboardWidget.speedTest => appLocalizations.speedTest,
+      DashboardWidget.connectionsTable => appLocalizations.connections,
     };
   }
+
+  /// The card's one fixed size in the desktop grid.
+  DashboardTier get tier => switch (this) {
+    DashboardWidget.currentOutbound => DashboardTier.mid,
+    DashboardWidget.networkSpeed => DashboardTier.mid,
+    DashboardWidget.outboundMode => DashboardTier.short,
+    DashboardWidget.vpnButton => DashboardTier.short,
+    DashboardWidget.networkTakeover => DashboardTier.short,
+    DashboardWidget.serviceStatus => DashboardTier.narrow,
+    DashboardWidget.profiles => DashboardTier.narrow,
+    DashboardWidget.proxyGroups => DashboardTier.tall,
+    DashboardWidget.connectionStats => DashboardTier.short,
+    DashboardWidget.intranetIp => DashboardTier.narrow,
+    DashboardWidget.memoryInfo => DashboardTier.narrow,
+    DashboardWidget.speedTest => DashboardTier.mid,
+    DashboardWidget.connectionsTable => DashboardTier.wide,
+  };
 
   String? description(BuildContext context) {
     final appLocalizations = context.appLocalizations;

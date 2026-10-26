@@ -257,10 +257,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('field')));
     await tester.pumpAndSettle();
-    expect(_buttonSide(tester, row).style, BorderStyle.none);
+    expect(_buttonSide(tester, row).width, 1);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
     await tester.pumpAndSettle();
-    expect(_buttonSide(tester, row).style, BorderStyle.none);
+    expect(_buttonSide(tester, row).width, 1);
 
     await tester.tap(find.byKey(const Key('before')));
     await tester.pumpAndSettle();
@@ -270,7 +270,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('field')));
     await tester.pumpAndSettle();
-    expect(_buttonSide(tester, row).style, BorderStyle.none);
+    expect(_buttonSide(tester, row).width, 1);
   });
 
   testWidgets('a row rings any focus while a remote drives it', (tester) async {

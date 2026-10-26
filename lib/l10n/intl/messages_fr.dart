@@ -351,6 +351,62 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "applied": MessageLookupByLibrary.simpleMessage("Appliqué"),
     "applyNow": MessageLookupByLibrary.simpleMessage("Appliquer maintenant"),
+    "auditAI": MessageLookupByLibrary.simpleMessage("IA et modèles"),
+    "auditAuthentication": MessageLookupByLibrary.simpleMessage(
+      "Authentification requise",
+    ),
+    "auditChallenge": MessageLookupByLibrary.simpleMessage(
+      "Vérification anti-robot",
+    ),
+    "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
+      "Vérifie la région et la réponse Web, pas l’accès au compte. En cas de blocage, essayez une sortie dans une région prise en charge : États-Unis, Japon ou Singapour.",
+    ),
+    "auditDeveloper": MessageLookupByLibrary.simpleMessage(
+      "Développement et productivité",
+    ),
+    "auditDirectExpected": MessageLookupByLibrary.simpleMessage(
+      "Route attendue : DIRECT",
+    ),
+    "auditDirectMismatch": MessageLookupByLibrary.simpleMessage(
+      "DIRECT attendu, route proxy observée",
+    ),
+    "auditDomestic": MessageLookupByLibrary.simpleMessage("Médias nationaux"),
+    "auditGames": MessageLookupByLibrary.simpleMessage("Jeux et boutiques"),
+    "auditInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Résultat indéterminé",
+    ),
+    "auditMedia": MessageLookupByLibrary.simpleMessage("Médias internationaux"),
+    "auditMediaHint": MessageLookupByLibrary.simpleMessage(
+      "Résultat de page ou d’API régionale. La lecture sous licence, l’éligibilité résidentielle et l’abonnement ne sont pas prouvés par une réponse Web.",
+    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage(
+      "Accessible · déblocage non confirmé",
+    ),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Connectés"),
+    "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
+      "Aucune chaîne de connexion réussie observée",
+    ),
+    "auditRuleUnknown": MessageLookupByLibrary.simpleMessage(
+      "Aucune règle observée",
+    ),
+    "auditScope": MessageLookupByLibrary.simpleMessage(
+      "La connectivité ne prouve pas le déblocage. Compte, abonnement, DRM et lecture exigent parfois une vérification distincte. Les requêtes partent après le démarrage du test.",
+    ),
+    "auditSocial": MessageLookupByLibrary.simpleMessage(
+      "Réseaux sociaux et communication",
+    ),
+    "auditStale": MessageLookupByLibrary.simpleMessage(
+      "Route modifiée · relancer le test",
+    ),
+    "auditSubtitle": MessageLookupByLibrary.simpleMessage(
+      "57 services · règles, groupes et sorties observés",
+    ),
+    "auditTelegramHint": MessageLookupByLibrary.simpleMessage(
+      "Vérifie le Web et les échanges MTProto des DC1 à DC5, sans connexion au compte ni déduction du DC de votre session.",
+    ),
+    "auditTitle": MessageLookupByLibrary.simpleMessage(
+      "Vérification des services et du routage",
+    ),
     "authentication": MessageLookupByLibrary.simpleMessage("Authentification"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "L’authentification demande un nom d’utilisateur et un mot de passe sur le port du proxy local.",
@@ -617,6 +673,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Disponibles à l’ajout",
     ),
+    "dashboardResizeCard": MessageLookupByLibrary.simpleMessage(
+      "Redimensionner la carte",
+    ),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "Restaurer la disposition",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage(
       "Mes widgets",
     ),
@@ -658,6 +720,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerMode": MessageLookupByLibrary.simpleMessage("Mode développeur"),
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage(
       "Le mode développeur est activé.",
+    ),
+    "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage(
+      "Utiliser un DoH sécurisé",
+    ),
+    "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
+      "Test terminé ; examiner les observations",
+    ),
+    "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
+      "Active les remplacements DNS avec Cloudflare et Google DoH. Vérifiez après application les besoins DNS spécifiques de votre profil.",
+    ),
+    "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
+      "Échec du test ; voir les observations",
+    ),
+    "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
+      "Démarrez Hotaru avec un profil avant de tester le chemin routé.",
+    ),
+    "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
+      "Observations",
     ),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Proxy de connexion"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
@@ -776,6 +856,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Sans cette entrée, TUN détourne toutes les requêtes DNS vers le port 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("Détournement DNS"),
+    "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "Résolveur de FAI chinois observé. Si le DNS doit passer uniquement par le proxy, vérifiez l’interception DNS TUN et le DoH sécurisé. Ce résolveur peut être volontaire pour des domaines directs.",
+    ),
+    "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Envoie 16 requêtes uniques via le DNS système et lit les observations du serveur faisant autorité de bash.ws, avec un repli Akamai ponctuel. Ne couvre pas tous les navigateurs et applications.",
+    ),
+    "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Observer la sortie et l’opérateur des résolveurs",
+    ),
+    "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("Test de fuite DNS"),
+    "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
+      "Classification incomplète ; aucune conclusion d’absence de fuite",
+    ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("Mode DNS"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
       "Les entrées ajoutées ici remplacent le DNS de tous les profils URL et fichier ; tout ce qui n’est pas ajouté garde le réglage du profil. Les profils personnalisés définissent leur DNS dans leur contenu.",
@@ -896,7 +989,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "findProcessMode": MessageLookupByLibrary.simpleMessage(
       "Recherche de processus",
     ),
-    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Bureau Hotaru"),
+    "fireflyDesktop": MessageLookupByLibrary.simpleMessage("Tableau de bord"),
     "floating": MessageLookupByLibrary.simpleMessage("Flottante"),
     "followProfile": MessageLookupByLibrary.simpleMessage("Suivre le profil"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Suivre le système"),
@@ -1112,6 +1205,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Indicateurs"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Organisation"),
+    "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
+      "Le type de réseau et la réputation sont des estimations tierces. Résidentiel ne garantit ni origine native ni absence de risque. Le résultat Google concerne cette seule requête.",
+    ),
+    "ipPortraitSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Classification du FAI et vérification anti-robot Google",
+    ),
+    "ipPortraitTitle": MessageLookupByLibrary.simpleMessage(
+      "Profil et réputation IP",
+    ),
     "ipQualityFailed": MessageLookupByLibrary.simpleMessage(
       "Impossible de déterminer le type de l’IP",
     ),
@@ -1317,6 +1419,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkNotFoundError": m54,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Trop de requêtes (HTTP 429). Patientez un instant puis réessayez",
+    ),
+    "networkRecoveryDns": MessageLookupByLibrary.simpleMessage("Cache DNS"),
+    "networkRecoveryProxy": MessageLookupByLibrary.simpleMessage(
+      "Proxy système et PAC",
+    ),
+    "networkRecoveryScope": MessageLookupByLibrary.simpleMessage(
+      "Efface le proxy système et le PAC de l’utilisateur actuel, puis vide le DNS. Redémarre Hotaru s’il fonctionnait pour récupérer son TUN. Ne réinitialise pas les autres cartes.",
+    ),
+    "networkRecoverySubtitle": MessageLookupByLibrary.simpleMessage(
+      "Réinitialiser proxy/PAC, vider DNS et récupérer le TUN Hotaru",
+    ),
+    "networkRecoverySuperseded": MessageLookupByLibrary.simpleMessage(
+      "Une nouvelle demande de démarrage ou d’arrêt a remplacé la récupération TUN.",
+    ),
+    "networkRecoveryTitle": MessageLookupByLibrary.simpleMessage(
+      "Récupération réseau Windows",
+    ),
+    "networkRecoveryTun": MessageLookupByLibrary.simpleMessage(
+      "Cycle de vie du TUN Hotaru",
     ),
     "networkRequestFailed": m55,
     "networkSecret": MessageLookupByLibrary.simpleMessage("Secret du réseau"),
@@ -1925,15 +2046,29 @@ class MessageLookup extends MessageLookupByLibrary {
       "Statistiques de débit",
     ),
     "speedTest": MessageLookupByLibrary.simpleMessage("Test de vitesse"),
-    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
-      "Connexion directe (cœur inactif)",
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "Un test de vitesse de nœud est déjà en cours",
     ),
+    "speedTestDirect": MessageLookupByLibrary.simpleMessage(
+      "Utilise le chemin réseau système, éventuellement via un VPN ou TUN.",
+    ),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Nœud de sortie"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("Gigue"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Aucun test effectué",
     ),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
+      "Non pris en charge",
+    ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Fournisseur"),
+    "speedTestRouteEvidence": MessageLookupByLibrary.simpleMessage(
+      "Selon la cible ; voir les connexions",
+    ),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "Un test complet peut consommer des centaines de Mo de données",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
-      "Trafic via le proxy actuel",
+      "Les requêtes suivent les règles du cœur. La sortie peut varier selon la cible.",
     ),
     "splitStrategy": MessageLookupByLibrary.simpleMessage(
       "Stratégie de répartition",
@@ -1992,7 +2127,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("Cible"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP simultané"),
     "testInterval": MessageLookupByLibrary.simpleMessage("Intervalle de test"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("URL de test"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("URL de test de latence"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage(
       "Tester à l’utilisation",
     ),
@@ -2079,6 +2214,27 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage(
       "Configuration WebDAV",
+    ),
+    "webrtcBlockAction": MessageLookupByLibrary.simpleMessage(
+      "Bloquer les ports STUN courants",
+    ),
+    "webrtcBlockScope": MessageLookupByLibrary.simpleMessage(
+      "Ajoute des règles UDP réversibles pour 3478 et 19302. Peut affecter les appels. Ne bloque ni TURN sur HTTPS ni tous les chemins WebRTC. Actif uniquement en mode règles.",
+    ),
+    "webrtcLeakMatch": MessageLookupByLibrary.simpleMessage(
+      "Cette adresse STUN correspond à la sortie mesurée ; les autres chemins du navigateur restent non testés.",
+    ),
+    "webrtcLeakRisk": MessageLookupByLibrary.simpleMessage(
+      "L’adresse publique STUN diffère de la sortie proxy. Vérifiez les routes UDP et la politique WebRTC. Les familles IPv4 et IPv6 nécessitent une validation séparée.",
+    ),
+    "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
+      "STUN natif teste le chemin UDP. Les politiques ICE, mDNS et TURN du navigateur peuvent différer. Une adresse privée seule ne prouve pas une fuite d’IP publique.",
+    ),
+    "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Comparer l’adresse réflexive UDP et la sortie proxy",
+    ),
+    "webrtcLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "Test de fuite WebRTC / STUN",
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("Mode liste blanche"),
     "writeToSystem": MessageLookupByLibrary.simpleMessage(

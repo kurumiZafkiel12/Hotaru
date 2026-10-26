@@ -12,12 +12,12 @@ import 'package:material_ui/material_ui.dart';
 
 EdgeInsets dashboardCardPadding(DashboardDensity density) => switch (density) {
   DashboardDensity.standard => const EdgeInsets.symmetric(
-    horizontal: 22,
-    vertical: 20,
+    horizontal: 18,
+    vertical: 10,
   ),
   DashboardDensity.compact => const EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 16,
+    horizontal: 16,
+    vertical: 10,
   ),
   DashboardDensity.mobile => const EdgeInsets.symmetric(
     horizontal: 20,
@@ -53,23 +53,25 @@ class DashboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final density = DashboardDensityScope.of(context);
-    final shape = AppShape.all(dashboardCardRadius(density));
+    final shape = AppShape.all(dashboardCardRadius(density)).copyWith(
+      side: BorderSide(
+        color: context.colorScheme.brightness == Brightness.dark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.black.withValues(alpha: 0.06),
+      ),
+    );
     final content = Padding(
       padding: padding ?? dashboardCardPadding(density),
       child: child,
     );
+    final base = DashboardColors.of(context).card;
     return Semantics(
       container: true,
       label: semanticLabel,
       child: Container(
         clipBehavior: clipBehavior,
         decoration: ShapeDecoration(
-          color: highlighted
-              ? Color.alphaBlend(
-                  context.colorScheme.primary.withValues(alpha: 0.1),
-                  DashboardColors.of(context).card,
-                )
-              : DashboardColors.of(context).card,
+          color: base,
           shape: shape,
           shadows: DashboardShadows.e1(context),
         ),
@@ -101,7 +103,7 @@ class DashboardCardHeader extends StatelessWidget {
     this.chevron = false,
   });
 
-  static const height = 24.0;
+  static const height = 20.0;
   static const glyphSize = 18.0;
 
   final Glyph? glyph;

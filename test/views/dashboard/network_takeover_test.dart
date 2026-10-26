@@ -202,7 +202,7 @@ void main() {
     expect(find.byType(DashboardSwitch), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('System proxy')).dx,
-      dashboardCardPadding(DashboardDensity.compact).left,
+      dashboardCardPadding(DashboardDensity.compact).left + 1,
     );
     expect(tester.takeException(), isNull);
 
