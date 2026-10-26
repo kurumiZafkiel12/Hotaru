@@ -22,16 +22,16 @@ void main() {
       expect(byWidget[DashboardWidget.currentOutbound]!.column, 0);
       expect(byWidget[DashboardWidget.currentOutbound]!.row, 0);
       expect(byWidget[DashboardWidget.currentOutbound]!.columns, 2);
-      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 1);
+      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 2);
       expect(byWidget[DashboardWidget.networkSpeed]!.column, 2);
       expect(byWidget[DashboardWidget.networkSpeed]!.row, 0);
-      expect(byWidget[DashboardWidget.networkSpeed]!.rows, 2);
+      expect(byWidget[DashboardWidget.networkSpeed]!.rows, 3);
       expect(byWidget[DashboardWidget.outboundMode]!.column, 0);
-      expect(byWidget[DashboardWidget.outboundMode]!.row, 1);
-      expect(byWidget[DashboardWidget.intranetIp]!.column, 0);
-      expect(byWidget[DashboardWidget.intranetIp]!.row, 2);
-      expect(byWidget[DashboardWidget.profiles]!.column, 1);
-      expect(byWidget[DashboardWidget.profiles]!.row, 2);
+      expect(byWidget[DashboardWidget.outboundMode]!.row, 2);
+      expect(byWidget[DashboardWidget.intranetIp]!.column, 2);
+      expect(byWidget[DashboardWidget.intranetIp]!.row, 3);
+      expect(byWidget[DashboardWidget.profiles]!.column, 3);
+      expect(byWidget[DashboardWidget.profiles]!.row, 3);
       final cells = <int>{};
       for (final placement in placements) {
         for (var y = placement.row; y < placement.row + placement.rows; y++) {
@@ -54,8 +54,8 @@ void main() {
       final tiers = {for (final widget in order) widget: widget.tier};
       final placements = placeDashboardWidgets(order, tiers, 2);
       expect(placements.first.columns, 2);
-      expect(placements.first.rows, 2);
-      expect(placements.last.row, 2);
+      expect(placements.first.rows, 4);
+      expect(placements.last.row, 4);
       expect(placements.last.columns, 2);
     });
   });
@@ -65,12 +65,27 @@ void main() {
       for (final widget in DashboardWidget.values) {
         expect(widget.tier, isNotNull, reason: '$widget');
       }
-      expect(DashboardWidget.currentOutbound.tier, DashboardTier.medium);
+      expect(DashboardWidget.currentOutbound.tier, DashboardTier.short);
       expect(DashboardWidget.connectionsTable.tier, DashboardTier.wide);
-      expect(DashboardTier.small.cells(4), (1, 1));
-      expect(DashboardTier.medium.cells(4), (2, 1));
-      expect(DashboardTier.large.cells(4), (2, 2));
-      expect(DashboardTier.wide.cells(4), (4, 2));
+      expect(DashboardTier.narrow.cells(4), (1, 3));
+      expect(DashboardTier.short.cells(4), (2, 2));
+      expect(DashboardTier.mid.cells(4), (2, 3));
+      expect(DashboardTier.tall.cells(4), (2, 4));
+      expect(DashboardTier.wide.cells(4), (4, 4));
+    });
+
+    test('tier heights land on the three compact bands', () {
+      double height(DashboardTier tier) {
+        final rows = tier.cells(4).$2;
+        const gap = 12.0;
+        return rows * dashboardUnitHeight(compact: false) + (rows - 1) * gap;
+      }
+
+      expect(height(DashboardTier.short), 122);
+      expect(height(DashboardTier.mid), 189);
+      expect(height(DashboardTier.narrow), 189);
+      expect(height(DashboardTier.tall), 256);
+      expect(height(DashboardTier.wide), 256);
     });
   });
 

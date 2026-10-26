@@ -201,6 +201,25 @@ class NetworkSpeedCard extends ConsumerWidget {
     final traffics = ref.watch(trafficsProvider);
     final total = ref.watch(totalTrafficProvider);
     final latest = traffics.list.safeLast(const Traffic());
+    final desktop = DashboardDensityScope.of(context).isDesktop;
+    final tiles = Row(
+      spacing: 10,
+      crossAxisAlignment: desktop
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.center,
+      children: [
+        for (final direction in TrafficDirection.values)
+          Expanded(
+            child: _SpeedTile(
+              direction: direction,
+              speed: direction.of(latest),
+              total: direction.of(total),
+              traffics: traffics,
+              strip: desktop,
+            ),
+          ),
+      ],
+    );
     return DashboardCard(
       semanticLabel: context.appLocalizations.networkSpeed,
       child: Column(
@@ -209,21 +228,8 @@ class NetworkSpeedCard extends ConsumerWidget {
             glyph: AppGlyphs.speed,
             title: context.appLocalizations.networkSpeed,
           ),
-          const SizedBox(height: 12),
-          Row(
-            spacing: 10,
-            children: [
-              for (final direction in TrafficDirection.values)
-                Expanded(
-                  child: _SpeedTile(
-                    direction: direction,
-                    speed: direction.of(latest),
-                    total: direction.of(total),
-                    traffics: traffics,
-                  ),
-                ),
-            ],
-          ),
+          const SizedBox(height: 10),
+          if (desktop) Expanded(child: tiles) else tiles,
         ],
       ),
     );
@@ -238,12 +244,17 @@ class _SpeedTile extends StatelessWidget {
     required this.speed,
     required this.total,
     required this.traffics,
+    this.strip = false,
   });
 
   final TrafficDirection direction;
   final num speed;
   final num total;
   final FixedList<Traffic> traffics;
+
+  /// The desktop tile fills its band and keeps the chart to a strip along
+  /// its foot instead of deriving its height from its width.
+  final bool strip;
 
   static const _aspectRatio = 1.06;
   static const _padding = EdgeInsets.fromLTRB(16, 14, 16, 0);
@@ -253,8 +264,84 @@ class _SpeedTile extends StatelessWidget {
   static const _minChartHeight = 36.0;
   static const _maxChartHeight = 110.0;
 
+  static const _stripChartHeight = 34.0;
+
+  Widget _stripTile(BuildContext context) {
+    final color = direction.glyphColorOf(context);
+    final show = speed.traffic;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: ShapeDecoration(
+        color: DashboardColors.of(context).tone,
+        shape: AppShape.all(DashboardCorner.mobileBlock),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: -_bleed,
+            right: -_bleed,
+            bottom: -_bleed,
+            height: _stripChartHeight,
+            child: RepaintBoundary(
+              child: _SpeedChart(direction: direction, traffics: traffics),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              14,
+              10,
+              14,
+              _stripChartHeight + 4,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  spacing: 4,
+                  children: [
+                    GlyphIcon(direction.glyph, size: 16, color: color),
+                    Flexible(
+                      child: Text(
+                        direction.labelOf(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.footnote
+                            .of(context, emphasized: true)
+                            .copyWith(
+                              color: context.colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                _Figure(
+                  show: show,
+                  unit: _speedUnit(show),
+                  style: AppTextStyle.title2,
+                  unitStyle: AppTextStyle.footnote,
+                ),
+                Text(
+                  context.appLocalizations.trafficTotal(
+                    dashboardTraffic(total),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DashboardText.label(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (strip) {
+      return _stripTile(context);
+    }
     final color = direction.glyphColorOf(context);
     final show = speed.traffic;
     final scale = DashboardDensityScope.scaleOf(context);

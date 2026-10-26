@@ -12,12 +12,12 @@ import 'package:material_ui/material_ui.dart';
 
 EdgeInsets dashboardCardPadding(DashboardDensity density) => switch (density) {
   DashboardDensity.standard => const EdgeInsets.symmetric(
-    horizontal: 22,
-    vertical: 20,
+    horizontal: 18,
+    vertical: 14,
   ),
   DashboardDensity.compact => const EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 16,
+    horizontal: 16,
+    vertical: 12,
   ),
   DashboardDensity.mobile => const EdgeInsets.symmetric(
     horizontal: 20,
@@ -58,18 +58,26 @@ class DashboardCard extends StatelessWidget {
       padding: padding ?? dashboardCardPadding(density),
       child: child,
     );
+    final base = highlighted
+        ? Color.alphaBlend(
+            context.colorScheme.primary.withValues(alpha: 0.1),
+            DashboardColors.of(context).card,
+          )
+        : DashboardColors.of(context).card;
+    final sheen = context.colorScheme.brightness == Brightness.dark
+        ? Color.alphaBlend(Colors.white.withValues(alpha: 0.045), base)
+        : base;
     return Semantics(
       container: true,
       label: semanticLabel,
       child: Container(
         clipBehavior: clipBehavior,
         decoration: ShapeDecoration(
-          color: highlighted
-              ? Color.alphaBlend(
-                  context.colorScheme.primary.withValues(alpha: 0.1),
-                  DashboardColors.of(context).card,
-                )
-              : DashboardColors.of(context).card,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [sheen, base],
+          ),
           shape: shape,
           shadows: DashboardShadows.e1(context),
         ),

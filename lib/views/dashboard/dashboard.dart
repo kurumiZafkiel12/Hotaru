@@ -96,48 +96,61 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           ),
       ],
       // The providers learn a resize a frame late, too late for the cards.
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final room = constraints.biggest / scale;
-          final layout = DashboardDensity.of(room);
-          // The bar floats over the body; the dashboard scrolls below it
-          // instead of sliding under the title.
-          final band = context.appBarInset;
-          final topGap = math.max(0.0, context.contentTopPadding - band);
-          return Padding(
-            padding: EdgeInsets.only(top: band),
-            child: DashboardDensityScope(
-              density: layout,
-              scale: scale,
-              child: layout.isDesktop
-                  ? editing
-                        ? DesktopDashboardEditor(
-                            platform: platform,
-                            columns: dashboardColumnsOf(room.width),
-                            gap: gap,
-                            topPadding: topGap,
-                            cardKeyOf: _cardKeyOf,
-                            onDone: () => _setEditing(false),
-                            onCancel: _cancelEditing,
-                          )
-                        : DesktopDashboardGrid(
-                            platform: platform,
-                            columns: dashboardColumnsOf(room.width),
-                            gap: gap,
-                            topPadding: topGap,
-                            cardKeyOf: _cardKeyOf,
-                          )
-                  : _MobileDashboard(
-                      platform: platform,
-                      gap: gap,
-                      topPadding: topGap,
-                      editing: editing,
-                      cardKeyOf: _cardKeyOf,
-                      onDone: () => _setEditing(false),
-                    ),
-            ),
-          );
-        },
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.8),
+            radius: 1.5,
+            colors: [
+              context.colorScheme.primary.withValues(alpha: 0.055),
+              context.colorScheme.primary.withValues(alpha: 0),
+            ],
+            stops: const [0, 0.55],
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final room = constraints.biggest / scale;
+            final layout = DashboardDensity.of(room);
+            // The bar floats over the body; the dashboard scrolls below it
+            // instead of sliding under the title.
+            final band = context.appBarInset;
+            final topGap = math.max(0.0, context.contentTopPadding - band);
+            return Padding(
+              padding: EdgeInsets.only(top: band),
+              child: DashboardDensityScope(
+                density: layout,
+                scale: scale,
+                child: layout.isDesktop
+                    ? editing
+                          ? DesktopDashboardEditor(
+                              platform: platform,
+                              columns: dashboardColumnsOf(room.width),
+                              gap: 12,
+                              topPadding: topGap,
+                              cardKeyOf: _cardKeyOf,
+                              onDone: () => _setEditing(false),
+                              onCancel: _cancelEditing,
+                            )
+                          : DesktopDashboardGrid(
+                              platform: platform,
+                              columns: dashboardColumnsOf(room.width),
+                              gap: 12,
+                              topPadding: topGap,
+                              cardKeyOf: _cardKeyOf,
+                            )
+                    : _MobileDashboard(
+                        platform: platform,
+                        gap: gap,
+                        topPadding: topGap,
+                        editing: editing,
+                        cardKeyOf: _cardKeyOf,
+                        onDone: () => _setEditing(false),
+                      ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -13,23 +13,28 @@ int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
 /// The only sizes a desktop dashboard card can take. Every card is
 /// assigned exactly one tier; the user reorders cards, never resizes them.
+/// Heights land on three bands — 122, 189 and 256 at the standard unit —
+/// so a row of cards never mixes bespoke heights.
 enum DashboardTier {
-  small,
-  medium,
-  large,
+  narrow,
+  short,
+  mid,
+  tall,
   wide;
 
   /// The tier's footprint in grid cells at [columns] columns.
   (int, int) cells(int columns) => switch (this) {
-    DashboardTier.small => (1, 1),
-    DashboardTier.medium => (2, 1),
-    DashboardTier.large => (2, 2),
-    DashboardTier.wide => (columns, 2),
+    DashboardTier.narrow => (1, 3),
+    DashboardTier.short => (2, 2),
+    DashboardTier.mid => (2, 3),
+    DashboardTier.tall => (2, 4),
+    DashboardTier.wide => (columns, 4),
   };
 }
 
-/// The height of one grid row; a tier's pixel height derives from it.
-double dashboardUnitHeight({required bool compact}) => compact ? 168 : 192;
+/// The height of one grid unit; a card spanning n units is
+/// n units plus the gaps between them tall.
+double dashboardUnitHeight({required bool compact}) => compact ? 50 : 55;
 
 /// Where one card lands in the cell grid.
 class DashboardPlacement {
@@ -59,7 +64,7 @@ List<DashboardPlacement> placeDashboardWidgets(
   final occupied = <int>{};
   final placements = <DashboardPlacement>[];
   for (final widget in order) {
-    final tier = tiers[widget] ?? DashboardTier.medium;
+    final tier = tiers[widget] ?? DashboardTier.mid;
     final (wantColumns, wantRows) = tier.cells(columns);
     final width = math.min(wantColumns, columns);
     var row = 0;

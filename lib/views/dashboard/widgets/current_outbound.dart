@@ -110,6 +110,14 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                         dot: isStart,
                       ),
                     ],
+                    trailing: [
+                      if (density == DashboardDensity.standard && !failed)
+                        _IpChips(
+                          quality: quality,
+                          loading: loading,
+                          large: false,
+                        ),
+                    ],
                   ),
                   SizedBox(height: metrics.ipTop),
                   _ExitRow(
@@ -127,12 +135,14 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                     const Spacer()
                   else
                     const SizedBox(height: 16),
-                  _Cells(
-                    quality: quality,
-                    loading: loading,
-                    active: isStart && !suspended,
-                    gap: metrics.cellGap,
-                  ),
+                  if (!density.isDesktop || !failed)
+                    _Cells(
+                      quality: quality,
+                      loading: loading,
+                      active: isStart && !suspended,
+                      gap: metrics.cellGap,
+                      inline: density.isDesktop,
+                    ),
                 ],
               ),
             ),
@@ -169,23 +179,23 @@ class _OutboundMetrics {
   factory _OutboundMetrics.of(DashboardDensity density) => switch (density) {
     DashboardDensity.standard => _OutboundMetrics(
       padding: dashboardCardPadding(density),
-      gap: 16,
-      ipTop: 10,
-      cellGap: 28,
-      badgeSize: 48,
+      gap: 12,
+      ipTop: 6,
+      cellGap: 24,
+      badgeSize: 40,
       ip: AppTextStyle.title1,
-      buttonSize: 104,
-      buttonSlot: 120,
+      buttonSize: 72,
+      buttonSlot: 88,
     ),
     DashboardDensity.compact => _OutboundMetrics(
       padding: dashboardCardPadding(density),
-      gap: 16,
-      ipTop: 8,
-      cellGap: 22,
-      badgeSize: 40,
+      gap: 12,
+      ipTop: 4,
+      cellGap: 20,
+      badgeSize: 36,
       ip: AppTextStyle.title2,
-      buttonSize: 84,
-      buttonSlot: 100,
+      buttonSize: 64,
+      buttonSlot: 76,
     ),
     DashboardDensity.mobile => const _OutboundMetrics(
       padding: EdgeInsetsDirectional.fromSTEB(20, 18, 16, 18),
@@ -288,7 +298,7 @@ class _ExitRow extends StatelessWidget {
                   child: ip,
                 ),
               ),
-              const SizedBox(height: 4),
+              if (failed || large) const SizedBox(height: 4),
               if (failed)
                 SizedBox(
                   height: _chipHeight(large),
@@ -302,7 +312,7 @@ class _ExitRow extends StatelessWidget {
                     ),
                   ),
                 )
-              else
+              else if (large)
                 _IpChips(quality: quality, loading: loading, large: large),
             ],
           ),
@@ -516,12 +526,16 @@ class _Cells extends StatelessWidget {
     required this.loading,
     required this.active,
     required this.gap,
+    this.inline = false,
   });
 
   final IpQuality? quality;
   final bool loading;
   final bool active;
   final double gap;
+
+  /// Label and value share one line, the compact desktop arrangement.
+  final bool inline;
 
   @override
   Widget build(BuildContext context) {
@@ -536,11 +550,13 @@ class _Cells extends StatelessWidget {
       children: [
         _Cell(
           label: appLocalizations.runTime,
+          inline: inline,
           value: active ? const _RunTimeValue() : const _Placeholder(),
         ),
         Flexible(
           child: _Cell(
             label: appLocalizations.ipOrganization,
+            inline: inline,
             value: organization != null
                 ? _CellText(organization)
                 : loading
@@ -554,26 +570,34 @@ class _Cells extends StatelessWidget {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.label, required this.value});
+  const _Cell({required this.label, required this.value, this.inline = false});
 
   final String label;
   final Widget value;
+  final bool inline;
 
   @override
   Widget build(BuildContext context) {
+    final labelText = Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: DashboardText.label(context),
+    );
+    if (inline) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 6,
+        children: [
+          labelText,
+          Flexible(child: value),
+        ],
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: DashboardText.label(context),
-        ),
-        const SizedBox(height: 2),
-        value,
-      ],
+      children: [labelText, const SizedBox(height: 2), value],
     );
   }
 }

@@ -13,7 +13,7 @@ import 'layout.dart';
 import 'widget_registry.dart';
 
 const _maxColumnWidth = 400.0;
-const _sidePadding = 24.0;
+const _sidePadding = 16.0;
 
 Map<DashboardWidget, DashboardTier> _tiersOf(List<DashboardWidget> order) => {
   for (final widget in order) widget: widget.tier,

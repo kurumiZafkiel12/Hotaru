@@ -59,18 +59,18 @@ extension DashboardWidgetView on DashboardWidget {
 
   /// The card's one fixed size in the desktop grid.
   DashboardTier get tier => switch (this) {
-    DashboardWidget.currentOutbound => DashboardTier.medium,
-    DashboardWidget.networkSpeed => DashboardTier.large,
-    DashboardWidget.outboundMode => DashboardTier.medium,
-    DashboardWidget.vpnButton => DashboardTier.medium,
-    DashboardWidget.networkTakeover => DashboardTier.large,
-    DashboardWidget.serviceStatus => DashboardTier.small,
-    DashboardWidget.profiles => DashboardTier.small,
-    DashboardWidget.proxyGroups => DashboardTier.large,
-    DashboardWidget.connectionStats => DashboardTier.medium,
-    DashboardWidget.intranetIp => DashboardTier.small,
-    DashboardWidget.memoryInfo => DashboardTier.small,
-    DashboardWidget.speedTest => DashboardTier.medium,
+    DashboardWidget.currentOutbound => DashboardTier.short,
+    DashboardWidget.networkSpeed => DashboardTier.mid,
+    DashboardWidget.outboundMode => DashboardTier.short,
+    DashboardWidget.vpnButton => DashboardTier.short,
+    DashboardWidget.networkTakeover => DashboardTier.mid,
+    DashboardWidget.serviceStatus => DashboardTier.narrow,
+    DashboardWidget.profiles => DashboardTier.narrow,
+    DashboardWidget.proxyGroups => DashboardTier.tall,
+    DashboardWidget.connectionStats => DashboardTier.short,
+    DashboardWidget.intranetIp => DashboardTier.narrow,
+    DashboardWidget.memoryInfo => DashboardTier.narrow,
+    DashboardWidget.speedTest => DashboardTier.short,
     DashboardWidget.connectionsTable => DashboardTier.wide,
   };
 

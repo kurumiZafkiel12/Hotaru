@@ -19,7 +19,7 @@ typedef _RowMetrics = ({
 });
 
 const _RowMetrics _cardRowMetrics = (
-  padding: EdgeInsets.fromLTRB(10, 10, 12, 10),
+  padding: EdgeInsets.fromLTRB(10, 8, 12, 8),
   titleStart: 14,
   radius: 20,
   icon: 38,
@@ -129,7 +129,7 @@ class NetworkTakeoverCard extends StatelessWidget {
             glyph: AppGlyphs.shuffle,
             title: appLocalizations.networkTakeover,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
               final showIcon = DashboardSwitchRow.iconFits(

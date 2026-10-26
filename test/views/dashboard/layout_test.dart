@@ -98,16 +98,16 @@ void main() {
     final hero = rectOf(tester, CurrentOutboundCard);
     final speed = rectOf(tester, NetworkSpeedCard);
     final mode = rectOf(tester, OutboundModeCard);
-    // Medium tier: two cells wide, one unit tall; the large speed card
-    // interlocks beside it and the next medium fills the cell below.
-    expect(hero.left, 24);
-    expect(hero.width, 281 * 2 + 16);
-    expect(hero.height, 192);
-    expect(speed.left, hero.right + 16);
+    // Short tier: two cells wide, two units tall (122); the mid speed
+    // card interlocks beside it and the next short fills the cells below.
+    expect(hero.left, 16);
+    expect(hero.width, 288 * 2 + 12);
+    expect(hero.height, 122);
+    expect(speed.left, hero.right + 12);
     expect(speed.top, hero.top);
-    expect(speed.height, 192 * 2 + 16);
+    expect(speed.height, 189);
     expect(mode.left, hero.left);
-    expect(mode.top, hero.bottom + 16);
+    expect(mode.top, hero.bottom + 12);
     expect(mode.width, hero.width);
     expect(find.byType(ProfilesCard), findsOneWidget);
     expect(find.byType(IntranetIpCard), findsOneWidget);
@@ -142,9 +142,9 @@ void main() {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
     // Cells cap at 400 and the whole grid centers: the content column is
-    // 400 * 4 + 16 * 3 wide, so its left edge sits at (2560 - 1648) / 2.
-    expect(hero.left, (2560 - (400 * 4 + 16 * 3)) / 2);
-    expect(hero.width, 400 * 2 + 16);
+    // 400 * 4 + 12 * 3 wide, so its left edge sits at (2560 - 1636) / 2.
+    expect(hero.left, (2560 - (400 * 4 + 12 * 3)) / 2);
+    expect(hero.width, 400 * 2 + 12);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -156,7 +156,7 @@ void main() {
     await pumpDashboard(tester, const Size(800, 900));
     final hero = rectOf(tester, CurrentOutboundCard);
     expect(hero.center.dx, 400);
-    expect(hero.width, lessThanOrEqualTo(752));
+    expect(hero.width, lessThanOrEqualTo(768));
     expect(rectOf(tester, OutboundModeCard).width, hero.width);
     expect(find.byType(NetworkSpeedCard), findsOneWidget);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
