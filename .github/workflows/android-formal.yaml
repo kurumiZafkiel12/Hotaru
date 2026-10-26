@@ -1,0 +1,101 @@
+name: Formal Android rebuild 0.0.1 and 0.0.2
+'on':
+  push:
+    branches:
+    - codex/android-formal-rebuild
+permissions:
+  contents: read
+concurrency:
+  group: formal-android-rebuild
+  cancel-in-progress: false
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        ref: ${{ matrix.ref }}
+        path: app
+    - uses: actions/checkout@v4
+      with:
+        path: release-tools
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 1.27.1
+        cache-dependency-path: core/go.sum
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: 3.47.6
+        cache: true
+    - uses: gradle/actions/setup-gradle@v6
+    - uses: nttld/setup-ndk@v1
+      id: ndk
+      with:
+        ndk-version: r28c
+        add-to-path: true
+        link-to-sdk: true
+    - name: Configure existing signing
+      env:
+        KEYSTORE: ${{ secrets.KEYSTORE }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: "if [ -n \"$KEYSTORE\" ] && [ -n \"$KEY_ALIAS\" ] && [ -n \"$STORE_PASSWORD\" ] && [ -n \"$KEY_PASSWORD\" ]; then\n  printf '%s' \"\
+        $KEYSTORE\" | base64 --decode > android/app/keystore.jks\n  {\n    printf 'keyAlias=%s\\n' \"$KEY_ALIAS\"\n    printf 'storePassword=%s\\\
+        n' \"$STORE_PASSWORD\"\n    printf 'keyPassword=%s\\n' \"$KEY_PASSWORD\"\n  } >> android/local.properties\nfi\n"
+    - name: Install locked dependencies
+      run: flutter pub get --enforce-lockfile
+    - name: Fetch verified CA bundle
+      run: 'bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+
+        curl -fLsS --retry 3 https://curl.se/ca/cacert-2026-09-25.pem -o "$bundle"
+
+        echo "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505  $bundle" | sha256sum -c -
+
+        '
+    - name: Package Android
+      env:
+        ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+      run: dart setup.dart android --env stable -v
+    - name: Verify formal APKs
+      run: 'mkdir -p android-release
+
+        python3 ../release-tools/tool/formal_android.py inspect "${{ matrix.version }}"'
+    - uses: actions/upload-artifact@v4
+      with:
+        name: formal-${{ matrix.version }}
+        path: app/android-release/
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - version: 0.0.1
+          ref: 25a7eef45925a0ce907fbacef3502be73e73cc53
+        - version: 0.0.2
+          ref: 39abb5a80dda2495d4a8a521202aea9f8ec88d2b
+    defaults:
+      run:
+        working-directory: app
+  publish:
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: formal-*
+        path: signed/
+    - name: Replace verified Android assets
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 tool/formal_android.py publish
