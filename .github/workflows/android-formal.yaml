@@ -42,15 +42,15 @@ jobs:
         ndk-version: r28c
         add-to-path: true
         link-to-sdk: true
-    - name: Configure existing signing
+    - name: Configure verified signing with Java Properties escaping
       env:
         KEYSTORE: ${{ secrets.KEYSTORE }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: "if [ -n \"$KEYSTORE\" ] && [ -n \"$KEY_ALIAS\" ] && [ -n \"$STORE_PASSWORD\" ] && [ -n \"$KEY_PASSWORD\" ]; then\n  printf '%s' \"\
-        $KEYSTORE\" | base64 --decode > android/app/keystore.jks\n  {\n    printf 'keyAlias=%s\\n' \"$KEY_ALIAS\"\n    printf 'storePassword=%s\\\
-        n' \"$STORE_PASSWORD\"\n    printf 'keyPassword=%s\\n' \"$KEY_PASSWORD\"\n  } >> android/local.properties\nfi\n"
+        SIGNING_CONFIG_PATH: android/local.properties
+        SIGNING_KEYSTORE_PATH: android/app/keystore.jks
+      run: java ../release-tools/tool/FormalSigningPreflight.java
     - name: Install locked dependencies
       run: flutter pub get --enforce-lockfile
     - name: Fetch verified CA bundle
@@ -84,6 +84,7 @@ jobs:
     defaults:
       run:
         working-directory: app
+    needs: signing
   publish:
     needs: android
     runs-on: ubuntu-latest
@@ -99,3 +100,18 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: python3 tool/formal_android.py publish
+  signing:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
+    - name: Verify actual private key and certificate without disclosing values
+      env:
+        KEYSTORE: ${{ secrets.KEYSTORE }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: java tool/FormalSigningPreflight.java
