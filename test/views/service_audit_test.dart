@@ -149,7 +149,10 @@ void main() {
       expect(find.text('Available'), findsNothing);
       expect(calls.every((call) => call.runId.isNotEmpty), isTrue);
       expect(
-        find.textContaining('Reachable · unlock unconfirmed'),
+        find.textContaining(
+          'Reachable · unlock unconfirmed',
+          findRichText: true,
+        ),
         findsWidgets,
       );
       expect(tester.takeException(), isNull);

@@ -352,6 +352,9 @@ class _ServiceResult extends StatelessWidget {
     final l10n = context.appLocalizations;
     final check = this.check;
     final observations = check?.observations ?? const <ServiceObservation>[];
+    final hintStyle = AppTextStyle.footnote
+        .of(context)
+        .copyWith(color: context.colorScheme.onSurfaceVariant);
     final status = pending
         ? l10n.loading
         : stale
@@ -393,7 +396,7 @@ class _ServiceResult extends StatelessWidget {
           target.label,
           style: AppTextStyle.callout.of(context, emphasized: true),
         ),
-        subtitle: Text(
+        subtitle: EmojiText(
           [
             status,
             if (check?.region != null)
@@ -409,6 +412,7 @@ class _ServiceResult extends StatelessWidget {
               ),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        expandedAlignment: Alignment.centerLeft,
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (target.expectsDirect)
@@ -422,11 +426,13 @@ class _ServiceResult extends StatelessWidget {
             ),
           if (target == ServiceTarget.claude ||
               target == ServiceTarget.claudeApi)
-            Text(l10n.auditClaudeHint),
-          if (target == ServiceTarget.telegram) Text(l10n.auditTelegramHint),
+            Text(l10n.auditClaudeHint, style: hintStyle),
+          if (target == ServiceTarget.telegram)
+            Text(l10n.auditTelegramHint, style: hintStyle),
           if (target.category == 'media' || target.category == 'domestic')
-            Text(l10n.auditMediaHint),
-          if (observations.isEmpty) Text(l10n.auditRouteMissing),
+            Text(l10n.auditMediaHint, style: hintStyle),
+          if (observations.isEmpty)
+            Text(l10n.auditRouteMissing, style: hintStyle),
           for (final observation in observations)
             Padding(
               padding: const EdgeInsets.only(top: 12),
