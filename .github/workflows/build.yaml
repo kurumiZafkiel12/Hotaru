@@ -372,6 +372,13 @@ jobs:
             throw "Release version $releaseVersion differs from pubspec $packageVersion"
           }
 
+      - name: Setup Java for Android signing
+        if: startsWith(matrix.platform,'android')
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
         env:
