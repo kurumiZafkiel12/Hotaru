@@ -57,93 +57,21 @@ extension DashboardWidgetView on DashboardWidget {
     };
   }
 
-  DashboardSpanSpec get spanSpec => switch (this) {
-    DashboardWidget.currentOutbound => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 4,
-      heights: [
-        DashboardCardHeight.slimHero,
-        DashboardCardHeight.hero,
-        DashboardCardHeight.large,
-      ],
-      defaultHeight: DashboardCardHeight.slimHero,
-    ),
-    DashboardWidget.networkSpeed => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.tall],
-      defaultHeight: DashboardCardHeight.tall,
-    ),
-    DashboardWidget.outboundMode => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.middle, DashboardCardHeight.tall],
-      defaultHeight: DashboardCardHeight.middle,
-    ),
-    DashboardWidget.vpnButton => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.summary],
-      defaultHeight: DashboardCardHeight.summary,
-    ),
-    DashboardWidget.networkTakeover => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.large, DashboardCardHeight.tall],
-      defaultHeight: DashboardCardHeight.large,
-    ),
-    DashboardWidget.serviceStatus => const DashboardSpanSpec(
-      widths: [1, 2],
-      defaultWidth: 1,
-      heights: [DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.middle,
-    ),
-    DashboardWidget.profiles => const DashboardSpanSpec(
-      widths: [1, 2],
-      defaultWidth: 1,
-      heights: [DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.middle,
-    ),
-    DashboardWidget.proxyGroups => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [
-        DashboardCardHeight.summary,
-        DashboardCardHeight.middle,
-        DashboardCardHeight.tall,
-      ],
-      defaultHeight: DashboardCardHeight.summary,
-    ),
-    DashboardWidget.connectionStats => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.summary, DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.summary,
-    ),
-    DashboardWidget.intranetIp => const DashboardSpanSpec(
-      widths: [1, 2],
-      defaultWidth: 1,
-      heights: [DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.middle,
-    ),
-    DashboardWidget.memoryInfo => const DashboardSpanSpec(
-      widths: [1, 2],
-      defaultWidth: 1,
-      heights: [DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.middle,
-    ),
-    DashboardWidget.speedTest => const DashboardSpanSpec(
-      widths: [2, 3, 4],
-      defaultWidth: 2,
-      heights: [DashboardCardHeight.summary, DashboardCardHeight.middle],
-      defaultHeight: DashboardCardHeight.summary,
-    ),
-    DashboardWidget.connectionsTable => const DashboardSpanSpec(
-      widths: [4],
-      defaultWidth: 4,
-      heights: [DashboardCardHeight.tall, DashboardCardHeight.grande],
-      defaultHeight: DashboardCardHeight.tall,
-    ),
+  /// The card's one fixed size in the desktop grid.
+  DashboardTier get tier => switch (this) {
+    DashboardWidget.currentOutbound => DashboardTier.medium,
+    DashboardWidget.networkSpeed => DashboardTier.large,
+    DashboardWidget.outboundMode => DashboardTier.medium,
+    DashboardWidget.vpnButton => DashboardTier.medium,
+    DashboardWidget.networkTakeover => DashboardTier.large,
+    DashboardWidget.serviceStatus => DashboardTier.small,
+    DashboardWidget.profiles => DashboardTier.small,
+    DashboardWidget.proxyGroups => DashboardTier.large,
+    DashboardWidget.connectionStats => DashboardTier.medium,
+    DashboardWidget.intranetIp => DashboardTier.small,
+    DashboardWidget.memoryInfo => DashboardTier.small,
+    DashboardWidget.speedTest => DashboardTier.medium,
+    DashboardWidget.connectionsTable => DashboardTier.wide,
   };
 
   String? description(BuildContext context) {
@@ -158,27 +86,4 @@ extension DashboardWidgetView on DashboardWidget {
 
   /// It holds the start button, which has nowhere else to go.
   bool get removable => this != DashboardWidget.currentOutbound;
-
-  /// Decodes the persisted size code (width * 10 + height band index).
-  DashboardSpan spanFrom(Map<String, int> saved) {
-    final spec = spanSpec;
-    final code = saved[name];
-    if (code == null) {
-      return DashboardSpan(
-        width: spec.defaultWidth,
-        height: spec.defaultHeight,
-      );
-    }
-    final width = code ~/ 10;
-    final heightIndex = code % 10;
-    return DashboardSpan(
-      width: spec.widths.contains(width) ? width : spec.defaultWidth,
-      height: heightIndex >= 0 && heightIndex < spec.heights.length
-          ? spec.heights[heightIndex]
-          : spec.defaultHeight,
-    );
-  }
-
-  int spanCode(DashboardSpan span) =>
-      span.width * 10 + spanSpec.heights.indexOf(span.height);
 }

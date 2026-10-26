@@ -11,79 +11,96 @@ const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
-/// Height bands a desktop grid card can occupy; resize picks among the
-/// bands a widget supports rather than stretching it freely.
-enum DashboardCardHeight {
-  hero,
-  bar,
-  summary,
-  middle,
+/// The only sizes a desktop dashboard card can take. Every card is
+/// assigned exactly one tier; the user reorders cards, never resizes them.
+enum DashboardTier {
+  small,
+  medium,
   large,
-  tall,
-  grande,
+  wide;
 
-  /// The status card's compact default: below [hero], above [middle],
-  /// whose compact band is too short for the card's rows.
-  slimHero;
-
-  double of({required bool compact}) => switch (this) {
-    DashboardCardHeight.hero => compact ? 184 : 208,
-    DashboardCardHeight.bar => compact ? 56 : 64,
-    DashboardCardHeight.summary => compact ? 112 : 120,
-    DashboardCardHeight.middle => compact ? 152 : 176,
-    DashboardCardHeight.large => compact ? 216 : 232,
-    DashboardCardHeight.tall => compact ? 288 : 320,
-    DashboardCardHeight.grande => compact ? 432 : 480,
-    DashboardCardHeight.slimHero => compact ? 164 : 188,
+  /// The tier's footprint in grid cells at [columns] columns.
+  (int, int) cells(int columns) => switch (this) {
+    DashboardTier.small => (1, 1),
+    DashboardTier.medium => (2, 1),
+    DashboardTier.large => (2, 2),
+    DashboardTier.wide => (columns, 2),
   };
 }
 
-/// The widths (in grid columns) and height bands one widget supports.
-class DashboardSpanSpec {
-  const DashboardSpanSpec({
-    required this.widths,
-    required this.defaultWidth,
-    required this.heights,
-    required this.defaultHeight,
+/// The height of one grid row; a tier's pixel height derives from it.
+double dashboardUnitHeight({required bool compact}) => compact ? 168 : 192;
+
+/// Where one card lands in the cell grid.
+class DashboardPlacement {
+  const DashboardPlacement({
+    required this.widget,
+    required this.column,
+    required this.row,
+    required this.columns,
+    required this.rows,
   });
 
-  final List<int> widths;
-  final int defaultWidth;
-  final List<DashboardCardHeight> heights;
-  final DashboardCardHeight defaultHeight;
+  final DashboardWidget widget;
+  final int column;
+  final int row;
+  final int columns;
+  final int rows;
 }
 
-/// A widget's size in the desktop grid.
-class DashboardSpan {
-  const DashboardSpan({required this.width, required this.height});
-
-  final int width;
-  final DashboardCardHeight height;
-}
-
-/// Packs widgets into rows of at most [columns] columns, keeping order.
-List<List<DashboardWidget>> packDashboardRows(
+/// First-fit packing over the cell grid, keeping the user's order: each
+/// card takes the earliest free block of its tier's cells, so cards
+/// interlock with one uniform gap and no ragged seams.
+List<DashboardPlacement> placeDashboardWidgets(
   List<DashboardWidget> order,
-  Map<DashboardWidget, DashboardSpan> spans,
+  Map<DashboardWidget, DashboardTier> tiers,
   int columns,
 ) {
-  final rows = <List<DashboardWidget>>[];
-  var row = <DashboardWidget>[];
-  var used = 0;
+  final occupied = <int>{};
+  final placements = <DashboardPlacement>[];
   for (final widget in order) {
-    final width = (spans[widget]?.width ?? 1).clamp(1, columns);
-    if (row.isNotEmpty && used + width > columns) {
-      rows.add(row);
-      row = <DashboardWidget>[];
-      used = 0;
+    final tier = tiers[widget] ?? DashboardTier.medium;
+    final (wantColumns, wantRows) = tier.cells(columns);
+    final width = math.min(wantColumns, columns);
+    var row = 0;
+    while (true) {
+      var placed = false;
+      for (var column = 0; column + width <= columns; column++) {
+        var free = true;
+        for (var y = row; y < row + wantRows && free; y++) {
+          for (var x = column; x < column + width; x++) {
+            if (occupied.contains(y * columns + x)) {
+              free = false;
+              break;
+            }
+          }
+        }
+        if (free) {
+          for (var y = row; y < row + wantRows; y++) {
+            for (var x = column; x < column + width; x++) {
+              occupied.add(y * columns + x);
+            }
+          }
+          placements.add(
+            DashboardPlacement(
+              widget: widget,
+              column: column,
+              row: row,
+              columns: width,
+              rows: wantRows,
+            ),
+          );
+          placed = true;
+          break;
+        }
+      }
+      if (placed) {
+        break;
+      }
+      row++;
     }
-    row.add(widget);
-    used += width;
   }
-  if (row.isNotEmpty) {
-    rows.add(row);
-  }
-  return rows;
+  return placements;
 }
 
 /// The mobile cards and their editor share one centered column.

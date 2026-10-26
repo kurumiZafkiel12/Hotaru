@@ -183,9 +183,11 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
               ListItem<SpeedTestProvider>.options(
                 leading: const GlyphIcon(AppGlyphs.speed),
                 title: Text(appLocalizations.speedTestProvider),
+                subtitle: Text(_provider.endpointLabel),
                 options: SpeedTestProvider.values,
                 value: _provider,
                 textBuilder: (provider) => provider.label,
+                subtitleBuilder: (provider) => provider.endpointLabel,
                 onChanged: (provider) {
                   if (!_running) {
                     setState(() {

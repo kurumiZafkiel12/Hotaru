@@ -4,15 +4,9 @@ import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dashboard/widget_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-DashboardSpan _span(
-  DashboardWidget widget,
-  int width,
-  DashboardCardHeight height,
-) => DashboardSpan(width: width, height: height);
-
 void main() {
-  group('packDashboardRows', () {
-    test('packs widgets in order without exceeding the column count', () {
+  group('placeDashboardWidgets', () {
+    test('interlocks tiers on the cell grid without overlaps', () {
       final order = [
         DashboardWidget.currentOutbound,
         DashboardWidget.networkSpeed,
@@ -20,128 +14,65 @@ void main() {
         DashboardWidget.intranetIp,
         DashboardWidget.profiles,
       ];
-      final spans = {
-        DashboardWidget.currentOutbound: _span(
-          DashboardWidget.currentOutbound,
-          4,
-          DashboardCardHeight.hero,
-        ),
-        DashboardWidget.networkSpeed: _span(
-          DashboardWidget.networkSpeed,
-          2,
-          DashboardCardHeight.middle,
-        ),
-        DashboardWidget.outboundMode: _span(
-          DashboardWidget.outboundMode,
-          2,
-          DashboardCardHeight.bar,
-        ),
-        DashboardWidget.intranetIp: _span(
-          DashboardWidget.intranetIp,
-          1,
-          DashboardCardHeight.middle,
-        ),
-        DashboardWidget.profiles: _span(
-          DashboardWidget.profiles,
-          1,
-          DashboardCardHeight.middle,
-        ),
+      final tiers = {for (final widget in order) widget: widget.tier};
+      final placements = placeDashboardWidgets(order, tiers, 4);
+      final byWidget = {
+        for (final placement in placements) placement.widget: placement,
       };
-      final rows = packDashboardRows(order, spans, 4);
-      expect(rows, [
-        [DashboardWidget.currentOutbound],
-        [DashboardWidget.networkSpeed, DashboardWidget.outboundMode],
-        [DashboardWidget.intranetIp, DashboardWidget.profiles],
-      ]);
+      expect(byWidget[DashboardWidget.currentOutbound]!.column, 0);
+      expect(byWidget[DashboardWidget.currentOutbound]!.row, 0);
+      expect(byWidget[DashboardWidget.currentOutbound]!.columns, 2);
+      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 1);
+      expect(byWidget[DashboardWidget.networkSpeed]!.column, 2);
+      expect(byWidget[DashboardWidget.networkSpeed]!.row, 0);
+      expect(byWidget[DashboardWidget.networkSpeed]!.rows, 2);
+      expect(byWidget[DashboardWidget.outboundMode]!.column, 0);
+      expect(byWidget[DashboardWidget.outboundMode]!.row, 1);
+      expect(byWidget[DashboardWidget.intranetIp]!.column, 0);
+      expect(byWidget[DashboardWidget.intranetIp]!.row, 2);
+      expect(byWidget[DashboardWidget.profiles]!.column, 1);
+      expect(byWidget[DashboardWidget.profiles]!.row, 2);
+      final cells = <int>{};
+      for (final placement in placements) {
+        for (var y = placement.row; y < placement.row + placement.rows; y++) {
+          for (
+            var x = placement.column;
+            x < placement.column + placement.columns;
+            x++
+          ) {
+            expect(cells.add(y * 4 + x), isTrue);
+          }
+        }
+      }
     });
 
-    test('clamps widths wider than the grid', () {
-      final rows = packDashboardRows(
-        [DashboardWidget.currentOutbound, DashboardWidget.networkSpeed],
-        {
-          DashboardWidget.currentOutbound: _span(
-            DashboardWidget.currentOutbound,
-            4,
-            DashboardCardHeight.hero,
-          ),
-          DashboardWidget.networkSpeed: _span(
-            DashboardWidget.networkSpeed,
-            2,
-            DashboardCardHeight.middle,
-          ),
-        },
-        2,
-      );
-      expect(rows, [
-        [DashboardWidget.currentOutbound],
-        [DashboardWidget.networkSpeed],
-      ]);
+    test('clamps footprints wider than the grid', () {
+      final order = [
+        DashboardWidget.connectionsTable,
+        DashboardWidget.currentOutbound,
+      ];
+      final tiers = {for (final widget in order) widget: widget.tier};
+      final placements = placeDashboardWidgets(order, tiers, 2);
+      expect(placements.first.columns, 2);
+      expect(placements.first.rows, 2);
+      expect(placements.last.row, 2);
+      expect(placements.last.columns, 2);
     });
   });
 
-  group('span persistence', () {
-    test('every widget has a valid default span', () {
+  group('fixed tiers', () {
+    test('every widget has exactly one fixed tier', () {
       for (final widget in DashboardWidget.values) {
-        final span = widget.spanFrom(const {});
-        expect(widget.spanSpec.widths, contains(span.width), reason: '$widget');
-        expect(
-          widget.spanSpec.heights,
-          contains(span.height),
-          reason: '$widget',
-        );
+        expect(widget.tier, isNotNull, reason: '$widget');
       }
-    });
-
-    test('span codes round-trip through the persisted map', () {
-      for (final widget in DashboardWidget.values) {
-        final spec = widget.spanSpec;
-        final span = DashboardSpan(
-          width: spec.widths.last,
-          height: spec.heights.last,
-        );
-        final restored = widget.spanFrom({widget.name: widget.spanCode(span)});
-        expect(restored.width, span.width, reason: '$widget');
-        expect(restored.height, span.height, reason: '$widget');
-      }
-    });
-
-    test('invalid codes fall back to the spec defaults', () {
-      final span = DashboardWidget.networkSpeed.spanFrom({'networkSpeed': 99});
-      expect(span.width, DashboardWidget.networkSpeed.spanSpec.defaultWidth);
-      expect(span.height, DashboardWidget.networkSpeed.spanSpec.defaultHeight);
-    });
-
-    test('shipped default span codes decode to valid spans', () {
-      for (final entry in defaultDashboardWidgetSpans.entries) {
-        final widget = DashboardWidget.values.asNameMap()[entry.key];
-        expect(widget, isNotNull, reason: entry.key);
-        final span = widget!.spanFrom(defaultDashboardWidgetSpans);
-        expect(widget.spanSpec.widths, contains(span.width), reason: entry.key);
-      }
+      expect(DashboardWidget.currentOutbound.tier, DashboardTier.medium);
+      expect(DashboardWidget.connectionsTable.tier, DashboardTier.wide);
+      expect(DashboardTier.small.cells(4), (1, 1));
+      expect(DashboardTier.medium.cells(4), (2, 1));
+      expect(DashboardTier.large.cells(4), (2, 2));
+      expect(DashboardTier.wide.cells(4), (4, 2));
     });
   });
-
-  test(
-    'the status card resizes in width and height from a compact default',
-    () {
-      final spec = DashboardWidget.currentOutbound.spanSpec;
-      expect(spec.widths, [2, 3, 4]);
-      expect(spec.heights, [
-        DashboardCardHeight.slimHero,
-        DashboardCardHeight.hero,
-        DashboardCardHeight.large,
-      ]);
-      final span = DashboardWidget.currentOutbound.spanFrom(const {});
-      expect(span.width, 4);
-      expect(span.height, DashboardCardHeight.slimHero);
-      // Codes shipped before the unlock keep working: 40 was full width.
-      final shipped = DashboardWidget.currentOutbound.spanFrom(const {
-        'currentOutbound': 40,
-      });
-      expect(shipped.width, 4);
-      expect(shipped.height, DashboardCardHeight.slimHero);
-    },
-  );
 
   test('new widgets stay out of the default layout but remain addable', () {
     expect(defaultDashboardWidgets, isNot(contains(DashboardWidget.speedTest)));

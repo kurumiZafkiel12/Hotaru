@@ -3,7 +3,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-enum SpeedTestProvider { apple, cloudflare, speedtest, fast, librespeed }
+enum SpeedTestProvider {
+  apple,
+  cloudflare,
+  speedtest,
+  fast,
+  librespeed,
+  google,
+  mlab,
+  cachefly,
+  vultr,
+}
 
 enum SpeedTestPhase { connecting, latency, download, upload, done }
 
@@ -14,6 +24,24 @@ extension SpeedTestProviderLabel on SpeedTestProvider {
     SpeedTestProvider.speedtest => 'Speedtest',
     SpeedTestProvider.fast => 'Fast.com',
     SpeedTestProvider.librespeed => 'LibreSpeed',
+    SpeedTestProvider.google => 'Google',
+    SpeedTestProvider.mlab => 'M-Lab',
+    SpeedTestProvider.cachefly => 'CacheFly',
+    SpeedTestProvider.vultr => 'Vultr',
+  };
+
+  /// The address a run actually talks to, shown beside the name so the
+  /// user can see where the traffic goes before spending it.
+  String get endpointLabel => switch (this) {
+    SpeedTestProvider.apple => 'mensura.cdn-apple.com',
+    SpeedTestProvider.cloudflare => 'speed.cloudflare.com',
+    SpeedTestProvider.speedtest => 'www.speedtest.net · 自动选最近服务器',
+    SpeedTestProvider.fast => 'api.fast.com · Netflix 服务器',
+    SpeedTestProvider.librespeed => 'librespeed.org · 自动选最近站点',
+    SpeedTestProvider.google => 'dl.google.com · Chrome 安装包（171 MB）',
+    SpeedTestProvider.mlab => 'locate.measurementlab.net · 自动选最近机房',
+    SpeedTestProvider.cachefly => 'cachefly.cachefly.net · 100 MB 测试文件',
+    SpeedTestProvider.vultr => 'hnd-jp-ping.vultr.com · 东京 · 100 MB 文件',
   };
 }
 
@@ -102,10 +130,13 @@ class SpeedTestRunner {
 
   bool _cancelled = false;
   HttpClient? _client;
+  WebSocket? _webSocket;
 
   void cancel() {
     _cancelled = true;
     _client?.close(force: true);
+    _webSocket?.close().ignore();
+    _webSocket = null;
   }
 
   HttpClient _newClient() {
@@ -126,6 +157,13 @@ class SpeedTestRunner {
     _cancelled = false;
     try {
       onProgress(SpeedTestPhase.connecting, 0, 0);
+      if (provider == SpeedTestProvider.mlab) {
+        return await _runMLab(
+          durationSeconds: durationSeconds,
+          onProgress: onProgress,
+          downloadOnly: downloadOnly,
+        );
+      }
       final target = await _resolveTarget(provider);
       if (_cancelled) {
         return const SpeedTestResult(cancelled: true);
@@ -188,6 +226,8 @@ class SpeedTestRunner {
     } finally {
       _client?.close(force: true);
       _client = null;
+      _webSocket?.close().ignore();
+      _webSocket = null;
     }
   }
 
@@ -203,6 +243,34 @@ class SpeedTestRunner {
         return _resolveFast();
       case SpeedTestProvider.librespeed:
         return _resolveLibreSpeed();
+      case SpeedTestProvider.google:
+        return const SpeedTestTarget(
+          latencyUrl:
+              'https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi',
+          downloadUrl:
+              'https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi',
+          uploadUrl: '',
+          serverLabel: 'dl.google.com · Google CDN',
+          supportsUpload: false,
+        );
+      case SpeedTestProvider.cachefly:
+        return const SpeedTestTarget(
+          latencyUrl: 'https://cachefly.cachefly.net/100mb.test',
+          downloadUrl: 'https://cachefly.cachefly.net/100mb.test',
+          uploadUrl: '',
+          serverLabel: 'cachefly.cachefly.net · CacheFly CDN',
+          supportsUpload: false,
+        );
+      case SpeedTestProvider.vultr:
+        return const SpeedTestTarget(
+          latencyUrl: 'https://hnd-jp-ping.vultr.com/vultr.com.100MB.bin',
+          downloadUrl: 'https://hnd-jp-ping.vultr.com/vultr.com.100MB.bin',
+          uploadUrl: '',
+          serverLabel: 'Vultr · 东京 (Tokyo)',
+          supportsUpload: false,
+        );
+      case SpeedTestProvider.mlab:
+        throw StateError('M-Lab runs through its own WebSocket flow');
     }
   }
 
@@ -406,6 +474,250 @@ class SpeedTestRunner {
     throw Exception('No reachable LibreSpeed server');
   }
 
+  Future<SpeedTestResult> _runMLab({
+    required int durationSeconds,
+    required SpeedTestProgress onProgress,
+    required bool downloadOnly,
+  }) async {
+    final target = await _resolveMLab();
+    if (_cancelled) {
+      return const SpeedTestResult(cancelled: true);
+    }
+    double? latency;
+    double? jitter;
+    if (!downloadOnly) {
+      onProgress(SpeedTestPhase.latency, 0, 0);
+      final samples = <double>[];
+      for (var i = 0; i < 3 && !_cancelled; i++) {
+        final sample = await _mlabHandshakeMs(target.downloadWs);
+        if (sample != null) {
+          samples.add(sample);
+        }
+      }
+      if (samples.isEmpty) {
+        throw Exception('M-Lab server is unreachable');
+      }
+      final stats = _latencyStats(samples);
+      latency = stats.median;
+      jitter = stats.jitter;
+    }
+    onProgress(SpeedTestPhase.download, 0, 0);
+    final download = await _mlabDownload(
+      target.downloadWs,
+      durationSeconds,
+      (liveBps, progress) =>
+          onProgress(SpeedTestPhase.download, liveBps, progress),
+    );
+    if (_cancelled) {
+      return const SpeedTestResult(cancelled: true);
+    }
+    double? upload;
+    if (!downloadOnly) {
+      onProgress(SpeedTestPhase.upload, 0, 0);
+      upload = await _mlabUpload(
+        target.uploadWs,
+        durationSeconds,
+        (liveBps, progress) =>
+            onProgress(SpeedTestPhase.upload, liveBps, progress),
+      );
+      if (_cancelled) {
+        return const SpeedTestResult(cancelled: true);
+      }
+    }
+    onProgress(SpeedTestPhase.done, 0, 1);
+    return SpeedTestResult(
+      latencyMs: latency,
+      jitterMs: jitter,
+      downloadBps: download,
+      uploadBps: upload,
+      serverLabel: target.label,
+    );
+  }
+
+  Future<({String downloadWs, String uploadWs, String label})>
+  _resolveMLab() async {
+    final body = await _getText(
+      'https://locate.measurementlab.net/v2/nearest/ndt/ndt7',
+    );
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    final results = data['results'] as List<dynamic>? ?? const [];
+    if (results.isEmpty) {
+      throw Exception('M-Lab returned no servers');
+    }
+    final first = results.first as Map<String, dynamic>;
+    final urls = first['urls'] as Map<String, dynamic>? ?? const {};
+    String? downloadWs;
+    String? uploadWs;
+    for (final entry in urls.entries) {
+      final value = entry.value as String? ?? '';
+      if (!value.startsWith('wss://')) {
+        continue;
+      }
+      if (entry.key.contains('download')) {
+        downloadWs = value;
+      }
+      if (entry.key.contains('upload')) {
+        uploadWs = value;
+      }
+    }
+    if (downloadWs == null || uploadWs == null) {
+      throw Exception('M-Lab server has no secure endpoints');
+    }
+    final location = first['location'] as Map<String, dynamic>?;
+    final city = location?['city'] as String? ?? '';
+    final country = location?['country'] as String? ?? '';
+    final label = [
+      (first['machine'] as String?) ?? 'measurementlab.net',
+      if (city.isNotEmpty && country.isNotEmpty) '$city, $country',
+    ].join(' · ');
+    return (downloadWs: downloadWs, uploadWs: uploadWs, label: label);
+  }
+
+  Future<double?> _mlabHandshakeMs(String url) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final socket = await _wsConnect(url);
+      stopwatch.stop();
+      await socket.close();
+      if (identical(_webSocket, socket)) {
+        _webSocket = null;
+      }
+      return stopwatch.elapsedMilliseconds.toDouble();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<WebSocket> _wsConnect(String url) async {
+    final socket = await WebSocket.connect(
+      url,
+      protocols: ['net.measurementlab.ndt.v7'],
+      headers: {'User-Agent': speedTestUserAgent},
+      customClient: _newClient(),
+    );
+    _webSocket = socket;
+    return socket;
+  }
+
+  Future<double> _mlabDownload(
+    String url,
+    int durationSeconds,
+    void Function(double liveBps, double progress) onSample,
+  ) async {
+    final socket = await _wsConnect(url);
+    var totalBytes = 0;
+    var closed = false;
+    final subscription = socket.listen(
+      (message) {
+        if (message is List<int>) {
+          totalBytes += message.length;
+        }
+      },
+      onDone: () => closed = true,
+      onError: (_) => closed = true,
+    );
+    final started = DateTime.now();
+    final deadline = started.add(Duration(seconds: durationSeconds));
+    var lastBytes = 0;
+    var lastSample = started;
+    while (!_cancelled && !closed && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      final now = DateTime.now();
+      final elapsed = now.difference(lastSample).inMilliseconds / 1000;
+      if (elapsed >= 0.5) {
+        onSample(
+          (totalBytes - lastBytes) * 8 / elapsed,
+          now.difference(started).inMilliseconds / (durationSeconds * 1000),
+        );
+        lastBytes = totalBytes;
+        lastSample = now;
+      }
+    }
+    final elapsedSeconds =
+        DateTime.now().difference(started).inMilliseconds / 1000;
+    await subscription.cancel();
+    await socket.close();
+    if (identical(_webSocket, socket)) {
+      _webSocket = null;
+    }
+    if (totalBytes <= 0) {
+      throw Exception('No data transferred during the test');
+    }
+    return totalBytes * 8 / elapsedSeconds;
+  }
+
+  Future<double> _mlabUpload(
+    String url,
+    int durationSeconds,
+    void Function(double liveBps, double progress) onSample,
+  ) async {
+    final socket = await _wsConnect(url);
+    var closed = false;
+    final subscription = socket.listen(
+      (_) {},
+      onDone: () => closed = true,
+      onError: (_) => closed = true,
+    );
+    final payload = Uint8List(128 * 1024);
+    var sentBytes = 0;
+    final started = DateTime.now();
+    final deadline = started.add(Duration(seconds: durationSeconds));
+    var finished = false;
+    final upload = socket
+        .addStream(() async* {
+          while (!_cancelled && !closed && DateTime.now().isBefore(deadline)) {
+            sentBytes += payload.length;
+            yield payload;
+          }
+        }())
+        .whenComplete(() => finished = true);
+    var lastBytes = 0;
+    var lastSample = started;
+    final grace = deadline.add(const Duration(seconds: 3));
+    while (!finished && !_cancelled && DateTime.now().isBefore(grace)) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      final now = DateTime.now();
+      final elapsed = now.difference(lastSample).inMilliseconds / 1000;
+      if (elapsed >= 0.5) {
+        onSample(
+          (sentBytes - lastBytes) * 8 / elapsed,
+          now.difference(started).inMilliseconds / (durationSeconds * 1000),
+        );
+        lastBytes = sentBytes;
+        lastSample = now;
+      }
+    }
+    final elapsedSeconds =
+        DateTime.now().difference(started).inMilliseconds / 1000;
+    await socket.close();
+    try {
+      await upload.timeout(const Duration(seconds: 2));
+    } catch (_) {
+      // The close above already ended the transfer.
+    }
+    await subscription.cancel();
+    if (identical(_webSocket, socket)) {
+      _webSocket = null;
+    }
+    if (sentBytes <= 0) {
+      throw Exception('No data transferred during the test');
+    }
+    return sentBytes * 8 / elapsedSeconds;
+  }
+
+  ({double median, double? jitter}) _latencyStats(List<double> samples) {
+    double? jitter;
+    if (samples.length >= 2) {
+      var total = 0.0;
+      for (var i = 1; i < samples.length; i++) {
+        total += (samples[i] - samples[i - 1]).abs();
+      }
+      jitter = total / (samples.length - 1);
+    }
+    final sorted = [...samples]..sort();
+    return (median: sorted[sorted.length ~/ 2], jitter: jitter);
+  }
+
   Future<bool> _probeDownload(String url, int expectedBytes) async {
     try {
       final client = _newClient();
@@ -477,16 +789,7 @@ class SpeedTestRunner {
     if (samples.isEmpty) {
       throw Exception('Latency probe failed');
     }
-    double? jitter;
-    if (samples.length >= 2) {
-      var total = 0.0;
-      for (var i = 1; i < samples.length; i++) {
-        total += (samples[i] - samples[i - 1]).abs();
-      }
-      jitter = total / (samples.length - 1);
-    }
-    final sorted = [...samples]..sort();
-    return (median: sorted[sorted.length ~/ 2], jitter: jitter);
+    return _latencyStats(samples);
   }
 
   Future<String> _getText(String url) async {

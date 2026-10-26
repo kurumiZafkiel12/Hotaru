@@ -100,32 +100,42 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         builder: (context, constraints) {
           final room = constraints.biggest / scale;
           final layout = DashboardDensity.of(room);
-          return DashboardDensityScope(
-            density: layout,
-            scale: scale,
-            child: layout.isDesktop
-                ? editing
-                      ? DesktopDashboardEditor(
-                          platform: platform,
-                          columns: dashboardColumnsOf(room.width),
-                          gap: gap,
-                          cardKeyOf: _cardKeyOf,
-                          onDone: () => _setEditing(false),
-                          onCancel: _cancelEditing,
-                        )
-                      : DesktopDashboardGrid(
-                          platform: platform,
-                          columns: dashboardColumnsOf(room.width),
-                          gap: gap,
-                          cardKeyOf: _cardKeyOf,
-                        )
-                : _MobileDashboard(
-                    platform: platform,
-                    gap: gap,
-                    editing: editing,
-                    cardKeyOf: _cardKeyOf,
-                    onDone: () => _setEditing(false),
-                  ),
+          // The bar floats over the body; the dashboard scrolls below it
+          // instead of sliding under the title.
+          final band = context.appBarInset;
+          final topGap = math.max(0.0, context.contentTopPadding - band);
+          return Padding(
+            padding: EdgeInsets.only(top: band),
+            child: DashboardDensityScope(
+              density: layout,
+              scale: scale,
+              child: layout.isDesktop
+                  ? editing
+                        ? DesktopDashboardEditor(
+                            platform: platform,
+                            columns: dashboardColumnsOf(room.width),
+                            gap: gap,
+                            topPadding: topGap,
+                            cardKeyOf: _cardKeyOf,
+                            onDone: () => _setEditing(false),
+                            onCancel: _cancelEditing,
+                          )
+                        : DesktopDashboardGrid(
+                            platform: platform,
+                            columns: dashboardColumnsOf(room.width),
+                            gap: gap,
+                            topPadding: topGap,
+                            cardKeyOf: _cardKeyOf,
+                          )
+                  : _MobileDashboard(
+                      platform: platform,
+                      gap: gap,
+                      topPadding: topGap,
+                      editing: editing,
+                      cardKeyOf: _cardKeyOf,
+                      onDone: () => _setEditing(false),
+                    ),
+            ),
           );
         },
       ),
@@ -137,6 +147,7 @@ class _MobileDashboard extends ConsumerWidget {
   const _MobileDashboard({
     required this.platform,
     required this.gap,
+    required this.topPadding,
     required this.editing,
     required this.cardKeyOf,
     required this.onDone,
@@ -144,6 +155,7 @@ class _MobileDashboard extends ConsumerWidget {
 
   final SupportPlatform platform;
   final double gap;
+  final double topPadding;
   final bool editing;
   final GlobalKey Function(DashboardWidget widget) cardKeyOf;
   final VoidCallback onDone;
@@ -153,7 +165,7 @@ class _MobileDashboard extends ConsumerWidget {
     final saved = ref.watch(
       dashboardStateProvider.select((state) => state.dashboardWidgets),
     );
-    final top = context.contentTopPadding;
+    final top = topPadding;
     final bottom = 16 + context.bottomInset;
     return CustomScrollView(
       // A viewport per card lays them all out and holds the scroll end still.

@@ -91,19 +91,24 @@ void main() {
       .position
       .maxScrollExtent;
 
-  testWidgets('the exit is a full-width compact hero above the saved widgets', (
+  testWidgets('the saved widgets share one fixed-tier cell grid', (
     tester,
   ) async {
     await pumpDashboard(tester, const Size(1220, 1100));
     final hero = rectOf(tester, CurrentOutboundCard);
     final speed = rectOf(tester, NetworkSpeedCard);
     final mode = rectOf(tester, OutboundModeCard);
+    // Medium tier: two cells wide, one unit tall; the large speed card
+    // interlocks beside it and the next medium fills the cell below.
     expect(hero.left, 24);
-    expect(hero.right, 1220 - 24);
-    expect(hero.height, 188);
-    expect(speed.top, hero.bottom + 16);
-    expect(mode.top, speed.top);
-    expect(speed.width + mode.width + 16, closeTo(hero.width, 0.01));
+    expect(hero.width, 281 * 2 + 16);
+    expect(hero.height, 192);
+    expect(speed.left, hero.right + 16);
+    expect(speed.top, hero.top);
+    expect(speed.height, 192 * 2 + 16);
+    expect(mode.left, hero.left);
+    expect(mode.top, hero.bottom + 16);
+    expect(mode.width, hero.width);
     expect(find.byType(ProfilesCard), findsOneWidget);
     expect(find.byType(IntranetIpCard), findsOneWidget);
     expect(find.byType(ServiceStatusCard), findsOneWidget);
@@ -136,8 +141,10 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.center.dx, 1280);
-    expect(hero.width, 360 * 4 + 16 * 3);
+    // Cells cap at 400 and the whole grid centers: the content column is
+    // 400 * 4 + 16 * 3 wide, so its left edge sits at (2560 - 1648) / 2.
+    expect(hero.left, (2560 - (400 * 4 + 16 * 3)) / 2);
+    expect(hero.width, 400 * 2 + 16);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
