@@ -387,7 +387,7 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
                     key_password="${{ secrets.KEY_PASSWORD }}"
-          if ! keytool -certreq -keystore android/app/keystore.jks -storepass "${{ secrets.STORE_PASSWORD }}" -alias "${{ secrets.KEY_ALIAS }}" -keypass "$key_password" -file /tmp/hotaru-csr.pem 2>/dev/null; then
+          if ! openssl pkcs12 -in android/app/keystore.jks -nocerts -nodes -nomacver -noout -passin pass:"$key_password" 2>/dev/null; then
             echo "KEY_PASSWORD cannot unlock the signing key; using the store password as the key password"
                         key_password="${{ secrets.STORE_PASSWORD }}"
           fi
