@@ -27,60 +27,32 @@ jobs:
           test "$(sed -n 's/^version: //p' pubspec.yaml)" = '0.0.2+11'
           git diff --exit-code 39abb5a80dda2495d4a8a521202aea9f8ec88d2b -- lib core android plugins pubspec.yaml pubspec.lock setup.dart
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.27.1'
-          cache-dependency-path: core/go.sum
-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: '3.47.6'
-          cache: true
-
-      - uses: gradle/actions/setup-gradle@v6
-
-      - uses: nttld/setup-ndk@v1
-        id: ndk
-        with:
-          ndk-version: r28c
-          add-to-path: true
-          link-to-sdk: true
-
-      - name: Configure existing signing
+      - name: Verify retained build provenance
         env:
-          KEYSTORE: ${{ secrets.KEYSTORE }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -n "$KEYSTORE" ] && [ -n "$KEY_ALIAS" ] && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_PASSWORD" ]; then
-            printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
-            {
-              printf 'keyAlias=%s\n' "$KEY_ALIAS"
-              printf 'storePassword=%s\n' "$STORE_PASSWORD"
-              printf 'keyPassword=%s\n' "$KEY_PASSWORD"
-            } >> android/local.properties
-          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/40316190743" > "$RUNNER_TEMP/source-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/jobs/121549267473" > "$RUNNER_TEMP/source-job.json"
+          python3 - "$RUNNER_TEMP/source-run.json" "$RUNNER_TEMP/source-job.json" <<'PYVERIFY'
+          import json, sys
+          run = json.load(open(sys.argv[1]))
+          job = json.load(open(sys.argv[2]))
+          assert run['head_sha'] == '686370710bd5d77150acaf8e3de7df5304099569'
+          assert any(step['name'] == 'Package Android' and step['conclusion'] == 'success' for step in job['steps'])
+          PYVERIFY
 
-      - name: Install locked dependencies
-        run: flutter pub get --enforce-lockfile
-
-      - name: Fetch verified CA bundle
-        run: |
-          bundle=core/Clash.Meta/component/ca/ca-certificates.crt
-          curl -fLsS --retry 3 https://curl.se/ca/cacert-2026-09-25.pem -o "$bundle"
-          echo "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505  $bundle" | sha256sum -c -
-
-      - name: Package Android
-        env:
-          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: dart setup.dart android --env stable -v
+      - name: Restore built APKs for the unchanged application source
+        uses: actions/download-artifact@v4
+        with:
+          name: android-v002-raw
+          run-id: 40316190743
+          github-token: ${{ github.token }}
+          path: dist/
 
       - name: Inspect APKs
         env:

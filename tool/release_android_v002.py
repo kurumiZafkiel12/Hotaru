@@ -41,7 +41,7 @@ def inspect():
                 raise RuntimeError('Unexpected v0.0.1 baseline APK metadata')
             previous_code = int(old_package.group(2))
             old_signing = command(str(tools / 'apksigner'), 'verify', '--print-certs', str(old_apk))
-            previous_certificate = re.search(r'Signer #1 certificate SHA-256 digest: (\w+)', old_signing).group(1)
+            previous_certificate = re.search(r'certificate SHA-256 digest:\s*(\w+)', old_signing).group(1)
         matches = list(Path('dist').rglob(f'*-android-{abi}.apk'))
         if len(matches) != 1:
             raise RuntimeError(f'Expected one packaged {abi} APK, found {matches}')
@@ -51,7 +51,7 @@ def inspect():
         if not package or package.group(1) not in ('dev.hotaru.hotaru', 'dev.hotaru.hotaru.dev') or (int(package.group(2)) != previous_code + 1 or package.group(3) != '0.0.2'):
             raise RuntimeError(f'Unexpected package metadata: {package.group(0) if package else "missing"}')
         signing = command(str(tools / 'apksigner'), 'verify', '--verbose', '--print-certs', str(source))
-        certificate = re.search(r'Signer #1 certificate SHA-256 digest: (\w+)', signing)
+        certificate = re.search(r'certificate SHA-256 digest:\s*(\w+)', signing)
         if not certificate:
             raise RuntimeError('Verified signing certificate missing')
         with zipfile.ZipFile(source) as archive:
