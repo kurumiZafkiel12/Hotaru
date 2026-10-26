@@ -498,8 +498,8 @@ class _CountryBadgeState extends State<_CountryBadge>
                       maxLines: 1,
                       style: AppTextStyle.custom(
                         context,
-                        size: size * 0.52,
-                        leading: size * 0.62,
+                        size: size * 0.78,
+                        leading: size * 0.9,
                       ).copyWith(fontFamily: FontFamily.twEmoji.value),
                     ),
             ),

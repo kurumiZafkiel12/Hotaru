@@ -571,6 +571,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Available to add",
     ),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "Restore defaults",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("My widgets"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "Failed to save the change; it has been rolled back",
@@ -1779,11 +1782,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "spectrum": MessageLookupByLibrary.simpleMessage("Spectrum"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage("Speed statistics"),
     "speedTest": MessageLookupByLibrary.simpleMessage("Speed test"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "A node speed test is already running",
+    ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
       "Direct connection (core is not running)",
     ),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Exit node"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("Jitter"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("No test run yet"),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
+      "Not supported",
+    ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Provider"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "A full test can use hundreds of MB of data",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
       "Traffic goes through the current proxy",
     ),
@@ -1840,7 +1854,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("Target"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP concurrent"),
     "testInterval": MessageLookupByLibrary.simpleMessage("Test interval"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("Test URL"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("Latency test URL"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage("Test when used"),
     "textScale": MessageLookupByLibrary.simpleMessage("Text scaling"),
     "textScalePreview": MessageLookupByLibrary.simpleMessage(

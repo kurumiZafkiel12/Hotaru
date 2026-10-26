@@ -54,6 +54,7 @@ Future<List<Group>> buildGroups(ComputeGroupsState state) async {
   if (proxies.isEmpty) return [];
   final groups = <Group>[];
   for (final groupName in all) {
+    if (isSpeedTestGroupName(groupName)) continue;
     final raw = proxies[groupName];
     if (raw is! Map) continue;
     if (!GroupTypeExtension.valueList.contains(raw['type'])) continue;
@@ -369,6 +370,7 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .map((item) => item.definition)
         .toList();
   }
+  injectSpeedTestRoute(rawConfig);
   rawConfig['rules'] = rules;
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
   return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));

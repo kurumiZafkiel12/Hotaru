@@ -481,7 +481,11 @@ class _OutboundIpLine extends StatelessWidget {
         if (flag != null)
           Text(
             flag.countryFlagEmoji,
-            style: style?.copyWith(fontFamily: FontFamily.twEmoji.value),
+            style: style?.copyWith(
+              fontFamily: FontFamily.twEmoji.value,
+              fontSize: (style?.fontSize ?? 14) * 1.4,
+              height: 1,
+            ),
           ),
         if (ip != null)
           Flexible(

@@ -438,6 +438,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
   double? _downloadBps;
   double _liveBps = 0;
   String? _error;
+  List<String> _chain = const [];
   SpeedTestRunner? _runner;
 
   @override
@@ -458,60 +459,61 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       _runner?.cancel();
       return;
     }
-    final appLocalizations = context.appLocalizations;
-    final switchFailedText = appLocalizations.changeProxyFailedTip;
-    final directText = appLocalizations.speedTestDirect;
-    final proxiesAction = ref.read(proxiesActionProvider.notifier);
-    final originalName = ref.read(proxyNameProvider(widget.groupName));
-    final isAlreadySelected = originalName == widget.proxyName;
+    final token = NodeSpeedTestGate.tryAcquire();
+    if (token == null) {
+      setState(() {
+        _error = context.appLocalizations.speedTestBusy;
+      });
+      return;
+    }
+    final failedText = context.appLocalizations.changeProxyFailedTip;
     setState(() {
       _running = true;
       _error = null;
       _downloadBps = null;
       _liveBps = 0;
+      _chain = const [];
     });
-    var switched = false;
     try {
-      if (!isAlreadySelected) {
-        await proxiesAction.changeProxy(
-          groupName: widget.groupName,
-          proxyName: widget.proxyName,
-        );
-        proxiesAction.updateGroupsDebounce();
+      final core = ref.read(coreHandlerProvider);
+      final proxiesData = await core.getProxies();
+      final testGroup = findSpeedTestGroupName(proxiesData.proxies);
+      if (testGroup == null) {
         if (mounted) {
-          final selected = ref.read(
-            selectedProxyNameProvider(widget.groupName),
-          );
-          if (selected != widget.proxyName) {
-            setState(() {
-              _error = switchFailedText;
-            });
-            return;
-          }
+          setState(() {
+            _error = failedText;
+          });
         }
-        switched = true;
+        return;
+      }
+      final chain = resolveProxyChain(proxiesData.proxies, widget.proxyName);
+      final result = await core.changeProxy(
+        ChangeProxyParams(groupName: testGroup, proxyName: widget.proxyName),
+      );
+      if (result.message.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _error = failedText;
+          });
+        }
+        return;
       }
       if (!mounted) {
         return;
       }
-      final proxy = HotaruHttpOverrides.findProxyForReader(
-        ref.read,
-        Uri.parse('https://example.com'),
-      );
-      if (!proxy.startsWith('PROXY')) {
-        setState(() {
-          _error = directText;
-        });
-        return;
-      }
-      final runner = SpeedTestRunner(findProxy: (_) => proxy);
+      setState(() {
+        _chain = chain;
+      });
+      final runner = SpeedTestRunner(findProxy: (_) => speedTestProxy);
       _runner = runner;
-      final result = await runner.run(
+      final testResult = await runner.run(
         provider: SpeedTestProvider.apple,
         durationSeconds: _testDurationSeconds,
         downloadOnly: true,
         onProgress: (phase, liveBps, progress) {
-          if (!mounted || phase != SpeedTestPhase.download) {
+          if (!mounted ||
+              !NodeSpeedTestGate.isActive(token) ||
+              phase != SpeedTestPhase.download) {
             return;
           }
           setState(() {
@@ -523,25 +525,22 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
         return;
       }
       setState(() {
-        if (result.cancelled) {
+        if (testResult.cancelled) {
           _error = null;
-        } else if (result.error != null) {
-          _error = result.error;
+        } else if (testResult.error != null) {
+          _error = testResult.error;
         } else {
-          _downloadBps = result.downloadBps;
+          _downloadBps = testResult.downloadBps;
         }
       });
-    } finally {
-      if (switched &&
-          originalName != null &&
-          originalName.isNotEmpty &&
-          originalName != widget.proxyName) {
-        await proxiesAction.changeProxy(
-          groupName: widget.groupName,
-          proxyName: originalName,
-        );
-        proxiesAction.updateGroupsDebounce();
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = failedText;
+        });
       }
+    } finally {
+      NodeSpeedTestGate.release(token);
       if (mounted) {
         setState(() {
           _running = false;
@@ -554,11 +553,20 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
   Widget build(BuildContext context) {
     final measure = globalState.measure;
     final size = measure.textHeight(AppTextStyle.caption2);
-    final text = _error != null
+    var text = _error != null
         ? _error!
         : _running
         ? _speedText(_liveBps)
         : _speedText(_downloadBps);
+    if (_error == null &&
+        !_running &&
+        _downloadBps != null &&
+        _chain.length > 1) {
+      text = '$text → ${_chain.last}';
+    }
+    final tooltip = _chain.length > 1
+        ? '${context.appLocalizations.speedTest}: ${_chain.join(' → ')}'
+        : context.appLocalizations.speedTest;
     Widget textWidget = Text(
       text,
       maxLines: 1,
@@ -575,7 +583,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
     return SizedBox(
       height: size,
       child: Tooltip(
-        message: context.appLocalizations.speedTest,
+        message: tooltip,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _toggle,

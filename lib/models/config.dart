@@ -109,6 +109,17 @@ final List<HotKeyAction> defaultHotKeyActions = system.isWindows
         _defaultHotKeyAction(HotAction.delayTest, PhysicalKeyboardKey.keyD),
       ];
 
+/// Desktop grid sizes per widget name, encoded width * 10 + height index.
+const Map<String, int> defaultDashboardWidgetSpans = {
+  'currentOutbound': 40,
+  'networkSpeed': 20,
+  'outboundMode': 20,
+  'vpnButton': 20,
+  'networkTakeover': 20,
+  'connectionStats': 20,
+  'proxyGroups': 20,
+};
+
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.currentOutbound,
   DashboardWidget.networkSpeed,
@@ -241,6 +252,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(defaultDashboardWidgets)
     @JsonKey(fromJson: dashboardWidgetsFromJson)
     List<DashboardWidget> dashboardWidgets,
+    @Default(defaultDashboardWidgetSpans) Map<String, int> dashboardWidgetSpans,
     @Default(false) bool onlyStatisticsProxy,
     @Default(true) bool showNotificationStopAction,
     @Default(false) bool autoLaunch,

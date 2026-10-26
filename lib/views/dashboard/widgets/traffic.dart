@@ -251,6 +251,7 @@ class _SpeedTile extends StatelessWidget {
   static const _chartGap = 12.0;
   static const _bleed = 2.0;
   static const _minChartHeight = 36.0;
+  static const _maxChartHeight = 110.0;
 
   @override
   Widget build(BuildContext context) {
@@ -266,9 +267,15 @@ class _SpeedTile extends StatelessWidget {
             scale;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final chartHeight = math.max(
-          _minChartHeight,
-          constraints.maxWidth / _aspectRatio - textHeight - _chartGap + _bleed,
+        final chartHeight = math.min(
+          _maxChartHeight,
+          math.max(
+            _minChartHeight,
+            constraints.maxWidth / _aspectRatio -
+                textHeight -
+                _chartGap +
+                _bleed,
+          ),
         );
         return Container(
           clipBehavior: Clip.antiAlias,

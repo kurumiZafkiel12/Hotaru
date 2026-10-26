@@ -2,6 +2,7 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/views/dashboard/dashboard.dart';
+import 'package:hotaru/views/dashboard/desktop_grid.dart';
 import 'package:hotaru/views/dashboard/edit.dart';
 import 'package:hotaru/views/dashboard/widgets/widgets.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -426,20 +427,26 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets('a landscape phone gets the fixed grid without an edit mode', (
+  testWidgets('a landscape phone gets the editable widget grid', (
     tester,
   ) async {
     seed(const [DashboardWidget.currentOutbound, DashboardWidget.profiles]);
     await pumpDashboard(tester, size: const Size(915, 412));
 
-    expect(find.byTooltip('Edit dashboard'), findsNothing);
-    expect(find.byType(DashboardEditor), findsNothing);
-    expect(find.byType(OutboundModeBar), findsOneWidget);
+    expect(find.byTooltip('Edit dashboard'), findsOneWidget);
+    expect(find.byType(DesktopDashboardGrid), findsOneWidget);
+    expect(find.byType(CurrentOutboundCard), findsOneWidget);
+    expect(find.byType(ProfilesCard), findsOneWidget);
+    // Only the seeded cards render; the layout is not composed for the user.
+    expect(find.byType(OutboundModeBar), findsNothing);
+
+    await edit(tester);
+    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
 
     await teardown(tester);
   });
 
-  testWidgets('turning to the fixed grid ends editing for good', (
+  testWidgets('turning to the desktop grid keeps editing in its editor', (
     tester,
   ) async {
     seed(const [DashboardWidget.currentOutbound, DashboardWidget.profiles]);
@@ -454,23 +461,30 @@ void main() {
 
     await resize(const Size(915, 412));
     expect(find.byType(DashboardEditor), findsNothing);
+    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
     await resize(const Size(412, 1400));
-    expect(find.byType(DashboardEditor), findsNothing);
-    expect(find.byTooltip('Edit dashboard'), findsOneWidget);
+    expect(find.byType(DesktopDashboardEditor), findsNothing);
+    expect(find.byType(DashboardEditor), findsOneWidget);
 
     await teardown(tester);
   });
 
-  testWidgets('the desktop grid keeps its fixed layout without an edit mode', (
+  testWidgets('the desktop grid renders the saved cards and edits them', (
     tester,
   ) async {
+    seed(const [DashboardWidget.currentOutbound, DashboardWidget.networkSpeed]);
     await pumpDashboard(
       tester,
       platform: SupportPlatform.MacOS,
       size: const Size(1220, 900),
     );
 
-    expect(find.byTooltip('Edit dashboard'), findsNothing);
+    expect(find.byTooltip('Edit dashboard'), findsOneWidget);
+    expect(find.byType(DesktopDashboardGrid), findsOneWidget);
+    expect(find.byType(NetworkSpeedCard), findsOneWidget);
+
+    await edit(tester);
+    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
     expect(find.byType(DashboardEditor), findsNothing);
 
     await teardown(tester);

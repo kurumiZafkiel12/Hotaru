@@ -11,6 +11,7 @@ import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/views/config/general.dart';
+import 'package:hotaru/views/settings.dart';
 import 'package:hotaru/views/tools.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:hotaru/views/navigation.dart';
@@ -473,6 +474,20 @@ void main() {
         ),
       );
       await tester.pump();
+
+      // The sidebar's pinned settings gear carries the same label.
+      final settingsItem = find.descendant(
+        of: find.byType(ToolsView),
+        matching: find.text('Settings'),
+      );
+      await tester.scrollUntilVisible(
+        settingsItem,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(settingsItem);
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsView), findsOneWidget);
 
       final generalItem = find.text('General');
       await tester.scrollUntilVisible(

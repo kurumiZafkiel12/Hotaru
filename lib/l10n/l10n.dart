@@ -4536,6 +4536,51 @@ class AppLocalizations {
     );
   }
 
+  /// `A node speed test is already running`
+  String get speedTestBusy {
+    return Intl.message(
+      'A node speed test is already running',
+      name: 'speedTestBusy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Jitter`
+  String get speedTestJitter {
+    return Intl.message('Jitter', name: 'speedTestJitter', desc: '', args: []);
+  }
+
+  /// `Not supported`
+  String get speedTestNotSupported {
+    return Intl.message(
+      'Not supported',
+      name: 'speedTestNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Exit node`
+  String get speedTestExitNode {
+    return Intl.message(
+      'Exit node',
+      name: 'speedTestExitNode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A full test can use hundreds of MB of data`
+  String get speedTestTrafficWarning {
+    return Intl.message(
+      'A full test can use hundreds of MB of data',
+      name: 'speedTestTrafficWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Provider`
   String get speedTestProvider {
     return Intl.message(
@@ -8049,6 +8094,16 @@ class AppLocalizations {
     return Intl.message(
       'Available to add',
       name: 'dashboardAddableSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Restore defaults`
+  String get dashboardRestoreDefaults {
+    return Intl.message(
+      'Restore defaults',
+      name: 'dashboardRestoreDefaults',
       desc: '',
       args: [],
     );

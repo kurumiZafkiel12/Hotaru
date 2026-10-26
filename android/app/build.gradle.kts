@@ -37,7 +37,8 @@ android {
         applicationId = "dev.hotaru.hotaru"
         minSdk = flutter.minSdkVersion
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = flutter.versionCode
+        versionCode = (findProperty("hotaruVersionCode") as String?)
+            ?.toIntOrNull() ?: flutter.versionCode
         versionName = flutter.versionName
     }
 

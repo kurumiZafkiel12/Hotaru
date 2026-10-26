@@ -6,6 +6,7 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
+import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/ui/ui.dart';
 import 'package:hotaru/widgets/icon.dart';
 import 'package:flutter/foundation.dart';
@@ -138,7 +139,7 @@ class AppEnvManager extends ConsumerWidget {
   }
 }
 
-class _Sidebar extends ConsumerWidget {
+class _Sidebar extends ConsumerStatefulWidget {
   const _Sidebar({
     required this.items,
     required this.currentIndex,
@@ -152,8 +153,33 @@ class _Sidebar extends ConsumerWidget {
   final void Function(int index) onSelected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final canExpand = canExpandSidebar(viewMode);
+  ConsumerState<_Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends ConsumerState<_Sidebar> {
+  var _settingsOpen = false;
+
+  Future<void> _openSettings() async {
+    if (_settingsOpen) {
+      return;
+    }
+    final item = navigationPort
+        ?.getItems()
+        .where((item) => item.label == PageLabel.settings)
+        .firstOrNull;
+    if (item == null || !mounted) {
+      return;
+    }
+    setState(() => _settingsOpen = true);
+    await BaseNavigator.push(context, item.builder(context));
+    if (mounted) {
+      setState(() => _settingsOpen = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canExpand = canExpandSidebar(widget.viewMode);
     final sidebarExpanded = ref.watch(
       appSettingProvider.select((state) => state.sidebarExpanded),
     );
@@ -161,12 +187,12 @@ class _Sidebar extends ConsumerWidget {
     return NavigationSidebar(
       brandTitle: 'HOTARU',
       destinations: [
-        for (final item in items)
+        for (final item in widget.items)
           SidebarDestination(glyph: item.glyph, label: item.label.label),
       ],
-      selectedIndex: currentIndex,
+      selectedIndex: widget.currentIndex,
       expanded: canExpand && sidebarExpanded,
-      onSelected: onSelected,
+      onSelected: widget.onSelected,
       onToggle: canExpand
           ? () {
               ref
@@ -181,6 +207,12 @@ class _Sidebar extends ConsumerWidget {
         isMacOS: system.isMacOS,
         version: version,
       ),
+      footerDestination: SidebarDestination(
+        glyph: AppGlyphs.settings,
+        label: context.appLocalizations.settings,
+      ),
+      footerSelected: _settingsOpen,
+      onFooterTap: _openSettings,
     );
   }
 }

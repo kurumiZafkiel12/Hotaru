@@ -593,6 +593,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Можно добавить",
     ),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "Сбросить раскладку",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage(
       "Мои виджеты",
     ),
@@ -1867,13 +1870,24 @@ class MessageLookup extends MessageLookupByLibrary {
       "Статистика скорости",
     ),
     "speedTest": MessageLookupByLibrary.simpleMessage("Тест скорости"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "Тест скорости узла уже выполняется",
+    ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
       "Прямое соединение (ядро не запущено)",
     ),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Выходной узел"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("Джиттер"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Тест ещё не запускался",
     ),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
+      "Не поддерживается",
+    ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Провайдер"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "Полный тест может израсходовать сотни МБ трафика",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
       "Трафик идёт через текущий прокси",
     ),
@@ -1936,7 +1950,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "testInterval": MessageLookupByLibrary.simpleMessage(
       "Интервал тестирования",
     ),
-    "testUrl": MessageLookupByLibrary.simpleMessage("URL для теста"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("URL теста задержки"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage(
       "Тестировать при использовании",
     ),
