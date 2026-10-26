@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"net/http"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -105,6 +106,21 @@ func TestServiceRunCancellationClosesRealRequest(t *testing.T) {
 	defer serviceRunsMu.Unlock()
 	if _, exists := serviceRuns["cancel-test"]; exists {
 		t.Fatal("run lease was retained")
+	}
+}
+
+func TestCancelledRunRejectsAnRpcThatArrivesAfterCancellation(t *testing.T) {
+	var requests atomic.Int32
+	server := probeServer(t, func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		w.WriteHeader(http.StatusOK)
+	})
+	withProbeProxies(t, "DIRECT")
+	withServiceCheckers(t, serviceChecker{name: "controlled", check: checkServiceEndpoint(server.URL)})
+	handleServiceCheck(&ServiceCheckParams{RunID: "cancel-before-start", Cancel: true})
+	items := handleServiceCheck(&ServiceCheckParams{RunID: "cancel-before-start", ProxyName: "DIRECT", Timeout: 1000})
+	if requests.Load() != 0 || len(items) != 1 || items[0].Status == serviceReachable {
+		t.Fatalf("late RPC restarted a cancelled run: requests=%d items=%+v", requests.Load(), items)
 	}
 }
 

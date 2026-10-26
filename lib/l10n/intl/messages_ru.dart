@@ -370,6 +370,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Доступен · снятие ограничений не подтверждено",
     ),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Подключены"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "Успешная цепочка подключения не обнаружена",
     ),

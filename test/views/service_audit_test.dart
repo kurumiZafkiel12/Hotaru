@@ -144,6 +144,9 @@ void main() {
             .toSet(),
       );
       expect(checked, hasLength(13));
+      expect(find.text('Connected'), findsOneWidget);
+      expect(find.text('13'), findsOneWidget);
+      expect(find.text('Available'), findsNothing);
       expect(calls.every((call) => call.runId.isNotEmpty), isTrue);
       expect(
         find.textContaining('Reachable · unlock unconfirmed'),

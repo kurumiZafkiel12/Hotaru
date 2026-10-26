@@ -382,6 +382,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Accessible · déblocage non confirmé",
     ),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Connectés"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "Aucune chaîne de connexion réussie observée",
     ),

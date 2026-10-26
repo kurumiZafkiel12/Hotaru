@@ -991,6 +991,7 @@
   "auditSubtitle": "57 サービス · 実際のルール・グループ・出口",
   "auditScope": "接続できても解放済みとは限りません。アカウント、契約、DRM、再生は別途確認が必要です。開始後にのみリクエストを送信します。",
   "auditReachable": "接続可能・解放は未確認",
+  "auditReachableSummary": "接続可能",
   "auditAuthentication": "認証が必要",
   "auditChallenge": "ボット対策の検証",
   "auditInconclusive": "判定できません",

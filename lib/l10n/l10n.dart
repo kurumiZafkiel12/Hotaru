@@ -8318,6 +8318,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Connected`
+  String get auditReachableSummary {
+    return Intl.message(
+      'Connected',
+      name: 'auditReachableSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Authentication required`
   String get auditAuthentication {
     return Intl.message(

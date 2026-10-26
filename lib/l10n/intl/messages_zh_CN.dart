@@ -299,6 +299,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "网页或地区接口结果不能证明版权播放、家宽资格或订阅权益。",
     ),
     "auditReachable": MessageLookupByLibrary.simpleMessage("可连接 · 解锁未确认"),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("已连通"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage("尚未观测到成功建立的连接链"),
     "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("未观测到命中规则"),
     "auditScope": MessageLookupByLibrary.simpleMessage(

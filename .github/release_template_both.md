@@ -1,6 +1,8 @@
 
 ### 下载
 
+[![Windows x64](https://img.shields.io/badge/Windows_x64-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64-setup.exe) [![Android ARM64](https://img.shields.io/badge/Android_ARM64-下载_APK-34D399?logo=android)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-arm64-v8a.apk)
+
 | 平台 | 安装包 |
 | --- | --- |
 | Windows x64 | [Setup 安装版](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64-setup.exe) · [ZIP 便携版](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64.zip) |

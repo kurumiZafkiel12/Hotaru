@@ -991,6 +991,7 @@
   "auditSubtitle": "57 项服务 · 实际命中规则、策略组与出口",
   "auditScope": "连通不等于解锁。账号、订阅、DRM 与实际播放仍可能需要单独验证。点击开始后才会发送探测请求。",
   "auditReachable": "可连接 · 解锁未确认",
+  "auditReachableSummary": "已连通",
   "auditAuthentication": "需要登录或 API 密钥",
   "auditChallenge": "触发网站风控或验证码",
   "auditInconclusive": "证据不足，无法判定",

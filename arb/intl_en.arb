@@ -991,6 +991,7 @@
   "auditSubtitle": "57 services · actual rules, groups and exits",
   "auditScope": "Reachable does not mean unlocked. Account, subscription, DRM and playback can require separate verification. Tests send requests only after you start.",
   "auditReachable": "Reachable · unlock unconfirmed",
+  "auditReachableSummary": "Connected",
   "auditAuthentication": "Authentication required",
   "auditChallenge": "Anti-bot challenge",
   "auditInconclusive": "Inconclusive",

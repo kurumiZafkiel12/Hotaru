@@ -306,6 +306,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "ページ・地域 API の結果です。作品の再生、住宅回線の資格、契約の有無は Web 応答だけでは確定しません。",
     ),
     "auditReachable": MessageLookupByLibrary.simpleMessage("接続可能・解放は未確認"),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("接続可能"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "成功した接続チェーンは観測されませんでした",
     ),

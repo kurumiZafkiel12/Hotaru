@@ -18,6 +18,9 @@ def command(*arguments):
 def verify(dist, android_home):
     version = re.search(r'^version: ([0-9.]+)', Path('pubspec.yaml').read_text(), re.M)[1]
     code = int(re.search(r'^hotaruVersionCode=(\d+)', Path('android/gradle.properties').read_text(), re.M)[1])
+    build_number = re.search(r'^version: [0-9.]+\+(\d+)\s*$', Path('pubspec.yaml').read_text(), re.M)
+    if not build_number or int(build_number[1]) != code:
+        raise RuntimeError('Flutter build number and Android base versionCode must agree')
     build_tools = next(
         path for path in sorted((android_home / 'build-tools').iterdir(), reverse=True)
         if (path / 'aapt').is_file() and (path / 'apksigner').is_file()

@@ -79,10 +79,11 @@ type ServiceObservation struct {
 var (
 	serviceCheckSlots = make(slots, serviceCheckConcurrency)
 
-	serviceClaimsMu sync.Mutex
-	serviceClaims   = map[string]*context.CancelFunc{}
-	serviceRunsMu   sync.Mutex
-	serviceRuns     = map[string]*serviceRun{}
+	serviceClaimsMu  sync.Mutex
+	serviceClaims    = map[string]*context.CancelFunc{}
+	serviceRunsMu    sync.Mutex
+	serviceRuns      = map[string]*serviceRun{}
+	serviceCancelled = map[string]time.Time{}
 )
 
 type serviceRun struct {
@@ -96,6 +97,15 @@ func acquireServiceRun(id string) (context.Context, func()) {
 		return context.Background(), func() {}
 	}
 	serviceRunsMu.Lock()
+	if cancelledAt, ok := serviceCancelled[id]; ok {
+		if time.Since(cancelledAt) <= defaultProbeTimeout*serviceSweepBudgetFactor {
+			serviceRunsMu.Unlock()
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			return ctx, func() {}
+		}
+		delete(serviceCancelled, id)
+	}
 	run := serviceRuns[id]
 	if run == nil {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -112,6 +122,28 @@ func acquireServiceRun(id string) (context.Context, func()) {
 			run.cancel()
 			delete(serviceRuns, id)
 		}
+	}
+}
+
+func cancelServiceRun(id string) {
+	if id == "" {
+		return
+	}
+	serviceRunsMu.Lock()
+	defer serviceRunsMu.Unlock()
+	if len(serviceCancelled) >= 128 {
+		var oldest string
+		var oldestAt time.Time
+		for key, at := range serviceCancelled {
+			if oldestAt.IsZero() || at.Before(oldestAt) {
+				oldest, oldestAt = key, at
+			}
+		}
+		delete(serviceCancelled, oldest)
+	}
+	serviceCancelled[id] = time.Now()
+	if run := serviceRuns[id]; run != nil {
+		run.cancel()
 	}
 }
 
@@ -173,11 +205,7 @@ var serviceCheckers = []serviceChecker{
 
 func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
 	if params.Cancel {
-		serviceRunsMu.Lock()
-		if run := serviceRuns[params.RunID]; run != nil {
-			run.cancel()
-		}
-		serviceRunsMu.Unlock()
+		cancelServiceRun(params.RunID)
 		return []ServiceCheckItem{}
 	}
 	parent, releaseRun := acquireServiceRun(params.RunID)

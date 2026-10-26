@@ -991,6 +991,7 @@
   "auditSubtitle": "57 servicios · reglas, grupos y salidas observados",
   "auditScope": "La conectividad no prueba el desbloqueo. Cuenta, suscripción, DRM y reproducción pueden requerir otra comprobación. Solo se envían solicitudes al iniciar.",
   "auditReachable": "Accesible · desbloqueo sin confirmar",
+  "auditReachableSummary": "Conectados",
   "auditAuthentication": "Se requiere autenticación",
   "auditChallenge": "Verificación contra bots",
   "auditInconclusive": "Sin pruebas concluyentes",

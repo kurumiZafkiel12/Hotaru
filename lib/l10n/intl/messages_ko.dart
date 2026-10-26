@@ -303,6 +303,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "웹 페이지 또는 지역 API 결과입니다. 저작권 재생, 주거용 회선 자격, 구독은 웹 응답만으로 확인할 수 없습니다.",
     ),
     "auditReachable": MessageLookupByLibrary.simpleMessage("연결 가능 · 제한 해제 미확인"),
+    "auditReachableSummary": MessageLookupByLibrary.simpleMessage("연결 가능"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "성공한 연결 체인이 관측되지 않음",
     ),

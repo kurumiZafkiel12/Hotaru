@@ -178,11 +178,15 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.appLocalizations;
-    final confirmed = _results.entries
+    final reachable = _results.entries
         .where(
           (entry) =>
               !_stale.contains(entry.key) &&
-              entry.value.status == ServiceProbeStatus.available,
+              const {
+                ServiceProbeStatus.available,
+                ServiceProbeStatus.reachable,
+                ServiceProbeStatus.authenticationRequired,
+              }.contains(entry.value.status),
         )
         .length;
     final blocked = _results.entries
@@ -194,6 +198,8 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
                 ServiceProbeStatus.blocked,
                 ServiceProbeStatus.disallowedIsp,
                 ServiceProbeStatus.originalsOnly,
+                ServiceProbeStatus.restricted,
+                ServiceProbeStatus.challenge,
               }.contains(entry.value.status),
         )
         .length;
@@ -215,13 +221,13 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
               children: [
                 for (final (value, label, color) in [
                   (
-                    confirmed,
-                    l10n.serviceAvailable,
+                    reachable,
+                    l10n.auditReachableSummary,
                     context.colorScheme.success,
                   ),
                   (blocked, l10n.serviceRestricted, context.colorScheme.error),
                   (
-                    _results.length - confirmed - blocked,
+                    _results.length - reachable - blocked,
                     l10n.auditInconclusive,
                     context.colorScheme.warning,
                   ),

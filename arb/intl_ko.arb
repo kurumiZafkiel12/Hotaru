@@ -991,6 +991,7 @@
   "auditSubtitle": "서비스 57개 · 실제 규칙, 그룹, 출구",
   "auditScope": "연결 가능이 제한 해제를 뜻하지는 않습니다. 계정, 구독, DRM, 재생은 별도 확인이 필요합니다. 시작한 후에만 요청을 보냅니다.",
   "auditReachable": "연결 가능 · 제한 해제 미확인",
+  "auditReachableSummary": "연결 가능",
   "auditAuthentication": "인증 필요",
   "auditChallenge": "봇 방지 확인",
   "auditInconclusive": "판단할 증거 부족",

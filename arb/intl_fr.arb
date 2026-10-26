@@ -991,6 +991,7 @@
   "auditSubtitle": "57 services · règles, groupes et sorties observés",
   "auditScope": "La connectivité ne prouve pas le déblocage. Compte, abonnement, DRM et lecture exigent parfois une vérification distincte. Les requêtes partent après le démarrage du test.",
   "auditReachable": "Accessible · déblocage non confirmé",
+  "auditReachableSummary": "Connectés",
   "auditAuthentication": "Authentification requise",
   "auditChallenge": "Vérification anti-robot",
   "auditInconclusive": "Résultat indéterminé",
