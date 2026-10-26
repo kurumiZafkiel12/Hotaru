@@ -1760,7 +1760,12 @@ void main() {
       expect((config['proxies'] as YamlList).single['name'], 'mine');
       expect(proxyProviders['sub']['type'], 'file');
       expect(proxyProviders['sub']['path'], await appPath.getProfilePath('42'));
-      expect((config['proxy-groups'] as YamlList).single['name'], 'g');
+      // The declared group plus the reserved speed-test group the config
+      // builder injects whenever a profile has a testable node.
+      expect(
+        (config['proxy-groups'] as YamlList).map((group) => group['name']),
+        ['g', 'HOTARU-SPEEDTEST'],
+      );
       expect(config['rules'], [
         'RULE-SET,appRules,DIRECT',
         'RULE-SET,localRules,DIRECT',

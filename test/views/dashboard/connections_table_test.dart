@@ -66,6 +66,18 @@ void main() {
   tearDown(() => container.dispose());
 
   Future<void> pumpRequestsTable(WidgetTester tester) async {
+    // The connections table is an addable dashboard widget now; show it the
+    // way a user who added it would.
+    container
+        .read(appSettingProvider.notifier)
+        .update(
+          (state) => state.copyWith(
+            dashboardWidgets: const [
+              DashboardWidget.currentOutbound,
+              DashboardWidget.connectionsTable,
+            ],
+          ),
+        );
     const size = Size(1220, 1100);
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;

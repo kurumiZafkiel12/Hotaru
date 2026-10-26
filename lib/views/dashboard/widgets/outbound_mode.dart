@@ -41,7 +41,7 @@ class OutboundModeCard extends ConsumerWidget {
             glyph: AppGlyphs.split,
             title: context.appLocalizations.outboundMode,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           DashboardConnectedGroup(
             children: [
               for (final (index, item) in Mode.values.indexed)
@@ -56,21 +56,23 @@ class OutboundModeCard extends ConsumerWidget {
                     semanticLabel: item.label,
                     onTap: () => _changeMode(ref, item),
                     builder: (foreground) => SizedBox(
-                      height: 52,
-                      child: Column(
+                      height: 46,
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 2,
+                        spacing: 6,
                         children: [
                           GlyphIcon(
                             _glyphOf(item),
-                            size: 18,
+                            size: 16,
                             color: foreground,
                           ),
-                          Text(
-                            item.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: style.copyWith(color: foreground),
+                          Flexible(
+                            child: Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: style.copyWith(color: foreground),
+                            ),
                           ),
                         ],
                       ),

@@ -25,10 +25,23 @@ class HomePage extends ConsumerWidget {
         child: _HomeShell(
           child: Consumer(
             builder: (_, ref, _) {
-              final navigationItems = ref
+              final destinationItems = ref
                   .watch(currentNavigationItemsStateProvider)
                   .value;
               final isMobile = ref.watch(isMobileViewProvider);
+              final settingsItem = ref
+                  .watch(navigationItemsStateProvider)
+                  .value
+                  .where((item) => item.label == PageLabel.settings)
+                  .firstOrNull;
+              final navigationItems =
+                  !isMobile &&
+                      settingsItem != null &&
+                      !destinationItems.any(
+                        (item) => item.label == PageLabel.settings,
+                      )
+                  ? [...destinationItems, settingsItem]
+                  : destinationItems;
               return _HomePageView(
                 navigationItems: navigationItems,
                 pageBuilder: (_, index) {
@@ -335,9 +348,7 @@ class _HomePageViewState extends ConsumerState<_HomePageView> {
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = ref.watch(
-      currentNavigationItemsStateProvider.select((state) => state.value.length),
-    );
+    final itemCount = widget.navigationItems.length;
     final fade = ref.watch(
       appSettingProvider.select(
         (state) => state.tabAnimation == TabAnimation.fade,

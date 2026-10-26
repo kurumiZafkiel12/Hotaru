@@ -11,6 +11,7 @@ import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/views/config/general.dart';
+import 'package:hotaru/views/settings.dart';
 import 'package:hotaru/views/tools.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:hotaru/views/navigation.dart';
@@ -473,6 +474,23 @@ void main() {
         ),
       );
       await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byType(ToolsView),
+          matching: find.text('Settings'),
+        ),
+        findsNothing,
+      );
+      final settingsItem = find.descendant(
+        of: find.byType(NavigationSidebar),
+        matching: find.text('Settings'),
+      );
+      await tester.tap(settingsItem);
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationSidebar), findsOneWidget);
+      expect(find.byType(SettingsView), findsOneWidget);
+      expect(container.read(currentPageLabelProvider), PageLabel.settings);
 
       final generalItem = find.text('General');
       await tester.scrollUntilVisible(

@@ -91,44 +91,47 @@ void main() {
       .position
       .maxScrollExtent;
 
-  testWidgets('the exit is a full-width hero above controls and widgets', (
+  testWidgets('the saved widgets share one fixed-tier cell grid', (
     tester,
   ) async {
     await pumpDashboard(tester, const Size(1220, 1100));
     final hero = rectOf(tester, CurrentOutboundCard);
-    final upload = tester.getRect(find.byType(SpeedCard).last);
-    final mode = rectOf(tester, OutboundModeBar);
-    expect(hero.left, 24);
-    expect(hero.right, 1220 - 24);
-    expect(hero.height, 208);
-    expect(mode.top, hero.bottom + 16);
-    expect(upload.top, greaterThan(mode.bottom));
-    expect(upload.width * 2 + 16, closeTo(hero.width, 0.01));
-    expect(find.text('My widgets'), findsOneWidget);
+    final speed = rectOf(tester, NetworkSpeedCard);
+    final mode = rectOf(tester, OutboundModeCard);
+    // Short tier: two cells wide, two units tall (122); the mid speed
+    // card interlocks beside it and the next short fills the cells below.
+    expect(hero.left, 16);
+    expect(hero.width, 288 * 2 + 12);
+    expect(hero.height, 122);
+    expect(speed.left, hero.right + 12);
+    expect(speed.top, hero.top);
+    expect(speed.height, 189);
+    expect(mode.left, hero.left);
+    expect(mode.top, hero.bottom + 12);
+    expect(mode.width, hero.width);
     expect(find.byType(ProfilesCard), findsOneWidget);
     expect(find.byType(IntranetIpCard), findsOneWidget);
     expect(find.byType(ServiceStatusCard), findsOneWidget);
-    expect(find.byType(MemoryInfo), findsOneWidget);
-    expect(find.byType(NetworkTakeoverTile), findsNWidgets(2));
-    expect(find.byType(ConnectionsTableCard), findsOneWidget);
+    expect(find.byType(NetworkTakeoverCard), findsOneWidget);
+    expect(find.byType(ConnectionStatsCard), findsOneWidget);
     expect(find.byType(ProxyGroupsCard), findsOneWidget);
+    // Not in the default layout; they stay one edit away.
+    expect(find.byType(MemoryInfo), findsNothing);
+    expect(find.byType(ConnectionsTableCard), findsNothing);
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
 
-  testWidgets('short windows scroll without dropping diagnostic widgets', (
-    tester,
-  ) async {
+  testWidgets('short windows scroll without dropping widgets', (tester) async {
     seedGroups(12);
     await pumpDashboard(tester, const Size(1220, 560));
     expect(scrollExtentOf(tester), greaterThan(0));
-    expect(find.byType(Scrollable), findsOneWidget);
-    expect(find.byType(ConnectionsTableCard), findsNothing);
+    // The page scrolls as one; the full proxy-groups card scrolls internally.
+    expect(find.byType(Scrollable), findsWidgets);
     expect(find.byType(ConnectionStatsCard), findsOneWidget);
-    expect(find.byType(ProxyGroupsSummaryCard), findsOneWidget);
-    expect(find.text('12 groups', findRichText: true), findsOneWidget);
-    expect(find.byType(MemoryInfo), findsOneWidget);
+    expect(find.byType(ProxyGroupsCard), findsOneWidget);
     expect(find.byType(ServiceStatusCard), findsOneWidget);
+    expect(find.byType(MemoryInfo), findsNothing);
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
@@ -138,9 +141,10 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.center.dx, 1280);
-    expect(hero.width, 360 * 4 + 16 * 3);
-    expect(rectOf(tester, ConnectionsTableCard).bottom, 1440 - 24);
+    // Cells cap at 400 and the whole grid centers: the content column is
+    // 400 * 4 + 12 * 3 wide, so its left edge sits at (2560 - 1636) / 2.
+    expect(hero.left, (2560 - (400 * 4 + 12 * 3)) / 2);
+    expect(hero.width, 400 * 2 + 12);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -152,16 +156,16 @@ void main() {
     await pumpDashboard(tester, const Size(800, 900));
     final hero = rectOf(tester, CurrentOutboundCard);
     expect(hero.center.dx, 400);
-    expect(hero.width, lessThanOrEqualTo(752));
-    expect(rectOf(tester, OutboundModeBar).width, hero.width);
-    expect(find.byType(SpeedCard), findsNWidgets(2));
-    expect(find.byType(NetworkTakeoverTile), findsNWidgets(2));
+    expect(hero.width, lessThanOrEqualTo(768));
+    expect(rectOf(tester, OutboundModeCard).width, hero.width);
+    expect(find.byType(NetworkSpeedCard), findsOneWidget);
+    expect(find.byType(NetworkTakeoverCard), findsOneWidget);
     expect(find.byType(IntranetIpCard), findsOneWidget);
     expect(find.byType(ProfilesCard), findsOneWidget);
     expect(find.byType(ServiceStatusCard), findsOneWidget);
-    expect(find.byType(MemoryInfo), findsOneWidget);
     expect(find.byType(ConnectionStatsCard), findsOneWidget);
-    expect(find.byType(ProxyGroupsSummaryCard), findsOneWidget);
+    expect(find.byType(ProxyGroupsCard), findsOneWidget);
+    expect(find.byType(MemoryInfo), findsNothing);
     expect(find.byType(Scrollable), findsOneWidget);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -180,11 +184,7 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull, reason: '$size');
       expect(find.byType(CurrentOutboundCard), findsOneWidget);
-      if (size.width < 640) {
-        expect(find.byType(OutboundModeCard), findsOneWidget);
-      } else {
-        expect(find.byType(OutboundModeBar), findsOneWidget);
-      }
+      expect(find.byType(OutboundModeCard), findsOneWidget);
     }
     await teardown(tester);
   });
@@ -253,10 +253,10 @@ void main() {
   ) async {
     for (final size in const [Size(1280, 800), Size(915, 412)]) {
       await pumpDashboard(tester, size, platform: SupportPlatform.Android);
-      expect(find.byType(VpnTile), findsOneWidget);
-      expect(find.byType(NetworkTakeoverTile), findsNothing);
+      expect(find.byType(VpnCard), findsOneWidget);
+      expect(find.byType(NetworkTakeoverCard), findsNothing);
       expect(find.byType(CurrentOutboundCard), findsOneWidget);
-      expect(find.byType(SpeedCard), findsNWidgets(2));
+      expect(find.byType(NetworkSpeedCard), findsOneWidget);
       expect(tester.takeException(), isNull);
     }
     await teardown(tester);

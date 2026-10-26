@@ -489,6 +489,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("ダーク"),
     "dashboard": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("追加できるカード"),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "デフォルトに戻す",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("マイウィジェット"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "変更の保存に失敗したため、元に戻しました",
@@ -1534,9 +1537,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "spectrum": MessageLookupByLibrary.simpleMessage("スペクトル"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage("速度統計"),
     "speedTest": MessageLookupByLibrary.simpleMessage("スピードテスト"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage("ノード速度テストが既に実行中です"),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage("直接接続（コア未起動）"),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("出口ノード"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("ジッター"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("未実施"),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage("未対応"),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("プロバイダ"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "フルテストでは数百 MB のデータを消費する場合があります",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("現在のプロキシ経由"),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("振り分け戦略"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
@@ -1581,7 +1591,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("宛先"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP同時接続"),
     "testInterval": MessageLookupByLibrary.simpleMessage("テスト間隔"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("テストURL"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("遅延テストURL"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage("使用時にテスト"),
     "textScale": MessageLookupByLibrary.simpleMessage("テキストの拡大縮小"),
     "textScalePreview": MessageLookupByLibrary.simpleMessage(

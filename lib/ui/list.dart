@@ -76,11 +76,13 @@ final class _OptionsAction<T> extends _ListItemAction {
   final List<T> options;
   final T value;
   final String Function(T value) textBuilder;
+  final String? Function(T value)? subtitleBuilder;
   final ValueChanged<T> onChanged;
 
   const _OptionsAction({
     required this.options,
     required this.textBuilder,
+    this.subtitleBuilder,
     required this.value,
     required this.onChanged,
   });
@@ -184,6 +186,7 @@ class ListItem<T> extends StatelessWidget {
     required List<T> options,
     required T value,
     required String Function(T value) textBuilder,
+    String? Function(T value)? subtitleBuilder,
     required ValueChanged<T> onChanged,
     this.horizontalTitleGap,
     this.color,
@@ -194,6 +197,7 @@ class ListItem<T> extends StatelessWidget {
          options: options,
          value: value,
          textBuilder: textBuilder,
+         subtitleBuilder: subtitleBuilder,
          onChanged: onChanged,
        ),
        trailing = null,
@@ -383,6 +387,7 @@ class ListItem<T> extends StatelessWidget {
                 for (final option in optionsDelegate.options)
                   CommonPopupMenuItem(
                     label: optionsDelegate.textBuilder(option),
+                    subtitle: optionsDelegate.subtitleBuilder?.call(option),
                     checked: option == optionsDelegate.value,
                     onPressed: () => optionsDelegate.onChanged(option),
                   ),

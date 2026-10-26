@@ -476,6 +476,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("다크"),
     "dashboard": MessageLookupByLibrary.simpleMessage("대시보드"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("추가 가능"),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "기본 레이아웃 복원",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("내 위젯"),
     "databaseWriteFailedTip": MessageLookupByLibrary.simpleMessage(
       "변경 사항을 저장하지 못해 되돌렸습니다",
@@ -1505,9 +1508,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "spectrum": MessageLookupByLibrary.simpleMessage("스펙트럼"),
     "speedStatistics": MessageLookupByLibrary.simpleMessage("속도 통계"),
     "speedTest": MessageLookupByLibrary.simpleMessage("속도 테스트"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "노드 속도 테스트가 이미 실행 중입니다",
+    ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage("직접 연결(코어 미실행)"),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("출구 노드"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("지터"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("아직 테스트하지 않음"),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage("지원 안 함"),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("제공업체"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "전체 테스트는 수백 MB의 데이터를 사용할 수 있습니다",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage("현재 프록시 경유"),
     "splitStrategy": MessageLookupByLibrary.simpleMessage("분할 전략"),
     "splitStrategyNotEmpty": MessageLookupByLibrary.simpleMessage(
@@ -1554,7 +1566,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("대상"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP 동시 연결"),
     "testInterval": MessageLookupByLibrary.simpleMessage("테스트 간격"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("테스트 URL"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("지연 테스트 URL"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage("사용할 때 테스트"),
     "textScale": MessageLookupByLibrary.simpleMessage("글자 크기 조절"),
     "textScalePreview": MessageLookupByLibrary.simpleMessage(

@@ -618,6 +618,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Disponibles para añadir",
     ),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "Restaurar diseño",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage(
       "Mis widgets",
     ),
@@ -1924,13 +1927,24 @@ class MessageLookup extends MessageLookupByLibrary {
       "Estadísticas de velocidad",
     ),
     "speedTest": MessageLookupByLibrary.simpleMessage("Prueba de velocidad"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "Ya hay una prueba de velocidad de nodo en curso",
+    ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
       "Conexión directa (núcleo inactivo)",
     ),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Nodo de salida"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("Jitter"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Sin prueba todavía",
     ),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
+      "No compatible",
+    ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Proveedor"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "Una prueba completa puede consumir cientos de MB de datos",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
       "Tráfico a través del proxy actual",
     ),
@@ -1993,7 +2007,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("Destino"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP concurrente"),
     "testInterval": MessageLookupByLibrary.simpleMessage("Intervalo de prueba"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("URL de prueba"),
+    "testUrl": MessageLookupByLibrary.simpleMessage(
+      "URL de prueba de latencia",
+    ),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage("Probar al usarse"),
     "textScale": MessageLookupByLibrary.simpleMessage("Escala del texto"),
     "textScalePreview": MessageLookupByLibrary.simpleMessage(

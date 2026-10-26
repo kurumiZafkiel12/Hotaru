@@ -617,6 +617,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Disponibles à l’ajout",
     ),
+    "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
+      "Restaurer la disposition",
+    ),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage(
       "Mes widgets",
     ),
@@ -1925,13 +1928,24 @@ class MessageLookup extends MessageLookupByLibrary {
       "Statistiques de débit",
     ),
     "speedTest": MessageLookupByLibrary.simpleMessage("Test de vitesse"),
+    "speedTestBusy": MessageLookupByLibrary.simpleMessage(
+      "Un test de vitesse de nœud est déjà en cours",
+    ),
     "speedTestDirect": MessageLookupByLibrary.simpleMessage(
       "Connexion directe (cœur inactif)",
     ),
+    "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Nœud de sortie"),
+    "speedTestJitter": MessageLookupByLibrary.simpleMessage("Gigue"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Aucun test effectué",
     ),
+    "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
+      "Non pris en charge",
+    ),
     "speedTestProvider": MessageLookupByLibrary.simpleMessage("Fournisseur"),
+    "speedTestTrafficWarning": MessageLookupByLibrary.simpleMessage(
+      "Un test complet peut consommer des centaines de Mo de données",
+    ),
     "speedTestViaProxy": MessageLookupByLibrary.simpleMessage(
       "Trafic via le proxy actuel",
     ),
@@ -1992,7 +2006,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "target": MessageLookupByLibrary.simpleMessage("Cible"),
     "tcpConcurrent": MessageLookupByLibrary.simpleMessage("TCP simultané"),
     "testInterval": MessageLookupByLibrary.simpleMessage("Intervalle de test"),
-    "testUrl": MessageLookupByLibrary.simpleMessage("URL de test"),
+    "testUrl": MessageLookupByLibrary.simpleMessage("URL de test de latence"),
     "testWhenUsed": MessageLookupByLibrary.simpleMessage(
       "Tester à l’utilisation",
     ),

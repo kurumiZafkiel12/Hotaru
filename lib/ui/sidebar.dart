@@ -48,6 +48,9 @@ class NavigationSidebar extends StatefulWidget {
     this.onToggle,
     this.windowControls = Size.zero,
     this.brandTitle,
+    this.footerDestination,
+    this.footerSelected = false,
+    this.onFooterTap,
   });
 
   final List<SidebarDestination> destinations;
@@ -57,6 +60,11 @@ class NavigationSidebar extends StatefulWidget {
   final VoidCallback? onToggle;
   final Size windowControls;
   final String? brandTitle;
+
+  /// Pinned below the scrolling destinations, outside their selection.
+  final SidebarDestination? footerDestination;
+  final bool footerSelected;
+  final VoidCallback? onFooterTap;
 
   @override
   State<NavigationSidebar> createState() => _NavigationSidebarState();
@@ -140,6 +148,14 @@ class _NavigationSidebarState extends State<NavigationSidebar>
                 _closeOverlay();
               },
               onToggle: _closeOverlay,
+              footerDestination: widget.footerDestination,
+              footerSelected: widget.footerSelected,
+              onFooterTap: widget.onFooterTap == null
+                  ? null
+                  : () {
+                      widget.onFooterTap!();
+                      _closeOverlay();
+                    },
             ),
           ),
         );
@@ -158,6 +174,9 @@ class _NavigationSidebarState extends State<NavigationSidebar>
             selectedIndex: widget.selectedIndex,
             onSelected: widget.onSelected,
             onToggle: _handleToggle,
+            footerDestination: widget.footerDestination,
+            footerSelected: widget.footerSelected,
+            onFooterTap: widget.onFooterTap,
           ),
         ),
       ),
@@ -263,6 +282,9 @@ class _SidebarPane extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelected,
     required this.onToggle,
+    this.footerDestination,
+    this.footerSelected = false,
+    this.onFooterTap,
   });
 
   final double progress;
@@ -273,6 +295,9 @@ class _SidebarPane extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final VoidCallback onToggle;
+  final SidebarDestination? footerDestination;
+  final bool footerSelected;
+  final VoidCallback? onFooterTap;
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +347,7 @@ class _SidebarPane extends StatelessWidget {
           const SizedBox(height: _toggleGap),
           if (brandTitle case final title?)
             Padding(
-              padding: EdgeInsets.fromLTRB(sideInset, 12, sideInset, 24),
+              padding: EdgeInsets.fromLTRB(sideInset, 8, sideInset, 14),
               child: SizedBox(
                 height: itemHeight,
                 child: ClipRect(
@@ -337,7 +362,7 @@ class _SidebarPane extends StatelessWidget {
                           child: Text(
                             '蛍',
                             textAlign: TextAlign.center,
-                            style: AppTextStyle.title1
+                            style: AppTextStyle.title3
                                 .of(context)
                                 .copyWith(color: colors.indicator),
                           ),
@@ -399,6 +424,24 @@ class _SidebarPane extends StatelessWidget {
               ),
             ),
           ),
+          if (footerDestination case final footer?)
+            if (onFooterTap != null)
+              _SidebarButton(
+                colors: colors,
+                height: itemHeight,
+                sideInset: sideInset,
+                selected: footerSelected,
+                tooltip: rowTooltip(footer.label),
+                onTap: onFooterTap!,
+                child: _DestinationRow(
+                  destination: footer,
+                  selected: footerSelected,
+                  width: rowWidth,
+                  iconInset: iconInset,
+                  style: labelStyle,
+                  labelOpacity: labelOpacity,
+                ),
+              ),
           const SizedBox(height: _verticalInset),
         ],
       ),
