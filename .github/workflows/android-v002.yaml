@@ -1,0 +1,128 @@
+name: Android v0.0.2 supplement
+
+on:
+  push:
+    branches: [codex/hotaru-v002-android]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: android-v002-supplement
+  cancel-in-progress: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Check v0.0.2 source boundary
+        run: |
+          test "$(sed -n 's/^version: //p' pubspec.yaml)" = '0.0.2+11'
+          git diff --exit-code 39abb5a80dda2495d4a8a521202aea9f8ec88d2b -- lib core android plugins pubspec.yaml pubspec.lock setup.dart
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: core/go.sum
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.6'
+          cache: true
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r28c
+          add-to-path: true
+          link-to-sdk: true
+
+      - name: Configure existing signing
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE" ] && [ -n "$KEY_ALIAS" ] && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_PASSWORD" ]; then
+            printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
+            {
+              printf 'keyAlias=%s\n' "$KEY_ALIAS"
+              printf 'storePassword=%s\n' "$STORE_PASSWORD"
+              printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+            } >> android/local.properties
+          fi
+
+      - name: Install locked dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Fetch verified CA bundle
+        run: |
+          bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+          curl -fLsS --retry 3 https://curl.se/ca/cacert-2026-09-25.pem -o "$bundle"
+          echo "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505  $bundle" | sha256sum -c -
+
+      - name: Package Android
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: dart setup.dart android --env stable -v
+
+      - name: Inspect APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p android-release
+          python3 tool/release_android_v002.py inspect
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-v002-verified
+          path: android-release/
+
+  publish:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-v002-verified
+          path: android-release/
+
+      - name: Wait for existing build checks on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 60); do
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/build.yaml/runs?head_sha=$GITHUB_SHA&event=push&per_page=20" > "$RUNNER_TEMP/checks.json"
+            result=$(python3 -c 'import json,sys; r=json.load(open(sys.argv[1]))["workflow_runs"]; r=sorted(r,key=lambda x:x["id"],reverse=True); print((r[0]["conclusion"] or "pending") if r else "pending")' "$RUNNER_TEMP/checks.json")
+            if [ "$result" = success ]; then exit 0; fi
+            if [ "$result" != pending ]; then echo "Required build checks: $result"; exit 1; fi
+            sleep 30
+          done
+          echo 'Required build checks did not complete in 30 minutes'
+          exit 1
+
+      - name: Supplement existing v0.0.2 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/release_android_v002.py publish
