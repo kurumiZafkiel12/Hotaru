@@ -49,11 +49,18 @@ def verify(dist, android_home):
             if archive.testzip() is not None:
                 raise RuntimeError(f'Corrupt APK: {apk.name}')
             names = set(archive.namelist())
-            required = {'AndroidManifest.xml', 'classes.dex'} | {
+            required = {
+                'AndroidManifest.xml', 'classes.dex',
+                'assets/flutter_assets/assets/fonts/JetBrainsMono-OFL.txt',
+                'assets/flutter_assets/assets/images/services/LICENSE.md',
+            } | {
                 f'lib/{abi}/{library}' for library in ['libclash.so', 'librust_api.so', 'libflutter.so', 'libapp.so']
             }
             if not required.issubset(names):
                 raise RuntimeError(f'Incomplete APK: {apk.name}')
+            font_license = archive.read('assets/flutter_assets/assets/fonts/JetBrainsMono-OFL.txt').decode()
+            if 'JetBrains Mono Project Authors' not in font_license or 'SIL OPEN FONT LICENSE' not in font_license:
+                raise RuntimeError(f'Missing bundled font license: {apk.name}')
         with apk.open('rb') as stream:
             digest = hashlib.file_digest(stream, 'sha256').hexdigest()
         reports.append({
