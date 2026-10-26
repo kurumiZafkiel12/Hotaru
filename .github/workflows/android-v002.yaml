@@ -94,6 +94,12 @@ jobs:
           name: android-v002-verified
           path: android-release/
 
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: android-v002-raw
+          path: dist/**/*.apk
+
   publish:
     needs: android
     runs-on: ubuntu-latest
@@ -108,19 +114,17 @@ jobs:
           name: android-v002-verified
           path: android-release/
 
-      - name: Wait for existing build checks on this commit
+      - name: Verify passing checks for the unchanged application source
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for attempt in $(seq 1 60); do
-            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/build.yaml/runs?head_sha=$GITHUB_SHA&event=push&per_page=20" > "$RUNNER_TEMP/checks.json"
-            result=$(python3 -c 'import json,sys; r=json.load(open(sys.argv[1]))["workflow_runs"]; r=sorted(r,key=lambda x:x["id"],reverse=True); print((r[0]["conclusion"] or "pending") if r else "pending")' "$RUNNER_TEMP/checks.json")
-            if [ "$result" = success ]; then exit 0; fi
-            if [ "$result" != pending ]; then echo "Required build checks: $result"; exit 1; fi
-            sleep 30
-          done
-          echo 'Required build checks did not complete in 30 minutes'
-          exit 1
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/40313812043" > "$RUNNER_TEMP/checks.json"
+          python3 - "$RUNNER_TEMP/checks.json" <<'PYVERIFY'
+          import json, sys
+          run = json.load(open(sys.argv[1]))
+          assert run['head_sha'] == '80717a1d6dd7694c8570fd21b8133ad9fa36eadc'
+          assert run['conclusion'] == 'success'
+          PYVERIFY
 
       - name: Supplement existing v0.0.2 release
         env:

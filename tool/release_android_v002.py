@@ -30,23 +30,25 @@ def inspect():
     tools = sorted((sdk / 'build-tools').iterdir(), key=lambda p: tuple(int(x) for x in re.findall(r'\d+', p.name)))
     tools = next(p for p in reversed(tools) if (p / 'apksigner').exists() and (p / 'aapt').exists())
     report = []
-    previous_certificate = None
-    with tempfile.TemporaryDirectory() as previous:
-        subprocess.run(['gh', 'release', 'download', 'v0.0.1', '--repo', REPO, '--pattern', 'Hotaru-0.0.1-android-arm64-v8a.apk', '--dir', previous], check=True)
-        old_apk = Path(previous) / 'Hotaru-0.0.1-android-arm64-v8a.apk'
-        old_metadata = command(str(tools / 'aapt'), 'dump', 'badging', str(old_apk))
-        if not re.search(r"package: name='dev.hotaru.hotaru.dev' versionCode='10' versionName='0.0.1'", old_metadata):
-            raise RuntimeError('Unexpected v0.0.1 baseline APK metadata')
-        old_signing = command(str(tools / 'apksigner'), 'verify', '--print-certs', str(old_apk))
-        previous_certificate = re.search(r'Signer #1 certificate SHA-256 digest: (\w+)', old_signing).group(1)
     for abi in ABIS:
+        with tempfile.TemporaryDirectory() as previous:
+            previous_name = f'Hotaru-0.0.1-android-{abi}.apk'
+            subprocess.run(['gh', 'release', 'download', 'v0.0.1', '--repo', REPO, '--pattern', previous_name, '--dir', previous], check=True)
+            old_apk = Path(previous) / previous_name
+            old_metadata = command(str(tools / 'aapt'), 'dump', 'badging', str(old_apk))
+            old_package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", old_metadata)
+            if not old_package or old_package.group(1) != 'dev.hotaru.hotaru.dev' or old_package.group(3) != '0.0.1':
+                raise RuntimeError('Unexpected v0.0.1 baseline APK metadata')
+            previous_code = int(old_package.group(2))
+            old_signing = command(str(tools / 'apksigner'), 'verify', '--print-certs', str(old_apk))
+            previous_certificate = re.search(r'Signer #1 certificate SHA-256 digest: (\w+)', old_signing).group(1)
         matches = list(Path('dist').rglob(f'*-android-{abi}.apk'))
         if len(matches) != 1:
             raise RuntimeError(f'Expected one packaged {abi} APK, found {matches}')
         source = matches[0]
         metadata = command(str(tools / 'aapt'), 'dump', 'badging', str(source))
         package = re.search(r"package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", metadata)
-        if not package or package.group(1) not in ('dev.hotaru.hotaru', 'dev.hotaru.hotaru.dev') or package.group(2, 3) != ('11', '0.0.2'):
+        if not package or package.group(1) not in ('dev.hotaru.hotaru', 'dev.hotaru.hotaru.dev') or (int(package.group(2)) != previous_code + 1 or package.group(3) != '0.0.2'):
             raise RuntimeError(f'Unexpected package metadata: {package.group(0) if package else "missing"}')
         signing = command(str(tools / 'apksigner'), 'verify', '--verbose', '--print-certs', str(source))
         certificate = re.search(r'Signer #1 certificate SHA-256 digest: (\w+)', signing)
@@ -60,14 +62,14 @@ def inspect():
                     raise RuntimeError(f'{abi}: missing {library}')
         target = OUTPUT / f'Hotaru-0.0.2-android-{abi}.apk'
         shutil.copy2(source, target)
-        report.append({'name': target.name, 'package': package.group(1), 'version_code': 11, 'version_name': '0.0.2', 'certificate_sha256': certificate.group(1), 'previous_certificate_sha256': previous_certificate, 'upgrade_signature_match': certificate.group(1) == previous_certificate, 'sha256': digest(target)})
+        report.append({'name': target.name, 'package': package.group(1), 'version_code': int(package.group(2)), 'previous_version_code': previous_code, 'version_name': '0.0.2', 'certificate_sha256': certificate.group(1), 'previous_certificate_sha256': previous_certificate, 'upgrade_signature_match': certificate.group(1) == previous_certificate, 'sha256': digest(target)})
     if len({item['certificate_sha256'] for item in report}) != 1:
         raise RuntimeError('APK architectures have different signing certificates')
     (OUTPUT / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 
 
-def release_body(body, package, upgrade_signature_match=False):
+def release_body(body, package, upgrade_signature_match=False, version_codes="见 APK 元数据"):
     if '<!-- android-v002-supplement -->' in body:
         raise RuntimeError('Android supplement already exists; inspect before replacing it')
     if 'Hotaru-0.0.2-android-' in body:
@@ -83,12 +85,12 @@ def release_body(body, package, upgrade_signature_match=False):
     body = body.replace('Windows x64 release. Android, macOS and Linux packages are not included in this release.', 'Windows x64 and Android APKs are available. macOS and Linux packages are not included.')
     if package.endswith('.dev'):
         if upgrade_signature_match:
-            signing = '安卓为调试签名预览包（dev.hotaru.hotaru.dev）；已核对与 v0.0.1 APK 签名证书一致、versionCode 从 10 升至 11，具备覆盖安装的包元数据条件。实际升级和数据保留仍待实机验证。不要把本包当作正式签名版。'
+            signing = '安卓为调试签名预览包（dev.hotaru.hotaru.dev）；已核对与 v0.0.1 APK 签名证书一致、对应架构 versionCode 递增，具备覆盖安装的包元数据条件。实际升级和数据保留仍待实机验证。不要把本包当作正式签名版。'
         else:
             signing = '安卓为调试签名预览包（dev.hotaru.hotaru.dev），已核对其签名证书与 v0.0.1 不同，不能直接覆盖旧包。请先在旧版备份，再卸载旧版并安装此包；卸载会删除应用数据。不要把本包当作正式签名版。'
     else:
         signing = '安卓包名为 dev.hotaru.hotaru，使用仓库已有发布签名；与旧调试包 .dev 不是同一个应用，不会自动迁移其数据。'
-    return body + f'\n\n<!-- android-v002-supplement -->\n### Android v0.0.2 补充\n\n按设备架构选择上表 APK，普通近年手机优先 arm64-v8a。版本 0.0.2，versionCode 11，基于 v0.0.2 main 及已合入的安卓签名回退修正；不包含 v0.0.3 修改。\n\n{signing}\n\n已检查 APK 版本、签名、各架构原生库和 SHA256；构建及自动化检查不能替代安卓实机的 VPN 授权、代理链路、后台运行与升级验收。请核对同页 SHA256SUMS。原 Windows 资产保持不变。\n'
+    return body + f'\n\n<!-- android-v002-supplement -->\n### Android v0.0.2 补充\n\n按设备架构选择上表 APK，普通近年手机优先 arm64-v8a。版本 0.0.2，内部构建号 11；各 APK versionCode：{version_codes}。基于 v0.0.2 main 及已合入的安卓签名回退修正；不包含 v0.0.3 修改。\n\n{signing}\n\n已检查 APK 版本、签名、各架构原生库和 SHA256；构建及自动化检查不能替代安卓实机的 VPN 授权、代理链路、后台运行与升级验收。请核对同页 SHA256SUMS。原 Windows 资产保持不变。\n'
 
 
 def publish():
@@ -105,7 +107,8 @@ def publish():
     windows = {name for name in existing if name.endswith(('.exe', '.zip'))}
     if not windows or 'SHA256SUMS' not in existing:
         raise RuntimeError('Existing Windows assets or checksum manifest missing')
-    body = release_body(release['body'], report[0]['package'], report[0]['upgrade_signature_match'])
+    codes = '、'.join(f'{abi}={next(item["version_code"] for item in report if abi in item["name"])}' for abi in ABIS)
+    body = release_body(release['body'], report[0]['package'], all(item['upgrade_signature_match'] for item in report), codes)
     with tempfile.TemporaryDirectory() as temporary:
         temp = Path(temporary)
         subprocess.run(['gh', 'release', 'download', TAG, '--repo', REPO, '--pattern', 'SHA256SUMS', '--dir', temporary], check=True)
@@ -140,4 +143,8 @@ def publish():
 
 
 if __name__ == '__main__':
-    {'inspect': inspect, 'publish': publish}[sys.argv[1]]()
+    try:
+        {'inspect': inspect, 'publish': publish}[sys.argv[1]]()
+    except Exception as error:
+        print('::error::' + str(error).replace('\n', ' '), flush=True)
+        raise
