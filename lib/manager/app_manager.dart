@@ -139,47 +139,26 @@ class AppEnvManager extends ConsumerWidget {
   }
 }
 
-class _Sidebar extends ConsumerStatefulWidget {
+class _Sidebar extends ConsumerWidget {
   const _Sidebar({
     required this.items,
     required this.currentIndex,
     required this.viewMode,
     required this.onSelected,
+    required this.settingsSelected,
+    required this.onSettingsSelected,
   });
 
   final List<NavigationItem> items;
   final int currentIndex;
   final ViewMode viewMode;
   final void Function(int index) onSelected;
+  final bool settingsSelected;
+  final VoidCallback onSettingsSelected;
 
   @override
-  ConsumerState<_Sidebar> createState() => _SidebarState();
-}
-
-class _SidebarState extends ConsumerState<_Sidebar> {
-  var _settingsOpen = false;
-
-  Future<void> _openSettings() async {
-    if (_settingsOpen) {
-      return;
-    }
-    final item = navigationPort
-        ?.getItems()
-        .where((item) => item.label == PageLabel.settings)
-        .firstOrNull;
-    if (item == null || !mounted) {
-      return;
-    }
-    setState(() => _settingsOpen = true);
-    await BaseNavigator.push(context, item.builder(context));
-    if (mounted) {
-      setState(() => _settingsOpen = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final canExpand = canExpandSidebar(widget.viewMode);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canExpand = canExpandSidebar(viewMode);
     final sidebarExpanded = ref.watch(
       appSettingProvider.select((state) => state.sidebarExpanded),
     );
@@ -187,12 +166,12 @@ class _SidebarState extends ConsumerState<_Sidebar> {
     return NavigationSidebar(
       brandTitle: 'HOTARU',
       destinations: [
-        for (final item in widget.items)
+        for (final item in items)
           SidebarDestination(glyph: item.glyph, label: item.label.label),
       ],
-      selectedIndex: widget.currentIndex,
+      selectedIndex: currentIndex,
       expanded: canExpand && sidebarExpanded,
-      onSelected: widget.onSelected,
+      onSelected: onSelected,
       onToggle: canExpand
           ? () {
               ref
@@ -211,8 +190,8 @@ class _SidebarState extends ConsumerState<_Sidebar> {
         glyph: AppGlyphs.settings,
         label: context.appLocalizations.settings,
       ),
-      footerSelected: _settingsOpen,
-      onFooterTap: _openSettings,
+      footerSelected: settingsSelected,
+      onFooterTap: onSettingsSelected,
     );
   }
 }
@@ -253,6 +232,7 @@ class AppSidebarContainer extends ConsumerWidget {
     final navigationItems = navigationState.navigationItems;
     final viewMode = navigationState.viewMode;
     final currentIndex = navigationState.currentIndex;
+    final settingsSelected = navigationState.pageLabel == PageLabel.settings;
     final backdropOpacity = ref.watch(windowBlurProvider);
     final page = SurfaceLevel.page.colorOf(context.colorScheme);
     final chrome = context.colorScheme.chromeSurface;
@@ -279,9 +259,14 @@ class AppSidebarContainer extends ConsumerWidget {
                 removeRight: isLtr,
                 child: _Sidebar(
                   items: navigationItems,
-                  currentIndex: currentIndex,
+                  currentIndex: settingsSelected
+                      ? navigationItems.length
+                      : currentIndex,
                   viewMode: viewMode,
                   onSelected: onSelected,
+                  settingsSelected: settingsSelected,
+                  onSettingsSelected: () =>
+                      _handleToPage(ref, PageLabel.settings),
                 ),
               ),
             ),

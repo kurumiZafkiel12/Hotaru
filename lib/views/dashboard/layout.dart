@@ -20,7 +20,11 @@ enum DashboardCardHeight {
   middle,
   large,
   tall,
-  grande;
+  grande,
+
+  /// The status card's compact default: below [hero], above [middle],
+  /// whose compact band is too short for the card's rows.
+  slimHero;
 
   double of({required bool compact}) => switch (this) {
     DashboardCardHeight.hero => compact ? 184 : 208,
@@ -30,6 +34,7 @@ enum DashboardCardHeight {
     DashboardCardHeight.large => compact ? 216 : 232,
     DashboardCardHeight.tall => compact ? 288 : 320,
     DashboardCardHeight.grande => compact ? 432 : 480,
+    DashboardCardHeight.slimHero => compact ? 164 : 188,
   };
 }
 

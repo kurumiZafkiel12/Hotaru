@@ -121,6 +121,28 @@ void main() {
     });
   });
 
+  test(
+    'the status card resizes in width and height from a compact default',
+    () {
+      final spec = DashboardWidget.currentOutbound.spanSpec;
+      expect(spec.widths, [2, 3, 4]);
+      expect(spec.heights, [
+        DashboardCardHeight.slimHero,
+        DashboardCardHeight.hero,
+        DashboardCardHeight.large,
+      ]);
+      final span = DashboardWidget.currentOutbound.spanFrom(const {});
+      expect(span.width, 4);
+      expect(span.height, DashboardCardHeight.slimHero);
+      // Codes shipped before the unlock keep working: 40 was full width.
+      final shipped = DashboardWidget.currentOutbound.spanFrom(const {
+        'currentOutbound': 40,
+      });
+      expect(shipped.width, 4);
+      expect(shipped.height, DashboardCardHeight.slimHero);
+    },
+  );
+
   test('new widgets stay out of the default layout but remain addable', () {
     expect(defaultDashboardWidgets, isNot(contains(DashboardWidget.speedTest)));
     expect(

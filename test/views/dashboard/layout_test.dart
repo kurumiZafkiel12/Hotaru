@@ -91,7 +91,7 @@ void main() {
       .position
       .maxScrollExtent;
 
-  testWidgets('the exit is a full-width hero above the saved widgets', (
+  testWidgets('the exit is a full-width compact hero above the saved widgets', (
     tester,
   ) async {
     await pumpDashboard(tester, const Size(1220, 1100));
@@ -100,7 +100,7 @@ void main() {
     final mode = rectOf(tester, OutboundModeCard);
     expect(hero.left, 24);
     expect(hero.right, 1220 - 24);
-    expect(hero.height, 208);
+    expect(hero.height, 188);
     expect(speed.top, hero.bottom + 16);
     expect(mode.top, speed.top);
     expect(speed.width + mode.width + 16, closeTo(hero.width, 0.01));

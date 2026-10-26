@@ -475,19 +475,22 @@ void main() {
       );
       await tester.pump();
 
-      // The sidebar's pinned settings gear carries the same label.
-      final settingsItem = find.descendant(
-        of: find.byType(ToolsView),
-        matching: find.text('Settings'),
+      expect(
+        find.descendant(
+          of: find.byType(ToolsView),
+          matching: find.text('Settings'),
+        ),
+        findsNothing,
       );
-      await tester.scrollUntilVisible(
-        settingsItem,
-        500,
-        scrollable: find.byType(Scrollable).first,
+      final settingsItem = find.descendant(
+        of: find.byType(NavigationSidebar),
+        matching: find.text('Settings'),
       );
       await tester.tap(settingsItem);
       await tester.pumpAndSettle();
+      expect(find.byType(NavigationSidebar), findsOneWidget);
       expect(find.byType(SettingsView), findsOneWidget);
+      expect(container.read(currentPageLabelProvider), PageLabel.settings);
 
       final generalItem = find.text('General');
       await tester.scrollUntilVisible(

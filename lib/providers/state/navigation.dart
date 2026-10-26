@@ -48,8 +48,12 @@ PageLabel shownPageLabelOf(
 
 @riverpod
 PageLabel shownPageLabel(Ref ref) {
+  final pageLabel = ref.watch(currentPageLabelProvider);
+  if (pageLabel == PageLabel.settings) {
+    return pageLabel;
+  }
   return shownPageLabelOf(
-    ref.watch(currentPageLabelProvider),
+    pageLabel,
     ref.watch(currentNavigationItemsStateProvider).value,
   );
 }
@@ -89,6 +93,10 @@ MoreToolsSelectorState moreToolsSelectorState(Ref ref) {
         navigationItemsStateProvider.select((state) {
           return SelectValue(
             state.value.where((element) {
+              if (element.label == PageLabel.settings &&
+                  viewMode != ViewMode.mobile) {
+                return false;
+              }
               final isMore =
                   element.modes.contains(NavigationItemMode.more) ||
                   element.modes.contains(NavigationItemMode.moreFull);

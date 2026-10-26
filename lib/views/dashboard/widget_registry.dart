@@ -59,10 +59,14 @@ extension DashboardWidgetView on DashboardWidget {
 
   DashboardSpanSpec get spanSpec => switch (this) {
     DashboardWidget.currentOutbound => const DashboardSpanSpec(
-      widths: [4],
+      widths: [2, 3, 4],
       defaultWidth: 4,
-      heights: [DashboardCardHeight.hero],
-      defaultHeight: DashboardCardHeight.hero,
+      heights: [
+        DashboardCardHeight.slimHero,
+        DashboardCardHeight.hero,
+        DashboardCardHeight.large,
+      ],
+      defaultHeight: DashboardCardHeight.slimHero,
     ),
     DashboardWidget.networkSpeed => const DashboardSpanSpec(
       widths: [2, 3, 4],
