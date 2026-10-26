@@ -386,10 +386,15 @@ jobs:
         if: startsWith(matrix.platform,'android')
         run: |
           echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
+          key_password="${{ secrets.KEY_PASSWORD }}"
+          if ! keytool -certreq -keystore android/app/keystore.jks -storepass "${{ secrets.STORE_PASSWORD }}" -alias "${{ secrets.KEY_ALIAS }}" -keypass "$key_password" -file /tmp/hotaru-csr.pem 2>/dev/null; then
+            echo "KEY_PASSWORD cannot unlock the signing key; using the store password as the key password"
+            key_password="${{ secrets.STORE_PASSWORD }}"
+        fi
           {
             echo "keyAlias=${{ secrets.KEY_ALIAS }}"
             echo "storePassword=${{ secrets.STORE_PASSWORD }}"
-            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+            echo "keyPassword=$key_password"
           } >> android/local.properties
 
       - name: Setup Go
