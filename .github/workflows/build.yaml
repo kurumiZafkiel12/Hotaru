@@ -14,6 +14,11 @@ on:
         required: false
         default: ''
         type: string
+    include_android:
+        description: 'Also build Android APKs for the release'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       release_version:
@@ -21,6 +26,11 @@ on:
         required: false
         default: ''
         type: string
+    include_android:
+        description: 'Also build Android APKs for the release'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -343,7 +353,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        include: ${{ fromJSON(inputs.release_version != '' && '[{"platform":"windows","os":"Windows-2022","arch":"amd64"}]' || '[{"platform":"android","os":"ubuntu-latest"},{"platform":"windows","os":"Windows-2022","arch":"amd64"}]') }}
+        include: ${{ fromJSON(inputs.release_version != '' && (inputs.include_android && '[{"platform":"android","os":"ubuntu-latest"},{"platform":"windows","os":"Windows-2022","arch":"amd64"}]' || '[{"platform":"windows","os":"Windows-2022","arch":"amd64"}]') || '[{"platform":"android","os":"ubuntu-latest"},{"platform":"windows","os":"Windows-2022","arch":"amd64"}]') }}
 
     steps:
       - name: Setup rust
