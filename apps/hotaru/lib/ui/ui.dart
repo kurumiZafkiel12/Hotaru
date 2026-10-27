@@ -16,6 +16,7 @@ export 'disabled_mask.dart';
 export 'drag_back.dart';
 export 'effect.dart';
 export 'fade_box.dart';
+export 'flag_icon.dart';
 export 'focus.dart';
 export 'font.dart';
 export 'foot_bar.dart';

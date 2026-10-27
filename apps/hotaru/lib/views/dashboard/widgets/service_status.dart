@@ -123,6 +123,57 @@ class _ServiceView {
     null when phase == ProbePhase.failed => context.colorScheme.error,
     null => null,
   };
+
+  /// Whether the service answered at all, the only question the homepage
+  /// card asks: a status that means the service responded — even with a
+  /// refusal, a region answer or a challenge — is reachable here,
+  /// whatever the unlock audit makes of the answer.
+  bool get unreachable => switch (check) {
+    final check? => switch (check.status) {
+      ServiceProbeStatus.timeout ||
+      ServiceProbeStatus.failed ||
+      ServiceProbeStatus.unavailable ||
+      ServiceProbeStatus.blocked => true,
+      _ => false,
+    },
+    null => phase == ProbePhase.failed,
+  };
+
+  /// The homepage card's reading of a service: its latency when the check
+  /// measured one, a plain reachable when it only knows the service
+  /// answered, a plain timeout or failure when it did not, and no
+  /// unlock verdict either way.
+  (String, Color) latencyOf(BuildContext context) {
+    final localizations = context.appLocalizations;
+    final colorScheme = context.colorScheme;
+    final check = this.check;
+    if (check?.delay case final delay?) {
+      return ('$delay ms', colorScheme.onSurfaceVariant);
+    }
+    if (check != null) {
+      if (!unreachable) {
+        return (localizations.serviceReachable, colorScheme.onSurfaceVariant);
+      }
+      return check.status == ServiceProbeStatus.timeout
+          ? (localizations.timeout, colorScheme.error)
+          : (localizations.serviceFailed, colorScheme.error);
+    }
+    if (phase == ProbePhase.failed) {
+      return (localizations.serviceFailed, colorScheme.error);
+    }
+    if (phase == ProbePhase.probing) {
+      return (localizations.loading, colorScheme.onSurfaceVariant);
+    }
+    return (localizations.servicePending, colorScheme.onSurfaceVariant);
+  }
+
+  Color? cardDotOf(BuildContext context) {
+    final colorScheme = context.colorScheme;
+    if (check != null) {
+      return unreachable ? colorScheme.error : colorScheme.success;
+    }
+    return phase == ProbePhase.failed ? colorScheme.error : null;
+  }
 }
 
 class ServiceStatusCard extends ConsumerStatefulWidget {
@@ -199,213 +250,144 @@ class _ServiceStatusCardState extends ConsumerState<ServiceStatusCard>
           shownPhase(state.entryOf(target)),
         ),
     ];
-    final problems = services.where((service) => service.abnormal).length;
-    final verdict = problems > 0
-        ? DashboardChip(
-            label: appLocalizations.serviceAbnormalCount(problems),
-            tone: DashboardChipTone.warn,
-          )
-        : services.every((service) => service.check != null)
-        ? DashboardChip(
-            label: appLocalizations.serviceAllAvailable,
-            tone: DashboardChipTone.ok,
-          )
-        : null;
+    final problems = services.where((service) => service.unreachable).length;
+    DashboardChip? verdictOf(double contentWidth) {
+      // A half-width phone cell has no room for the header chip beside
+      // the title and its two buttons; the rows still carry the state.
+      if (contentWidth < 210) {
+        return null;
+      }
+      return problems > 0
+          ? DashboardChip(
+              label: appLocalizations.serviceAbnormalCount(problems),
+              tone: DashboardChipTone.warn,
+            )
+          : services.every((service) => service.check != null)
+          ? DashboardChip(
+              label: appLocalizations.serviceAllReachable,
+              tone: DashboardChipTone.ok,
+            )
+          : null;
+    }
+
     Future<void> openSheet() => showServiceStatusSheet(context);
-    final scale = DashboardDensityScope.scaleOf(context);
-    final grid = _ServiceGrid(
-      services: services,
-      columns: widget.columns,
-      fill: !mobile,
-      cellHeight:
-          (mobile
-              ? 44
-              : density.isCompact
-              ? 40
-              : 46) *
-          scale,
-      gap: density.isCompact ? 6 : 8,
-    );
+    final grid = _ServiceList(services: services);
     return DashboardCard(
       semanticLabel: appLocalizations.serviceStatus,
       onTap: mobile ? openSheet : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          DashboardCardHeader(
-            glyph: AppGlyphs.verified,
-            title: appLocalizations.serviceStatus,
-            chevron: mobile,
-            trailing: [
-              if (!stacked) ?verdict,
-              if (!mobile)
-                Transform.translate(
-                  offset: const Offset(8, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!stacked)
-                        _CheckAllButton(
-                          loading: shown.any(state.isLoading),
-                          onPressed: () => _services.refresh(shown),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            DashboardCardHeader(
+              glyph: AppGlyphs.verified,
+              title: appLocalizations.serviceStatus,
+              chevron: mobile,
+              trailing: [
+                if (!stacked) ?verdictOf(constraints.maxWidth),
+                if (!mobile)
+                  Transform.translate(
+                    offset: const Offset(8, 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!stacked)
+                          _CheckAllButton(
+                            loading: shown.any(state.isLoading),
+                            onPressed: () => _services.refresh(shown),
+                          ),
+                        DashboardIconButton(
+                          glyph: AppGlyphs.chevronForward,
+                          tooltip: appLocalizations.serviceStatus,
+                          onPressed: openSheet,
                         ),
-                      DashboardIconButton(
-                        glyph: AppGlyphs.chevronForward,
-                        tooltip: appLocalizations.serviceStatus,
-                        onPressed: openSheet,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-            ],
-          ),
-          if (mobile) const SizedBox(height: 12) else const Spacer(),
-          grid,
-        ],
+              ],
+            ),
+            if (mobile) const SizedBox(height: 12) else const Spacer(),
+            grid,
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ServiceGrid extends StatelessWidget {
-  const _ServiceGrid({
-    required this.services,
-    required this.columns,
-    required this.fill,
-    required this.cellHeight,
-    required this.gap,
-  });
+/// The homepage card's rows: one line per service, its name on the
+/// left and its latency on the right — a connectivity list, nothing
+/// more.
+class _ServiceList extends StatelessWidget {
+  const _ServiceList({required this.services});
 
   final List<_ServiceView> services;
-  final int columns;
-
-  /// Holds two rows on a fixed-height card, a single row growing into tiles.
-  final bool fill;
-  final double cellHeight;
-  final double gap;
 
   @override
   Widget build(BuildContext context) {
-    if (fill && services.length <= columns) {
-      return SizedBox(
-        height: cellHeight * 2 + gap,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: gap,
-          children: [
-            for (final service in services)
-              Expanded(
-                child: _ServiceCell(
-                  service: service,
-                  height: cellHeight,
-                  tile: true,
-                ),
-              ),
-          ],
-        ),
-      );
-    }
     return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: gap,
+      spacing: 4,
       children: [
-        for (var start = 0; start < services.length; start += columns)
-          Row(
-            spacing: gap,
-            children: [
-              for (final service in services.skip(start).take(columns))
-                Expanded(
-                  child: _ServiceCell(service: service, height: cellHeight),
-                ),
-            ],
-          ),
+        for (final service in services) _ServiceLine(service: service),
       ],
     );
   }
 }
 
-class _ServiceCell extends StatelessWidget {
-  const _ServiceCell({
-    required this.service,
-    required this.height,
-    this.tile = false,
-  });
-
-  static const _inset = 7.0;
-
-  // Lines the text up with the 12 a cell keeps clear at its end.
-  static const _tileText = EdgeInsetsDirectional.fromSTEB(5, 0, 5, 3);
+class _ServiceLine extends StatelessWidget {
+  const _ServiceLine({required this.service});
 
   final _ServiceView service;
-  final double height;
-
-  final bool tile;
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = service.statusOf(context);
+    final (label, color) = service.latencyOf(context);
     final status = AppTextStyle.caption1
         .of(context, emphasized: true)
         .toTabular
         .copyWith(color: color);
-    final badge = _ServiceBadge(
-      target: service.target,
-      size: height - _inset * 2,
-      radius: DashboardCorner.tab - _inset,
-      color: DashboardColors.of(context).card,
-      ink: context.colorScheme.onSurfaceVariant,
-      dot: service.dotOf(context),
-    );
-    final text = ExcludeSemantics(
-      child: service.loading
-          ? SkeletonText(width: 44, style: status)
-          : Text(
-              label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: status,
-            ),
-    );
     return Semantics(
       label: service.target.label,
       value: label,
       liveRegion: true,
-      child: Tooltip(
-        message: '${service.target.label}\n$label',
-        excludeFromSemantics: true,
-        child: tile
-            ? DashboardBlock(
-                radius: DashboardCorner.tab,
-                padding: const EdgeInsets.all(_inset),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    badge,
-                    Padding(padding: _tileText, child: text),
-                  ],
-                ),
-              )
-            : SizedBox(
-                height: height,
-                child: DashboardBlock(
-                  radius: DashboardCorner.tab,
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                    _inset,
-                    0,
-                    12,
-                    0,
-                  ),
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      badge,
-                      Expanded(child: text),
-                    ],
-                  ),
-                ),
+      child: SizedBox(
+        height: 24,
+        child: Row(
+          spacing: 8,
+          children: [
+            _ServiceBadge(
+              target: service.target,
+              size: 22,
+              radius: DashboardCorner.badge,
+              color: DashboardColors.of(context).tone2,
+              ink: context.colorScheme.onSurfaceVariant,
+              dot: service.cardDotOf(context),
+            ),
+            Expanded(
+              child: Text(
+                service.target.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyle.subheadline.of(context),
               ),
+            ),
+            Flexible(
+              child: ExcludeSemantics(
+                child: service.loading
+                    ? SkeletonText(width: 44, style: status)
+                    : Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: status,
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

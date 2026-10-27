@@ -215,7 +215,10 @@ class NetworkSpeedCard extends ConsumerWidget {
               speed: direction.of(latest),
               total: direction.of(total),
               traffics: traffics,
-              strip: desktop,
+              // The phone grid fixes the card's height too, so its tiles
+              // take the desktop strip form instead of a height derived
+              // from their width.
+              strip: true,
             ),
           ),
       ],

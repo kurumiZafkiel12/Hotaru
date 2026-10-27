@@ -63,6 +63,23 @@ Future<IpQuality> ipQuality(Ref ref, String ip) async {
   }
 }
 
+/// Whether the exit's country agrees across two geolocation sources, the
+/// native-versus-broadcast reading the status card's first tag shows.
+@Riverpod(retry: _noRetry)
+Future<IpOrigin> ipOrigin(Ref ref, String ip) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(cancelToken.cancel);
+  final origin = await lookupIpOrigin(
+    request.dio,
+    ip,
+    cancelToken: cancelToken,
+  );
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(hours: 1), link.close);
+  ref.onDispose(timer.cancel);
+  return origin;
+}
+
 Future<T?> _orNull<T>(String action, Future<T> future) async {
   try {
     return await future;

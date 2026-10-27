@@ -46,23 +46,16 @@ class IntranetIpCard extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
     final figure = mobile
-        ? (style: AppTextStyle.title1, top: 12.0)
-        : density.isCompact
-        ? (style: AppTextStyle.title2, top: 8.0)
-        : (style: AppTextStyle.title2, top: 10.0);
-    final _LanRowMetrics row = density.isCompact
-        ? (
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-            titleStart: 12,
-            radius: 16,
-            icon: 32,
-          )
-        : (
-            padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
-            titleStart: 14,
-            radius: 20,
-            icon: 38,
-          );
+        ? (style: AppTextStyle.title2, top: 6.0)
+        : (style: AppTextStyle.title2, top: 2.0);
+    // The card sits in the low band on every platform, so its switch
+    // row runs at the same tight metrics everywhere.
+    const _LanRowMetrics row = (
+      padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+      titleStart: 12,
+      radius: 16,
+      icon: 32,
+    );
     final style = DashboardText.figure(
       context,
       figure.style,

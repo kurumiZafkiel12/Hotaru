@@ -504,6 +504,11 @@ enum DnsQueryInitiator { app, rule, direct, proxy, other }
 
 enum IpType { residential, mobile, business, hosting }
 
+/// Whether independent geolocation sources agree on an address's country:
+/// agreement reads as a native address, disagreement as a broadcast one,
+/// and anything less as unknown rather than a guess.
+enum IpOrigin { native, broadcast, unknown }
+
 enum IpQualityLevel { good, normal, risky }
 
 enum IpQualitySource {

@@ -451,6 +451,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "bind": MessageLookupByLibrary.simpleMessage("Bind"),
     "blacklistMode": MessageLookupByLibrary.simpleMessage("Blacklist mode"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("Block connection"),
+    "brandThemeNote": MessageLookupByLibrary.simpleMessage(
+      "Firefly green is Hotaru\'s fixed brand theme. It does not follow the system accent color.",
+    ),
     "brightness": MessageLookupByLibrary.simpleMessage("Brightness"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Bypass domains"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
@@ -804,18 +807,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Without this entry, TUN hijacks every DNS query to port 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("DNS hijacking"),
+    "dnsLeakCoreResolvers": MessageLookupByLibrary.simpleMessage(
+      "Core DNS resolvers",
+    ),
+    "dnsLeakExitLabel": MessageLookupByLibrary.simpleMessage("Current exit"),
+    "dnsLeakNoResolvers": MessageLookupByLibrary.simpleMessage(
+      "No resolver receipts observed",
+    ),
     "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
       "Domestic ISP resolver observed. If you expected proxy-only DNS, review TUN DNS hijack and use secure DoH. A domestic resolver may be intentional for direct domains.",
     ),
     "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.",
+      "Leases a one-time id from bash.ws and resolves 20 unique subdomains twice — through the system DNS and through the core proxy; the authoritative server records which resolvers actually asked, and they are compared with the current exit country. The verdict covers these two paths in this run only.",
     ),
     "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Observe resolver egress and ownership",
     ),
+    "dnsLeakSystemResolvers": MessageLookupByLibrary.simpleMessage(
+      "System DNS resolvers",
+    ),
     "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("DNS leak test"),
     "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
       "Resolver classification incomplete; no clean verdict",
+    ),
+    "dnsLeakVerdictClean": MessageLookupByLibrary.simpleMessage(
+      "No DNS leak found",
+    ),
+    "dnsLeakVerdictLeak": MessageLookupByLibrary.simpleMessage(
+      "DNS leak detected",
     ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("DNS mode"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
@@ -1053,9 +1072,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -1127,6 +1147,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Flags"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Organization"),
+    "ipOriginBroadcast": MessageLookupByLibrary.simpleMessage("Broadcast IP"),
+    "ipOriginNative": MessageLookupByLibrary.simpleMessage("Native IP"),
+    "ipPortraitGeoTitle": MessageLookupByLibrary.simpleMessage(
+      "Multi-source location",
+    ),
+    "ipPortraitHumanBot": MessageLookupByLibrary.simpleMessage(
+      "Human / bot traffic",
+    ),
+    "ipPortraitLeakTitle": MessageLookupByLibrary.simpleMessage("Leak checks"),
+    "ipPortraitNetworkTitle": MessageLookupByLibrary.simpleMessage("Network"),
+    "ipPortraitNoSource": MessageLookupByLibrary.simpleMessage(
+      "No public data source",
+    ),
+    "ipPortraitOrg": MessageLookupByLibrary.simpleMessage("Organization"),
+    "ipPortraitRange": MessageLookupByLibrary.simpleMessage("IP range"),
+    "ipPortraitRiskTitle": MessageLookupByLibrary.simpleMessage(
+      "Risk coefficient",
+    ),
     "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
       "Network type and reputation are third-party estimates. Residential does not mean native or risk-free. Google results describe this single request.",
     ),
@@ -1141,12 +1179,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipQualityGood": MessageLookupByLibrary.simpleMessage("Good"),
     "ipQualityLevel": MessageLookupByLibrary.simpleMessage("Level"),
-    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Normal"),
+    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Fair"),
     "ipQualityRetry": MessageLookupByLibrary.simpleMessage("Check again"),
-    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Risky"),
+    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Poor"),
     "ipQualityShort": MessageLookupByLibrary.simpleMessage("Quality"),
     "ipQualitySource": MessageLookupByLibrary.simpleMessage("Answered by"),
     "ipQualitySources": MessageLookupByLibrary.simpleMessage("Sources"),
+    "ipRiskHigh": MessageLookupByLibrary.simpleMessage("High risk"),
+    "ipRiskLow": MessageLookupByLibrary.simpleMessage("Low risk"),
+    "ipRiskMedium": MessageLookupByLibrary.simpleMessage("Medium risk"),
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage(
       "Different outbound IP",
     ),
@@ -1369,6 +1410,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No matching results",
     ),
+    "nodeGlobeAutoRotate": MessageLookupByLibrary.simpleMessage("Auto-rotate"),
+    "nodeGlobeFlat": MessageLookupByLibrary.simpleMessage("Flat"),
+    "nodeGlobeNotRun": MessageLookupByLibrary.simpleMessage(
+      "Node exits not checked yet",
+    ),
+    "nodeGlobeSphere": MessageLookupByLibrary.simpleMessage("Globe"),
+    "nodeGlobeSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Where the node exits are located",
+    ),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("Node globe"),
+    "nodeGlobeUnknown": MessageLookupByLibrary.simpleMessage("Unlocated nodes"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",
@@ -1602,6 +1654,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "result": MessageLookupByLibrary.simpleMessage("Result"),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "route": MessageLookupByLibrary.simpleMessage("Route rule"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Route addresses"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Route exclude addresses",
@@ -1810,6 +1863,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage(
       "All available",
     ),
+    "serviceAllReachable": MessageLookupByLibrary.simpleMessage(
+      "All reachable",
+    ),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("Available"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Blocked"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Check all"),
@@ -1823,6 +1879,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Originals only",
     ),
     "servicePending": MessageLookupByLibrary.simpleMessage("Not checked"),
+    "serviceReachable": MessageLookupByLibrary.simpleMessage("Reachable"),
     "serviceRestricted": MessageLookupByLibrary.simpleMessage(
       "Access restricted",
     ),
@@ -1904,6 +1961,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Exit node"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Jitter"),
+    "speedTestLiveRate": MessageLookupByLibrary.simpleMessage("Live rate"),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage("No test run yet"),
     "speedTestNotSupported": MessageLookupByLibrary.simpleMessage(
       "Not supported",
@@ -1944,6 +2002,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "stop": MessageLookupByLibrary.simpleMessage("Stop"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Stopping VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Strategy"),
+    "streamingLockedOnly": MessageLookupByLibrary.simpleMessage("Locked only"),
+    "streamingNotUnlocked": MessageLookupByLibrary.simpleMessage(
+      "Not unlocked",
+    ),
+    "streamingOther": MessageLookupByLibrary.simpleMessage("Other"),
+    "streamingTestSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Per-service unlock verdicts for streaming & AI",
+    ),
+    "streamingTestTitle": MessageLookupByLibrary.simpleMessage(
+      "Streaming unlock test",
+    ),
+    "streamingUnlocked": MessageLookupByLibrary.simpleMessage("Unlocked"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("Strict route"),
     "strictRouteDesc": MessageLookupByLibrary.simpleMessage(
       "Strict route keeps traffic such as DNS from bypassing TUN, and with IPv6 off it blocks this device\'s IPv6 connections.",

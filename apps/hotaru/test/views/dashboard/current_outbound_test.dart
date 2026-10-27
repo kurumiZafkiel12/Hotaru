@@ -17,7 +17,6 @@ import 'package:hotaru/views/dashboard/widgets/card.dart';
 import 'package:hotaru/views/dashboard/widgets/current_outbound.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -110,6 +109,7 @@ Widget _app(
         }),
       ),
       ipQualityProvider.overrideWith(quality),
+      ipOriginProvider.overrideWith((_, _) async => IpOrigin.native),
     ],
     child: _card(density: density),
   );
@@ -135,6 +135,7 @@ Widget _probingApp(
       ),
       coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
       ipQualityProvider.overrideWith(quality ?? (_, _) async => _residential),
+      ipOriginProvider.overrideWith((_, _) async => IpOrigin.native),
     ],
     child: _card(),
   );
@@ -147,18 +148,10 @@ void _useTallView(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Finder _clover() => find.ancestor(
-  of: find.byType(ShapeBadge),
-  matching: find.byWidgetPredicate(
-    (widget) => widget is InkResponse && widget.runtimeType == InkResponse,
-  ),
+Finder _flagTap() => find.ancestor(
+  of: find.byType(FlagIcon),
+  matching: find.byType(InkResponse),
 );
-
-double _cloverTurn(WidgetTester tester) => tester
-    .widget<ShapeBadge>(
-      find.descendant(of: _clover(), matching: find.byType(ShapeBadge)),
-    )
-    .rotation;
 
 DashboardChip _chip(WidgetTester tester, String label) =>
     tester.widget<DashboardChip>(
@@ -182,15 +175,14 @@ void main() {
       await tester.pump();
 
       expect(find.text(_ip), findsOneWidget);
-      expect(find.text('GB'.countryFlagEmoji), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.text('GB'.countryFlagEmoji)).style?.fontFamily,
-        FontFamily.twEmoji.value,
-      );
+      expect(find.byType(FlagIcon), findsOneWidget);
+      expect(find.text('GB'), findsOneWidget);
+      expect(find.text('United Kingdom'), findsOneWidget);
+      expect(_chip(tester, 'Native IP').tone, DashboardChipTone.idle);
       expect(find.text('Residential'), findsOneWidget);
-      expect(_chip(tester, 'Quality Good').tone, DashboardChipTone.ok);
+      expect(_chip(tester, 'Good').tone, DashboardChipTone.ok);
       expect(find.text('Example Broadband'), findsOneWidget);
-      expect(find.text('Status'), findsOneWidget);
+      expect(find.text('Status'), findsNothing);
       expect(find.byGlyph(AppGlyphs.refresh), findsNothing);
     });
 
@@ -213,7 +205,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(_chip(tester, 'Quality Risky').tone, DashboardChipTone.warn);
+      expect(_chip(tester, 'Poor').tone, DashboardChipTone.warn);
     });
 
     testWidgets('says its type is unknown when no type was found', (
@@ -224,10 +216,22 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('GB'.countryFlagEmoji), findsOneWidget);
+      expect(find.byType(FlagIcon), findsOneWidget);
       expect(find.text('Not running'), findsOneWidget);
-      expect(_chip(tester, 'Unknown type').tone, DashboardChipTone.idle);
-      expect(find.byType(DashboardChip), findsNWidgets(2));
+      final unknownChips = tester
+          .widgetList<DashboardChip>(
+            find.ancestor(
+              of: find.text('Unknown'),
+              matching: find.byType(DashboardChip),
+            ),
+          )
+          .toList();
+      expect(unknownChips, hasLength(2));
+      expect(
+        unknownChips.every((chip) => chip.tone == DashboardChipTone.idle),
+        isTrue,
+      );
+      expect(find.byType(DashboardChip), findsNWidgets(4));
       expect(find.text('Example Broadband'), findsNothing);
     });
 
@@ -243,6 +247,7 @@ void main() {
             suspendProvider.overrideWithValue(false),
             outboundIpProbeProvider.overrideWith(_Ips.new),
             ipQualityProvider.overrideWith((_, _) => quality.future),
+            ipOriginProvider.overrideWith((_, _) async => IpOrigin.native),
           ],
           child: _card(),
         ),
@@ -251,23 +256,17 @@ void main() {
 
       expect(find.byType(SkeletonPill), findsNWidgets(3));
       expect(find.byType(SkeletonText), findsOneWidget);
-      expect(tester.widget<InkResponse>(_clover()).onTap, isNull);
-      final turn = _cloverTurn(tester);
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(_cloverTurn(tester), isNot(turn));
+      expect(tester.widget<InkResponse>(_flagTap()).onTap, isNull);
 
       quality.complete(_residential);
       await settleWave(tester);
 
       expect(find.byType(SkeletonPill), findsNothing);
       expect(find.text('Residential'), findsOneWidget);
-      expect(_cloverTurn(tester) % (math.pi / 2), closeTo(0, 1e-9));
-      expect(tester.widget<InkResponse>(_clover()).onTap, isNotNull);
+      expect(tester.widget<InkResponse>(_flagTap()).onTap, isNotNull);
     });
 
-    testWidgets('checks a failed quality again from its clover', (
-      tester,
-    ) async {
+    testWidgets('checks a failed quality again from its flag', (tester) async {
       final core = _MockCore();
       when(() => core.outboundIp(any())).thenAnswer((_) async => _address());
       var calls = 0;
@@ -282,7 +281,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(commonDuration);
-      expect(find.text('Unknown type'), findsOneWidget);
+      expect(find.text('Unknown'), findsNWidgets(2));
 
       await tester.tap(find.byTooltip('Retry'));
       await settleWave(tester);
@@ -327,7 +326,7 @@ void main() {
       await tester.tap(find.text(_ip));
       await settleWave(tester);
 
-      expect(find.text('Good'), findsOneWidget);
+      expect(find.text('Good'), findsNWidgets(2));
       expect(find.text('Residential'), findsNWidgets(2));
       final organization = tester.widget<RichText>(
         find.descendant(
@@ -495,6 +494,7 @@ void main() {
         profilesProvider.overrideWithValue(profiles),
         outboundIpProbeProvider.overrideWith(_Ips.new),
         ipQualityProvider.overrideWith((_, _) async => _residential),
+        ipOriginProvider.overrideWith((_, _) async => IpOrigin.native),
         setupActionProvider.overrideWith(_RecordingSetupAction.new),
         suspendProvider.overrideWithValue(suspended),
       ],

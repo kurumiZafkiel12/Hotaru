@@ -483,6 +483,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockConnection": MessageLookupByLibrary.simpleMessage(
       "Bloquer la connexion",
     ),
+    "brandThemeNote": MessageLookupByLibrary.simpleMessage(
+      "Le vert luciole est le thème de marque fixe de Hotaru. Il ne suit pas la couleur d\'accentuation du système.",
+    ),
     "brightness": MessageLookupByLibrary.simpleMessage("Luminosité"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Domaines contournés"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
@@ -856,18 +859,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Sans cette entrée, TUN détourne toutes les requêtes DNS vers le port 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("Détournement DNS"),
+    "dnsLeakCoreResolvers": MessageLookupByLibrary.simpleMessage(
+      "Résolveurs DNS du noyau",
+    ),
+    "dnsLeakExitLabel": MessageLookupByLibrary.simpleMessage("Sortie actuelle"),
+    "dnsLeakNoResolvers": MessageLookupByLibrary.simpleMessage(
+      "Aucune réponse de résolveur observée",
+    ),
     "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
       "Résolveur de FAI chinois observé. Si le DNS doit passer uniquement par le proxy, vérifiez l’interception DNS TUN et le DoH sécurisé. Ce résolveur peut être volontaire pour des domaines directs.",
     ),
     "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Envoie 16 requêtes uniques via le DNS système et lit les observations du serveur faisant autorité de bash.ws, avec un repli Akamai ponctuel. Ne couvre pas tous les navigateurs et applications.",
+      "Loue un identifiant unique auprès de bash.ws et résout 20 sous-domaines uniques deux fois — via le DNS système et via le proxy du noyau ; le serveur faisant autorité enregistre les résolveurs qui ont réellement interrogé, comparés au pays de sortie actuel. Le verdict ne couvre que ces deux chemins, pour cet essai.",
     ),
     "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Observer la sortie et l’opérateur des résolveurs",
     ),
+    "dnsLeakSystemResolvers": MessageLookupByLibrary.simpleMessage(
+      "Résolveurs DNS système",
+    ),
     "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("Test de fuite DNS"),
     "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
       "Classification incomplète ; aucune conclusion d’absence de fuite",
+    ),
+    "dnsLeakVerdictClean": MessageLookupByLibrary.simpleMessage(
+      "Aucune fuite DNS détectée",
+    ),
+    "dnsLeakVerdictLeak": MessageLookupByLibrary.simpleMessage(
+      "Fuite DNS détectée",
     ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("Mode DNS"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
@@ -1127,9 +1146,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Saisissez le contenu de la règle",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Ce système masque la liste des apps installées tant que l’autorisation n’est pas accordée. Accordez-la pour configurer le proxy par app.",
     ),
@@ -1205,6 +1225,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Indicateurs"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Organisation"),
+    "ipOriginBroadcast": MessageLookupByLibrary.simpleMessage("IP diffusée"),
+    "ipOriginNative": MessageLookupByLibrary.simpleMessage("IP native"),
+    "ipPortraitGeoTitle": MessageLookupByLibrary.simpleMessage(
+      "Localisation multi-source",
+    ),
+    "ipPortraitHumanBot": MessageLookupByLibrary.simpleMessage(
+      "Trafic humain / robot",
+    ),
+    "ipPortraitLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "Tests de fuite",
+    ),
+    "ipPortraitNetworkTitle": MessageLookupByLibrary.simpleMessage("Réseau"),
+    "ipPortraitNoSource": MessageLookupByLibrary.simpleMessage(
+      "Aucune source publique",
+    ),
+    "ipPortraitOrg": MessageLookupByLibrary.simpleMessage("Organisation"),
+    "ipPortraitRange": MessageLookupByLibrary.simpleMessage("Plage IP"),
+    "ipPortraitRiskTitle": MessageLookupByLibrary.simpleMessage(
+      "Coefficient de risque",
+    ),
     "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
       "Le type de réseau et la réputation sont des estimations tierces. Résidentiel ne garantit ni origine native ni absence de risque. Le résultat Google concerne cette seule requête.",
     ),
@@ -1219,14 +1259,17 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipQualityGood": MessageLookupByLibrary.simpleMessage("Bonne"),
     "ipQualityLevel": MessageLookupByLibrary.simpleMessage("Niveau"),
-    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Normale"),
+    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Moyenne"),
     "ipQualityRetry": MessageLookupByLibrary.simpleMessage(
       "Vérifier à nouveau",
     ),
-    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("À risque"),
+    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Mauvaise"),
     "ipQualityShort": MessageLookupByLibrary.simpleMessage("Qualité"),
     "ipQualitySource": MessageLookupByLibrary.simpleMessage("Réponse de"),
     "ipQualitySources": MessageLookupByLibrary.simpleMessage("Sources"),
+    "ipRiskHigh": MessageLookupByLibrary.simpleMessage("Risque élevé"),
+    "ipRiskLow": MessageLookupByLibrary.simpleMessage("Risque faible"),
+    "ipRiskMedium": MessageLookupByLibrary.simpleMessage("Risque moyen"),
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage(
       "IP sortante différente",
     ),
@@ -1467,6 +1510,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ne pas résoudre le nom d’hôte",
     ),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("Aucun résultat"),
+    "nodeGlobeAutoRotate": MessageLookupByLibrary.simpleMessage(
+      "Rotation auto",
+    ),
+    "nodeGlobeFlat": MessageLookupByLibrary.simpleMessage("Plan"),
+    "nodeGlobeNotRun": MessageLookupByLibrary.simpleMessage(
+      "Sorties des nœuds non vérifiées",
+    ),
+    "nodeGlobeSphere": MessageLookupByLibrary.simpleMessage("Globe"),
+    "nodeGlobeSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Où se trouvent les sorties des nœuds",
+    ),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("Globe des nœuds"),
+    "nodeGlobeUnknown": MessageLookupByLibrary.simpleMessage(
+      "Nœuds non localisés",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nœuds"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Cette ressource externe n’est pas un fichier texte",
@@ -1730,6 +1788,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "result": MessageLookupByLibrary.simpleMessage("Résultat"),
     "retry": MessageLookupByLibrary.simpleMessage("Réessayer"),
+    "route": MessageLookupByLibrary.simpleMessage("Règle de routage"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Adresses de route"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Adresses de route exclues",
@@ -1950,6 +2009,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage(
       "Tout est disponible",
     ),
+    "serviceAllReachable": MessageLookupByLibrary.simpleMessage(
+      "Tous joignables",
+    ),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("Disponible"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Bloqué"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Tout vérifier"),
@@ -1967,6 +2029,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Contenus originaux uniquement",
     ),
     "servicePending": MessageLookupByLibrary.simpleMessage("Non vérifié"),
+    "serviceReachable": MessageLookupByLibrary.simpleMessage("Joignable"),
     "serviceRestricted": MessageLookupByLibrary.simpleMessage(
       "Accès restreint",
     ),
@@ -2054,6 +2117,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Nœud de sortie"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Gigue"),
+    "speedTestLiveRate": MessageLookupByLibrary.simpleMessage(
+      "Débit en direct",
+    ),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Aucun test effectué",
     ),
@@ -2096,6 +2162,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "stop": MessageLookupByLibrary.simpleMessage("Arrêter"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Arrêt du VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Stratégie"),
+    "streamingLockedOnly": MessageLookupByLibrary.simpleMessage(
+      "Verrouillés seulement",
+    ),
+    "streamingNotUnlocked": MessageLookupByLibrary.simpleMessage(
+      "Non débloqué",
+    ),
+    "streamingOther": MessageLookupByLibrary.simpleMessage("Autre"),
+    "streamingTestSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Verdicts de déblocage par service",
+    ),
+    "streamingTestTitle": MessageLookupByLibrary.simpleMessage(
+      "Test de déblocage streaming",
+    ),
+    "streamingUnlocked": MessageLookupByLibrary.simpleMessage("Débloqué"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("Route stricte"),
     "strictRouteDesc": MessageLookupByLibrary.simpleMessage(
       "La route stricte empêche le trafic tel que le DNS de contourner TUN et, avec IPv6 désactivé, bloque les connexions IPv6 de cet appareil.",

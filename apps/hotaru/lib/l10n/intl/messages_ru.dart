@@ -469,6 +469,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockConnection": MessageLookupByLibrary.simpleMessage(
       "Заблокировать соединение",
     ),
+    "brandThemeNote": MessageLookupByLibrary.simpleMessage(
+      "«Светлячковый» зелёный — фиксированная фирменная тема Hotaru. Она не зависит от системного акцентного цвета.",
+    ),
     "brightness": MessageLookupByLibrary.simpleMessage("Яркость"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Исключённые домены"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
@@ -834,18 +837,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Без этого параметра TUN перехватывает все DNS-запросы на порт 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("Перехват DNS"),
+    "dnsLeakCoreResolvers": MessageLookupByLibrary.simpleMessage(
+      "DNS-резолверы ядра",
+    ),
+    "dnsLeakExitLabel": MessageLookupByLibrary.simpleMessage("Текущий выход"),
+    "dnsLeakNoResolvers": MessageLookupByLibrary.simpleMessage(
+      "Ответы резолверов не получены",
+    ),
     "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
       "Обнаружен резолвер китайского провайдера. Если DNS должен идти только через прокси, проверьте перехват DNS в TUN и защищённый DoH. Для прямых доменов это может быть намеренно.",
     ),
     "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Отправляет 16 уникальных запросов через системный DNS и читает авторитетные записи bash.ws; при сбое используется одно наблюдение Akamai. Не охватывает все браузеры и приложения.",
+      "Арендует одноразовый id у bash.ws и разрешает 20 уникальных поддоменов дважды — через системный DNS и через прокси ядра; авторитетный сервер записывает, какие резолверы действительно запрашивали, и они сравниваются с текущей страной выхода. Вердикт охватывает только эти два пути в этом запуске.",
     ),
     "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Выход и оператор DNS-резолвера",
     ),
+    "dnsLeakSystemResolvers": MessageLookupByLibrary.simpleMessage(
+      "Системные DNS-резолверы",
+    ),
     "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("Тест утечек DNS"),
     "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
       "Классификация неполна; отсутствие утечки не подтверждено",
+    ),
+    "dnsLeakVerdictClean": MessageLookupByLibrary.simpleMessage(
+      "Утечка DNS не обнаружена",
+    ),
+    "dnsLeakVerdictLeak": MessageLookupByLibrary.simpleMessage(
+      "Обнаружена утечка DNS",
     ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("Режим DNS"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
@@ -1093,9 +1112,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -1167,6 +1187,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Метки"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Организация"),
+    "ipOriginBroadcast": MessageLookupByLibrary.simpleMessage("Вещательный IP"),
+    "ipOriginNative": MessageLookupByLibrary.simpleMessage("Нативный IP"),
+    "ipPortraitGeoTitle": MessageLookupByLibrary.simpleMessage(
+      "Локация из нескольких источников",
+    ),
+    "ipPortraitHumanBot": MessageLookupByLibrary.simpleMessage(
+      "Трафик людей / ботов",
+    ),
+    "ipPortraitLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "Проверки утечек",
+    ),
+    "ipPortraitNetworkTitle": MessageLookupByLibrary.simpleMessage("Сеть"),
+    "ipPortraitNoSource": MessageLookupByLibrary.simpleMessage(
+      "Нет публичного источника",
+    ),
+    "ipPortraitOrg": MessageLookupByLibrary.simpleMessage("Организация"),
+    "ipPortraitRange": MessageLookupByLibrary.simpleMessage("Диапазон IP"),
+    "ipPortraitRiskTitle": MessageLookupByLibrary.simpleMessage(
+      "Коэффициент риска",
+    ),
     "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
       "Тип сети и репутация — оценки сторонних служб. Домашний IP не гарантирует нативность или отсутствие риска. Результат Google относится только к этому запросу.",
     ),
@@ -1181,12 +1221,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipQualityGood": MessageLookupByLibrary.simpleMessage("Хороший"),
     "ipQualityLevel": MessageLookupByLibrary.simpleMessage("Уровень"),
-    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Обычный"),
+    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Средний"),
     "ipQualityRetry": MessageLookupByLibrary.simpleMessage("Проверить снова"),
-    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Рискованный"),
+    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Плохой"),
     "ipQualityShort": MessageLookupByLibrary.simpleMessage("Качество"),
     "ipQualitySource": MessageLookupByLibrary.simpleMessage("Источник ответа"),
     "ipQualitySources": MessageLookupByLibrary.simpleMessage("Источники"),
+    "ipRiskHigh": MessageLookupByLibrary.simpleMessage("Высокий риск"),
+    "ipRiskLow": MessageLookupByLibrary.simpleMessage("Низкий риск"),
+    "ipRiskMedium": MessageLookupByLibrary.simpleMessage("Средний риск"),
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage(
       "Другой исходящий IP",
     ),
@@ -1428,6 +1471,19 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "Ничего не найдено",
+    ),
+    "nodeGlobeAutoRotate": MessageLookupByLibrary.simpleMessage("Автовращение"),
+    "nodeGlobeFlat": MessageLookupByLibrary.simpleMessage("Плоская"),
+    "nodeGlobeNotRun": MessageLookupByLibrary.simpleMessage(
+      "Выходы узлов ещё не проверены",
+    ),
+    "nodeGlobeSphere": MessageLookupByLibrary.simpleMessage("Глобус"),
+    "nodeGlobeSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Где находятся выходы узлов",
+    ),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("Глобус узлов"),
+    "nodeGlobeUnknown": MessageLookupByLibrary.simpleMessage(
+      "Узлы без локации",
     ),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
@@ -1676,6 +1732,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "result": MessageLookupByLibrary.simpleMessage("Результат"),
     "retry": MessageLookupByLibrary.simpleMessage("Повторить"),
+    "route": MessageLookupByLibrary.simpleMessage("Правило маршрута"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Адреса маршрутов"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Исключённые адреса маршрутов",
@@ -1894,6 +1951,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "server": MessageLookupByLibrary.simpleMessage("Сервер"),
     "serviceAbnormalCount": m76,
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage("Все доступны"),
+    "serviceAllReachable": MessageLookupByLibrary.simpleMessage("Все доступны"),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("Доступен"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Заблокировано"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Проверить все"),
@@ -1909,6 +1967,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Только оригиналы",
     ),
     "servicePending": MessageLookupByLibrary.simpleMessage("Не проверено"),
+    "serviceReachable": MessageLookupByLibrary.simpleMessage("Доступен"),
     "serviceRestricted": MessageLookupByLibrary.simpleMessage(
       "Доступ ограничен",
     ),
@@ -1992,6 +2051,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Выходной узел"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Джиттер"),
+    "speedTestLiveRate": MessageLookupByLibrary.simpleMessage(
+      "Скорость в реальном времени",
+    ),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Тест ещё не запускался",
     ),
@@ -2034,6 +2096,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "stop": MessageLookupByLibrary.simpleMessage("Стоп"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Остановка VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Стратегия"),
+    "streamingLockedOnly": MessageLookupByLibrary.simpleMessage(
+      "Только заблокированные",
+    ),
+    "streamingNotUnlocked": MessageLookupByLibrary.simpleMessage(
+      "Не разблокировано",
+    ),
+    "streamingOther": MessageLookupByLibrary.simpleMessage("Другое"),
+    "streamingTestSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Вердикты разблокировки по сервисам",
+    ),
+    "streamingTestTitle": MessageLookupByLibrary.simpleMessage(
+      "Тест разблокировки стриминга",
+    ),
+    "streamingUnlocked": MessageLookupByLibrary.simpleMessage("Разблокировано"),
     "strictRoute": MessageLookupByLibrary.simpleMessage(
       "Строгая маршрутизация",
     ),

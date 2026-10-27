@@ -391,14 +391,14 @@ class _ConnectionsTableCardState extends ConsumerState<ConnectionsTableCard>
                 tableId: 'dashboard.requests',
                 items: _requests,
                 rowHeight: rowHeight,
-                columnsOf: (_) => _requestColumns(context),
+                columnsOf: (width) => _requestColumns(context, width),
               ),
               DashboardFeed.dns => _Table<DnsQuery>(
                 key: const ValueKey(DashboardFeed.dns),
                 tableId: 'dashboard.dns',
                 items: _queries,
                 rowHeight: rowHeight,
-                columnsOf: (_) => _dnsColumns(context),
+                columnsOf: (width) => _dnsColumns(context, width),
               ),
             },
           ),
@@ -713,12 +713,16 @@ List<RecordColumn<TrackerInfo>> _connectionColumns(
   final appLocalizations = context.appLocalizations;
   final mid = width >= _midTableWidth;
   final wide = width >= _wideTableWidth;
+  // A phone-width card keeps the columns a glance needs: where the
+  // traffic goes, where it leaves, and how much came down.
+  final phone = width < 420;
   return [
-    RecordColumn(
-      TableColumn('source', appLocalizations.source, width: wide ? 160 : 140),
-      cell: (_, info) => _Source(info.metadata.process),
-      sortKey: (info) => info.metadata.process.toLowerCase(),
-    ),
+    if (!phone)
+      RecordColumn(
+        TableColumn('source', appLocalizations.source, width: wide ? 160 : 140),
+        cell: (_, info) => _Source(info.metadata.process),
+        sortKey: (info) => info.metadata.process.toLowerCase(),
+      ),
     RecordColumn(
       TableColumn('target', appLocalizations.target, flex: wide ? 1.3 : 1),
       cell: (_, info) => TrackerTargetText(info),
@@ -760,17 +764,18 @@ List<RecordColumn<TrackerInfo>> _connectionColumns(
       sortKey: (info) => info.download,
       descendingFirst: true,
     ),
-    RecordColumn(
-      TableColumn(
-        'upload',
-        appLocalizations.upload,
-        width: wide ? 80 : 70,
-        end: true,
+    if (!phone)
+      RecordColumn(
+        TableColumn(
+          'upload',
+          appLocalizations.upload,
+          width: wide ? 80 : 70,
+          end: true,
+        ),
+        cell: (_, info) => _Number(dashboardTraffic(info.upload)),
+        sortKey: (info) => info.upload,
+        descendingFirst: true,
       ),
-      cell: (_, info) => _Number(dashboardTraffic(info.upload)),
-      sortKey: (info) => info.upload,
-      descendingFirst: true,
-    ),
     if (mid)
       RecordColumn(
         TableColumn(
@@ -789,8 +794,12 @@ List<RecordColumn<TrackerInfo>> _connectionColumns(
   ];
 }
 
-List<RecordColumn<TrackerInfo>> _requestColumns(BuildContext context) {
+List<RecordColumn<TrackerInfo>> _requestColumns(
+  BuildContext context,
+  double width,
+) {
   final appLocalizations = context.appLocalizations;
+  final phone = width < 420;
   return [
     RecordColumn(
       TableColumn('time', appLocalizations.time, width: 76),
@@ -798,11 +807,12 @@ List<RecordColumn<TrackerInfo>> _requestColumns(BuildContext context) {
       sortKey: (info) => info.start,
       descendingFirst: true,
     ),
-    RecordColumn(
-      TableColumn('source', appLocalizations.source, width: 140),
-      cell: (_, info) => _Source(info.metadata.process),
-      sortKey: (info) => info.metadata.process.toLowerCase(),
-    ),
+    if (!phone)
+      RecordColumn(
+        TableColumn('source', appLocalizations.source, width: 140),
+        cell: (_, info) => _Source(info.metadata.process),
+        sortKey: (info) => info.metadata.process.toLowerCase(),
+      ),
     RecordColumn(
       TableColumn('target', appLocalizations.target, flex: 1.2),
       cell: (_, info) => TrackerTargetText(info),
@@ -827,8 +837,9 @@ List<RecordColumn<TrackerInfo>> _requestColumns(BuildContext context) {
   ];
 }
 
-List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context) {
+List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context, double width) {
   final appLocalizations = context.appLocalizations;
+  final phone = width < 420;
   return [
     RecordColumn(
       TableColumn('time', appLocalizations.time, width: 76),
@@ -849,11 +860,12 @@ List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context) {
       cell: (_, query) => _Muted(query.type),
       sortKey: (query) => query.type,
     ),
-    RecordColumn(
-      TableColumn('initiator', appLocalizations.initiatorShort, width: 52),
-      cell: (_, query) => _Muted(query.initiator?.label ?? '—'),
-      sortKey: (query) => query.initiator?.label ?? '',
-    ),
+    if (!phone)
+      RecordColumn(
+        TableColumn('initiator', appLocalizations.initiatorShort, width: 52),
+        cell: (_, query) => _Muted(query.initiator?.label ?? '—'),
+        sortKey: (query) => query.initiator?.label ?? '',
+      ),
     RecordColumn(
       TableColumn('result', appLocalizations.result, flex: 1),
       cell: (_, query) => _DnsResult(query),

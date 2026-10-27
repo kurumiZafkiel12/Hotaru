@@ -6294,14 +6294,14 @@ class AppLocalizations {
     return Intl.message('Good', name: 'ipQualityGood', desc: '', args: []);
   }
 
-  /// `Normal`
+  /// `Fair`
   String get ipQualityNormal {
-    return Intl.message('Normal', name: 'ipQualityNormal', desc: '', args: []);
+    return Intl.message('Fair', name: 'ipQualityNormal', desc: '', args: []);
   }
 
-  /// `Risky`
+  /// `Poor`
   String get ipQualityRisky {
-    return Intl.message('Risky', name: 'ipQualityRisky', desc: '', args: []);
+    return Intl.message('Poor', name: 'ipQualityRisky', desc: '', args: []);
   }
 
   /// `Type`
@@ -8128,8 +8128,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -8513,10 +8512,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.`
+  /// `Leases a one-time id from bash.ws and resolves 20 unique subdomains twice — through the system DNS and through the core proxy; the authoritative server records which resolvers actually asked, and they are compared with the current exit country. The verdict covers these two paths in this run only.`
   String get dnsLeakScope {
     return Intl.message(
-      'Sends 16 unique queries via system DNS and reads authoritative resolver receipts from bash.ws, with a single Akamai fallback. Evidence covers these samples, not every browser or application.',
+      'Leases a one-time id from bash.ws and resolves 20 unique subdomains twice — through the system DNS and through the core proxy; the authoritative server records which resolvers actually asked, and they are compared with the current exit country. The verdict covers these two paths in this run only.',
       name: 'dnsLeakScope',
       desc: '',
       args: [],
@@ -8768,6 +8767,346 @@ class AppLocalizations {
     return Intl.message(
       'A newer start/stop request superseded TUN recovery.',
       name: 'networkRecoverySuperseded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Firefly green is Hotaru's fixed brand theme. It does not follow the system accent color.`
+  String get brandThemeNote {
+    return Intl.message(
+      'Firefly green is Hotaru\'s fixed brand theme. It does not follow the system accent color.',
+      name: 'brandThemeNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Native IP`
+  String get ipOriginNative {
+    return Intl.message(
+      'Native IP',
+      name: 'ipOriginNative',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Broadcast IP`
+  String get ipOriginBroadcast {
+    return Intl.message(
+      'Broadcast IP',
+      name: 'ipOriginBroadcast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All reachable`
+  String get serviceAllReachable {
+    return Intl.message(
+      'All reachable',
+      name: 'serviceAllReachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reachable`
+  String get serviceReachable {
+    return Intl.message(
+      'Reachable',
+      name: 'serviceReachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Route rule`
+  String get route {
+    return Intl.message('Route rule', name: 'route', desc: '', args: []);
+  }
+
+  /// `Live rate`
+  String get speedTestLiveRate {
+    return Intl.message(
+      'Live rate',
+      name: 'speedTestLiveRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Streaming unlock test`
+  String get streamingTestTitle {
+    return Intl.message(
+      'Streaming unlock test',
+      name: 'streamingTestTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Per-service unlock verdicts for streaming & AI`
+  String get streamingTestSubtitle {
+    return Intl.message(
+      'Per-service unlock verdicts for streaming & AI',
+      name: 'streamingTestSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlocked`
+  String get streamingUnlocked {
+    return Intl.message(
+      'Unlocked',
+      name: 'streamingUnlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not unlocked`
+  String get streamingNotUnlocked {
+    return Intl.message(
+      'Not unlocked',
+      name: 'streamingNotUnlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Other`
+  String get streamingOther {
+    return Intl.message('Other', name: 'streamingOther', desc: '', args: []);
+  }
+
+  /// `Locked only`
+  String get streamingLockedOnly {
+    return Intl.message(
+      'Locked only',
+      name: 'streamingLockedOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS leak detected`
+  String get dnsLeakVerdictLeak {
+    return Intl.message(
+      'DNS leak detected',
+      name: 'dnsLeakVerdictLeak',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No DNS leak found`
+  String get dnsLeakVerdictClean {
+    return Intl.message(
+      'No DNS leak found',
+      name: 'dnsLeakVerdictClean',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System DNS resolvers`
+  String get dnsLeakSystemResolvers {
+    return Intl.message(
+      'System DNS resolvers',
+      name: 'dnsLeakSystemResolvers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Core DNS resolvers`
+  String get dnsLeakCoreResolvers {
+    return Intl.message(
+      'Core DNS resolvers',
+      name: 'dnsLeakCoreResolvers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current exit`
+  String get dnsLeakExitLabel {
+    return Intl.message(
+      'Current exit',
+      name: 'dnsLeakExitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No resolver receipts observed`
+  String get dnsLeakNoResolvers {
+    return Intl.message(
+      'No resolver receipts observed',
+      name: 'dnsLeakNoResolvers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Multi-source location`
+  String get ipPortraitGeoTitle {
+    return Intl.message(
+      'Multi-source location',
+      name: 'ipPortraitGeoTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Risk coefficient`
+  String get ipPortraitRiskTitle {
+    return Intl.message(
+      'Risk coefficient',
+      name: 'ipPortraitRiskTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network`
+  String get ipPortraitNetworkTitle {
+    return Intl.message(
+      'Network',
+      name: 'ipPortraitNetworkTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leak checks`
+  String get ipPortraitLeakTitle {
+    return Intl.message(
+      'Leak checks',
+      name: 'ipPortraitLeakTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low risk`
+  String get ipRiskLow {
+    return Intl.message('Low risk', name: 'ipRiskLow', desc: '', args: []);
+  }
+
+  /// `Medium risk`
+  String get ipRiskMedium {
+    return Intl.message(
+      'Medium risk',
+      name: 'ipRiskMedium',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High risk`
+  String get ipRiskHigh {
+    return Intl.message('High risk', name: 'ipRiskHigh', desc: '', args: []);
+  }
+
+  /// `IP range`
+  String get ipPortraitRange {
+    return Intl.message(
+      'IP range',
+      name: 'ipPortraitRange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Human / bot traffic`
+  String get ipPortraitHumanBot {
+    return Intl.message(
+      'Human / bot traffic',
+      name: 'ipPortraitHumanBot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No public data source`
+  String get ipPortraitNoSource {
+    return Intl.message(
+      'No public data source',
+      name: 'ipPortraitNoSource',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Organization`
+  String get ipPortraitOrg {
+    return Intl.message(
+      'Organization',
+      name: 'ipPortraitOrg',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Node globe`
+  String get nodeGlobeTitle {
+    return Intl.message(
+      'Node globe',
+      name: 'nodeGlobeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Where the node exits are located`
+  String get nodeGlobeSubtitle {
+    return Intl.message(
+      'Where the node exits are located',
+      name: 'nodeGlobeSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlocated nodes`
+  String get nodeGlobeUnknown {
+    return Intl.message(
+      'Unlocated nodes',
+      name: 'nodeGlobeUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-rotate`
+  String get nodeGlobeAutoRotate {
+    return Intl.message(
+      'Auto-rotate',
+      name: 'nodeGlobeAutoRotate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Flat`
+  String get nodeGlobeFlat {
+    return Intl.message('Flat', name: 'nodeGlobeFlat', desc: '', args: []);
+  }
+
+  /// `Globe`
+  String get nodeGlobeSphere {
+    return Intl.message('Globe', name: 'nodeGlobeSphere', desc: '', args: []);
+  }
+
+  /// `Node exits not checked yet`
+  String get nodeGlobeNotRun {
+    return Intl.message(
+      'Node exits not checked yet',
+      name: 'nodeGlobeNotRun',
       desc: '',
       args: [],
     );

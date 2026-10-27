@@ -245,32 +245,70 @@ class _MemorySummary extends StatelessWidget {
           ],
         ),
         SizedBox(height: compact ? 8 : 10),
-        Wrap(
-          spacing: 16,
-          runSpacing: 4,
-          children: [
-            for (final part in parts)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 6,
-                children: [
-                  DecoratedBox(
-                    decoration: ShapeDecoration(
-                      color: part.color,
-                      shape: AppShape.circle,
-                    ),
-                    child: const SizedBox.square(dimension: 8),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            Widget legendRow(
+              ({String label, int bytes, Color color}) part,
+            ) => Row(
+              spacing: 6,
+              children: [
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: part.color,
+                    shape: AppShape.circle,
                   ),
-                  Text(part.label, style: DashboardText.label(context)),
-                  Text(
+                  child: const SizedBox.square(dimension: 8),
+                ),
+                Text(part.label, style: DashboardText.label(context)),
+                Expanded(
+                  child: Text(
                     '${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
                     style: AppTextStyle.footnote
                         .of(context, emphasized: true)
                         .toTabular,
                   ),
-                ],
-              ),
-          ],
+                ),
+              ],
+            );
+            // A half-width phone cell stacks the two parts as rows with
+            // their values at the edge instead of a wrapped line.
+            if (mobile && constraints.maxWidth < 200) {
+              return Column(
+                spacing: 4,
+                children: [for (final part in parts) legendRow(part)],
+              );
+            }
+            return Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: [
+                for (final part in parts)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 6,
+                    children: [
+                      DecoratedBox(
+                        decoration: ShapeDecoration(
+                          color: part.color,
+                          shape: AppShape.circle,
+                        ),
+                        child: const SizedBox.square(dimension: 8),
+                      ),
+                      Text(part.label, style: DashboardText.label(context)),
+                      Text(
+                        '${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
+                        style: AppTextStyle.footnote
+                            .of(context, emphasized: true)
+                            .toTabular,
+                      ),
+                    ],
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );

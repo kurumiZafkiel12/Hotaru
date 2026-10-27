@@ -18,6 +18,21 @@ void main() {
     });
   });
 
+  group('speedNeedleFraction', () {
+    test('sits at the marks and between them', () {
+      expect(speedNeedleFraction(0), 0);
+      expect(speedNeedleFraction(5 * 1e6), closeTo(1 / 8, 0.001));
+      expect(speedNeedleFraction(7.5 * 1e6), closeTo(1.5 / 8, 0.001));
+      expect(speedNeedleFraction(50 * 1e6), closeTo(3 / 8, 0.001));
+      expect(speedNeedleFraction(750 * 1e6), closeTo(7 / 8, 0.001));
+      expect(speedNeedleFraction(1000 * 1e6), 1);
+    });
+
+    test('clamps past the top of the dial', () {
+      expect(speedNeedleFraction(4000 * 1e6), 1);
+    });
+  });
+
   test('every provider has a distinct label', () {
     final labels = SpeedTestProvider.values.map((p) => p.label).toSet();
     expect(labels.length, SpeedTestProvider.values.length);
