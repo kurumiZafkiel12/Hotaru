@@ -1,8 +1,7 @@
 name: Publish verified Android repair
 
 on:
-  push:
-    branches: ['codex/android-draft-transport']
+  workflow_dispatch:
 
 permissions:
   contents: write
