@@ -6,6 +6,7 @@ on:
       - '**'
       - '!release/windows/**'
       - '!release/both/**'
+      - '!codex/android-draft-transport'
     tags:
       - 'v*'
   workflow_call:

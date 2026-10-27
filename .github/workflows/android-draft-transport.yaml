@@ -1,0 +1,29 @@
+name: Android verification draft transport
+
+on:
+  push:
+    branches: ['codex/android-draft-transport']
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage validated Android candidate as an unpublished draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: '40494631726'
+          SOURCE_COMMIT: '7d5948f0e0f02c065105b20f4245b8a72c2df7f5'
+        run: |
+          actual=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq .head_sha)
+          test "$actual" = "$SOURCE_COMMIT"
+          gh run watch "$SOURCE_RUN" --interval 15 --exit-status
+          gh run download "$SOURCE_RUN" --name android-compatibility-candidate --dir candidate
+          python3 tool/verify_android_release.py --dist candidate --output candidate/ANDROID-VERIFICATION.json
+          printf '%s\n' 'Unpublished Android verification candidate. Not a public release.' "Source: $SOURCE_COMMIT; verified workflow: $SOURCE_RUN." > "$RUNNER_TEMP/verification.md"
+          gh release create "android-verification-$SOURCE_RUN" --draft --latest=false --target "$SOURCE_COMMIT" --title 'Android 0.0.4+14 verification draft' --notes-file "$RUNNER_TEMP/verification.md" candidate/*.apk candidate/ANDROID-VERIFICATION.json
