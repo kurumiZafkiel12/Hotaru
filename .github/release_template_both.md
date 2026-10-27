@@ -40,8 +40,10 @@ Windows and Android builds are included in this release; macOS and Linux builds 
 
 <div dir="ltr">
 
-**List of all changes:** [ChangeLog](https://github.com/kurumiZafkiel12/Hotaru/blob/main/CHANGELOG.md)
+[所有版本与更新记录](https://github.com/kurumiZafkiel12/Hotaru/releases)
 
 </div>
 
 [SHA256 校验清单](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/SHA256SUMS) · [Android 包名、版本、正式证书核验](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/ANDROID-VERIFICATION.json)
+
+基于 [FlClash](https://github.com/chen08209/FlClash) 与 [Mihomo](https://github.com/MetaCubeX/mihomo)，遵循 [GPL-3.0](https://github.com/kurumiZafkiel12/Hotaru/blob/main/LICENSE)。

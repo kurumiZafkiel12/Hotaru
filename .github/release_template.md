@@ -32,6 +32,7 @@ Windows x64 release. Android, macOS and Linux packages are not included in this 
 
 <div dir="ltr">
 
-**List of all changes:** [ChangeLog](https://github.com/kurumiZafkiel12/Hotaru/blob/main/CHANGELOG.md)
+[所有版本与更新记录](https://github.com/kurumiZafkiel12/Hotaru/releases)
 
 </div>
+基于 [FlClash](https://github.com/chen08209/FlClash) 与 [Mihomo](https://github.com/MetaCubeX/mihomo)，遵循 [GPL-3.0](https://github.com/kurumiZafkiel12/Hotaru/blob/main/LICENSE)。

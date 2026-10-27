@@ -1,7 +1,7 @@
 # Agent Skills
 
-Repo skills live under `.agents/skills/*/SKILL.md`, where Codex discovers them directly. Claude Code discovers them
-through the symlinks in `.claude/skills/`, one per skill, pointing back at the `.agents/skills/` directory. Both tools
+Repo skills live under `.agents/skills/*/SKILL.md`, where Codex discovers them directly. Claude Code can discover them through
+an optional local `.claude/skills` link to `.agents/skills/` (see `tool/editor-config/README.md`). Both tools
 match a task against the skill `name` and `description`, then load the full instructions only when it matches.
 
 ## Available Repo Skills
@@ -15,8 +15,7 @@ match a task against the skill `name` and `description`, then load the full inst
 
 ## Authoring Notes
 
-- Add new repeatable workflows as `.agents/skills/<skill-name>/SKILL.md`, and add the matching
-  `.claude/skills/<skill-name>` symlink so Claude Code sees it too; remove both when retiring a skill.
+- Add repeatable workflows as `.agents/skills/<skill-name>/SKILL.md`; keep client-specific copies out of git.
 - Git stores the symlinks as links only where the checkout supports them. A Windows checkout needs
   `core.symlinks=true` and Developer Mode, otherwise the links become plain files and Claude Code loads no repo
   skill there; Codex is unaffected because it reads `.agents/skills/` directly.

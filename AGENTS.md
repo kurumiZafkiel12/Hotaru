@@ -72,6 +72,12 @@ Read these only when the task touches their area:
 
 ## Repo Skills
 
-Use repo skills from `.agents/skills/` when a task matches their descriptions; `.claude/skills/` symlinks expose the
-same skills to Claude Code. Current skills cover localization, UI work, core/platform changes, and pre-commit
-structural quality review.
+Use repo skills from `.agents/skills/` when a task matches their descriptions. Optional client and editor configuration
+templates live in `tool/editor-config/`; `AGENTS.md` and `.agents/` remain the shared source of instructions.
+Current skills cover localization, UI work, core/platform changes, and pre-commit structural quality review.
+
+## Public Documentation
+
+README and release notes address application users: lead with capabilities, downloads, changes and actionable limitations.
+Keep requests, AI handoffs, test transcripts, CI incident narratives and delivery receipts in the private AI-Workspace
+project notes. Preserve licenses, attribution and important installation or compatibility information.
