@@ -65,6 +65,7 @@ jobs:
       - name: Verify package identity, signatures and alignment
         run: python3 tool/verify_android_release.py
       - uses: actions/upload-artifact@v4
+        if: success() || failure()
         with:
           name: android-compatibility-candidate
           path: dist/

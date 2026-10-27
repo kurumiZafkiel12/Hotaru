@@ -42,14 +42,21 @@ def verify(dist, android_home):
         if not native or re.findall(r"'([^']+)'", native[1]) != [abi]:
             raise RuntimeError(f'Unexpected ABI for {apk.name}')
         signing = command(str(build_tools / 'apksigner'), 'verify', '--verbose', '--print-certs', str(apk))
+        legacy_signing = command(
+            str(build_tools / 'apksigner'), 'verify', '--verbose', '--print-certs',
+            '--min-sdk-version', '23', '--max-sdk-version', '23', str(apk),
+        )
         schemes = {
-            scheme: bool(re.search(rf'Verified using {scheme} scheme.*: true', signing))
+            scheme: bool(re.search(
+                rf'Verified using {scheme} scheme.*: true',
+                legacy_signing if scheme == 'v1' else signing,
+            ))
             for scheme in ['v1', 'v2', 'v3']
         }
         if not all(schemes.values()):
             raise RuntimeError(f'Missing compatibility signing scheme: {apk.name}: {schemes}')
         command(str(build_tools / 'zipalign'), '-c', '4', str(apk))
-        certificates = re.findall(r'certificate SHA-256 digest:\s*([0-9a-fA-F]+)', signing)
+        certificates = re.findall(r'certificate SHA-256 digest:\s*([0-9a-fA-F]+)', signing + legacy_signing)
         if not certificates or {value.lower() for value in certificates} != {CERTIFICATE}:
             raise RuntimeError(f'Persistent signing certificate mismatch: {apk.name}')
         with zipfile.ZipFile(apk) as archive:
