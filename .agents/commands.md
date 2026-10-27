@@ -87,7 +87,7 @@ controller, so it does not compete with the installed app for the mixed, DNS, RE
 flutter run --dart-define-from-file=env.json --dart-define=SAFE_MODE=true
 ```
 
-`.run/main_safe_mode.run.xml` is the same launch for IntelliJ, and `Flutter App (Safe Mode)` in `.zed/debug.json` (debugger) or `flutter run (Safe Mode)` in `.zed/tasks.json`
+`tool/editor-config/jetbrains/main_safe_mode.run.xml` is the same launch for IntelliJ, and `Flutter App (Safe Mode)` in `tool/editor-config/zed/debug.json` (debugger) or `flutter run (Safe Mode)` in `tool/editor-config/zed/tasks.json`
 (plain run) for Zed. The build is bannered `SAFE MODE`, the tray shows the
 `status_4` bug icon with a menu of only show and exit and no traffic title, and the settings keep their values, so
 nothing has to be flipped back before a normal run. See the safe mode section of `architecture.md` for the owners that consult the flag.

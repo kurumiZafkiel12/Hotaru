@@ -42,9 +42,15 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Claude Code - ignore user-specific settings only
-.claude/settings.local.json
-.claude/worktrees/
+# Local editor and AI client configuration; templates live in tool/editor-config.
+/.claude/
+/.codex/
+/.gemini/
+/.codegraph/
+/.run/
+/.zed/
+/.mcp.json
+/opencode.jsonc
 
 # Documentation (generated/planning artifacts)
 docs/
