@@ -44,7 +44,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Parse archives and install upgrade on Android
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
@@ -55,8 +55,11 @@ jobs:
             adb logcat -c
             adb push archive-probe/probe.jar baseline candidate /data/local/tmp/
             adb shell 'CLASSPATH=/data/local/tmp/probe.jar app_process /system/bin AndroidArchiveProbe /data/local/tmp/baseline/*.apk /data/local/tmp/candidate/*.apk' | tee archive-probe/parse.log
+            test "$(grep -c '^ARCHIVE_OK ' archive-probe/parse.log)" -eq 6
             adb install baseline/Hotaru-0.0.3-android-x86_64.apk | tee archive-probe/install-baseline.log
+            grep -qx Success archive-probe/install-baseline.log
             adb install -r candidate/Hotaru-0.0.4-android-x86_64.apk | tee archive-probe/install-upgrade.log
+            grep -qx Success archive-probe/install-upgrade.log
             adb shell dumpsys package dev.hotaru.hotaru > archive-probe/package.txt
             adb logcat -d > archive-probe/logcat.txt
       - name: Collect diagnostics
