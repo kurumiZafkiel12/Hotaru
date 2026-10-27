@@ -4,7 +4,7 @@ Use the smallest durable surface that matches the job.
 
 ## Surfaces
 
-Client-specific settings are optional local integrations. Templates live in `tool/editor-config/`, and their root-level
+Client-specific settings are optional local integrations. Templates live in `apps/hotaru/tool/editor-config/`, and their root-level
 installation paths are ignored by git. Keep shared instructions in `AGENTS.md` and `.agents/`.
 
 - `AGENTS.md`: repository entry point. Keep it small and reserve it for always-on rules, routing, and high-priority expectations.

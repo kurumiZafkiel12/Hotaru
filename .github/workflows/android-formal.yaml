@@ -25,7 +25,7 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version: 1.27.1
-        cache-dependency-path: core/go.sum
+        cache-dependency-path: app/core/go.sum
     - uses: actions/setup-java@v5
       with:
         distribution: temurin
@@ -50,7 +50,7 @@ jobs:
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         SIGNING_CONFIG_PATH: android/local.properties
         SIGNING_KEYSTORE_PATH: android/app/keystore.jks
-      run: java ../release-tools/tool/FormalSigningPreflight.java
+      run: java ../release-tools/apps/hotaru/tool/FormalSigningPreflight.java
     - name: Install locked dependencies
       run: flutter pub get --enforce-lockfile
     - name: Fetch verified CA bundle
@@ -68,7 +68,7 @@ jobs:
     - name: Verify formal APKs
       run: 'mkdir -p android-release
 
-        python3 ../release-tools/tool/formal_android.py inspect "${{ matrix.version }}"'
+        python3 ../release-tools/apps/hotaru/tool/formal_android.py inspect "${{ matrix.version }}"'
     - uses: actions/upload-artifact@v4
       with:
         name: formal-${{ matrix.version }}
@@ -99,7 +99,7 @@ jobs:
     - name: Replace verified Android assets
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 tool/formal_android.py publish
+      run: python3 apps/hotaru/tool/formal_android.py publish
   signing:
     runs-on: ubuntu-latest
     steps:
@@ -114,4 +114,4 @@ jobs:
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: java tool/FormalSigningPreflight.java
+      run: java apps/hotaru/tool/FormalSigningPreflight.java

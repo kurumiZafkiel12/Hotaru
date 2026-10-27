@@ -1,5 +1,7 @@
 # Commands
 
+Start application commands with `cd apps/hotaru` from the repository root. Paths below are application-relative.
+
 ## Building
 
 Update submodules first. The ClashMeta Go core lives in `core/Clash.Meta/`.

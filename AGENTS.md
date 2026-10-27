@@ -3,6 +3,13 @@
 This file is the entry point for AI coding agents working in this repository. Keep it small: detailed guidance lives under
 `.agents/`, and discoverable repo skills live under `.agents/skills/*/SKILL.md`.
 
+## Repository Layout
+
+The Flutter application lives in `apps/hotaru/`. Run Flutter, Dart, Go, Rust and application tool commands from that
+folder. Application paths in these instructions and `.agents/` are relative to it unless explicitly marked as repository
+paths. GitHub workflows, shared instructions, the public README and the license remain at repository root.
+The Mihomo submodule is `apps/hotaru/core/Clash.Meta`; initialize it from the repository with `git submodule update --init --recursive`.
+
 ## Start Here
 
 Read these files before making changes:
@@ -73,7 +80,7 @@ Read these only when the task touches their area:
 ## Repo Skills
 
 Use repo skills from `.agents/skills/` when a task matches their descriptions. Optional client and editor configuration
-templates live in `tool/editor-config/`; `AGENTS.md` and `.agents/` remain the shared source of instructions.
+templates live in `apps/hotaru/tool/editor-config/`; `AGENTS.md` and `.agents/` remain the shared source of instructions.
 Current skills cover localization, UI work, core/platform changes, and pre-commit structural quality review.
 
 ## Public Documentation

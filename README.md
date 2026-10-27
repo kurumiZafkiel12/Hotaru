@@ -1,11 +1,11 @@
 <div align="center">
-<img src="assets/images/icon.png" alt="Hotaru 蛍" width="88">
+<img src="apps/hotaru/assets/images/icon.png" alt="Hotaru 蛍" width="88">
 
 # Hotaru · 蛍
 
 简洁、开源的 Mihomo 代理客户端，支持 Windows 与 Android。
 
-[**下载安装**](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) · [更新记录](https://github.com/kurumiZafkiel12/Hotaru/releases) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [交流群](https://t.me/kurumizafkiel1) · [English](README_en.md)
+[**下载安装**](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) · [更新记录](https://github.com/kurumiZafkiel12/Hotaru/releases) · [问题反馈](https://github.com/kurumiZafkiel12/Hotaru/issues) · [交流群](https://t.me/kurumizafkiel1) · [English](docs/README_en.md)
 </div>
 
 ## 功能
@@ -41,12 +41,12 @@ Hotaru 不提供代理服务器或订阅服务，使用前需要导入自己的�
 
 ```bash
 git clone --recursive https://github.com/kurumiZafkiel12/Hotaru.git
-cd Hotaru
+cd Hotaru/apps/hotaru
 flutter pub get
 dart setup.dart windows --env stable
 ```
 
-完整命令见 [.agents/commands.md](.agents/commands.md)，可选编辑器配置见 [tool/editor-config](tool/editor-config/README.md)。
+完整命令见 [.agents/commands.md](.agents/commands.md)，可选编辑器配置见 [编辑器配置](apps/hotaru/tool/editor-config/README.md)。
 
 </details>
 
