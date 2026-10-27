@@ -1,4 +1,4 @@
-name: Android verification draft transport
+name: Publish verified Android repair
 
 on:
   push:
@@ -9,21 +9,51 @@ permissions:
   actions: read
 
 jobs:
-  stage:
+  publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Stage validated Android candidate as an unpublished draft
+      - name: Publish only independently verified Android assets
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_RUN: '40494631726'
+          SOURCE_CI: '40494631682'
           SOURCE_COMMIT: '7d5948f0e0f02c065105b20f4245b8a72c2df7f5'
         run: |
-          actual=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq .head_sha)
-          test "$actual" = "$SOURCE_COMMIT"
-          gh run watch "$SOURCE_RUN" --interval 15 --exit-status
+          for id in "$SOURCE_RUN" "$SOURCE_CI"; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .head_sha)" = "$SOURCE_COMMIT"
+            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" --jq .conclusion)" = success
+          done
           gh run download "$SOURCE_RUN" --name android-compatibility-candidate --dir candidate
           python3 tool/verify_android_release.py --dist candidate --output candidate/ANDROID-VERIFICATION.json
-          printf '%s\n' 'Unpublished Android verification candidate. Not a public release.' "Source: $SOURCE_COMMIT; verified workflow: $SOURCE_RUN." > "$RUNNER_TEMP/verification.md"
-          gh release create "android-verification-$SOURCE_RUN" --draft --latest=false --target "$SOURCE_COMMIT" --title 'Android 0.0.4+14 verification draft' --notes-file "$RUNNER_TEMP/verification.md" candidate/*.apk candidate/ANDROID-VERIFICATION.json
+          gh release download v0.0.4 --pattern '*windows*' --dir preserved
+          python3 - <<'PY'
+          import hashlib, json, subprocess
+          from pathlib import Path
+          expected = {
+            'ANDROID-VERIFICATION.json': '799c5afd561f116020fcabca077428a2a9de7c867344403b6fa4194e00cacffa',
+            'Hotaru-0.0.4-android-arm64-v8a.apk': '107c0920e2a8e8e4a7ecb9cb2d16dc20c470575bd1610cbb84db8b14585c53bd',
+            'Hotaru-0.0.4-android-armeabi-v7a.apk': '2dcb7502232c6f53f21ee496b3526b1324a89c4b1c7d774afdf5951866a3cc46',
+            'Hotaru-0.0.4-android-x86_64.apk': '7669024b4f7cc825a61d42a95a944eaeded4da70b5a176753a9f6b76082cd126',
+            'Hotaru-0.0.4-windows-amd64-setup.exe': 'c42a8f92f06e6c603ef33576ba65fe41fd20a482c88305bd7a42351052a26515',
+            'Hotaru-0.0.4-windows-amd64.zip': 'e435fc70001c895044d3489579e3804ee5a9c7962b4504d79478a31cb61c5b43',
+          }
+          files = list(Path('candidate').iterdir()) + list(Path('preserved').iterdir())
+          assert {p.name for p in files} == set(expected)
+          for p in files:
+            with p.open('rb') as stream: digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+            assert digest == expected[p.name], p.name
+          Path('candidate/SHA256SUMS').write_text(''.join(f'{expected[n]}  {n}\n' for n in sorted(expected)))
+          release = json.loads(subprocess.check_output(['gh', 'api', 'repos/kurumiZafkiel12/Hotaru/releases/424629920']))
+          assert release['tag_name'] == 'v0.0.4' and not release['draft']
+          assert len([a for a in release['assets'] if '-windows-' in a['name']]) == 2
+          PY
+          gh release upload v0.0.4 candidate/*.apk candidate/ANDROID-VERIFICATION.json candidate/SHA256SUMS --clobber
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/424629920" --input tool/android-repair-release.json --jq '{tag_name,draft,updated_at}'
+          gh api "repos/$GITHUB_REPOSITORY/releases/424629920" > published.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-repair-publish-receipt
+          path: published.json
