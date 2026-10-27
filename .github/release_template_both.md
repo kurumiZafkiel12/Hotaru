@@ -1,17 +1,47 @@
+<div align=center>
 
-### 下载
+[![Release Downloads](https://img.shields.io/github/downloads/kurumiZafkiel12/Hotaru/vVERSION/total?style=flat-square&logo=github)](https://img.shields.io/github/downloads/kurumiZafkiel12/Hotaru/vVERSION/)
 
-[![Windows x64](https://img.shields.io/badge/Windows_x64-下载安装包-2d7d9a?logo=windows)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64-setup.exe) [![Android ARM64](https://img.shields.io/badge/Android_ARM64-下载_APK-34D399?logo=android)](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-arm64-v8a.apk)
+</div>
 
-| 平台 | 安装包 |
-| --- | --- |
-| Windows x64 | [Setup 安装版](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64-setup.exe) · [ZIP 便携版](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64.zip) |
-| Android ARM64（大多数手机） | [APK 下载](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-arm64-v8a.apk) |
-| Android ARMv7 | [APK 下载](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-armeabi-v7a.apk) |
-| Android x86_64 | [APK 下载](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-x86_64.apk) |
+**Download based on your OS:**
+
+Windows and Android builds are included in this release; macOS and Linux builds are not included.
+
+<div align=left>
+<table>
+    <thead align=left>
+        <tr>
+            <th>OS</th>
+            <th>Download</th>
+        </tr>
+    </thead>
+    <tbody align=left>
+        <tr>
+            <td>Windows</td>
+            <td>
+                <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64-setup.exe"><img src="https://img.shields.io/badge/Setup-x64-2d7d9a.svg?logo=windows"></a><br>
+                <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-windows-amd64.zip"><img src="https://img.shields.io/badge/ZIP-x64-67b7d1.svg?logo=windows"></a>
+            </td>
+        </tr>
+        <tr>
+            <td>Android</td>
+            <td>
+                <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-arm64-v8a.apk"><img src="https://img.shields.io/badge/APK-arm64--v8a-3ddc84.svg?logo=android"></a><br>
+                <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-armeabi-v7a.apk"><img src="https://img.shields.io/badge/APK-armeabi--v7a-3ddc84.svg?logo=android"></a><br>
+                <a href="https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/Hotaru-VERSION-android-x86_64.apk"><img src="https://img.shields.io/badge/APK-x86_64-3ddc84.svg?logo=android"></a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+</div>
+
+<div dir="ltr">
+
+**List of all changes:** [ChangeLog](https://github.com/kurumiZafkiel12/Hotaru/blob/main/CHANGELOG.md)
+
+</div>
 
 [SHA256 校验清单](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/SHA256SUMS) · [Android 包名、版本、正式证书核验](https://github.com/kurumiZafkiel12/Hotaru/releases/download/vVERSION/ANDROID-VERIFICATION.json)
-
-Android 使用持久正式签名，包名 `dev.hotaru.hotaru`。可从同一证书、同一架构的正式签名包覆盖更新。早期 `.dev` 调试包需要先备份、卸载，再安装正式包。
-
-本次不含 macOS / Linux 安装包。
