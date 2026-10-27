@@ -1,0 +1,126 @@
+name: Android APK compatibility
+
+on:
+  push:
+    branches: ['codex/v004-android-install-investigation']
+    paths:
+      - '.github/workflows/android-apk-compatibility.yaml'
+      - 'tool/AndroidArchiveProbe.java'
+      - 'tool/verify_android_install.sh'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'tool/verify_android_release.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: core/go.sum
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.6'
+          cache: true
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r28c
+          add-to-path: true
+          link-to-sdk: true
+      - name: Configure persistent signing
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SIGNING_CONFIG_PATH: android/local.properties
+          SIGNING_KEYSTORE_PATH: android/app/keystore.jks
+        run: java tool/FormalSigningPreflight.java
+      - run: flutter pub get --enforce-lockfile
+      - name: Fetch verified CA bundle
+        run: |
+          bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+          curl -fLsS --retry 3 https://curl.se/ca/cacert-2026-09-25.pem -o "$bundle"
+          echo "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505  $bundle" | sha256sum -c -
+      - name: Build Android only
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: dart setup.dart android --env stable -v
+      - name: Verify package identity, signatures and alignment
+        run: python3 tool/verify_android_release.py
+      - uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: android-compatibility-candidate
+          path: dist/
+
+  install:
+    needs: package
+    name: Android API ${{ matrix.api }} install
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 29, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch released baseline and candidate APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.0.3 --pattern '*android-*.apk' --dir baseline
+          gh release download v0.0.4 --pattern '*android-*.apk' --dir published
+          sha256sum baseline/*.apk published/*.apk
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-compatibility-candidate
+          path: candidate
+      - name: Build framework archive probe
+        run: |
+          mkdir -p archive-probe/classes archive-probe/dex
+          sdk=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -1)
+          d8=$(find "$ANDROID_HOME/build-tools" -name d8 | sort -V | tail -1)
+          javac --release 8 -cp "$sdk" -d archive-probe/classes tool/AndroidArchiveProbe.java
+          "$d8" --min-api 24 --lib "$sdk" --output archive-probe/dex archive-probe/classes/*.class
+          jar cf archive-probe/probe.jar -C archive-probe/dex classes.dex
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Parse archives and install upgrade on Android
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          script: bash tool/verify_android_install.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}
+          path: archive-probe/*.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}-results
+          path: archive-probe/*.log

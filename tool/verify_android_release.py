@@ -23,7 +23,7 @@ def verify(dist, android_home):
         raise RuntimeError('Flutter build number and Android base versionCode must agree')
     build_tools = next(
         path for path in sorted((android_home / 'build-tools').iterdir(), reverse=True)
-        if (path / 'aapt').is_file() and (path / 'apksigner').is_file()
+        if all((path / tool).is_file() for tool in ['aapt', 'apksigner', 'zipalign'])
     )
     apks = list(dist.glob('*.apk'))
     if len(apks) != len(ABI_CODES):
@@ -42,7 +42,21 @@ def verify(dist, android_home):
         if not native or re.findall(r"'([^']+)'", native[1]) != [abi]:
             raise RuntimeError(f'Unexpected ABI for {apk.name}')
         signing = command(str(build_tools / 'apksigner'), 'verify', '--verbose', '--print-certs', str(apk))
-        certificates = re.findall(r'certificate SHA-256 digest:\s*([0-9a-fA-F]+)', signing)
+        legacy_signing = command(
+            str(build_tools / 'apksigner'), 'verify', '--verbose', '--print-certs',
+            '--min-sdk-version', '23', '--max-sdk-version', '23', str(apk),
+        )
+        schemes = {
+            scheme: bool(re.search(
+                rf'Verified using {scheme} scheme.*: true',
+                legacy_signing if scheme == 'v1' else signing,
+            ))
+            for scheme in ['v1', 'v2', 'v3']
+        }
+        if not all(schemes.values()):
+            raise RuntimeError(f'Missing compatibility signing scheme: {apk.name}: {schemes}')
+        command(str(build_tools / 'zipalign'), '-c', '4', str(apk))
+        certificates = re.findall(r'certificate SHA-256 digest:\s*([0-9a-fA-F]+)', signing + legacy_signing)
         if not certificates or {value.lower() for value in certificates} != {CERTIFICATE}:
             raise RuntimeError(f'Persistent signing certificate mismatch: {apk.name}')
         with zipfile.ZipFile(apk) as archive:
@@ -67,6 +81,7 @@ def verify(dist, android_home):
             'file': apk.name, 'bytes': apk.stat().st_size, 'sha256': digest,
             'package': package[1], 'version': version, 'version_code': int(package[2]),
             'abi': abi, 'certificate_sha256': CERTIFICATE,
+            'signing_schemes': schemes, 'zip_alignment': 4,
         })
     return reports
 
