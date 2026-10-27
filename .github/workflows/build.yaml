@@ -46,6 +46,10 @@ env:
   GO_VERSION: '1.27.1'
   NDK_VERSION: r28c
 
+defaults:
+  run:
+    working-directory: apps/hotaru
+
 jobs:
   dart:
     name: Dart
@@ -66,8 +70,8 @@ jobs:
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: plugins/rust_api/rust
-          cache-directories: .dart_tool/hooks_runner
+          workspaces: apps/hotaru/plugins/rust_api/rust
+          cache-directories: apps/hotaru/.dart_tool/hooks_runner
           save-if: ${{ env.BRANCH_CACHE }}
 
       - name: Setup Flutter
@@ -119,7 +123,7 @@ jobs:
         run: bash tool/check_plugins.sh
 
       - name: Validate setup hooks package
-        working-directory: plugins/setup/setup_hooks
+        working-directory: apps/hotaru/plugins/setup/setup_hooks
         run: |
           dart pub get
           dart analyze
@@ -150,17 +154,17 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
-            core/go.sum
-            plugins/setup/setup_hooks/lib/src/go_builder.dart
+            apps/hotaru/core/go.sum
+            apps/hotaru/plugins/setup/setup_hooks/lib/src/go_builder.dart
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           key: desktop-${{ matrix.platform }}
           workspaces: |
-            services/helper
-            plugins/rust_api/rust
-          cache-directories: .dart_tool/hooks_runner
+            apps/hotaru/services/helper
+            apps/hotaru/plugins/rust_api/rust
+          cache-directories: apps/hotaru/.dart_tool/hooks_runner
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -212,10 +216,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: ${{ env.BRANCH_CACHE }}
-          cache-dependency-path: core/go.sum
+          cache-dependency-path: apps/hotaru/core/go.sum
 
       - name: Validate Go core wrapper
-        working-directory: core
+        working-directory: apps/hotaru/core
         env:
           CGO_ENABLED: 0
         run: |
@@ -232,7 +236,7 @@ jobs:
           GOOS=linux go vet ./platform
 
       - name: Validate the Android core library
-        working-directory: core
+        working-directory: apps/hotaru/core
         env:
           CGO_ENABLED: 0
         run: |
@@ -256,8 +260,8 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: ${{ env.BRANCH_CACHE }}
           cache-dependency-path: |
-            core/go.sum
-            android/core/build.gradle.kts
+            apps/hotaru/core/go.sum
+            apps/hotaru/android/core/build.gradle.kts
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -288,7 +292,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
 
       - name: Run Android unit tests
-        working-directory: android
+        working-directory: apps/hotaru/android
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
@@ -318,8 +322,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
-            services/helper
-            plugins/rust_api/rust
+            apps/hotaru/services/helper
+            apps/hotaru/plugins/rust_api/rust
           save-if: ${{ env.BRANCH_CACHE }}
 
       - name: Check format
@@ -343,7 +347,7 @@ jobs:
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: services/helper
+          workspaces: apps/hotaru/services/helper
           save-if: ${{ env.BRANCH_CACHE }}
 
       - name: Check format
@@ -364,6 +368,7 @@ jobs:
     steps:
       - name: Setup rust
         if: startsWith(matrix.os, 'windows-11-arm')
+        working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://win.rustup.rs/aarch64" -OutFile rustup-init.exe
@@ -411,7 +416,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: ${{ env.BRANCH_CACHE }}
-          cache-dependency-path: core/go.sum
+          cache-dependency-path: apps/hotaru/core/go.sum
 
       - name: Setup Gradle
         if: startsWith(matrix.platform,'android')
@@ -480,7 +485,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
-          path: ./dist
+          path: apps/hotaru/dist
           overwrite: true
 
   upload:
@@ -497,7 +502,7 @@ jobs:
       - name: Download
         uses: actions/download-artifact@v4
         with:
-          path: ./dist/
+          path: apps/hotaru/dist/
           pattern: artifact-*
           merge-multiple: true
 
@@ -539,9 +544,9 @@ jobs:
       - name: Patch release.md
         run: |
           version=$(echo "${{ env.RELEASE_TAG }}" | sed 's/^v//')
-          template=.github/release_template.md
+          template=../../.github/release_template.md
           if [[ '${{ inputs.include_android }}' == 'true' || '${{ github.ref }}' == refs/tags/* ]]; then
-            template=.github/release_template_both.md
+            template=../../.github/release_template_both.md
           fi
           sed "s|VERSION|$version|g" "$template" >> release.md
 
@@ -557,6 +562,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           make_latest: ${{ !inputs.draft_release }}
           draft: ${{ inputs.draft_release || false }}
-          files: ./dist/*
-          body_path: './release.md'
+          files: apps/hotaru/dist/*
+          body_path: 'apps/hotaru/release.md'
           prerelease: ${{ env.IS_STABLE != 'true' }}

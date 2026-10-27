@@ -2,18 +2,22 @@ name: Android APK compatibility
 
 on:
   push:
-    branches: ['codex/v004-android-install-investigation']
+    branches: ['codex/v004-android-install-investigation', 'codex/simplify-repo-layout']
     paths:
       - '.github/workflows/android-apk-compatibility.yaml'
-      - 'tool/AndroidArchiveProbe.java'
-      - 'tool/verify_android_install.sh'
-      - 'android/**'
-      - 'pubspec.yaml'
-      - 'tool/verify_android_release.py'
+      - 'apps/hotaru/tool/AndroidArchiveProbe.java'
+      - 'apps/hotaru/tool/verify_android_install.sh'
+      - 'apps/hotaru/android/**'
+      - 'apps/hotaru/pubspec.yaml'
+      - 'apps/hotaru/tool/verify_android_release.py'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: apps/hotaru
 
 jobs:
   package:
@@ -30,7 +34,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
-          cache-dependency-path: core/go.sum
+          cache-dependency-path: apps/hotaru/core/go.sum
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -68,7 +72,7 @@ jobs:
         if: success() || failure()
         with:
           name: android-compatibility-candidate
-          path: dist/
+          path: apps/hotaru/dist/
 
   install:
     needs: package
@@ -91,7 +95,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: android-compatibility-candidate
-          path: candidate
+          path: apps/hotaru/candidate
       - name: Build framework archive probe
         run: |
           mkdir -p archive-probe/classes archive-probe/dex
@@ -108,6 +112,7 @@ jobs:
       - name: Parse archives and install upgrade on Android
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
+          working-directory: apps/hotaru
           api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
@@ -118,9 +123,9 @@ jobs:
         if: always()
         with:
           name: android-install-api-${{ matrix.api }}
-          path: archive-probe/*.txt
+          path: apps/hotaru/archive-probe/*.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: android-install-api-${{ matrix.api }}-results
-          path: archive-probe/*.log
+          path: apps/hotaru/archive-probe/*.log

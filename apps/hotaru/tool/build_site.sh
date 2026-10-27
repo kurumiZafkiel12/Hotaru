@@ -36,7 +36,7 @@ fi
 if [[ -n "$tag" ]] && ! git -C "$root" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
   git -C "$root" fetch -q --depth=1 origin "refs/tags/$tag:refs/tags/$tag" 2>/dev/null || true
 fi
-if [[ -n "$tag" ]] && git -C "$root" show "$tag:CHANGELOG.md" >"$out/CHANGELOG.md" 2>/dev/null; then
+if [[ -n "$tag" ]] && { git -C "$root" show "$tag:apps/hotaru/CHANGELOG.md" || git -C "$root" show "$tag:CHANGELOG.md"; } >"$out/CHANGELOG.md" 2>/dev/null; then
   :
 else
   cp "$root/CHANGELOG.md" "$out/CHANGELOG.md"

@@ -1,7 +1,7 @@
 # Agent Skills
 
 Repo skills live under `.agents/skills/*/SKILL.md`, where Codex discovers them directly. Claude Code can discover them through
-an optional local `.claude/skills` link to `.agents/skills/` (see `tool/editor-config/README.md`). Both tools
+an optional local `.claude/skills` link to `.agents/skills/` (see `apps/hotaru/tool/editor-config/README.md`). Both tools
 match a task against the skill `name` and `description`, then load the full instructions only when it matches.
 
 ## Available Repo Skills

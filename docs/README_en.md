@@ -2,7 +2,7 @@
 
 An open-source Mihomo proxy client for Windows and Android.
 
-[**Download**](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) · [Release notes](https://github.com/kurumiZafkiel12/Hotaru/releases) · [Report an issue](https://github.com/kurumiZafkiel12/Hotaru/issues) · [Community](https://t.me/kurumizafkiel1) · [中文](README.md)
+[**Download**](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) · [Release notes](https://github.com/kurumiZafkiel12/Hotaru/releases) · [Report an issue](https://github.com/kurumiZafkiel12/Hotaru/issues) · [Community](https://t.me/kurumizafkiel1) · [中文](../README.md)
 
 ## Features
 
@@ -34,13 +34,13 @@ Use Flutter 3.47.6, Go 1.27.1 and Rust. Windows also requires Visual Studio C++ 
 
 ```bash
 git clone --recursive https://github.com/kurumiZafkiel12/Hotaru.git
-cd Hotaru
+cd Hotaru/apps/hotaru
 flutter pub get
 dart setup.dart windows --env stable
 ```
 
-See [.agents/commands.md](.agents/commands.md) for build commands and [tool/editor-config](tool/editor-config/README.md) for optional editor templates.
+See [.agents/commands.md](../.agents/commands.md) for build commands and [tool/editor-config](../apps/hotaru/tool/editor-config/README.md) for optional editor templates.
 
 ## License and credits
 
-[GPL-3.0](LICENSE). Based on [FlClash](https://github.com/chen08209/FlClash) and [Mihomo](https://github.com/MetaCubeX/mihomo), with parts of the toolbox experience inspired by [Bettbox](https://github.com/appshubcc/Bettbox). Original author attribution and dependency licenses are preserved.
+[GPL-3.0](../LICENSE). Based on [FlClash](https://github.com/chen08209/FlClash) and [Mihomo](https://github.com/MetaCubeX/mihomo), with parts of the toolbox experience inspired by [Bettbox](https://github.com/appshubcc/Bettbox). Original author attribution and dependency licenses are preserved.
