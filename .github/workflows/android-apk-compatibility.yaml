@@ -1,0 +1,74 @@
+name: Android APK compatibility
+
+on:
+  push:
+    branches: ['codex/v004-android-install-investigation']
+    paths:
+      - '.github/workflows/android-apk-compatibility.yaml'
+      - 'tool/AndroidArchiveProbe.java'
+      - 'android/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Android API ${{ matrix.api }} install
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 29, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch released baseline and candidate APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.0.3 --pattern '*android-*.apk' --dir baseline
+          gh release download v0.0.4 --pattern '*android-*.apk' --dir candidate
+          sha256sum baseline/*.apk candidate/*.apk
+      - name: Build framework archive probe
+        run: |
+          mkdir -p archive-probe/classes archive-probe/dex
+          sdk=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -1)
+          d8=$(find "$ANDROID_HOME/build-tools" -name d8 | sort -V | tail -1)
+          javac --release 8 -cp "$sdk" -d archive-probe/classes tool/AndroidArchiveProbe.java
+          "$d8" --min-api 24 --lib "$sdk" --output archive-probe/dex archive-probe/classes/*.class
+          jar cf archive-probe/probe.jar -C archive-probe/dex classes.dex
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Parse archives and install upgrade on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            adb logcat -c
+            adb push archive-probe/probe.jar baseline candidate /data/local/tmp/
+            adb shell 'CLASSPATH=/data/local/tmp/probe.jar app_process /system/bin AndroidArchiveProbe /data/local/tmp/baseline/*.apk /data/local/tmp/candidate/*.apk' | tee archive-probe/parse.log
+            adb install baseline/Hotaru-0.0.3-android-x86_64.apk | tee archive-probe/install-baseline.log
+            adb install -r candidate/Hotaru-0.0.4-android-x86_64.apk | tee archive-probe/install-upgrade.log
+            adb shell dumpsys package dev.hotaru.hotaru > archive-probe/package.txt
+            adb logcat -d > archive-probe/logcat.txt
+      - name: Collect diagnostics
+        if: always()
+        run: adb logcat -d > archive-probe/logcat-final.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}
+          path: archive-probe/*.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}-results
+          path: archive-probe/*.log
