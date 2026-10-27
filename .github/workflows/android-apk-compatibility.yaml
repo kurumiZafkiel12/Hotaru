@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/android-apk-compatibility.yaml'
       - 'tool/AndroidArchiveProbe.java'
+      - 'tool/verify_android_install.sh'
       - 'android/**'
       - 'pubspec.yaml'
       - 'tool/verify_android_release.py'
@@ -111,25 +112,7 @@ jobs:
           target: google_apis
           profile: pixel_2
           disable-animations: true
-          script: |
-            adb logcat -c
-            adb push archive-probe/probe.jar baseline published candidate /data/local/tmp/
-            adb shell 'CLASSPATH=/data/local/tmp/probe.jar app_process /system/bin AndroidArchiveProbe /data/local/tmp/baseline/*.apk /data/local/tmp/published/*.apk /data/local/tmp/candidate/*.apk' | tee archive-probe/parse.log
-            test "$(grep -c '^ARCHIVE_OK ' archive-probe/parse.log)" -eq 9
-            adb install baseline/Hotaru-0.0.3-android-x86_64.apk | tee archive-probe/install-baseline.log
-            grep -qx Success archive-probe/install-baseline.log
-            adb install -r published/Hotaru-0.0.4-android-x86_64.apk | tee archive-probe/install-published.log
-            grep -qx Success archive-probe/install-published.log
-            adb install -r candidate/Hotaru-0.0.4-android-x86_64.apk | tee archive-probe/install-upgrade.log
-            grep -qx Success archive-probe/install-upgrade.log
-            adb shell am start -W -n dev.hotaru.hotaru/.MainActivity > archive-probe/launch.txt
-            sleep 10
-            adb shell pidof dev.hotaru.hotaru > archive-probe/pid.txt
-            adb shell dumpsys package dev.hotaru.hotaru > archive-probe/package.txt
-            adb logcat -d > archive-probe/logcat.txt
-      - name: Collect diagnostics
-        if: always()
-        run: adb logcat -d > archive-probe/logcat-final.txt || true
+          script: bash tool/verify_android_install.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
