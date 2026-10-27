@@ -170,7 +170,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(SkeletonText), findsNothing);
     expect(find.text('123 ms'), findsOneWidget);
-    expect(find.text('All available'), findsOneWidget);
+    expect(find.text('All reachable'), findsOneWidget);
   });
 
   testWidgets('a phone card checks the first two services, and only those', (
@@ -193,7 +193,7 @@ void main() {
     }
     expect(tile(ServiceTarget.values[2]), findsNothing);
     expect(find.text('45 ms'), findsNWidgets(2));
-    expect(find.text(ServiceTarget.google.label), findsNothing);
+    expect(find.text(ServiceTarget.google.label), findsOneWidget);
   });
 
   testWidgets('a desktop card checks the first four services', (tester) async {
@@ -218,14 +218,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  Rect cellOf(WidgetTester tester, ServiceTarget target) => tester.getRect(
-    find.descendant(of: tile(target), matching: find.byType(DashboardBlock)),
-  );
+  Rect cellOf(WidgetTester tester, ServiceTarget target) =>
+      tester.getRect(tile(target));
 
   double rowWidth(WidgetTester tester) =>
       tester.getSize(find.byType(DashboardCardHeader)).width;
 
-  testWidgets('a lone last service takes the whole row', (tester) async {
+  testWidgets('every listed service takes a full row', (tester) async {
     answer((_) => const []);
     final [first, second, third, ...] = ServiceTarget.values;
     await tester.pumpWidget(
@@ -237,8 +236,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(cellOf(tester, first).width, lessThan(rowWidth(tester) / 2));
+    expect(cellOf(tester, first).width, rowWidth(tester));
     expect(cellOf(tester, third).width, rowWidth(tester));
+    expect(cellOf(tester, second).top, greaterThan(cellOf(tester, first).top));
+    expect(cellOf(tester, third).top, greaterThan(cellOf(tester, second).top));
   });
 
   testWidgets('a narrow desktop card stacks two services under a bare title', (
@@ -271,7 +272,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a desktop card grows a single row of services into tiles', (
+  testWidgets('a desktop card lists its services in full-width rows', (
     tester,
   ) async {
     answer((_) => const []);
@@ -286,20 +287,9 @@ void main() {
     await tester.pumpAndSettle();
 
     Rect cell(ServiceTarget target) => cellOf(tester, target);
-    expect(cell(first).top, cell(second).top);
-    expect(cell(first).height, 46 * 2 + 8);
-    expect(
-      cell(second).right - cell(first).left,
-      closeTo(rowWidth(tester), 0.01),
-    );
-    expect(
-      tester
-          .getTopLeft(
-            find.descendant(of: tile(first), matching: find.byType(Text)),
-          )
-          .dy,
-      greaterThan(cell(first).center.dy),
-    );
+    expect(cell(first).width, rowWidth(tester));
+    expect(cell(second).width, rowWidth(tester));
+    expect(cell(second).top, greaterThan(cell(first).top));
     expect(tester.takeException(), isNull);
   });
 
@@ -319,7 +309,7 @@ void main() {
     expect(button.width, button.height);
   });
 
-  testWidgets('a problem keeps its place and counts in the verdict', (
+  testWidgets('a reachable service shows only its latency, verdict free', (
     tester,
   ) async {
     answer(
@@ -339,19 +329,29 @@ void main() {
 
     final google = tester.getTopLeft(tile(ServiceTarget.google));
     final github = tester.getTopLeft(tile(ServiceTarget.github));
-    expect(google.dx, lessThan(github.dx));
-    expect(google.dy, github.dy);
-    expect(find.text('Region not supported'), findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Tooltip &&
-            widget.message == 'Google Workspace\nRegion not supported',
-      ),
-      findsOneWidget,
+    expect(google.dy, lessThan(github.dy));
+    expect(find.text('Region not supported'), findsNothing);
+    expect(find.text('30 ms'), findsNWidgets(2));
+    expect(find.text('1 issue'), findsNothing);
+    expect(find.text('All reachable'), findsOneWidget);
+  });
+
+  testWidgets('an unanswered service counts as an issue', (tester) async {
+    answer(
+      (params) => [
+        for (final name in params.names)
+          name == 'google'
+              ? _item(name, ServiceProbeStatus.failed)
+              : _item(name, ServiceProbeStatus.available, delay: 30),
+      ],
     );
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Check failed'), findsOneWidget);
+    expect(find.text('30 ms'), findsOneWidget);
     expect(find.text('1 issue'), findsOneWidget);
-    expect(find.text('All available'), findsNothing);
+    expect(find.text('All reachable'), findsNothing);
   });
 
   testWidgets('checks the shown service directly while the proxy is off', (
@@ -737,7 +737,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(asked, ['google', 'google']);
-    expect(find.text('Available'), findsOneWidget);
+    expect(find.text('Reachable'), findsOneWidget);
   });
 
   testWidgets('a row keeps its height through a check', (tester) async {
@@ -819,7 +819,9 @@ void main() {
     matching: find.byType(CommonSwitch),
   );
 
-  testWidgets('the tile and the sheet follow the saved order', (tester) async {
+  testWidgets('the card list and the sheet follow the saved order', (
+    tester,
+  ) async {
     final asked = <String>[];
     answer((params) {
       asked.addAll(params.names);
@@ -839,8 +841,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(asked, ['claude', 'google']);
     expect(
-      tester.getCenter(tile(ServiceTarget.claude)).dx,
-      lessThan(tester.getCenter(tile(ServiceTarget.google)).dx),
+      tester.getCenter(tile(ServiceTarget.claude)).dy,
+      lessThan(tester.getCenter(tile(ServiceTarget.google)).dy),
     );
 
     await tester.tap(find.byType(ServiceStatusCard));
@@ -1100,7 +1102,7 @@ void main() {
         .applySnapshot(const RouteSnapshot(coreEpoch: 2, routeVersion: 1));
     await tester.pump(probeSettleDuration);
     await tester.pump(commonDuration);
-    expect(find.text('Available'), findsOneWidget);
+    expect(find.text('Reachable'), findsOneWidget);
     expect(find.byType(SkeletonText), findsNothing);
   });
 

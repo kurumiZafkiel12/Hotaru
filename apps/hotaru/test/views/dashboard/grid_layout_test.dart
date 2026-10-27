@@ -4,9 +4,17 @@ import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dashboard/widget_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+Map<DashboardWidget, DashboardBand> _bandsOf(List<DashboardWidget> order) => {
+  for (final widget in order) widget: widget.band,
+};
+
+Map<DashboardWidget, int> _widthsOf(List<DashboardWidget> order) => {
+  for (final widget in order) widget: widget.span,
+};
+
 void main() {
   group('placeDashboardWidgets', () {
-    test('interlocks tiers on the cell grid without overlaps', () {
+    test('interlocks bands without overlaps and keeps one uniform gap', () {
       final order = [
         DashboardWidget.currentOutbound,
         DashboardWidget.networkSpeed,
@@ -14,35 +22,54 @@ void main() {
         DashboardWidget.intranetIp,
         DashboardWidget.profiles,
       ];
-      final tiers = {for (final widget in order) widget: widget.tier};
-      final placements = placeDashboardWidgets(order, tiers, 4);
+      final placements = placeDashboardWidgets(
+        order,
+        _bandsOf(order),
+        _widthsOf(order),
+        4,
+      );
       final byWidget = {
         for (final placement in placements) placement.widget: placement,
       };
       expect(byWidget[DashboardWidget.currentOutbound]!.column, 0);
-      expect(byWidget[DashboardWidget.currentOutbound]!.row, 0);
+      expect(byWidget[DashboardWidget.currentOutbound]!.top, 0);
       expect(byWidget[DashboardWidget.currentOutbound]!.columns, 2);
-      expect(byWidget[DashboardWidget.currentOutbound]!.rows, 3);
+      expect(byWidget[DashboardWidget.currentOutbound]!.height, 122);
       expect(byWidget[DashboardWidget.networkSpeed]!.column, 2);
-      expect(byWidget[DashboardWidget.networkSpeed]!.row, 0);
-      expect(byWidget[DashboardWidget.networkSpeed]!.rows, 3);
+      expect(byWidget[DashboardWidget.networkSpeed]!.top, 0);
+      expect(byWidget[DashboardWidget.networkSpeed]!.height, 160);
       expect(byWidget[DashboardWidget.outboundMode]!.column, 0);
-      expect(byWidget[DashboardWidget.outboundMode]!.row, 3);
-      expect(byWidget[DashboardWidget.intranetIp]!.column, 2);
-      expect(byWidget[DashboardWidget.intranetIp]!.row, 3);
-      expect(byWidget[DashboardWidget.profiles]!.column, 3);
-      expect(byWidget[DashboardWidget.profiles]!.row, 3);
-      final cells = <int>{};
-      for (final placement in placements) {
-        for (var y = placement.row; y < placement.row + placement.rows; y++) {
-          for (
-            var x = placement.column;
-            x < placement.column + placement.columns;
-            x++
-          ) {
-            expect(cells.add(y * 4 + x), isTrue);
-          }
+      expect(
+        byWidget[DashboardWidget.outboundMode]!.top,
+        122 + dashboardGridGap,
+      );
+      for (final a in placements) {
+        for (final b in placements) {
+          if (a == b) continue;
+          final columnsOverlap =
+              a.column < b.column + b.columns &&
+              b.column < a.column + a.columns;
+          if (!columnsOverlap) continue;
+          final separated =
+              a.bottom + dashboardGridGap <= b.top ||
+              b.bottom + dashboardGridGap <= a.top;
+          expect(separated, isTrue, reason: '${a.widget} vs ${b.widget}');
         }
+      }
+    });
+
+    test('column edges stay on the grid across the full widget set', () {
+      final order = [...DashboardWidget.values];
+      final placements = placeDashboardWidgets(
+        order,
+        _bandsOf(order),
+        _widthsOf(order),
+        4,
+      );
+      expect(placements, hasLength(order.length));
+      for (final placement in placements) {
+        expect(placement.column + placement.columns, lessThanOrEqualTo(4));
+        expect(placement.top, greaterThanOrEqualTo(0));
       }
     });
 
@@ -51,76 +78,58 @@ void main() {
         DashboardWidget.connectionsTable,
         DashboardWidget.currentOutbound,
       ];
-      final tiers = {for (final widget in order) widget: widget.tier};
-      final placements = placeDashboardWidgets(order, tiers, 2);
+      final placements = placeDashboardWidgets(
+        order,
+        _bandsOf(order),
+        _widthsOf(order),
+        2,
+      );
       expect(placements.first.columns, 2);
-      expect(placements.first.rows, 4);
-      expect(placements.last.row, 4);
+      expect(placements.first.height, 198);
+      expect(placements.last.top, 198 + dashboardGridGap);
       expect(placements.last.columns, 2);
     });
 
-    test(
-      'persisted resize changes one footprint without overlapping cards',
-      () {
-        final order = [
-          DashboardWidget.currentOutbound,
-          DashboardWidget.networkSpeed,
-          DashboardWidget.outboundMode,
-        ];
-        final tiers = {for (final widget in order) widget: widget.tier};
-        final normal = placeDashboardWidgets(order, tiers, 4);
-        final resized = placeDashboardWidgets(
-          order,
-          tiers,
-          4,
-          spans: const {'currentOutbound': 42},
-        );
-        expect(normal.first.columns, 2);
-        expect(resized.first.columns, 4);
-        expect(resized.first.rows, 4);
-        expect(resized[1].row, 4);
-        final cells = <(int, int)>{};
-        for (final item in resized) {
-          for (var row = item.row; row < item.row + item.rows; row++) {
-            for (
-              var column = item.column;
-              column < item.column + item.columns;
-              column++
-            ) {
-              expect(cells.add((row, column)), isTrue);
-            }
-          }
-        }
-      },
-    );
+    test('text scale grows card heights and pushes later cards down', () {
+      final order = [
+        DashboardWidget.currentOutbound,
+        DashboardWidget.outboundMode,
+      ];
+      final placements = placeDashboardWidgets(
+        order,
+        _bandsOf(order),
+        _widthsOf(order),
+        2,
+        scale: 1.5,
+      );
+      expect(placements.first.height, 122 * 1.5);
+      expect(placements.last.top, 122 * 1.5 + dashboardGridGap);
+    });
   });
 
-  group('default tiers', () {
-    test('each widget has a default tier, with a larger status hero', () {
+  group('default bands', () {
+    test('each widget has a fixed band and span from the spec', () {
       for (final widget in DashboardWidget.values) {
-        expect(widget.tier, isNotNull, reason: '$widget');
+        expect(widget.band, isNotNull, reason: '$widget');
+        expect(widget.span, inInclusiveRange(1, 4), reason: '$widget');
       }
-      expect(DashboardWidget.currentOutbound.tier, DashboardTier.mid);
-      expect(DashboardWidget.connectionsTable.tier, DashboardTier.wide);
-      expect(DashboardTier.narrow.cells(4), (1, 3));
-      expect(DashboardTier.short.cells(4), (2, 2));
-      expect(DashboardTier.mid.cells(4), (2, 3));
-      expect(DashboardTier.tall.cells(4), (2, 4));
-      expect(DashboardTier.wide.cells(4), (4, 4));
+      expect(DashboardWidget.currentOutbound.band, DashboardBand.low);
+      expect(DashboardWidget.networkSpeed.band, DashboardBand.mid);
+      expect(DashboardWidget.networkTakeover.band, DashboardBand.high);
+      expect(DashboardWidget.proxyGroups.band, DashboardBand.high);
+      expect(DashboardWidget.connectionsTable.band, DashboardBand.high);
+      expect(DashboardWidget.connectionsTable.span, 4);
+      expect(DashboardWidget.intranetIp.band, DashboardBand.low);
+      expect(DashboardWidget.intranetIp.span, 1);
+      expect(DashboardWidget.serviceStatus.band, DashboardBand.mid);
+      expect(DashboardWidget.memoryInfo.band, DashboardBand.mid);
     });
 
-    test('tier heights land on the three compact bands', () {
-      double height(DashboardTier tier) {
-        final rows = tier.cells(4).$2;
-        const gap = 12.0;
-        return rows * dashboardUnitHeight(compact: false) + (rows - 1) * gap;
-      }
-
-      expect(height(DashboardTier.short), 100);
-      expect(height(DashboardTier.mid), 156);
-      expect(height(DashboardTier.narrow), 156);
-      expect(height(DashboardTier.tall), 212);
-      expect(height(DashboardTier.wide), 212);
+    test('band heights are the three spec heights', () {
+      expect(DashboardBand.low.height, 122);
+      expect(DashboardBand.mid.height, 160);
+      expect(DashboardBand.high.height, 198);
+      expect(dashboardGridGap, 12);
     });
   });
 

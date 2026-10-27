@@ -174,3 +174,87 @@ final class IpQualityFamily extends $Family
   @override
   String toString() => r'ipQualityProvider';
 }
+
+/// Whether the exit's country agrees across two geolocation sources, the
+/// native-versus-broadcast reading the status card's first tag shows.
+
+@ProviderFor(ipOrigin)
+final ipOriginProvider = IpOriginFamily._();
+
+/// Whether the exit's country agrees across two geolocation sources, the
+/// native-versus-broadcast reading the status card's first tag shows.
+
+final class IpOriginProvider
+    extends
+        $FunctionalProvider<AsyncValue<IpOrigin>, IpOrigin, FutureOr<IpOrigin>>
+    with $FutureModifier<IpOrigin>, $FutureProvider<IpOrigin> {
+  /// Whether the exit's country agrees across two geolocation sources, the
+  /// native-versus-broadcast reading the status card's first tag shows.
+  IpOriginProvider._({
+    required IpOriginFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: _noRetry,
+         name: r'ipOriginProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$ipOriginHash();
+
+  @override
+  String toString() {
+    return r'ipOriginProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<IpOrigin> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<IpOrigin> create(Ref ref) {
+    final argument = this.argument as String;
+    return ipOrigin(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is IpOriginProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$ipOriginHash() => r'55cbc39cc14f8a5fab0b9cab77d4c58605ccdc26';
+
+/// Whether the exit's country agrees across two geolocation sources, the
+/// native-versus-broadcast reading the status card's first tag shows.
+
+final class IpOriginFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<IpOrigin>, String> {
+  IpOriginFamily._()
+    : super(
+        retry: _noRetry,
+        name: r'ipOriginProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Whether the exit's country agrees across two geolocation sources, the
+  /// native-versus-broadcast reading the status card's first tag shows.
+
+  IpOriginProvider call(String ip) =>
+      IpOriginProvider._(argument: ip, from: this);
+
+  @override
+  String toString() => r'ipOriginProvider';
+}

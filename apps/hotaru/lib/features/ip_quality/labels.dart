@@ -3,6 +3,17 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
+extension IpOriginLabel on IpOrigin {
+  String label(BuildContext context) {
+    final localizations = context.appLocalizations;
+    return switch (this) {
+      IpOrigin.native => localizations.ipOriginNative,
+      IpOrigin.broadcast => localizations.ipOriginBroadcast,
+      IpOrigin.unknown => localizations.unknown,
+    };
+  }
+}
+
 extension IpTypeLabel on IpType {
   String label(BuildContext context) {
     final localizations = context.appLocalizations;

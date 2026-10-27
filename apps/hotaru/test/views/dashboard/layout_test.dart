@@ -100,10 +100,10 @@ void main() {
     final mode = rectOf(tester, OutboundModeCard);
     expect(hero.left, 16);
     expect(hero.width, 288 * 2 + 12);
-    expect(hero.height, 156);
+    expect(hero.height, 122);
     expect(speed.left, hero.right + 12);
     expect(speed.top, hero.top);
-    expect(speed.height, 156);
+    expect(speed.height, 160);
     expect(mode.left, hero.left);
     expect(mode.top, hero.bottom + 12);
     expect(mode.width, hero.width);

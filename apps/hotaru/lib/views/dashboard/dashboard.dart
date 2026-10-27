@@ -30,7 +30,7 @@ class DashboardView extends ConsumerStatefulWidget {
 class _DashboardViewState extends ConsumerState<DashboardView> {
   var _editing = false;
   final _cardKeys = <DashboardWidget, GlobalKey>{};
-  (List<DashboardWidget>, Map<String, int>)? _editSnapshot;
+  List<DashboardWidget>? _editSnapshot;
 
   void _setEditing(bool editing) {
     setState(() => _editing = editing);
@@ -38,10 +38,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
 
   void _startEditing() {
     final setting = ref.read(appSettingProvider);
-    _editSnapshot = (
-      [...setting.dashboardWidgets],
-      {...setting.dashboardWidgetSpans},
-    );
+    _editSnapshot = [...setting.dashboardWidgets];
     _setEditing(true);
   }
 
@@ -50,12 +47,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     if (snapshot != null) {
       ref
           .read(appSettingProvider.notifier)
-          .update(
-            (state) => state.copyWith(
-              dashboardWidgets: snapshot.$1,
-              dashboardWidgetSpans: snapshot.$2,
-            ),
-          );
+          .update((state) => state.copyWith(dashboardWidgets: snapshot));
     }
     _setEditing(false);
   }
@@ -193,20 +185,46 @@ class _MobileDashboard extends ConsumerWidget {
                 onDone: onDone,
               );
             }
+            // Phones pack the same fixed bands into two columns, so a
+            // screenful shows several compact cards instead of a stack
+            // of full-width slabs; the editor keeps its list.
+            final scale = DashboardDensityScope.scaleOf(context);
+            final room = constraints.crossAxisExtent - side * 2;
+            final cell = (room - gap) / 2;
+            final placements = placeDashboardWidgets(
+              widgets,
+              {for (final widget in widgets) widget: widget.band},
+              {for (final widget in widgets) widget: widget.span >= 2 ? 2 : 1},
+              2,
+              scale: scale,
+              bandHeight: (band) => band.mobileHeight,
+            );
+            final totalHeight = placements.fold(
+              0.0,
+              (total, placement) => math.max(total, placement.bottom),
+            );
             return SliverPadding(
               padding: EdgeInsets.fromLTRB(side, top, side, bottom),
-              // A lazy list estimates the cards it has not laid out from the
-              // ones it has; cards this uneven move the scroll end as it goes.
               sliver: SliverToBoxAdapter(
-                child: Column(
-                  spacing: gap,
-                  children: [
-                    for (final widget in widgets)
-                      RepaintBoundary(
-                        key: cardKeyOf(widget),
-                        child: widget.card,
-                      ),
-                  ],
+                child: SizedBox(
+                  height: totalHeight,
+                  child: Stack(
+                    children: [
+                      for (final placement in placements)
+                        Positioned(
+                          left: placement.column * (cell + gap),
+                          top: placement.top,
+                          width:
+                              cell * placement.columns +
+                              gap * (placement.columns - 1),
+                          height: placement.height,
+                          child: RepaintBoundary(
+                            key: cardKeyOf(placement.widget),
+                            child: placement.widget.card,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             );

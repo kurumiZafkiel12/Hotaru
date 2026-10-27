@@ -106,6 +106,30 @@ double speedGaugeScaleMax(double bps) {
   return 10000 * 1e6;
 }
 
+/// The needle dial's fixed breakpoints in Mbps. Every segment spans
+/// the same angle and the needle moves linearly inside a segment, so
+/// a slow link still sweeps visibly while a fast one is not pinned
+/// against the end early.
+const speedDialMarksMbps = [0.0, 5, 10, 50, 100, 250, 500, 750, 1000];
+
+/// Where the needle points for [bps]: 0 at the first mark, 1 at the
+/// last (1 Gbps and beyond).
+double speedNeedleFraction(double bps) {
+  final mbps = bps / 1e6;
+  if (mbps <= 0) {
+    return 0;
+  }
+  for (var i = 0; i < speedDialMarksMbps.length - 1; i++) {
+    final low = speedDialMarksMbps[i];
+    final high = speedDialMarksMbps[i + 1];
+    if (mbps <= high) {
+      return (i + (mbps - low) / (high - low)) /
+          (speedDialMarksMbps.length - 1);
+    }
+  }
+  return 1;
+}
+
 typedef SpeedTestProgress =
     void Function(SpeedTestPhase phase, double liveBps, double progress);
 

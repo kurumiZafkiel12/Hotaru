@@ -108,23 +108,23 @@ void main() {
   }
 
   test('catalog covers the requested categories without duplicates', () {
-    expect(ServiceTarget.values, hasLength(57));
+    expect(ServiceTarget.values, hasLength(110));
     final counts = <String, int>{};
     for (final target in ServiceTarget.values) {
       counts.update(target.category, (count) => count + 1, ifAbsent: () => 1);
     }
     expect(counts, {
-      'ai': 13,
-      'media': 17,
-      'domestic': 6,
-      'social': 9,
-      'developer': 7,
-      'games': 5,
+      'ai': 19,
+      'media': 50,
+      'domestic': 11,
+      'social': 11,
+      'developer': 10,
+      'games': 9,
     });
   });
 
   testWidgets(
-    'does not probe before start; AI filter checks exactly its thirteen services',
+    'does not probe before start; AI filter checks exactly its nineteen services',
     (tester) async {
       await pump(tester);
       expect(calls, isEmpty);
@@ -143,9 +143,9 @@ void main() {
             .map((target) => target.id)
             .toSet(),
       );
-      expect(checked, hasLength(13));
+      expect(checked, hasLength(19));
       expect(find.text('Connected'), findsOneWidget);
-      expect(find.text('13'), findsOneWidget);
+      expect(find.text('19'), findsOneWidget);
       expect(find.text('Available'), findsNothing);
       expect(calls.every((call) => call.runId.isNotEmpty), isTrue);
       expect(
@@ -201,7 +201,7 @@ void main() {
       ]);
       await frames(tester);
       expect(calls.where((call) => !call.cancel), hasLength(4));
-      expect(find.text('0 / 57'), findsOneWidget);
+      expect(find.text('0 / 110'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await close(tester);
     },

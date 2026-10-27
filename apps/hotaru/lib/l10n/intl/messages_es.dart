@@ -488,6 +488,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockConnection": MessageLookupByLibrary.simpleMessage(
       "Bloquear conexión",
     ),
+    "brandThemeNote": MessageLookupByLibrary.simpleMessage(
+      "El verde luciérnaga es el tema de marca fijo de Hotaru. No sigue el color de acento del sistema.",
+    ),
     "brightness": MessageLookupByLibrary.simpleMessage("Brillo"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Dominios excluidos"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
@@ -859,18 +862,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Sin esta entrada, TUN secuestra todas las consultas DNS al puerto 53 (any:53).",
     ),
     "dnsHijacking": MessageLookupByLibrary.simpleMessage("Secuestro de DNS"),
+    "dnsLeakCoreResolvers": MessageLookupByLibrary.simpleMessage(
+      "Resolvers DNS del núcleo",
+    ),
+    "dnsLeakExitLabel": MessageLookupByLibrary.simpleMessage("Salida actual"),
+    "dnsLeakNoResolvers": MessageLookupByLibrary.simpleMessage(
+      "No se observaron respuestas de resolvers",
+    ),
     "dnsLeakRisk": MessageLookupByLibrary.simpleMessage(
       "Se observó un resolutor de ISP chino. Si esperabas DNS solo por proxy, revisa la interceptación DNS de TUN y usa DoH seguro. Puede ser intencional en dominios directos.",
     ),
     "dnsLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Envía 16 consultas únicas por el DNS del sistema y lee registros autoritativos de bash.ws, con una observación de Akamai como alternativa. No cubre todos los navegadores y aplicaciones.",
+      "Alquila un id único de bash.ws y resuelve 20 subdominios únicos dos veces: por el DNS del sistema y por el proxy del núcleo; el servidor autoritativo registra qué resolvers preguntaron realmente y se comparan con el país de salida actual. El veredicto cubre solo estas dos rutas en esta ejecución.",
     ),
     "dnsLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Observar salida y operador de los resolutores",
     ),
+    "dnsLeakSystemResolvers": MessageLookupByLibrary.simpleMessage(
+      "Resolvers DNS del sistema",
+    ),
     "dnsLeakTitle": MessageLookupByLibrary.simpleMessage("Prueba de fugas DNS"),
     "dnsLeakUnknown": MessageLookupByLibrary.simpleMessage(
       "Clasificación incompleta; no se puede afirmar que no haya fugas",
+    ),
+    "dnsLeakVerdictClean": MessageLookupByLibrary.simpleMessage(
+      "No se detectó fuga de DNS",
+    ),
+    "dnsLeakVerdictLeak": MessageLookupByLibrary.simpleMessage(
+      "Fuga de DNS detectada",
     ),
     "dnsMode": MessageLookupByLibrary.simpleMessage("Modo DNS"),
     "dnsOverrideDesc": MessageLookupByLibrary.simpleMessage(
@@ -1130,9 +1149,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -1208,6 +1228,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
     "ipFlags": MessageLookupByLibrary.simpleMessage("Indicadores"),
     "ipOrganization": MessageLookupByLibrary.simpleMessage("Organización"),
+    "ipOriginBroadcast": MessageLookupByLibrary.simpleMessage("IP de difusión"),
+    "ipOriginNative": MessageLookupByLibrary.simpleMessage("IP nativa"),
+    "ipPortraitGeoTitle": MessageLookupByLibrary.simpleMessage(
+      "Ubicación multifuente",
+    ),
+    "ipPortraitHumanBot": MessageLookupByLibrary.simpleMessage(
+      "Tráfico humano / bot",
+    ),
+    "ipPortraitLeakTitle": MessageLookupByLibrary.simpleMessage(
+      "Pruebas de fuga",
+    ),
+    "ipPortraitNetworkTitle": MessageLookupByLibrary.simpleMessage("Red"),
+    "ipPortraitNoSource": MessageLookupByLibrary.simpleMessage(
+      "Sin fuente pública",
+    ),
+    "ipPortraitOrg": MessageLookupByLibrary.simpleMessage("Organización"),
+    "ipPortraitRange": MessageLookupByLibrary.simpleMessage("Rango IP"),
+    "ipPortraitRiskTitle": MessageLookupByLibrary.simpleMessage(
+      "Coeficiente de riesgo",
+    ),
     "ipPortraitScope": MessageLookupByLibrary.simpleMessage(
       "El tipo de red y la reputación son estimaciones de terceros. Una IP residencial no garantiza origen nativo ni ausencia de riesgo. Google describe solo esta solicitud.",
     ),
@@ -1222,14 +1262,17 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipQualityGood": MessageLookupByLibrary.simpleMessage("Buena"),
     "ipQualityLevel": MessageLookupByLibrary.simpleMessage("Nivel"),
-    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Normal"),
+    "ipQualityNormal": MessageLookupByLibrary.simpleMessage("Regular"),
     "ipQualityRetry": MessageLookupByLibrary.simpleMessage(
       "Comprobar de nuevo",
     ),
-    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Arriesgada"),
+    "ipQualityRisky": MessageLookupByLibrary.simpleMessage("Mala"),
     "ipQualityShort": MessageLookupByLibrary.simpleMessage("Calidad"),
     "ipQualitySource": MessageLookupByLibrary.simpleMessage("Respondido por"),
     "ipQualitySources": MessageLookupByLibrary.simpleMessage("Fuentes"),
+    "ipRiskHigh": MessageLookupByLibrary.simpleMessage("Riesgo alto"),
+    "ipRiskLow": MessageLookupByLibrary.simpleMessage("Riesgo bajo"),
+    "ipRiskMedium": MessageLookupByLibrary.simpleMessage("Riesgo medio"),
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage(
       "IP de salida distinta",
     ),
@@ -1473,6 +1516,21 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No hay resultados",
+    ),
+    "nodeGlobeAutoRotate": MessageLookupByLibrary.simpleMessage(
+      "Rotación automática",
+    ),
+    "nodeGlobeFlat": MessageLookupByLibrary.simpleMessage("Plano"),
+    "nodeGlobeNotRun": MessageLookupByLibrary.simpleMessage(
+      "Salidas de nodos sin comprobar",
+    ),
+    "nodeGlobeSphere": MessageLookupByLibrary.simpleMessage("Globo"),
+    "nodeGlobeSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Dónde están las salidas de los nodos",
+    ),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("Globo de nodos"),
+    "nodeGlobeUnknown": MessageLookupByLibrary.simpleMessage(
+      "Nodos sin ubicar",
     ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodos"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
@@ -1731,6 +1789,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "result": MessageLookupByLibrary.simpleMessage("Resultado"),
     "retry": MessageLookupByLibrary.simpleMessage("Reintentar"),
+    "route": MessageLookupByLibrary.simpleMessage("Regla de ruta"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Direcciones de ruta"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Direcciones excluidas de la ruta",
@@ -1953,6 +2012,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage(
       "Todo disponible",
     ),
+    "serviceAllReachable": MessageLookupByLibrary.simpleMessage(
+      "Todos accesibles",
+    ),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("Disponible"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Bloqueado"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Comprobar todo"),
@@ -1970,6 +2032,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Solo originales",
     ),
     "servicePending": MessageLookupByLibrary.simpleMessage("Sin comprobar"),
+    "serviceReachable": MessageLookupByLibrary.simpleMessage("Accesible"),
     "serviceRestricted": MessageLookupByLibrary.simpleMessage(
       "Acceso restringido",
     ),
@@ -2055,6 +2118,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "speedTestExitNode": MessageLookupByLibrary.simpleMessage("Nodo de salida"),
     "speedTestJitter": MessageLookupByLibrary.simpleMessage("Jitter"),
+    "speedTestLiveRate": MessageLookupByLibrary.simpleMessage(
+      "Velocidad en vivo",
+    ),
     "speedTestNotRun": MessageLookupByLibrary.simpleMessage(
       "Sin prueba todavía",
     ),
@@ -2099,6 +2165,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "stop": MessageLookupByLibrary.simpleMessage("Detener"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Deteniendo VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Estrategia"),
+    "streamingLockedOnly": MessageLookupByLibrary.simpleMessage(
+      "Solo bloqueados",
+    ),
+    "streamingNotUnlocked": MessageLookupByLibrary.simpleMessage(
+      "No desbloqueado",
+    ),
+    "streamingOther": MessageLookupByLibrary.simpleMessage("Otro"),
+    "streamingTestSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Veredictos de desbloqueo por servicio",
+    ),
+    "streamingTestTitle": MessageLookupByLibrary.simpleMessage(
+      "Prueba de desbloqueo de streaming",
+    ),
+    "streamingUnlocked": MessageLookupByLibrary.simpleMessage("Desbloqueado"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("Ruta estricta"),
     "strictRouteDesc": MessageLookupByLibrary.simpleMessage(
       "La ruta estricta evita que el tráfico, como el DNS, eluda TUN y, con IPv6 desactivado, bloquea las conexiones IPv6 de este dispositivo.",

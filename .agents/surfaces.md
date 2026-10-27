@@ -1,11 +1,16 @@
 # Surfaces
 
-Hotaru 0.0.4 follows the user's 2026-10-27 redesign: cold slate surfaces and
-mint accents in `hotaruColorScheme`, with a neutral 6% one-dp outline on
-`CommonCard` and `DashboardCard`. This explicitly supersedes the upstream
-no-card-outline guidance below. Focus still takes its stronger two-dp ring;
-status color stays on text and small marks. Keep the shared surface levels,
-superellipse shapes, reduced-motion behavior and light-mode contrast.
+Hotaru 0.0.5 follows the user's 2026-10-27 final dashboard spec: the deep
+firefly-green brand language returns — `hotaruColorScheme` carries green-black
+page tones stepping up through green card, block and inset levels, with the
+mint primary kept. This supersedes the 0.0.4 cold-slate direction. The theme
+settings page no longer offers arbitrary colors or a pure-black mode: the
+palette is a fixed brand theme, shown as swatches with a fixed-theme note.
+Dashboard cards use the spec's three fixed height bands (122 / 160 / 198 dp),
+a 12 dp gap, 12 dp padding and a named 12 dp card radius. Focus still takes
+its stronger two-dp ring; status color stays on text and small marks. Keep
+the shared surface levels, superellipse shapes, reduced-motion behavior and
+light-mode contrast.
 
 FlClash draws structure with fills and keeps color for state. A surface stands out from what it sits on by a step in
 lightness, never by a border. Color appears where something is selected, on, failing, or the one action a screen is

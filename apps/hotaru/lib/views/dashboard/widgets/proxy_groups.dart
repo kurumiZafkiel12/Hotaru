@@ -545,13 +545,7 @@ class ProxyGroupsSummaryCard extends ConsumerWidget {
         children: [
           _GroupsHeader(groups: groups),
           const SizedBox(height: 12),
-          if (groups.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: _GroupsEmpty(),
-            )
-          else
-            figure,
+          if (groups.isEmpty) const _GroupsEmptySummary() else figure,
         ],
       ),
     );

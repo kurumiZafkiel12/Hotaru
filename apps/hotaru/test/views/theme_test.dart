@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:hotaru/common/constant.dart';
 import 'package:hotaru/common/system_fonts.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
@@ -76,174 +75,31 @@ void main() {
     });
   });
 
-  group('primary color', () {
-    Finder swatch(int color) => find.byWidgetPredicate(
-      (widget) =>
-          widget is Semantics && widget.properties.label == Color(color).hex,
-    );
-
-    testWidgets('starts on the Hotaru default among the system colors', (
-      tester,
-    ) async {
-      container
-          .read(themeSettingProvider.notifier)
-          .update((_) => defaultThemeProps);
-      await pumpThemeView(tester);
-
-      expect(readTheme().primaryColor, defaultPrimaryColor);
-      for (final color in defaultPrimaryColors) {
-        expect(swatch(color), findsOneWidget);
-      }
-      expect(find.byTooltip('Reset'), findsNothing);
-    });
-
-    testWidgets('picks a color and the style of its scheme', (tester) async {
-      await pumpThemeView(tester);
-
-      await tester.tap(swatch(0xFFCB30E0));
-      await tester.pumpAndSettle();
-      expect(readTheme().primaryColor, 0xFFCB30E0);
-
-      await tester.tap(
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is Semantics && widget.properties.label == 'Follow system',
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(readTheme().primaryColor, isNull);
-
-      await tester.tap(find.text('Color style'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Soft').last);
-      await tester.pumpAndSettle();
-      expect(readTheme().colorStyle, ColorStyle.soft);
-    });
-
-    testWidgets('deletes a color from its context menu', (tester) async {
-      await pumpThemeView(tester);
-      await tester.tap(swatch(0xFFFF8D28));
-      await tester.pumpAndSettle();
-
-      await tester.longPress(swatch(0xFFFF8D28));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete'));
-      await tester.pumpAndSettle();
-
-      expect(readTheme().primaryColors, isNot(contains(0xFFFF8D28)));
-      expect(readTheme().primaryColor, defaultPrimaryColor);
-      expect(swatch(0xFFFF8D28), findsNothing);
-    });
-
-    Future<void> editColor(WidgetTester tester, int color, String hex) async {
-      await tester.longPress(swatch(color));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit'));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.descendant(
-          of: find.byType(HexColorField),
-          matching: find.byType(TextField),
-        ),
-        hex,
-      );
-      await tester.pump();
-      await tester.tap(find.byTooltip('Confirm'));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('edits a color in place from its context menu', (tester) async {
-      await pumpThemeView(tester);
-      await tester.tap(swatch(0xFFFF8D28));
-      await tester.pumpAndSettle();
-      final index = readTheme().primaryColors.indexOf(0xFFFF8D28);
-
-      await editColor(tester, 0xFFFF8D28, '123456');
-
-      expect(readTheme().primaryColors, isNot(contains(0xFFFF8D28)));
-      expect(readTheme().primaryColors[index], 0xFF123456);
-      expect(readTheme().primaryColor, 0xFF123456);
-      expect(swatch(0xFF123456), findsOneWidget);
-    });
-
-    testWidgets('merges a color edited into one already listed', (
+  group('brand theme', () {
+    testWidgets('shows the fixed firefly palette and no color picker', (
       tester,
     ) async {
       await pumpThemeView(tester);
-      await tester.tap(swatch(defaultPrimaryColor));
-      await tester.pumpAndSettle();
-      final count = readTheme().primaryColors.length;
 
-      await editColor(tester, 0xFFCB30E0, '34D399');
-
-      expect(readTheme().primaryColors, hasLength(count - 1));
-      expect(readTheme().primaryColors, isNot(contains(0xFFCB30E0)));
-      expect(readTheme().primaryColor, defaultPrimaryColor);
-      expect(swatch(defaultPrimaryColor), findsOneWidget);
-    });
-
-    testWidgets('adds a custom color once and selects it', (tester) async {
-      await pumpThemeView(tester);
-      final count = readTheme().primaryColors.length;
-
-      for (var i = 0; i < 2; i++) {
-        await tester.tap(find.byTooltip('Add'));
-        await tester.pumpAndSettle();
-        await tester.enterText(
-          find.descendant(
-            of: find.byType(HexColorField),
-            matching: find.byType(TextField),
-          ),
-          '123456',
-        );
-        await tester.pump();
-        await tester.tap(find.byTooltip('Confirm'));
-        await tester.pumpAndSettle();
+      final context = tester.element(find.byType(ThemeView));
+      final colorScheme = Theme.of(context).colorScheme;
+      for (final color in [
+        colorScheme.surface,
+        colorScheme.surfaceContainer,
+        colorScheme.surfaceContainerHigh,
+        colorScheme.primary,
+      ]) {
+        expect(find.text(color.hex), findsOneWidget);
       }
-
-      expect(readTheme().primaryColors, hasLength(count + 1));
-      expect(readTheme().primaryColors.last, 0xFF123456);
-      expect(readTheme().primaryColor, 0xFF123456);
-      expect(swatch(0xFF123456), findsOneWidget);
-    });
-
-    testWidgets('keeps the custom color palette clear of the edge back '
-        'swipe', (tester) async {
-      const size = Size(400, 860);
-      container.read(viewSizeProvider.notifier).value = size;
-      tester.view.physicalSize = size;
-      tester.view.devicePixelRatio = 1;
-      tester.view.systemGestureInsets = const FakeViewPadding(
-        left: 30,
-        right: 30,
-      );
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const TestApp(child: ThemeView()),
+      expect(
+        find.text(
+          "Firefly green is Hotaru's fixed brand theme. "
+          'It does not follow the system accent color.',
         ),
+        findsOneWidget,
       );
-      await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.byTooltip('Add'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.byTooltip('Add'));
-      await tester.pumpAndSettle();
-
-      final pad = tester.getRect(
-        find.descendant(
-          of: find.byType(Palette),
-          matching: find.byType(AspectRatio),
-        ),
-      );
-      expect(pad.left, 30);
-      expect(pad.right, size.width - 30);
+      expect(find.byTooltip('Add'), findsNothing);
+      expect(find.text('Pure black'), findsNothing);
     });
   });
 
@@ -288,22 +144,6 @@ void main() {
       await tester.tap(choice('None'));
       await tester.pumpAndSettle();
       expect(readTheme().liquidGlass, LiquidGlassMode.none);
-    });
-  });
-
-  group('pure black', () {
-    testWidgets('switches both ways', (tester) async {
-      await pumpThemeView(tester);
-
-      expect(readTheme().pureBlack, isFalse);
-
-      await tester.tap(find.text('Pure black'));
-      await tester.pumpAndSettle();
-      expect(readTheme().pureBlack, isTrue);
-
-      await tester.tap(find.text('Standard').first);
-      await tester.pumpAndSettle();
-      expect(readTheme().pureBlack, isFalse);
     });
   });
 

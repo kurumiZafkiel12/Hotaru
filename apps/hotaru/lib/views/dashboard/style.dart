@@ -99,7 +99,10 @@ abstract final class DashboardShadows {
 }
 
 abstract final class DashboardCorner {
-  static const desktopCard = AppCorner.lg;
+  /// The dashboard spec's card radius; off the shared scale on purpose,
+  /// as the spec fixes dashboard cards at 12 while other mid-size cards
+  /// keep AppCorner.lg.
+  static const desktopCard = 12.0;
   static const mobileCard = AppCorner.xl;
   static const block = AppCorner.md;
   static const mobileBlock = AppCorner.md;

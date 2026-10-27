@@ -57,21 +57,39 @@ extension DashboardWidgetView on DashboardWidget {
     };
   }
 
-  /// The card's one fixed size in the desktop grid.
-  DashboardTier get tier => switch (this) {
-    DashboardWidget.currentOutbound => DashboardTier.mid,
-    DashboardWidget.networkSpeed => DashboardTier.mid,
-    DashboardWidget.outboundMode => DashboardTier.short,
-    DashboardWidget.vpnButton => DashboardTier.short,
-    DashboardWidget.networkTakeover => DashboardTier.short,
-    DashboardWidget.serviceStatus => DashboardTier.narrow,
-    DashboardWidget.profiles => DashboardTier.narrow,
-    DashboardWidget.proxyGroups => DashboardTier.tall,
-    DashboardWidget.connectionStats => DashboardTier.short,
-    DashboardWidget.intranetIp => DashboardTier.narrow,
-    DashboardWidget.memoryInfo => DashboardTier.narrow,
-    DashboardWidget.speedTest => DashboardTier.mid,
-    DashboardWidget.connectionsTable => DashboardTier.wide,
+  /// The card's fixed height band in the desktop grid.
+  DashboardBand get band => switch (this) {
+    DashboardWidget.currentOutbound => DashboardBand.low,
+    DashboardWidget.networkSpeed => DashboardBand.mid,
+    DashboardWidget.outboundMode => DashboardBand.low,
+    DashboardWidget.vpnButton => DashboardBand.low,
+    DashboardWidget.networkTakeover => DashboardBand.high,
+    DashboardWidget.serviceStatus => DashboardBand.mid,
+    DashboardWidget.profiles => DashboardBand.mid,
+    DashboardWidget.proxyGroups => DashboardBand.high,
+    DashboardWidget.connectionStats => DashboardBand.low,
+    DashboardWidget.intranetIp => DashboardBand.low,
+    DashboardWidget.memoryInfo => DashboardBand.mid,
+    DashboardWidget.speedTest => DashboardBand.mid,
+    DashboardWidget.connectionsTable => DashboardBand.high,
+  };
+
+  /// The card's fixed width in grid columns on a full-width grid; the
+  /// placement clamps it to narrower grids.
+  int get span => switch (this) {
+    DashboardWidget.currentOutbound => 2,
+    DashboardWidget.networkSpeed => 2,
+    DashboardWidget.outboundMode => 2,
+    DashboardWidget.vpnButton => 2,
+    DashboardWidget.networkTakeover => 2,
+    DashboardWidget.serviceStatus => 1,
+    DashboardWidget.profiles => 1,
+    DashboardWidget.proxyGroups => 2,
+    DashboardWidget.connectionStats => 4,
+    DashboardWidget.intranetIp => 1,
+    DashboardWidget.memoryInfo => 1,
+    DashboardWidget.speedTest => 2,
+    DashboardWidget.connectionsTable => 4,
   };
 
   String? description(BuildContext context) {

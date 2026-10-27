@@ -11,16 +11,72 @@ class DnsResolverReceipt {
     required this.ip,
     required this.country,
     required this.organization,
+    this.hostname = '',
   });
 
   final String ip;
   final String country;
   final String organization;
+  final String hostname;
+
+  DnsResolverReceipt withHostname(String value) => DnsResolverReceipt(
+    ip: ip,
+    country: country,
+    organization: organization,
+    hostname: value,
+  );
 
   bool get domesticIsp => RegExp(
     r'china\s*(telecom|unicom|mobile)|chinanet|中国电信|中国联通|中国移动|AS(4134|4837|4809|9929|9808)\b',
     caseSensitive: false,
   ).hasMatch(organization);
+}
+
+/// The DNS verdict, judged against the exit the traffic should use:
+/// a resolver answering from another country means the query left by
+/// a path the exit does not cover.
+enum DnsLeakVerdict { leaking, clean, inconclusive }
+
+DnsLeakVerdict judgeDnsLeak(
+  List<DnsResolverReceipt> resolvers,
+  String? exitCountry,
+) {
+  if (resolvers.isEmpty || exitCountry == null || exitCountry.isEmpty) {
+    return DnsLeakVerdict.inconclusive;
+  }
+  var judged = 0;
+  for (final resolver in resolvers) {
+    if (resolver.country.isEmpty) continue;
+    judged++;
+    if (resolver.country.toUpperCase() != exitCountry.toUpperCase()) {
+      return DnsLeakVerdict.leaking;
+    }
+  }
+  return judged == resolvers.length
+      ? DnsLeakVerdict.clean
+      : DnsLeakVerdict.inconclusive;
+}
+
+/// Best-effort reverse names for the resolvers, for the table's
+/// hostname column; a resolver without one keeps an empty name.
+Future<List<DnsResolverReceipt>> enrichResolverHostnames(
+  List<DnsResolverReceipt> receipts, {
+  Future<String> Function(InternetAddress)? reverse,
+}) async {
+  final lookup = reverse ?? (address) async => (await address.reverse()).host;
+  return Future.wait([
+    for (final receipt in receipts)
+      () async {
+        try {
+          final host = await lookup(
+            InternetAddress(receipt.ip),
+          ).timeout(const Duration(seconds: 2));
+          return receipt.withHostname(host);
+        } catch (_) {
+          return receipt;
+        }
+      }(),
+  ]);
 }
 
 List<DnsResolverReceipt> parseDnsResolverReceipts(Object? data) {
@@ -51,7 +107,10 @@ class DnsLeakProbe {
   final Dio dio;
   final Future<List<InternetAddress>> Function(String) lookup;
 
-  Future<List<DnsResolverReceipt>> run(CancelToken cancelToken) async {
+  Future<List<DnsResolverReceipt>> run(
+    CancelToken cancelToken, {
+    int probes = 20,
+  }) async {
     final options = Options(
       responseType: ResponseType.plain,
       receiveTimeout: const Duration(seconds: 8),
@@ -68,7 +127,7 @@ class DnsLeakProbe {
     }
     var cursor = 1;
     Future<void> worker() async {
-      while (!cancelToken.isCancelled && cursor <= 16) {
+      while (!cancelToken.isCancelled && cursor <= probes) {
         final index = cursor++;
         try {
           await lookup(

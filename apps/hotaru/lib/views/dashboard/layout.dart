@@ -11,104 +11,107 @@ const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
-enum DashboardTier {
-  narrow,
-  short,
+/// The three fixed card heights of the dashboard spec. A card's band is a
+/// property of the widget, never of the user's layout: cards are dragged
+/// to reorder, never resized.
+enum DashboardBand {
+  low,
   mid,
-  tall,
-  wide;
+  high;
 
-  /// The tier's footprint in grid cells at [columns] columns.
-  (int, int) cells(int columns) => switch (this) {
-    DashboardTier.narrow => (1, 3),
-    DashboardTier.short => (2, 2),
-    DashboardTier.mid => (2, 3),
-    DashboardTier.tall => (2, 4),
-    DashboardTier.wide => (columns, 4),
+  double get height => switch (this) {
+    DashboardBand.low => 122,
+    DashboardBand.mid => 160,
+    DashboardBand.high => 198,
+  };
+
+  /// Phones run their own, slightly taller bands: the mobile card
+  /// bodies keep roomier touch metrics than the desktop ones, while
+  /// the grid still fixes every card's height so a screenful shows
+  /// several cards instead of two or three full-width slabs.
+  double get mobileHeight => switch (this) {
+    DashboardBand.low => 148,
+    DashboardBand.mid => 188,
+    DashboardBand.high => 230,
   };
 }
 
-/// The height of one grid unit; a card spanning n units is
-/// n units plus the gaps between them tall.
-double dashboardUnitHeight({required bool compact}) => compact ? 40 : 44;
+/// The one gap between dashboard cards, everywhere in the grid.
+const dashboardGridGap = 12.0;
 
-/// Where one card lands in the cell grid.
+/// Where one card lands in the grid: a column span and an exact top, so
+/// cards stacked in a column sit exactly one gap apart, and every
+/// column edge lines up across the whole page.
 class DashboardPlacement {
   const DashboardPlacement({
     required this.widget,
     required this.column,
-    required this.row,
+    required this.top,
     required this.columns,
-    required this.rows,
+    required this.height,
   });
 
   final DashboardWidget widget;
   final int column;
-  final int row;
+  final double top;
   final int columns;
-  final int rows;
+
+  /// The card's own height: its band height at the current text scale.
+  final double height;
+
+  double get bottom => top + height;
 }
 
-/// First-fit packing over the cell grid, keeping the user's order: each
-/// card takes the earliest free block of its tier's cells, so cards
-/// interlock with one uniform gap and no ragged seams.
+/// First-fit packing, keeping the user's order: each card takes the
+/// highest, then leftmost, free span of columns at its band's height,
+/// so cards interlock with one uniform gap and no ragged seams.
 List<DashboardPlacement> placeDashboardWidgets(
   List<DashboardWidget> order,
-  Map<DashboardWidget, DashboardTier> tiers,
+  Map<DashboardWidget, DashboardBand> bands,
+  Map<DashboardWidget, int> widths,
   int columns, {
-  Map<String, int> spans = const {},
+  double scale = 1,
+  double Function(DashboardBand band)? bandHeight,
 }) {
-  final occupied = <int>{};
+  final heightOfBand = bandHeight ?? (band) => band.height;
   final placements = <DashboardPlacement>[];
   for (final widget in order) {
-    final tier = tiers[widget] ?? DashboardTier.mid;
-    final fallback = tier.cells(columns);
-    final span = spans[widget.name];
-    final (wantColumns, wantRows) = span == null
-        ? fallback
-        : ((span ~/ 10).clamp(1, columns), 2 + (span % 10).clamp(0, 2));
-    final width = math.min(
-      math.max(wantColumns, tier == DashboardTier.narrow ? 1 : 2),
-      columns,
-    );
-    final rows = math.max(wantRows, fallback.$2);
-    var row = 0;
-    while (true) {
-      var placed = false;
-      for (var column = 0; column + width <= columns; column++) {
-        var free = true;
-        for (var y = row; y < row + rows && free; y++) {
-          for (var x = column; x < column + width; x++) {
-            if (occupied.contains(y * columns + x)) {
-              free = false;
-              break;
-            }
-          }
-        }
-        if (free) {
-          for (var y = row; y < row + rows; y++) {
-            for (var x = column; x < column + width; x++) {
-              occupied.add(y * columns + x);
-            }
-          }
-          placements.add(
-            DashboardPlacement(
-              widget: widget,
-              column: column,
-              row: row,
-              columns: width,
-              rows: rows,
-            ),
+    final band = bands[widget] ?? DashboardBand.mid;
+    final width = math.min(math.max(widths[widget] ?? 2, 1), columns);
+    final height = heightOfBand(band) * scale;
+    final tops = <double>{
+      0,
+      for (final placed in placements) placed.bottom + dashboardGridGap,
+    }.toList()..sort();
+    DashboardPlacement? spot;
+    for (final top in tops) {
+      for (
+        var column = 0;
+        column + width <= columns && spot == null;
+        column++
+      ) {
+        final blocked = placements.any(
+          (placed) =>
+              column < placed.column + placed.columns &&
+              placed.column < column + width &&
+              top < placed.bottom + dashboardGridGap &&
+              placed.top < top + height + dashboardGridGap,
+        );
+        if (!blocked) {
+          spot = DashboardPlacement(
+            widget: widget,
+            column: column,
+            top: top,
+            columns: width,
+            height: height,
           );
-          placed = true;
-          break;
         }
       }
-      if (placed) {
+      if (spot != null) {
         break;
       }
-      row++;
     }
+    placements.add(spot!);
   }
   return placements;
 }

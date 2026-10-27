@@ -89,7 +89,7 @@ void main() {
   );
 
   test(
-    'sends sixteen lease-specific DNS queries with at most four outstanding',
+    'sends twenty lease-specific DNS queries with at most four outstanding',
     () async {
       final adapter = _ReceiptAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
@@ -109,7 +109,7 @@ void main() {
         },
       );
       final result = await probe.run(CancelToken());
-      expect(names.toSet(), hasLength(16));
+      expect(names.toSet(), hasLength(20));
       expect(
         names.every((name) => name.endsWith('.controlled-lease.bash.ws')),
         isTrue,
@@ -165,4 +165,63 @@ void main() {
       expect(adapter.calls, hasLength(1));
     },
   );
+  group('judgeDnsLeak', () {
+    DnsResolverReceipt resolver(String country) => DnsResolverReceipt(
+      ip: '8.8.8.8',
+      country: country,
+      organization: 'AS15169 Google',
+    );
+
+    test('no receipts or no exit stays inconclusive', () {
+      expect(judgeDnsLeak(const [], 'JP'), DnsLeakVerdict.inconclusive);
+      expect(judgeDnsLeak([resolver('JP')], null), DnsLeakVerdict.inconclusive);
+    });
+
+    test('a resolver outside the exit country is a leak', () {
+      expect(
+        judgeDnsLeak([resolver('JP'), resolver('CN')], 'JP'),
+        DnsLeakVerdict.leaking,
+      );
+    });
+
+    test('every resolver at the exit is clean', () {
+      expect(
+        judgeDnsLeak([resolver('JP'), resolver('jp')], 'JP'),
+        DnsLeakVerdict.clean,
+      );
+    });
+
+    test('an unlocated resolver keeps the verdict open', () {
+      expect(
+        judgeDnsLeak([resolver('JP'), resolver('')], 'JP'),
+        DnsLeakVerdict.inconclusive,
+      );
+    });
+  });
+
+  test('hostname enrichment fills names and tolerates failures', () async {
+    final receipts = [
+      const DnsResolverReceipt(
+        ip: '8.8.8.8',
+        country: 'US',
+        organization: 'AS15169 Google',
+      ),
+      const DnsResolverReceipt(
+        ip: '1.1.1.1',
+        country: 'AU',
+        organization: 'AS13335 Cloudflare',
+      ),
+    ];
+    final enriched = await enrichResolverHostnames(
+      receipts,
+      reverse: (address) async {
+        if (address.address == '8.8.8.8') {
+          return 'dns.google';
+        }
+        throw const SocketException('no PTR');
+      },
+    );
+    expect(enriched[0].hostname, 'dns.google');
+    expect(enriched[1].hostname, '');
+  });
 }

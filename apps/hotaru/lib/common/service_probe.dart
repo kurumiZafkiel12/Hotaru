@@ -66,7 +66,60 @@ enum ServiceTarget {
   epic('epic', 'Epic Games', 'epic'),
   psn('psn', 'PlayStation Network', ''),
   nintendo('nintendo', 'Nintendo eShop', ''),
-  googlePlay('google-play', 'Google Play', '');
+  googlePlay('google-play', 'Google Play', ''),
+  sora('sora', 'Sora', ''),
+  metaAi('meta-ai', 'Meta AI', ''),
+  deepl('deepl', 'DeepL', ''),
+  cursor('cursor', 'Cursor', ''),
+  suno('suno', 'Suno', ''),
+  openrouter('openrouter', 'OpenRouter', ''),
+  peacock('peacock', 'Peacock', ''),
+  discoveryPlus('discovery-plus', 'Discovery+', ''),
+  itvx('itvx', 'ITVX', ''),
+  channel4('channel4', 'Channel 4', ''),
+  skyGo('sky-go', 'Sky Go', ''),
+  nowTv('now-tv', 'NOW TV', ''),
+  mola('mola', 'Mola TV', ''),
+  hotstar('hotstar', 'Hotstar', ''),
+  fubotv('fubotv', 'fuboTV', ''),
+  sling('sling', 'Sling TV', ''),
+  tubi('tubi', 'Tubi', ''),
+  youtubeMusic('youtube-music', 'YouTube Music', 'youtube'),
+  appleMusic('apple-music', 'Apple Music', 'apple'),
+  tidal('tidal', 'Tidal', ''),
+  kkbox('kkbox', 'KKBOX', ''),
+  soundcloud('soundcloud', 'SoundCloud', ''),
+  facebook('facebook', 'Facebook', ''),
+  linkedin('linkedin', 'LinkedIn', ''),
+  kktv('kktv', 'KKTV', ''),
+  myvideo('myvideo', 'MyVideo', ''),
+  friday('friday', 'friDay Video', ''),
+  lineTv('line-tv', 'LINE TV', ''),
+  hami('hami', 'Hami Video', ''),
+  unext('unext', 'U-NEXT', ''),
+  huluJp('hulu-jp', 'Hulu Japan', ''),
+  dmm('dmm', 'DMM TV', ''),
+  niconico('niconico', 'Niconico', ''),
+  radiko('radiko', 'Radiko', ''),
+  fod('fod', 'FOD', ''),
+  lemino('lemino', 'Lemino', ''),
+  wowow('wowow', 'WOWOW', ''),
+  musicJp('music-jp', 'music.jp', ''),
+  mytvSuper('mytv-super', 'myTV SUPER', ''),
+  nowE('now-e', 'Now E', ''),
+  viutv('viutv', 'ViuTV', ''),
+  canalPlus('canal-plus', 'Canal+', ''),
+  molotov('molotov', 'Molotov', ''),
+  cbcGem('cbc-gem', 'CBC Gem', ''),
+  crave('crave', 'Crave', ''),
+  stan('stan', 'Stan', ''),
+  xbox('xbox', 'Xbox', ''),
+  battleNet('battle-net', 'Battle.net', ''),
+  ubisoft('ubisoft', 'Ubisoft Store', ''),
+  genshin('genshin', 'Genshin Impact', ''),
+  gitlab('gitlab', 'GitLab', ''),
+  npm('npm', 'npm', ''),
+  pypi('pypi', 'PyPI', '');
 
   const ServiceTarget(this.id, this.label, this.icon);
 
@@ -81,7 +134,10 @@ enum ServiceTarget {
     huggingface ||
     office ||
     notion ||
-    wikipedia => 'developer',
+    wikipedia ||
+    gitlab ||
+    npm ||
+    pypi => 'developer',
     youtube ||
     netflix ||
     disneyPlus ||
@@ -98,13 +154,51 @@ enum ServiceTarget {
     abema ||
     tver ||
     bahamut ||
-    viu => 'media',
+    viu ||
+    peacock ||
+    discoveryPlus ||
+    itvx ||
+    channel4 ||
+    skyGo ||
+    nowTv ||
+    mola ||
+    hotstar ||
+    fubotv ||
+    sling ||
+    tubi ||
+    youtubeMusic ||
+    appleMusic ||
+    tidal ||
+    kkbox ||
+    soundcloud ||
+    unext ||
+    huluJp ||
+    dmm ||
+    niconico ||
+    radiko ||
+    fod ||
+    lemino ||
+    wowow ||
+    musicJp ||
+    mytvSuper ||
+    nowE ||
+    viutv ||
+    canalPlus ||
+    molotov ||
+    cbcGem ||
+    crave ||
+    stan => 'media',
     bilibili ||
     bilibiliMain ||
     iqiyi ||
     tencentVideo ||
     netease ||
-    qqMusic => 'domestic',
+    qqMusic ||
+    kktv ||
+    myvideo ||
+    friday ||
+    lineTv ||
+    hami => 'domestic',
     telegram ||
     discord ||
     x ||
@@ -113,8 +207,18 @@ enum ServiceTarget {
     tiktok ||
     whatsapp ||
     line ||
-    wechat => 'social',
-    steam || epic || psn || nintendo || googlePlay => 'games',
+    wechat ||
+    facebook ||
+    linkedin => 'social',
+    steam ||
+    epic ||
+    psn ||
+    nintendo ||
+    googlePlay ||
+    xbox ||
+    battleNet ||
+    ubisoft ||
+    genshin => 'games',
     _ => 'ai',
   };
 

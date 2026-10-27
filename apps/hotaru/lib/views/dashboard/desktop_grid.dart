@@ -15,30 +15,32 @@ import 'widget_registry.dart';
 const _maxColumnWidth = 400.0;
 const _sidePadding = 16.0;
 
-Map<DashboardWidget, DashboardTier> _tiersOf(List<DashboardWidget> order) => {
-  for (final widget in order) widget: widget.tier,
+Map<DashboardWidget, DashboardBand> _bandsOf(List<DashboardWidget> order) => {
+  for (final widget in order) widget: widget.band,
+};
+
+Map<DashboardWidget, int> _widthsOf(List<DashboardWidget> order) => {
+  for (final widget in order) widget: widget.span,
 };
 
 class _GridGeometry {
   const _GridGeometry({
     required this.cellWidth,
-    required this.unit,
     required this.inset,
     required this.contentWidth,
     required this.totalHeight,
   });
 
   final double cellWidth;
-  final double unit;
   final double inset;
   final double contentWidth;
   final double totalHeight;
 
   Rect rectOf(DashboardPlacement placement, double gap) => Rect.fromLTWH(
     placement.column * (cellWidth + gap),
-    placement.row * (unit + gap),
+    placement.top,
     placement.columns * cellWidth + (placement.columns - 1) * gap,
-    placement.rows * unit + (placement.rows - 1) * gap,
+    placement.height,
   );
 }
 
@@ -47,24 +49,21 @@ _GridGeometry _geometry(
   int columns,
   double gap,
   double scale,
-  bool compact,
   List<DashboardPlacement> placements,
 ) {
   final room = maxWidth - _sidePadding * 2 - gap * (columns - 1);
   final cell = math.min(room / columns, _maxColumnWidth * scale);
   final contentWidth = cell * columns + gap * (columns - 1);
   final inset = math.max(0.0, (maxWidth - _sidePadding * 2 - contentWidth) / 2);
-  final unit = dashboardUnitHeight(compact: compact) * scale;
-  var rows = 0;
+  var totalHeight = 0.0;
   for (final placement in placements) {
-    rows = math.max(rows, placement.row + placement.rows);
+    totalHeight = math.max(totalHeight, placement.bottom);
   }
   return _GridGeometry(
     cellWidth: cell,
-    unit: unit,
     inset: inset,
     contentWidth: contentWidth,
-    totalHeight: rows == 0 ? 0 : rows * unit + (rows - 1) * gap,
+    totalHeight: totalHeight,
   );
 }
 
@@ -92,19 +91,16 @@ class DesktopDashboardGrid extends ConsumerWidget {
     final saved = ref.watch(
       dashboardStateProvider.select((state) => state.dashboardWidgets),
     );
-    final compact = DashboardDensityScope.of(context).isCompact;
     final order = [
       for (final widget in saved)
         if (widget.platforms.contains(platform)) widget,
     ];
-    final spans = ref.watch(
-      appSettingProvider.select((state) => state.dashboardWidgetSpans),
-    );
     final placements = placeDashboardWidgets(
       order,
-      _tiersOf(order),
+      _bandsOf(order),
+      _widthsOf(order),
       columns,
-      spans: spans,
+      scale: DashboardDensityScope.scaleOf(context),
     );
     final duration = _motionOf(context);
     return LayoutBuilder(
@@ -114,7 +110,6 @@ class DesktopDashboardGrid extends ConsumerWidget {
           columns,
           gap,
           DashboardDensityScope.scaleOf(context),
-          compact,
           placements,
         );
         return SingleChildScrollView(
@@ -181,9 +176,7 @@ class DesktopDashboardEditor extends ConsumerStatefulWidget {
 class _DesktopDashboardEditorState
     extends ConsumerState<DesktopDashboardEditor> {
   late List<DashboardWidget> _order;
-  late Map<String, int> _spans;
   List<DashboardWidget>? _dropOrder;
-  final _preview = ValueNotifier<Rect?>(null);
   DashboardWidget? _dragging;
   final _gridKey = GlobalKey();
 
@@ -191,21 +184,14 @@ class _DesktopDashboardEditorState
   void initState() {
     super.initState();
     final setting = ref.read(appSettingProvider);
-    _spans = {...setting.dashboardWidgetSpans};
     _order = [
       for (final item in setting.dashboardWidgets)
         if (item.platforms.contains(widget.platform)) item,
     ];
   }
 
-  @override
-  void dispose() {
-    _preview.dispose();
-    super.dispose();
-  }
-
   void _finishDrag({required bool accept}) {
-    if (_dragging == null && _dropOrder == null && _preview.value == null) {
+    if (_dragging == null && _dropOrder == null) {
       return;
     }
     setState(() {
@@ -214,7 +200,6 @@ class _DesktopDashboardEditorState
       }
       _dropOrder = null;
       _dragging = null;
-      _preview.value = null;
     });
   }
 
@@ -227,7 +212,9 @@ class _DesktopDashboardEditorState
               state.dashboardWidgets,
               _order,
             ),
-            dashboardWidgetSpans: _spans,
+            // Card sizes are fixed by band; spans saved by 0.0.4's resizable
+            // editor no longer apply and are cleared on the next save.
+            dashboardWidgetSpans: const {},
           ),
         );
     widget.onDone();
@@ -258,8 +245,6 @@ class _DesktopDashboardEditorState
       ];
       _dragging = null;
       _dropOrder = null;
-      _spans = {...defaultDashboardWidgetSpans};
-      _preview.value = null;
     });
   }
 
@@ -296,38 +281,49 @@ class _DesktopDashboardEditorState
         break;
       }
     }
-    final candidate = [..._order]..remove(dragged);
     if (target == null) {
-      if (probe.dy <= 0) {
-        candidate.insert(0, dragged);
-      } else {
-        candidate.add(dragged);
-      }
-    } else {
-      var index = candidate.indexOf(target);
-      if (after) {
-        index++;
-      }
-      candidate.insert(index, dragged);
+      // The probe is over a gap or the dragged card's own slot: the live
+      // order already shows where the drop lands, so leave it as it is
+      // instead of snapping the card to an end.
+      return;
     }
-    _dropOrder = candidate;
-    final previewPlacement = placements.firstWhere(
-      (item) => item.widget == (target ?? dragged),
-    );
-    _preview.value = geometry.rectOf(previewPlacement, widget.gap);
+    final candidate = [..._order]..remove(dragged);
+    var index = candidate.indexOf(target);
+    if (after) {
+      index++;
+    }
+    candidate.insert(index, dragged);
+    if (!_sameOrder(_dropOrder, candidate)) {
+      // The other cards reflow to the drop order live, so the grid the
+      // user sees while dragging is the grid they get on release.
+      setState(() => _dropOrder = candidate);
+    }
+  }
+
+  bool _sameOrder(List<DashboardWidget>? a, List<DashboardWidget> b) {
+    if (a == null || a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
-    final compact = DashboardDensityScope.of(context).isCompact;
     final scale = DashboardDensityScope.scaleOf(context);
     final appLocalizations = context.appLocalizations;
     final colorScheme = context.colorScheme;
+    final effectiveOrder = _dropOrder ?? _order;
     final placements = placeDashboardWidgets(
-      _order,
-      _tiersOf(_order),
+      effectiveOrder,
+      _bandsOf(effectiveOrder),
+      _widthsOf(effectiveOrder),
       widget.columns,
-      spans: _spans,
+      scale: scale,
     );
     final addable = [
       for (final item in DashboardWidget.values)
@@ -342,7 +338,6 @@ class _DesktopDashboardEditorState
           widget.columns,
           widget.gap,
           scale,
-          compact,
           placements,
         );
         return SingleChildScrollView(
@@ -417,16 +412,6 @@ class _DesktopDashboardEditorState
                           duration,
                           colorScheme,
                         ),
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: ValueListenableBuilder<Rect?>(
-                            valueListenable: _preview,
-                            builder: (context, rect, _) => CustomPaint(
-                              painter: _GhostPainter(rect, colorScheme.primary),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -476,20 +461,22 @@ class _DesktopDashboardEditorState
             data: item,
             feedback: Material(
               type: MaterialType.transparency,
-              child: SizedBox(
-                width: rect.width,
-                height: rect.height,
-                child: CustomPaint(
-                  painter: _GhostPainter(
-                    Offset.zero & rect.size,
-                    colorScheme.primary,
+              child: Transform.scale(
+                scale: 1.02,
+                child: SizedBox(
+                  width: rect.width,
+                  height: rect.height,
+                  child: AbsorbPointer(
+                    child: RepaintBoundary(child: item.card),
                   ),
                 ),
               ),
             ),
-            childWhenDragging: Opacity(
-              opacity: 0.25,
-              child: cardContent(keyed: false),
+            childWhenDragging: CustomPaint(
+              painter: _GhostPainter(
+                Offset.zero & rect.size,
+                colorScheme.primary,
+              ),
             ),
             onDragStarted: () => setState(() {
               _dragging = item;
@@ -498,49 +485,6 @@ class _DesktopDashboardEditorState
             onDragEnd: (_) => _finishDrag(accept: false),
             onDraggableCanceled: (_, _) => _finishDrag(accept: false),
             child: cardContent(keyed: true),
-          ),
-          PositionedDirectional(
-            bottom: 0,
-            end: 0,
-            child: _ResizeHandle(
-              key: ValueKey('resize-${item.name}'),
-              label: context.appLocalizations.dashboardResizeCard,
-              onUpdate: (delta) {
-                final width = (rect.width + delta.dx).clamp(
-                  geometry.cellWidth * math.min(2, widget.columns) +
-                      widget.gap * (math.min(2, widget.columns) - 1),
-                  geometry.contentWidth,
-                );
-                final minimumRows = item.tier.cells(widget.columns).$2;
-                final height = (rect.height + delta.dy).clamp(
-                  geometry.unit * minimumRows + widget.gap * (minimumRows - 1),
-                  geometry.unit * 4 + widget.gap * 3,
-                );
-                _preview.value = Rect.fromLTWH(
-                  rect.left,
-                  rect.top,
-                  width,
-                  height,
-                );
-              },
-              onEnd: (commit) {
-                final preview = _preview.value;
-                _preview.value = null;
-                if (!commit || preview == null) return;
-                final columns =
-                    ((preview.width + widget.gap) /
-                            (geometry.cellWidth + widget.gap))
-                        .round()
-                        .clamp(math.min(2, widget.columns), widget.columns)
-                        .toInt();
-                final rows =
-                    ((preview.height + widget.gap) /
-                            (geometry.unit + widget.gap))
-                        .round()
-                        .clamp(2, 4);
-                setState(() => _spans[item.name] = columns * 10 + rows - 2);
-              },
-            ),
           ),
           if (item.removable)
             PositionedDirectional(
@@ -602,64 +546,6 @@ class _AddDashboardWidget extends StatelessWidget {
             ),
           ),
       ],
-    ),
-  );
-}
-
-class _ResizeHandle extends StatefulWidget {
-  const _ResizeHandle({
-    super.key,
-    required this.label,
-    required this.onUpdate,
-    required this.onEnd,
-  });
-
-  final String label;
-  final ValueChanged<Offset> onUpdate;
-  final ValueChanged<bool> onEnd;
-
-  @override
-  State<_ResizeHandle> createState() => _ResizeHandleState();
-}
-
-class _ResizeHandleState extends State<_ResizeHandle> {
-  Offset _delta = Offset.zero;
-  bool _active = false;
-
-  void _finish(bool commit) {
-    if (!_active) {
-      return;
-    }
-    _active = false;
-    _delta = Offset.zero;
-    widget.onEnd(commit);
-  }
-
-  @override
-  Widget build(BuildContext context) => Tooltip(
-    message: widget.label,
-    child: MouseRegion(
-      cursor: SystemMouseCursors.resizeUpLeftDownRight,
-      child: Listener(
-        onPointerCancel: (_) => _finish(false),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanStart: (_) {
-            _active = true;
-            _delta = Offset.zero;
-          },
-          onPanUpdate: (details) {
-            _delta += details.delta;
-            widget.onUpdate(_delta);
-          },
-          onPanEnd: (_) => _finish(true),
-          onPanCancel: () => _finish(false),
-          child: const SizedBox.square(
-            dimension: 36,
-            child: Center(child: GlyphIcon(AppGlyphs.arrowDown, size: 18)),
-          ),
-        ),
-      ),
     ),
   );
 }
