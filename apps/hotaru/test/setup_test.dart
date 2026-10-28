@@ -25,6 +25,29 @@ void main() {
       expect(setup.createBuildEnvironment('dev'), {'APP_ENV': 'dev'});
     });
 
+    test('appends the hidden Android code to a plain version', () {
+      final updated = setup.pubspecWithAndroidBuildNumber(
+        'name: hotaru\nversion: 0.0.5\nenvironment:\n',
+        'org.gradle.jvmargs=-Xmx4G\nhotaruVersionCode=15\n',
+      );
+
+      expect(updated, 'name: hotaru\nversion: 0.0.5+15\nenvironment:\n');
+    });
+
+    test('leaves a suffixed version and a missing code alone', () {
+      expect(
+        setup.pubspecWithAndroidBuildNumber(
+          'version: 0.0.5+15\n',
+          'hotaruVersionCode=15\n',
+        ),
+        isNull,
+      );
+      expect(
+        setup.pubspecWithAndroidBuildNumber('version: 0.0.5\n', 'x=1\n'),
+        isNull,
+      );
+    });
+
     test('omits verbose from flutter build args by default', () {
       final args = setup.createFlutterBuildArgs(
         platform: 'android',
