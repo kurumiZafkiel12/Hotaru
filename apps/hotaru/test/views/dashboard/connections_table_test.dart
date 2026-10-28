@@ -6,6 +6,7 @@ import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/views/dashboard/dashboard.dart';
+import 'package:hotaru/views/connection/requests.dart';
 import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dashboard/widgets/widgets.dart';
 import 'package:flutter/gestures.dart';
@@ -109,6 +110,24 @@ void main() {
 
   double topOf(WidgetTester tester, String host) =>
       tester.getTopLeft(find.textContaining(host)).dy;
+
+  testWidgets('the smaller table opens the full currently selected feed', (
+    tester,
+  ) async {
+    await pumpRequestsTable(tester);
+    await tester.tap(find.byTooltip('Recent requests details'));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(find.byType(RequestsView), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(RequestsView),
+        matching: find.textContaining('gamma.test'),
+      ),
+      findsWidgets,
+    );
+    await teardown(tester);
+  });
 
   testWidgets('tapping a column head sorts the card table', (tester) async {
     await pumpRequestsTable(tester);

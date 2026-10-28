@@ -58,7 +58,7 @@ void main() {
     expect(result.last.column, 2);
   });
 
-  test('the statistics strip uses full width at the fixed low height', () {
+  test('the statistics summary uses one column at the fixed low height', () {
     final order = [
       DashboardWidget.currentOutbound,
       DashboardWidget.networkSpeed,
@@ -73,9 +73,26 @@ void main() {
     expect(result[2].top, result[3].top);
     expect(result[0].column, result[2].column);
     expect(result[1].column, result[3].column);
-    expect(result.last.columns, 4);
+    expect(result.last.columns, 1);
     expect(result.last.height, 122);
     expect(result.last.top, 306);
+  });
+
+  test('summary and optional table leave room for neighboring cards', () {
+    final order = [
+      DashboardWidget.connectionStats,
+      DashboardWidget.connectionsTable,
+      DashboardWidget.profiles,
+    ];
+    final result = placeDashboardWidgets(order, {
+      for (final item in order) item: item.tier,
+    }, 4);
+    expect(result[0].height, 122);
+    expect(result[0].columns, 1);
+    expect(result[1].columns, 2);
+    expect(result[1].top, 0);
+    expect(result[2].columns, 1);
+    expect(result[2].top, 0);
   });
 
   test('full-width tables stack without overlapping the next card', () {

@@ -30,16 +30,16 @@ enum DashboardTier {
   mid,
   tall,
   wide,
-  strip;
+  small;
 
   int columns(int available) => switch (this) {
-    narrow => 1,
-    wide || strip => available,
+    narrow || small => 1,
+    wide => available,
     _ => math.min(2, available),
   };
 
   double get height => DashboardSizing.height(switch (this) {
-    short || strip => 0,
+    short || small => 0,
     narrow || mid => 1,
     tall || wide => 2,
   });

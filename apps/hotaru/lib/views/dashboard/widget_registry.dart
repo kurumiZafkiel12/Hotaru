@@ -67,11 +67,11 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.serviceStatus => DashboardTier.narrow,
     DashboardWidget.profiles => DashboardTier.narrow,
     DashboardWidget.proxyGroups => DashboardTier.tall,
-    DashboardWidget.connectionStats => DashboardTier.strip,
+    DashboardWidget.connectionStats => DashboardTier.small,
     DashboardWidget.intranetIp => DashboardTier.narrow,
     DashboardWidget.memoryInfo => DashboardTier.narrow,
     DashboardWidget.speedTest => DashboardTier.mid,
-    DashboardWidget.connectionsTable => DashboardTier.wide,
+    DashboardWidget.connectionsTable => DashboardTier.tall,
   };
 
   String? description(BuildContext context) {

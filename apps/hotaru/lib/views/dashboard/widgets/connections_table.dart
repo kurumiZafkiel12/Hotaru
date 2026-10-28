@@ -8,6 +8,7 @@ import 'package:hotaru/features/features.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/app.dart';
 import 'package:hotaru/providers/core.dart';
+import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/views/connection/connections.dart';
 import 'package:hotaru/views/connection/requests.dart';
 import 'package:hotaru/views/dashboard/layout.dart';
@@ -371,6 +372,11 @@ class _ConnectionsTableCardState extends ConsumerState<ConnectionsTableCard>
                         tone: DashboardChipTone.idle,
                       ),
                     ],
+                    DashboardIconButton(
+                      glyph: AppGlyphs.chevronForward,
+                      tooltip: appLocalizations.details(_feed.page.label),
+                      onPressed: () => openDashboardFeed(context, _feed),
+                    ),
                   ],
                 ),
               ),

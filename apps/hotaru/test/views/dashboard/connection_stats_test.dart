@@ -8,6 +8,7 @@ import 'package:hotaru/state.dart';
 import 'package:hotaru/views/connection/connections.dart';
 import 'package:hotaru/views/connection/requests.dart';
 import 'package:hotaru/views/dashboard/widgets/connection_stats.dart';
+import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dns_queries.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,6 +54,7 @@ void main() {
   setUp(() {
     core = _MockCore();
     when(() => core.getConnectionCount()).thenAnswer((_) async => 0);
+    when(() => core.getConnections()).thenAnswer((_) async => const []);
     container = ProviderContainer(
       overrides: [
         profilesProvider.overrideWith(TestProfiles.new),
@@ -69,6 +71,8 @@ void main() {
     WidgetTester tester, {
     Size size = _mobileSize,
     Locale? locale,
+    DashboardDensity density = DashboardDensity.mobile,
+    double textScale = 1,
   }) async {
     container.read(viewSizeProvider.notifier).value = size;
     tester.view.physicalSize = size;
@@ -81,8 +85,34 @@ void main() {
         container: container,
         child: TestApp(
           locale: locale,
+          theme: ThemeData(
+            platform: density.isDesktop
+                ? TargetPlatform.windows
+                : TargetPlatform.android,
+          ).withAppTypography,
+          homeBuilder: (child) => Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: child,
+            ),
+          ),
           child: Scaffold(
-            body: ListView(children: const [ConnectionStatsCard()]),
+            body: density.isDesktop
+                ? Align(
+                    alignment: Alignment.topLeft,
+                    child: SizedBox(
+                      width: 200,
+                      height: 122,
+                      child: DashboardDensityScope(
+                        density: density,
+                        scale: textScale,
+                        child: const ConnectionStatsCard(),
+                      ),
+                    ),
+                  )
+                : ListView(children: const [ConnectionStatsCard()]),
           ),
         ),
       ),
@@ -103,6 +133,70 @@ void main() {
 
     expect(find.text('34'), findsOneWidget);
 
+    await teardownCard(tester);
+  });
+
+  testWidgets(
+    'the compact desktop summary keeps all three counts in one grid cell',
+    (tester) async {
+      when(() => core.getConnectionCount()).thenAnswer((_) async => 99999);
+      container.read(requestCountProvider.notifier).value = 123456;
+      container.read(dnsQueryCountProvider.notifier).value = 42;
+      for (final scale in [1.0, 1.4]) {
+        await pumpCard(
+          tester,
+          size: const Size(1200, 800),
+          density: DashboardDensity.compact,
+          locale: const Locale('en'),
+          textScale: scale,
+        );
+        expect(
+          tester.getSize(find.byType(ConnectionStatsCard)),
+          const Size(200, 122),
+        );
+        expect(find.text('99,999'), findsOneWidget);
+        expect(find.text('123K'), findsOneWidget);
+        expect(find.text('42'), findsOneWidget);
+        final labels = ['Live connections', 'Recent requests', 'DNS queries'];
+        final card = tester.getRect(find.byType(ConnectionStatsCard));
+        for (var index = 0; index < labels.length; index++) {
+          final rect = tester.getRect(_stat(labels[index]));
+          expect(card.contains(rect.topLeft), isTrue);
+          expect(card.contains(rect.bottomRight), isTrue);
+          expect(find.byTooltip(labels[index]), findsOneWidget);
+          if (index > 0) {
+            expect(
+              rect.top,
+              greaterThan(tester.getRect(_stat(labels[index - 1])).bottom),
+            );
+          }
+        }
+        expect(tester.takeException(), isNull);
+        await teardownCard(tester);
+      }
+    },
+  );
+
+  testWidgets('each compact desktop row still opens its complete feed', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      size: const Size(1200, 800),
+      density: DashboardDensity.compact,
+    );
+    for (final (label, view) in [
+      ('Live connections', ConnectionsView),
+      ('Recent requests', RequestsView),
+      ('DNS queries', DnsQueriesView),
+    ]) {
+      await tester.tap(_stat(label));
+      await tester.pumpAndSettle();
+      expect(find.byType(view), findsOneWidget);
+      await tester.tapAt(const Offset(200, 20));
+      await tester.pumpAndSettle();
+      expect(find.byType(view), findsNothing);
+    }
     await teardownCard(tester);
   });
 
