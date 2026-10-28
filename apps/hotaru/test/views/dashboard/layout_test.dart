@@ -61,9 +61,10 @@ void main() {
     Size size, {
     SupportPlatform platform = SupportPlatform.MacOS,
     double textScale = 1,
+    double devicePixelRatio = 1,
   }) async {
-    tester.view.physicalSize = size;
-    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = size * devicePixelRatio;
+    tester.view.devicePixelRatio = devicePixelRatio;
     tester.platformDispatcher.textScaleFactorTestValue = textScale;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -98,12 +99,12 @@ void main() {
     final hero = rectOf(tester, CurrentOutboundCard);
     final speed = rectOf(tester, NetworkSpeedCard);
     final mode = rectOf(tester, OutboundModeCard);
-    expect(hero.left, 16);
-    expect(hero.width, 288 * 2 + 12);
-    expect(hero.height, 156);
+    expect(hero.left, 12);
+    expect(hero.width, 290 * 2 + 12);
+    expect(hero.height, 160);
     expect(speed.left, hero.right + 12);
     expect(speed.top, hero.top);
-    expect(speed.height, 156);
+    expect(speed.height, 160);
     expect(mode.left, hero.left);
     expect(mode.top, hero.bottom + 12);
     expect(mode.width, hero.width);
@@ -119,6 +120,25 @@ void main() {
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
+
+  testWidgets(
+    'Windows DPI changes raster size but never the three logical heights',
+    (tester) async {
+      for (final dpr in [1.0, 1.25, 1.5, 2.0]) {
+        await pumpDashboard(
+          tester,
+          const Size(1220, 900),
+          platform: SupportPlatform.Windows,
+          devicePixelRatio: dpr,
+        );
+        expect(rectOf(tester, CurrentOutboundCard).height, 160);
+        expect(rectOf(tester, NetworkSpeedCard).height, 160);
+        expect(rectOf(tester, OutboundModeCard).height, 122);
+        expect(tester.takeException(), isNull);
+      }
+      await teardown(tester);
+    },
+  );
 
   testWidgets('short windows scroll without dropping widgets', (tester) async {
     seedGroups(12);
@@ -144,10 +164,8 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
-    // Cells cap at 400 and the whole grid centers: the content column is
-    // 400 * 4 + 12 * 3 wide, so its left edge sits at (2560 - 1636) / 2.
-    expect(hero.left, (2560 - (400 * 4 + 12 * 3)) / 2);
-    expect(hero.width, 400 * 2 + 12);
+    expect(hero.left, (2560 - (320 * 4 + 12 * 3)) / 2);
+    expect(hero.width, 320 * 2 + 12);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -212,6 +230,11 @@ void main() {
                 paragraph.size.height + 0.5)
               paragraph.text.toPlainText(),
         ];
+        if (platform != SupportPlatform.Android) {
+          expect(rectOf(tester, CurrentOutboundCard).height, 160);
+          expect(rectOf(tester, NetworkSpeedCard).height, 160);
+          expect(rectOf(tester, OutboundModeCard).height, 122);
+        }
         expect(clipped, isEmpty, reason: '$size x$scale');
         expect(tester.takeException(), isNull);
       }
@@ -243,7 +266,7 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(620, 700));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.width, 560);
+    expect(hero.width, 596);
     expect(hero.center.dx, 310);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
     expect(find.byType(VpnCard), findsNothing);

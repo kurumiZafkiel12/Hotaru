@@ -190,14 +190,14 @@ class _OutboundMetrics {
       buttonSlot: 76,
     ),
     DashboardDensity.mobile => const _OutboundMetrics(
-      padding: EdgeInsetsDirectional.fromSTEB(20, 18, 16, 18),
+      padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
       gap: 10,
-      ipTop: 12,
+      ipTop: 6,
       cellGap: 24,
       badgeSize: 48,
       ip: AppTextStyle.title2,
-      buttonSize: 88,
-      buttonSlot: 88,
+      buttonSize: 56,
+      buttonSlot: 64,
     ),
   };
 

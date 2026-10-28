@@ -99,7 +99,7 @@ abstract final class DashboardShadows {
 }
 
 abstract final class DashboardCorner {
-  static const desktopCard = AppCorner.lg;
+  static const desktopCard = 12.0;
   static const mobileCard = AppCorner.xl;
   static const block = AppCorner.md;
   static const mobileBlock = AppCorner.md;

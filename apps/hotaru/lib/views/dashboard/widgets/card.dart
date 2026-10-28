@@ -10,20 +10,8 @@ import 'package:flutter/rendering.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
 
-EdgeInsets dashboardCardPadding(DashboardDensity density) => switch (density) {
-  DashboardDensity.standard => const EdgeInsets.symmetric(
-    horizontal: 18,
-    vertical: 10,
-  ),
-  DashboardDensity.compact => const EdgeInsets.symmetric(
-    horizontal: 16,
-    vertical: 10,
-  ),
-  DashboardDensity.mobile => const EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 18,
-  ),
-};
+EdgeInsets dashboardCardPadding(DashboardDensity density) =>
+    const EdgeInsets.all(DashboardSizing.inset);
 
 double dashboardCardRadius(DashboardDensity density) => density.isDesktop
     ? DashboardCorner.desktopCard

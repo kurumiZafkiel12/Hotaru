@@ -30,19 +30,19 @@ enum ColorStyle {
 ColorScheme hotaruColorScheme(Brightness brightness) {
   if (brightness == Brightness.dark) {
     return const ColorScheme.dark(
-      primary: Color(0xff34d399),
+      primary: Color(0xff75cba7),
       onPrimary: Color(0xff06251e),
-      surface: Color(0xff111317),
-      surfaceContainer: Color(0xff181b20),
-      surfaceContainerHighest: Color(0xff2b3039),
-      surfaceContainerLow: Color(0xff14171c),
-      surfaceContainerHigh: Color(0xff20242b),
-      surfaceBright: Color(0xff303640),
-      onSurface: Color(0xfff6f7fa),
-      onSurfaceVariant: Color(0xffa7afbd),
+      surface: Color(0xff0b1512),
+      surfaceContainer: Color(0xff13211c),
+      surfaceContainerHighest: Color(0xff294338),
+      surfaceContainerLow: Color(0xff101c17),
+      surfaceContainerHigh: Color(0xff1c3027),
+      surfaceBright: Color(0xff30493e),
+      onSurface: Color(0xffe8eee9),
+      onSurfaceVariant: Color(0xffa5b8ad),
       primaryContainer: Color(0xff123d32),
       onPrimaryContainer: Color(0xffb8f6df),
-      outline: Color(0xff657080),
+      outline: Color(0xff718d7e),
     );
   }
   return const ColorScheme.light(
