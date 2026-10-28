@@ -1,50 +1,105 @@
-name: Inspect replacement release
+name: Verify and publish replacement
 on:
   push:
     branches: ['codex/h005-release-inspection']
 permissions:
   contents: write
   actions: read
+concurrency:
+  group: hotaru-replacement-finalization
+  cancel-in-progress: false
+env:
+  HOTARU_RELEASE_SOURCE: 527e08b2543b5cbb1e5e48f48f79731740274bb8
+  HOTARU_RELEASE_BUILD_RUN: '40694805898'
 jobs:
-  inspect:
+  verify-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Read failing installation log
+      - name: Verify original build and Android installation evidence
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 - <<'PYCODE'
-          import io, json, subprocess, zipfile
-          from pathlib import Path
-          paths = [
-              'repos/kurumiZafkiel12/Hotaru/actions/jobs/122849734634/logs',
-              'repos/kurumiZafkiel12/Hotaru/actions/runs/40694805898/logs',
-          ]
-          results = []
-          for path in paths:
-              result = subprocess.run(['gh', 'api', path], capture_output=True)
-              entry = {'endpoint': path, 'code': result.returncode, 'error': result.stderr.decode(errors='replace')[-2000:]}
-              if result.returncode == 0:
-                  try:
-                      archive = zipfile.ZipFile(io.BytesIO(result.stdout))
-                      entry['logs'] = {name: archive.read(name).decode(errors='replace')[-16000:] for name in archive.namelist() if 'windows-install' in name.lower()}
-                  except zipfile.BadZipFile:
-                      entry['log'] = result.stdout.decode(errors='replace')[-16000:]
-              results.append(entry)
-          Path('diagnostic.json').write_text(json.dumps({'source_run': '40694805898', 'results': results}, indent=2))
-          PYCODE
-      - name: Save diagnostic for the cloud checkout
+          python3 - <<'PY'
+          import json, os, subprocess
+          repo = os.environ['GITHUB_REPOSITORY']
+          run = os.environ['HOTARU_RELEASE_BUILD_RUN']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          metadata = api(f'actions/runs/{run}')
+          assert metadata['head_sha'] == os.environ['HOTARU_RELEASE_SOURCE']
+          assert metadata['status'] == 'completed'
+          jobs = api(f'actions/runs/{run}/jobs?per_page=100')['jobs']
+          results = {job['name']: job['conclusion'] for job in jobs}
+          required = ['Android unit tests', 'Desktop linux', 'Dart', 'Rust', 'Windows helper test', 'Desktop windows', 'Plugins', 'Go core', 'Desktop macos', 'build (android, ubuntu-latest)', 'build (windows, Windows-2022, amd64)', 'upload']
+          assert all(results.get(f'prepare / {name}') == 'success' for name in required), results
+          assert all(results.get(f'Android API {api} install') == 'success' for api in [24, 29, 35]), results
+          assert {name for name, result in results.items() if result == 'failure'} == {'windows-install'}, results
+          print(json.dumps({'source': metadata['head_sha'], 'run': run, 'checks': results}, indent=2))
+          PY
+  windows-install:
+    needs: verify-build
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Windows newline parsing and installer lifecycle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: apps/hotaru
         run: |
-          git config user.name 'Hotaru release CI'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          blob=$(git hash-object -w diagnostic.json)
-          tree=$(printf '100644 blob %s\tdiagnostic.json\n' "$blob" | git mktree)
-          parent=$(git ls-remote origin refs/heads/ci/release-diagnostics/v0.0.5 | cut -f1)
-          if test -n "$parent"; then
-            git fetch origin refs/heads/ci/release-diagnostics/v0.0.5
-            commit=$(printf 'chore(release): save installation diagnostic\n' | git commit-tree "$tree" -p "$parent")
-          else
-            commit=$(printf 'chore(release): save installation diagnostic\n' | git commit-tree "$tree")
-          fi
-          git push origin "$commit:refs/heads/ci/release-diagnostics/v0.0.5"
+          foreach ($ending in @("`n", "`r`n")) {
+            $sample = "version: 0.0.5$ending"
+            if ([regex]::Match($sample, '(?m)^version: ([0-9]+\.[0-9]+\.[0-9]+)\r?$').Groups[1].Value -ne '0.0.5') { throw 'Newline regression' }
+          }
+          try { ./tool/verify_windows_package.ps1 }
+          catch { Write-Output "::error::$($_.Exception.Message)"; throw }
+  publish:
+    needs: [verify-build, windows-install]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/hotaru
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+          path: apps/hotaru/built
+          run-id: '40694805898'
+          github-token: ${{ github.token }}
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Independently verify exact built assets and fixed certificate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.0.5 --dir verified
+          python3 tool/verify_release_assets.py verified 0.0.5
+          sed -i 's/^version: 0.0.5$/version: 0.0.5+16/' pubspec.yaml
+          python3 tool/verify_android_release.py --dist verified --output "$RUNNER_TEMP/reverified-android.json"
+          cmp verified/ANDROID-VERIFICATION.json "$RUNNER_TEMP/reverified-android.json"
+      - name: Publish and verify public downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/publish_replacement.py
+      - name: Record verified publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        run: python3 tool/record_release_status.py published
+  status:
+    if: always()
+    needs: [verify-build, windows-install, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        working-directory: apps/hotaru
+        run: python3 tool/record_release_status.py complete

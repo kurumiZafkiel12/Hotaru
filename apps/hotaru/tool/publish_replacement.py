@@ -22,7 +22,7 @@ def main():
             if hashlib.file_digest(stream, 'sha256').hexdigest() != digest:
                 raise ValueError(f'Draft differs from this run: {name}')
     repo = os.environ['GITHUB_REPOSITORY']
-    source = os.environ['GITHUB_SHA']
+    source = os.environ.get('HOTARU_RELEASE_SOURCE', os.environ['GITHUB_SHA'])
     releases = json.loads(gh('api', f'repos/{repo}/releases?per_page=100'))
     matches = [release for release in releases if release['tag_name'] == f'v{version}']
     if len(matches) != 1:
@@ -58,7 +58,7 @@ def main():
         patch_path.write_text(json.dumps({'draft': True, 'prerelease': True}))
         gh('api', '--method', 'PATCH', f"repos/{repo}/releases/{release['id']}", '--input', str(patch_path))
         raise
-    receipt = {'url': result['html_url'], 'release_id': result['id'], 'source': source, 'base_version_code': code, 'sha256': checksums}
+    receipt = {'url': result['html_url'], 'release_id': result['id'], 'source': source, 'base_version_code': code, 'build_run': os.environ.get('HOTARU_RELEASE_BUILD_RUN', os.environ['GITHUB_RUN_ID']), 'sha256': checksums}
     Path('release-verification.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
 

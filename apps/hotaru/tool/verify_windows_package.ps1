@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$version = [regex]::Match((Get-Content pubspec.yaml -Raw), '(?m)^version: ([0-9]+\.[0-9]+\.[0-9]+)$').Groups[1].Value
+$version = [regex]::Match((Get-Content pubspec.yaml -Raw), '(?m)^version: ([0-9]+\.[0-9]+\.[0-9]+)\r?$').Groups[1].Value
 if (!$version) { throw 'Missing public version' }
 $folder = Join-Path $env:RUNNER_TEMP 'hotaru-candidate'
 $installDir = Join-Path $env:RUNNER_TEMP 'hotaru-install-test'
@@ -21,4 +21,4 @@ $uninstaller = Join-Path $installDir 'unins000.exe'
 $process = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
 if ($process.ExitCode -ne 0) { throw "Uninstaller failed: $($process.ExitCode)" }
 if (Test-Path (Join-Path $installDir 'Hotaru.exe')) { throw 'Application remains after uninstall' }
-Write-Output 'WINDOWS_PACKAGE_OK: ZIP, install, reinstall and uninstall; application not launched'
+Write-Output 'WINDOWS_PACKAGE_OK: ZIP, install, reinstall and uninstall; GUI not launched'

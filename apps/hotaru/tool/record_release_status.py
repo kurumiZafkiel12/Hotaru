@@ -16,7 +16,8 @@ def main():
     ref = f'refs/heads/ci/release-status/v{version}'
     receipt = {
         'phase': phase,
-        'source': os.environ['GITHUB_SHA'],
+        'source': os.environ.get('HOTARU_RELEASE_SOURCE', os.environ['GITHUB_SHA']),
+        'workflow_source': os.environ['GITHUB_SHA'],
         'run': os.environ['GITHUB_RUN_ID'],
         'url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         'results': json.loads(os.environ.get('JOB_RESULTS', '{}')),
