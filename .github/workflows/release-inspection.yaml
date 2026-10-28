@@ -14,13 +14,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api repos/kurumiZafkiel12/Hotaru/actions/jobs/122849734634/logs > "$RUNNER_TEMP/windows-install.txt"
-          python3 - <<'PY'
-          import json, os
+          python3 - <<'PYCODE'
+          import io, json, subprocess, zipfile
           from pathlib import Path
-          log = Path(os.environ['RUNNER_TEMP'], 'windows-install.txt').read_text(errors='replace')
-          Path('diagnostic.json').write_text(json.dumps({'source_run': '40694805898', 'job': '122849734634', 'log': log[-16000:]}, indent=2))
-          PY
+          paths = [
+              'repos/kurumiZafkiel12/Hotaru/actions/jobs/122849734634/logs',
+              'repos/kurumiZafkiel12/Hotaru/actions/runs/40694805898/logs',
+          ]
+          results = []
+          for path in paths:
+              result = subprocess.run(['gh', 'api', path], capture_output=True)
+              entry = {'endpoint': path, 'code': result.returncode, 'error': result.stderr.decode(errors='replace')[-2000:]}
+              if result.returncode == 0:
+                  try:
+                      archive = zipfile.ZipFile(io.BytesIO(result.stdout))
+                      entry['logs'] = {name: archive.read(name).decode(errors='replace')[-16000:] for name in archive.namelist() if 'windows-install' in name.lower()}
+                  except zipfile.BadZipFile:
+                      entry['log'] = result.stdout.decode(errors='replace')[-16000:]
+              results.append(entry)
+          Path('diagnostic.json').write_text(json.dumps({'source_run': '40694805898', 'results': results}, indent=2))
+          PYCODE
       - name: Save diagnostic for the cloud checkout
         run: |
           git config user.name 'Hotaru release CI'

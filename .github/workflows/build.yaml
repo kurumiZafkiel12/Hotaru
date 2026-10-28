@@ -6,6 +6,7 @@ on:
       - '**'
       - '!release/windows/**'
       - '!release/both/**'
+      - '!codex/h005-release-inspection'
     tags:
       - 'v*'
   workflow_call:
