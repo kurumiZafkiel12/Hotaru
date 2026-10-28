@@ -128,6 +128,30 @@ Map<String, String> createBuildEnvironment(String env) {
   return {'APP_ENV': env};
 }
 
+/// The pubspec text with the Android build number appended to a plain
+/// version, or null when there is nothing to change. The packager
+/// derives --build-number from the version's +suffix and the
+/// repository version deliberately carries none, so the build
+/// workspace gains it here; the number is the hidden Android code
+/// from gradle.properties, the same value Gradle uses as versionCode.
+String? pubspecWithAndroidBuildNumber(String pubspec, String gradleProperties) {
+  final version = RegExp(
+    r'^version: ([0-9]+\.[0-9]+\.[0-9]+)$',
+    multiLine: true,
+  ).firstMatch(pubspec);
+  if (version == null) return null;
+  final code = RegExp(
+    r'^hotaruVersionCode=(\d+)$',
+    multiLine: true,
+  ).firstMatch(gradleProperties);
+  if (code == null) return null;
+  return pubspec.replaceRange(
+    version.start,
+    version.end,
+    'version: ${version.group(1)}+${code.group(1)}',
+  );
+}
+
 /// Packages whose build hook `pubspec.yaml` turns into a no-op.
 List<String> packagesNotBuildingAssets(String pubspec) {
   final document = loadYaml(pubspec);
@@ -163,6 +187,22 @@ Future<int> _package(
   String? androidArch,
   required bool verbose,
 }) async {
+  if (platform == 'android') {
+    final pubspecFile = File(p.join(rootDir, 'pubspec.yaml'));
+    final updated = pubspecWithAndroidBuildNumber(
+      await pubspecFile.readAsString(),
+      await File(
+        p.join(rootDir, 'android', 'gradle.properties'),
+      ).readAsString(),
+    );
+    if (updated != null) {
+      await pubspecFile.writeAsString(updated);
+      stdout.writeln(
+        'Android build number appended to the workspace pubspec; '
+        'the repository version stays plain.',
+      );
+    }
+  }
   final file = File(p.join(rootDir, 'env.json'));
   await file.writeAsString(jsonEncode(createBuildEnvironment(env)));
 
