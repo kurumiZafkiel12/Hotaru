@@ -33,6 +33,7 @@ Widget _sidebar({
   List<SidebarDestination> destinations = _destinations,
   int selectedIndex = 0,
   bool expanded = true,
+  bool dense = false,
   ValueChanged<int>? onSelected,
   VoidCallback? onToggle,
   String? brandTitle,
@@ -40,6 +41,9 @@ Widget _sidebar({
   EdgeInsets safePadding = EdgeInsets.zero,
 }) {
   return TestApp(
+    theme: ThemeData(
+      platform: dense ? TargetPlatform.windows : TargetPlatform.android,
+    ),
     child: Scaffold(
       body: Row(
         children: [
@@ -49,6 +53,7 @@ Widget _sidebar({
               builder: (context) => MediaQuery(
                 data: MediaQuery.of(context).copyWith(padding: safePadding),
                 child: NavigationSidebar(
+                  dense: dense,
                   brandTitle: brandTitle,
                   destinations: destinations,
                   selectedIndex: selectedIndex,
@@ -105,6 +110,61 @@ Finder _rowTooltip(String message) => find.byWidgetPredicate(
 );
 
 void main() {
+  testWidgets(
+    'pointer navigation is smaller without changing default touch navigation',
+    (tester) async {
+      int? selected;
+      await tester.pumpWidget(
+        _sidebar(dense: true, onSelected: (value) => selected = value),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getSize(_sidebarFinder).width, 160);
+      final label = tester.widget<Text>(find.text('Dashboard'));
+      expect(label.style?.fontSize, 13);
+      expect(
+        IconTheme.of(tester.element(_glyph(AppGlyphs.dashboard))).size,
+        20,
+      );
+      final row = find
+          .ancestor(
+            of: _glyph(AppGlyphs.dashboard),
+            matching: find.byType(Material),
+          )
+          .first;
+      expect(tester.getSize(row).height, 36);
+      await tester.tap(find.text('Profiles'));
+      expect(selected, 2);
+
+      await tester.pumpWidget(_sidebar());
+      await tester.pumpAndSettle();
+      expect(tester.getSize(_sidebarFinder).width, 176);
+      expect(tester.widget<Text>(find.text('Dashboard')).style?.fontSize, 15);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'pointer overlay keeps its compact width and dismisses after selection',
+    (tester) async {
+      int? selected;
+      await tester.pumpWidget(
+        _sidebar(
+          dense: true,
+          expanded: false,
+          onSelected: (value) => selected = value,
+        ),
+      );
+      await tester.tap(find.byTooltip('Expand'));
+      await tester.pumpAndSettle();
+      expect(tester.getSize(_paneFinder).width, 160);
+      await tester.tap(_shown('Profiles'));
+      await tester.pumpAndSettle();
+      expect(selected, 2);
+      expect(find.text('Profiles'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('the Hotaru brand fits expanded and collapsed navigation', (
     tester,
   ) async {

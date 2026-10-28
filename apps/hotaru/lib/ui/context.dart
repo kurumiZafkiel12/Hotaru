@@ -31,7 +31,7 @@ extension BuildContextExtension on BuildContext {
       FloatingBarScope.of(this) ??
       (isInCompactSheet
           ? sheetAppBarHeight
-          : MediaQuery.paddingOf(this).top + pageToolbarHeight);
+          : MediaQuery.paddingOf(this).top + pageToolbarHeightOf(this));
 
   /// A compact sheet's header already trails its own gap.
   double get contentTopPadding =>

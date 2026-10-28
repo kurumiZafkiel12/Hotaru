@@ -637,20 +637,30 @@ class DashboardSwitch extends StatelessWidget {
   final String? semanticLabel;
 
   /// A switch lays out past its track, which would set every row's height.
-  static const trackWidth = CommonSwitch.trackWidth;
+  static double _scaleOf(BuildContext context) =>
+      DashboardDensityScope.of(context).isDesktop
+      ? DashboardSizing.desktopSwitchScale
+      : 1;
+
+  static double trackWidthOf(BuildContext context) =>
+      CommonSwitch.trackWidth * _scaleOf(context);
 
   @override
   Widget build(BuildContext context) {
+    final scale = _scaleOf(context);
     return SizedBox(
-      width: trackWidth,
-      height: CommonSwitch.trackHeight,
+      width: trackWidthOf(context),
+      height: CommonSwitch.trackHeight * scale,
       child: OverflowBox(
         maxWidth: double.infinity,
         maxHeight: double.infinity,
-        child: CommonSwitch(
-          value: value,
-          onChanged: onChanged,
-          semanticLabel: semanticLabel,
+        child: Transform.scale(
+          scale: scale,
+          child: CommonSwitch(
+            value: value,
+            onChanged: onChanged,
+            semanticLabel: semanticLabel,
+          ),
         ),
       ),
     );
@@ -704,7 +714,7 @@ class DashboardSwitchRow extends StatelessWidget {
         padding.horizontal -
         iconSize -
         _gap * 2 -
-        DashboardSwitch.trackWidth;
+        DashboardSwitch.trackWidthOf(context);
     return titles.every(
       (title) =>
           globalState.measure

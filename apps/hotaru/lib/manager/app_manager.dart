@@ -164,6 +164,7 @@ class _Sidebar extends ConsumerWidget {
     );
     final version = ref.watch(versionProvider);
     return NavigationSidebar(
+      dense: system.isDesktop,
       brandTitle: 'HOTARU',
       destinations: [
         for (final item in items)

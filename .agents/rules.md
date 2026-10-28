@@ -57,8 +57,8 @@ theirs from `withAppShapes`, which sets `tooltipTheme.decoration`.
 
 ### Typography
 
-Text sizes follow Apple's iOS Dynamic Type scale at its default size, on every platform. `AppTextStyle` in
-`lib/ui/typography.dart` holds its eleven styles, `largeTitle` to `caption2`, with Apple's leading and weights, plus two
+Text uses shared semantic roles with compact desktop metrics and independent touch defaults. `AppTextStyle` in
+`lib/ui/typography.dart` holds the touch sizes and explicit desktop size/leading pairs, preserving the role weights. Its styles run from `largeTitle` to `caption2`, plus two
 steps the scale lacks: `display` for a dashboard figure and `pageTitle` for an app bar. Take one with
 `AppTextStyle.body.of(context)`, pass `emphasized: true` for the scale's emphasized weight (bold for the titles,
 semibold for the rest), and change color or family with `copyWith`; a weight is either regular or emphasized. Text

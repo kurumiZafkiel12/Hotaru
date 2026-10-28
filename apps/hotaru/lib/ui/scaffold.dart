@@ -747,7 +747,7 @@ class CommonScaffoldState extends State<CommonScaffold>
       backgroundColor:
           widget.backgroundColor ??
           SurfaceLevel.page.colorOf(context.colorScheme),
-      fadeStart: top / (top + pageToolbarHeight),
+      fadeStart: top / (top + pageToolbarHeightOf(context)),
       overhang: _headerOverhang,
       child: appBar,
     );
@@ -769,7 +769,7 @@ class CommonScaffoldState extends State<CommonScaffold>
     final uncovered = ReverseAnimation(sheetCoverOf(context));
     return PreferredSize(
       preferredSize: Size.fromHeight(
-        isCompact ? sheetToolbarHeight : pageToolbarHeight,
+        isCompact ? sheetToolbarHeight : pageToolbarHeightOf(context),
       ),
       child: Stack(
         alignment: Alignment.bottomCenter,
@@ -1673,7 +1673,8 @@ class _BarSearch extends StatelessWidget {
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final top =
-                constraints.maxHeight - (pageToolbarHeight + height) / 2;
+                constraints.maxHeight -
+                (pageToolbarHeightOf(context) + height) / 2;
             final start = (rtl ? padding.right : padding.left) + inset;
             final end = width - (rtl ? padding.left : padding.right) - inset;
             final actionsRoom = actionsWidth > 0
@@ -2279,7 +2280,7 @@ class AppBarInsetScope extends StatelessWidget {
       data: theme.copyWith(
         appBarTheme: theme.appBarTheme.copyWith(
           leadingWidth: appBarLeadingWidth(compact),
-          toolbarHeight: pageToolbarHeight,
+          toolbarHeight: pageToolbarHeightOf(context),
         ),
       ),
       child: child,

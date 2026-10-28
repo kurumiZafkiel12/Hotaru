@@ -222,8 +222,8 @@ class _OutboundMetrics {
       cellGap: 12,
       badgeSize: 40,
       ip: AppTextStyle.title1,
-      buttonSize: 72,
-      buttonSlot: 76,
+      buttonSize: DashboardSizing.desktopStartButton,
+      buttonSlot: 60,
     ),
     DashboardDensity.compact => _OutboundMetrics(
       padding: dashboardCardPadding(density),
@@ -231,8 +231,8 @@ class _OutboundMetrics {
       cellGap: 8,
       badgeSize: 36,
       ip: AppTextStyle.title2,
-      buttonSize: 64,
-      buttonSlot: 64,
+      buttonSize: DashboardSizing.desktopStartButton,
+      buttonSlot: 60,
     ),
     DashboardDensity.mobile => const _OutboundMetrics(
       padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),

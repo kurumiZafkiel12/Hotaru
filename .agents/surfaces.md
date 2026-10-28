@@ -8,6 +8,9 @@ superseding the upstream no-outline guidance below. Use 12-dp desktop gaps,
 insets and card radii. Windows card heights are strictly 122, 160
 or 198 logical pixels: text scaling may change the column layout but must
 not multiply these heights. Android uses its own content and touch metrics.
+Desktop uses compact typography (page title 20, body 15, secondary 13),
+a 56-dp page bar, and a 160-dp sidebar with 36-dp rows. Keep Android touch
+metrics and system text scaling independent.
 Theme modes, pure black and configurable accents remain required; a fixed
 brand palette must not silently disable the appearance settings.
 

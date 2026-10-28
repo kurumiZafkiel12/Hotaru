@@ -17,6 +17,9 @@ abstract final class DashboardSizing {
   static const low = 122.0;
   static const step = 38.0;
   static const maxColumn = 320.0;
+  static const desktopControlHeight = 32.0;
+  static const desktopStartButton = 56.0;
+  static const desktopSwitchScale = 0.875;
 
   static double height(int level) => low + step * level;
 }
