@@ -34,8 +34,8 @@ func TestServiceEndpointNeverTreatsReachabilityAsUnlock(t *testing.T) {
 	}
 }
 
-func TestServiceCatalogContainsAll57UniqueChecks(t *testing.T) {
-	if len(serviceCheckers) != 57 {
+func TestServiceCatalogContainsAll110UniqueChecks(t *testing.T) {
+	if len(serviceCheckers) != 110 {
 		t.Fatalf("catalog has %d entries", len(serviceCheckers))
 	}
 	names := map[string]bool{}
