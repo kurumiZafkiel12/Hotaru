@@ -118,7 +118,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                           ? DesktopDashboardEditor(
                               platform: platform,
                               columns: dashboardColumnsOf(room.width),
-                              gap: 12,
+                              gap: DashboardSizing.gap,
                               topPadding: topGap,
                               cardKeyOf: _cardKeyOf,
                               onDone: () => _setEditing(false),
@@ -127,7 +127,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                           : DesktopDashboardGrid(
                               platform: platform,
                               columns: dashboardColumnsOf(room.width),
-                              gap: 12,
+                              gap: DashboardSizing.gap,
                               topPadding: topGap,
                               cardKeyOf: _cardKeyOf,
                             )
