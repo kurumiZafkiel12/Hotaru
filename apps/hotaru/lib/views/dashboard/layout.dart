@@ -4,40 +4,78 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _minDesktopWidth = 640.0;
-const _minFourColumnWidth = 860.0;
-const _minStandardFourColumnWidth = 1040.0;
+const _minFourColumnWidth =
+    DashboardLayoutTokens.pagePadding * 2 +
+    DashboardLayoutTokens.minColumnWidth * 4 +
+    dashboardGridGap * 3;
+const _minStandardFourColumnWidth =
+    DashboardLayoutTokens.pagePadding * 2 +
+    DashboardLayoutTokens.comfortableColumnWidth * 4 +
+    dashboardGridGap * 3;
 const _minStandardHeight = 824.0;
 const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
-/// The three fixed card heights of the dashboard spec. A card's band is a
-/// property of the widget, never of the user's layout: cards are dragged
-/// to reorder, never resized.
+abstract final class DashboardLayoutTokens {
+  static const gap = 12.0;
+  static const padding = 12.0;
+  static const pagePadding = 16.0;
+  static const desktopBaseHeight = 122.0;
+  static const desktopHeightStep = 38.0;
+  static const mobileBaseHeight = 118.0;
+  static const mobileHeightStep = 32.0;
+  static const minColumnWidth = 198.0;
+  static const comfortableColumnWidth = 243.0;
+  static const maxColumnWidth = 400.0;
+}
+
 enum DashboardBand {
   low,
   mid,
   high;
 
-  double get height => switch (this) {
-    DashboardBand.low => 122,
-    DashboardBand.mid => 160,
-    DashboardBand.high => 198,
-  };
+  double get height =>
+      DashboardLayoutTokens.desktopBaseHeight +
+      index * DashboardLayoutTokens.desktopHeightStep;
 
-  /// Phones run their own, slightly taller bands: the mobile card
-  /// bodies keep roomier touch metrics than the desktop ones, while
-  /// the grid still fixes every card's height so a screenful shows
-  /// several cards instead of two or three full-width slabs.
-  double get mobileHeight => switch (this) {
-    DashboardBand.low => 148,
-    DashboardBand.mid => 188,
-    DashboardBand.high => 230,
-  };
+  double get mobileHeight =>
+      DashboardLayoutTokens.mobileBaseHeight +
+      index * DashboardLayoutTokens.mobileHeightStep;
 }
 
-/// The one gap between dashboard cards, everywhere in the grid.
-const dashboardGridGap = 12.0;
+const dashboardGridGap = DashboardLayoutTokens.gap;
+
+class DashboardGridGeometry {
+  DashboardGridGeometry({
+    required double width,
+    required this.columns,
+    this.scale = 1,
+    this.gap = dashboardGridGap,
+    this.padding = DashboardLayoutTokens.pagePadding,
+  }) : cellWidth = math.max(
+         0,
+         math.min(
+           (width - padding * 2 - gap * (columns - 1)) / columns,
+           DashboardLayoutTokens.maxColumnWidth * scale,
+         ),
+       );
+
+  final int columns;
+  final double scale;
+  final double gap;
+  final double padding;
+  final double cellWidth;
+
+  double get contentWidth => cellWidth * columns + gap * (columns - 1);
+
+  Rect rectOf(DashboardPlacement placement) => Rect.fromLTWH(
+    placement.column * (cellWidth + gap),
+    placement.top,
+    placement.columns * cellWidth + (placement.columns - 1) * gap,
+    placement.height,
+  );
+}
 
 /// Where one card lands in the grid: a column span and an exact top, so
 /// cards stacked in a column sit exactly one gap apart, and every

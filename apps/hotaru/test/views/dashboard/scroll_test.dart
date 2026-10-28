@@ -53,13 +53,13 @@ void main() {
   ) async {
     final position = await pumpDashboard(
       tester,
-      const Size(412, 700),
+      const Size(412, 500),
       SupportPlatform.Android,
     );
     final end = position.maxScrollExtent;
     expect(end, greaterThan(0));
 
-    final gesture = await tester.startGesture(const Offset(200, 500));
+    final gesture = await tester.startGesture(const Offset(200, 300));
     while (position.pixels < end) {
       await gesture.moveBy(const Offset(0, -40));
       await tester.pump(const Duration(milliseconds: 16));
@@ -69,6 +69,19 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(position.pixels, end);
 
+    await teardown(tester);
+  });
+
+  testWidgets('the compact phone dashboard fits a regular viewport', (
+    tester,
+  ) async {
+    final position = await pumpDashboard(
+      tester,
+      const Size(412, 700),
+      SupportPlatform.Android,
+    );
+    expect(position.maxScrollExtent, 0);
+    expect(tester.takeException(), isNull);
     await teardown(tester);
   });
 

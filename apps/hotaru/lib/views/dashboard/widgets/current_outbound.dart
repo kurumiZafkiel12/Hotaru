@@ -79,16 +79,12 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     final qualityLoading =
         qualityState != null && quality == null && qualityState.isLoading;
     final loading = ipInfo == null ? !failed : qualityLoading;
-    final metrics = _OutboundMetrics.of(density);
     final appLocalizations = context.appLocalizations;
     final (chipLabel, chipTone) = suspended
         ? (appLocalizations.suspended, DashboardChipTone.warn)
         : isStart
         ? (appLocalizations.running, DashboardChipTone.ok)
         : (appLocalizations.notRunning, DashboardChipTone.idle);
-    // One status card on every platform: the final form is dense
-    // enough for a phone's two-column grid, and the phone keeps its
-    // larger start toggle.
     return DashboardCard(
       padding: EdgeInsets.zero,
       highlighted: true,
@@ -106,7 +102,7 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
         onRefresh: () => _refresh(ipInfo?.ip),
         compact: density.isCompact,
         toggle: _StartToggle(
-          size: metrics.buttonSize,
+          size: 48,
           enabled: hasProfile,
           running: isStart,
           suspended: suspended,
@@ -116,11 +112,6 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
   }
 }
 
-/// The desktop status card in its final 0.0.5 form: the flag stands at
-/// the left as a badge with the country code and name under it, the exit
-/// address leads the middle column with the running chip at its right,
-/// the tags read origin, access type, quality grade, and run time plus
-/// organization close the card. The start toggle stays at the right.
 class _DesktopStatusBody extends StatelessWidget {
   const _DesktopStatusBody({
     required this.info,
@@ -156,12 +147,14 @@ class _DesktopStatusBody extends StatelessWidget {
     final colorScheme = context.colorScheme;
     final ipStyle = DashboardText.figure(
       context,
-      compact ? AppTextStyle.title2 : AppTextStyle.title1,
+      !DashboardDensityScope.of(context).isDesktop
+          ? AppTextStyle.title3
+          : compact
+          ? AppTextStyle.title2
+          : AppTextStyle.title1,
       color: active ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
     ).copyWith(letterSpacing: 0);
     final info = this.info;
-    // The loading placeholder shrinks on a phone-width card, where the
-    // status chip beside it leaves less room than a desktop card has.
     final compactSkeleton = DashboardDensityScope.of(context).isDesktop
         ? 140.0
         : 96.0;
@@ -190,76 +183,55 @@ class _DesktopStatusBody extends StatelessWidget {
           )
         : SkeletonText(width: compactSkeleton, style: ipStyle);
     return Padding(
-      padding: const EdgeInsets.all(12),
-      // The phone editor lays cards out at their natural height, where
-      // the middle column cannot lean on a spacer; the grids bound the
-      // height and the meta line sits at the card's foot there.
+      padding: const EdgeInsets.all(DashboardLayoutTokens.padding),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final bounded = constraints.maxHeight.isFinite;
-          // On a phone-width card the status chip cannot share the
-          // address row without squeezing the address out; it closes
-          // the meta line instead.
-          final chipBesideAddress = constraints.maxWidth >= 560;
-          final chip = DashboardChip(
-            label: chipLabel,
-            tone: chipTone,
-            dot: chipDot,
-          );
-          return Row(
-            spacing: 12,
+          final narrow = constraints.maxWidth < 480;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _FlagColumn(
-                countryCode: info?.countryCode,
-                checking: checking,
-                onRefresh: onRefresh,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: bounded ? MainAxisSize.max : MainAxisSize.min,
-                  children: [
-                    Row(
+              Row(
+                spacing: narrow ? 8 : 12,
+                children: [
+                  _FlagColumn(
+                    countryCode: info?.countryCode,
+                    checking: checking,
+                    onRefresh: onRefresh,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 4,
                       children: [
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: ip,
+                        ip,
+                        if (failed)
+                          Text(
+                            appLocalizations.tapIconToRetry,
+                            style: DashboardText.label(context),
+                          )
+                        else
+                          _IpChips(
+                            quality: quality,
+                            loading: loading,
+                            large: false,
+                            ip: info?.ip,
                           ),
-                        ),
-                        if (chipBesideAddress) chip,
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    if (failed)
-                      Text(
-                        appLocalizations.tapIconToRetry,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: DashboardText.label(context),
-                      )
-                    else
-                      _IpChips(
-                        quality: quality,
-                        loading: loading,
-                        large: true,
-                        ip: info?.ip,
-                      ),
-                    if (bounded) const Spacer() else const SizedBox(height: 8),
-                    _MetaLine(
-                      quality: quality,
-                      loading: loading,
-                      active: active,
-                      stateLabel: chipBesideAddress ? null : chipLabel,
-                      stateTone: chipTone,
-                      stateDot: chipDot,
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: narrow ? 48 : 72, child: toggle),
+                ],
               ),
-              SizedBox(
-                width: compact ? 76 : 88,
-                child: Center(child: toggle),
+              const SizedBox(height: 4),
+              _MetaLine(
+                quality: quality,
+                loading: loading,
+                active: active,
+                stateLabel: chipLabel,
+                stateTone: chipTone,
+                stateDot: chipDot,
               ),
             ],
           );
@@ -269,11 +241,6 @@ class _DesktopStatusBody extends StatelessWidget {
   }
 }
 
-TextStyle _cellStyle(BuildContext context) =>
-    AppTextStyle.subheadline.of(context, emphasized: true).toTabular;
-
-/// The status card's closing line: run time and organization on one
-/// ellipsized line, the spec's secondary line under the tags.
 class _MetaLine extends ConsumerWidget {
   const _MetaLine({
     required this.quality,
@@ -288,9 +255,6 @@ class _MetaLine extends ConsumerWidget {
   final bool loading;
   final bool active;
 
-  /// On a phone-width card the status pill does not fit beside the
-  /// address, so the state word leads this line as colored text
-  /// instead; it ellipsizes like the rest of the line.
   final String? stateLabel;
   final DashboardChipTone stateTone;
   final bool stateDot;
@@ -305,64 +269,45 @@ class _MetaLine extends ConsumerWidget {
     };
     final runTime = active ? getTimeText(ref.watch(runTimeProvider)) : '—';
     final labelStyle = DashboardText.label(context);
-    final valueStyle = _cellStyle(context);
     final colors = DashboardColors.of(context);
     final stateColor = switch (stateTone) {
       DashboardChipTone.ok => colors.onOkContainer,
       DashboardChipTone.warn => colors.onWarnContainer,
       DashboardChipTone.idle => context.colorScheme.onSurfaceVariant,
     };
-    return Row(
+    return Wrap(
+      spacing: 8,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        if (stateLabel != null) ...[
-          if (stateDot)
-            DecoratedBox(
-              decoration: ShapeDecoration(
-                color: stateColor,
-                shape: AppShape.circle,
-              ),
-              child: const SizedBox.square(dimension: 6),
-            ),
-          if (stateDot) const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              stateLabel!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: valueStyle.copyWith(color: stateColor),
-            ),
-          ),
-          Text('  ·  ', style: labelStyle),
-        ],
-        if (loading && organization == null)
-          SkeletonText(width: 84, style: valueStyle)
-        else
-          Flexible(
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${appLocalizations.runTime} ',
-                    style: labelStyle,
+        if (stateLabel != null)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              if (stateDot)
+                DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: stateColor,
+                    shape: AppShape.circle,
                   ),
-                  TextSpan(text: runTime, style: valueStyle),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+                  child: const SizedBox.square(dimension: 6),
+                ),
+              Text(stateLabel!, style: labelStyle.copyWith(color: stateColor)),
+            ],
           ),
-        if (organization != null) ...[
-          Text('  ·  ', style: labelStyle),
-          Flexible(
-            child: Text(
-              organization,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: valueStyle,
-            ),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: '${appLocalizations.runTime} ', style: labelStyle),
+              TextSpan(text: runTime, style: labelStyle.toTabular),
+            ],
           ),
-        ],
+        ),
+        if (loading && organization == null)
+          SkeletonText(width: 84, style: labelStyle)
+        else if (organization != null)
+          Text(organization, style: labelStyle),
       ],
     );
   }
@@ -403,16 +348,16 @@ class _FlagColumn extends StatelessWidget {
           child: ElasticPress(
             enabled: !checking,
             child: SizedBox(
-              width: 56,
+              width: 48,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FlagIcon(countryCode: code, width: 46),
+                  FlagIcon(countryCode: code, width: 38),
                   const SizedBox(height: 5),
                   Text(
                     code?.toUpperCase() ?? '—',
                     maxLines: 1,
-                    style: AppTextStyle.title3
+                    style: AppTextStyle.subheadline
                         .of(context, emphasized: true)
                         .toTabular,
                   ),
@@ -435,61 +380,6 @@ class _FlagColumn extends StatelessWidget {
       ),
     );
   }
-}
-
-class _OutboundMetrics {
-  const _OutboundMetrics({
-    required this.padding,
-    required this.gap,
-    required this.ipTop,
-    required this.cellGap,
-    required this.badgeSize,
-    required this.ip,
-    required this.buttonSize,
-    required this.buttonSlot,
-  });
-
-  factory _OutboundMetrics.of(DashboardDensity density) => switch (density) {
-    DashboardDensity.standard => _OutboundMetrics(
-      padding: dashboardCardPadding(density),
-      gap: 12,
-      ipTop: 6,
-      cellGap: 24,
-      badgeSize: 40,
-      ip: AppTextStyle.title1,
-      buttonSize: 72,
-      buttonSlot: 88,
-    ),
-    DashboardDensity.compact => _OutboundMetrics(
-      padding: dashboardCardPadding(density),
-      gap: 12,
-      ipTop: 4,
-      cellGap: 20,
-      badgeSize: 36,
-      ip: AppTextStyle.title2,
-      buttonSize: 64,
-      buttonSlot: 76,
-    ),
-    DashboardDensity.mobile => const _OutboundMetrics(
-      padding: EdgeInsetsDirectional.fromSTEB(20, 18, 16, 18),
-      gap: 10,
-      ipTop: 12,
-      cellGap: 24,
-      badgeSize: 48,
-      ip: AppTextStyle.title2,
-      buttonSize: 88,
-      buttonSlot: 88,
-    ),
-  };
-
-  final EdgeInsetsGeometry padding;
-  final double gap;
-  final double ipTop;
-  final double cellGap;
-  final double badgeSize;
-  final AppTextStyle ip;
-  final double buttonSize;
-  final double buttonSlot;
 }
 
 class _IpText extends ConsumerWidget {
@@ -558,14 +448,7 @@ class _IpChips extends ConsumerWidget {
         DashboardChip(label: unknown, large: large),
       ],
     ];
-    // Chips that do not fit wrap onto a clipped second line; the details
-    // sheet still lists them all.
-    return SizedBox(
-      height: height,
-      child: ClipRect(
-        child: Wrap(spacing: 6, runSpacing: height, children: children),
-      ),
-    );
+    return Wrap(spacing: 6, runSpacing: 4, children: children);
   }
 }
 

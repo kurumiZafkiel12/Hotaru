@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/common/service_probe.dart' show routedOutbound;
 import 'package:hotaru/core/core.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/providers/providers.dart';
+import 'package:hotaru/providers/outbound_ip.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter/rendering.dart';
@@ -64,7 +66,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     final size = Size(viewSize.width - sideWidth, viewSize.height) / scale;
     final isDesktop = DashboardDensity.of(size).isDesktop;
     final editing = _editing;
-    final gap = cardSpacingOf(context, ref.watch(viewModeProvider));
+    const gap = dashboardGridGap;
     final appLocalizations = context.appLocalizations;
     return CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,
@@ -160,6 +162,11 @@ class _MobileDashboard extends ConsumerWidget {
     final saved = ref.watch(
       dashboardStateProvider.select((state) => state.dashboardWidgets),
     );
+    final hasAddress = ref.watch(
+      outboundIpProbeProvider.select(
+        (state) => state.entryOf(routedOutbound).value != null,
+      ),
+    );
     final top = topPadding;
     final bottom = 16 + context.bottomInset;
     return CustomScrollView(
@@ -190,10 +197,21 @@ class _MobileDashboard extends ConsumerWidget {
             // of full-width slabs; the editor keeps its list.
             final scale = DashboardDensityScope.scaleOf(context);
             final room = constraints.crossAxisExtent - side * 2;
-            final cell = (room - gap) / 2;
+            final geometry = DashboardGridGeometry(
+              width: room,
+              columns: 2,
+              gap: gap,
+              padding: 0,
+            );
             final placements = placeDashboardWidgets(
               widgets,
-              {for (final widget in widgets) widget: widget.band},
+              {
+                for (final widget in widgets)
+                  widget: widget.mobileBandFor(
+                    room / scale,
+                    hasAddress: hasAddress,
+                  ),
+              },
               {for (final widget in widgets) widget: widget.span >= 2 ? 2 : 1},
               2,
               scale: scale,
@@ -212,11 +230,9 @@ class _MobileDashboard extends ConsumerWidget {
                     children: [
                       for (final placement in placements)
                         Positioned(
-                          left: placement.column * (cell + gap),
+                          left: geometry.rectOf(placement).left,
                           top: placement.top,
-                          width:
-                              cell * placement.columns +
-                              gap * (placement.columns - 1),
+                          width: geometry.rectOf(placement).width,
                           height: placement.height,
                           child: RepaintBoundary(
                             key: cardKeyOf(placement.widget),

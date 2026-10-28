@@ -130,7 +130,7 @@ abstract final class DashboardText {
       .copyWith(color: context.colorScheme.onSurfaceVariant);
 
   static TextStyle mobileCardTitle(BuildContext context) =>
-      AppTextStyle.subheadline.of(context, emphasized: true);
+      AppTextStyle.footnote.of(context, emphasized: true);
 
   static TextStyle label(BuildContext context, {Color? color}) => AppTextStyle
       .caption1

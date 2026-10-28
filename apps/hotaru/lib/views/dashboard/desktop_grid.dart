@@ -12,8 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import 'layout.dart';
 import 'widget_registry.dart';
 
-const _maxColumnWidth = 400.0;
-const _sidePadding = 16.0;
+const _sidePadding = DashboardLayoutTokens.pagePadding;
 
 Map<DashboardWidget, DashboardBand> _bandsOf(List<DashboardWidget> order) => {
   for (final widget in order) widget: widget.band,
@@ -25,23 +24,18 @@ Map<DashboardWidget, int> _widthsOf(List<DashboardWidget> order) => {
 
 class _GridGeometry {
   const _GridGeometry({
-    required this.cellWidth,
+    required this.grid,
     required this.inset,
-    required this.contentWidth,
     required this.totalHeight,
   });
 
-  final double cellWidth;
+  final DashboardGridGeometry grid;
   final double inset;
-  final double contentWidth;
   final double totalHeight;
 
-  Rect rectOf(DashboardPlacement placement, double gap) => Rect.fromLTWH(
-    placement.column * (cellWidth + gap),
-    placement.top,
-    placement.columns * cellWidth + (placement.columns - 1) * gap,
-    placement.height,
-  );
+  double get contentWidth => grid.contentWidth;
+
+  Rect rectOf(DashboardPlacement placement) => grid.rectOf(placement);
 }
 
 _GridGeometry _geometry(
@@ -51,20 +45,19 @@ _GridGeometry _geometry(
   double scale,
   List<DashboardPlacement> placements,
 ) {
-  final room = maxWidth - _sidePadding * 2 - gap * (columns - 1);
-  final cell = math.min(room / columns, _maxColumnWidth * scale);
-  final contentWidth = cell * columns + gap * (columns - 1);
+  final grid = DashboardGridGeometry(
+    width: maxWidth,
+    columns: columns,
+    gap: gap,
+    scale: scale,
+  );
+  final contentWidth = grid.contentWidth;
   final inset = math.max(0.0, (maxWidth - _sidePadding * 2 - contentWidth) / 2);
   var totalHeight = 0.0;
   for (final placement in placements) {
     totalHeight = math.max(totalHeight, placement.bottom);
   }
-  return _GridGeometry(
-    cellWidth: cell,
-    inset: inset,
-    contentWidth: contentWidth,
-    totalHeight: totalHeight,
-  );
+  return _GridGeometry(grid: grid, inset: inset, totalHeight: totalHeight);
 }
 
 Duration _motionOf(BuildContext context) =>
@@ -130,10 +123,10 @@ class DesktopDashboardGrid extends ConsumerWidget {
                     key: ValueKey(placement.widget),
                     duration: duration,
                     curve: Curves.easeOutCubic,
-                    left: geometry.rectOf(placement, gap).left,
-                    top: geometry.rectOf(placement, gap).top,
-                    width: geometry.rectOf(placement, gap).width,
-                    height: geometry.rectOf(placement, gap).height,
+                    left: geometry.rectOf(placement).left,
+                    top: geometry.rectOf(placement).top,
+                    width: geometry.rectOf(placement).width,
+                    height: geometry.rectOf(placement).height,
                     child: RepaintBoundary(
                       key: cardKeyOf(placement.widget),
                       child: placement.widget.card,
@@ -263,7 +256,6 @@ class _DesktopDashboardEditorState
     }
     final size = geometry.rectOf(
       placements.firstWhere((item) => item.widget == dragged),
-      widget.gap,
     );
     final probe =
         box.globalToLocal(details.offset) +
@@ -274,7 +266,7 @@ class _DesktopDashboardEditorState
       if (placement.widget == dragged) {
         continue;
       }
-      final rect = geometry.rectOf(placement, widget.gap);
+      final rect = geometry.rectOf(placement);
       if (rect.contains(probe)) {
         target = placement.widget;
         after = probe.dx > rect.center.dx;
@@ -431,7 +423,7 @@ class _DesktopDashboardEditorState
     ColorScheme colorScheme,
   ) {
     final item = placement.widget;
-    final rect = geometry.rectOf(placement, widget.gap);
+    final rect = geometry.rectOf(placement);
     Widget cardContent({required bool keyed}) {
       return SizedBox(
         width: rect.width,

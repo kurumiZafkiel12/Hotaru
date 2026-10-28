@@ -63,7 +63,7 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.networkSpeed => DashboardBand.mid,
     DashboardWidget.outboundMode => DashboardBand.low,
     DashboardWidget.vpnButton => DashboardBand.low,
-    DashboardWidget.networkTakeover => DashboardBand.high,
+    DashboardWidget.networkTakeover => DashboardBand.low,
     DashboardWidget.serviceStatus => DashboardBand.mid,
     DashboardWidget.profiles => DashboardBand.mid,
     DashboardWidget.proxyGroups => DashboardBand.high,
@@ -73,6 +73,18 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.speedTest => DashboardBand.mid,
     DashboardWidget.connectionsTable => DashboardBand.high,
   };
+
+  DashboardBand get mobileBand => switch (this) {
+    DashboardWidget.currentOutbound => DashboardBand.mid,
+    DashboardWidget.networkTakeover => DashboardBand.low,
+    _ => band,
+  };
+
+  DashboardBand mobileBandFor(double width, {bool hasAddress = true}) {
+    if (this != DashboardWidget.currentOutbound) return mobileBand;
+    if (!hasAddress) return DashboardBand.low;
+    return width < 360 ? DashboardBand.high : DashboardBand.mid;
+  }
 
   /// The card's fixed width in grid columns on a full-width grid; the
   /// placement clamps it to narrower grids.

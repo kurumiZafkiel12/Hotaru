@@ -231,7 +231,7 @@ class NetworkSpeedCard extends ConsumerWidget {
             glyph: AppGlyphs.speed,
             title: context.appLocalizations.networkSpeed,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           if (desktop) Expanded(child: tiles) else tiles,
         ],
       ),

@@ -181,7 +181,7 @@ class _MemoryInfoState extends ConsumerState<MemoryInfo>
           ),
           SizedBox(
             height: mobile
-                ? 12
+                ? 6
                 : density.isCompact
                 ? 4
                 : 6,
@@ -204,9 +204,8 @@ class _MemorySummary extends StatelessWidget {
     final appLocalizations = context.appLocalizations;
     final colorScheme = context.colorScheme;
     final mobile = !density.isDesktop;
-    final compact = density.isCompact;
     final total = memory.total.traffic;
-    final figure = mobile ? AppTextStyle.title1 : AppTextStyle.title2;
+    const figure = AppTextStyle.title2;
     final parts = [
       (
         label: appLocalizations.app,
@@ -238,13 +237,13 @@ class _MemorySummary extends StatelessWidget {
           ),
           maxLines: 1,
         ),
-        if (mobile) const SizedBox(height: 14) else const Spacer(),
+        if (mobile) const SizedBox(height: 4) else const Spacer(),
         _MemoryBar(
           segments: [
             for (final part in parts) (bytes: part.bytes, color: part.color),
           ],
         ),
-        SizedBox(height: compact ? 8 : 10),
+        const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, constraints) {
             Widget legendRow(

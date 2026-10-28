@@ -75,25 +75,30 @@ OutboundIpResult _address({int coreEpoch = 1}) => OutboundIpResult(
   routeVersion: 1,
 );
 
-Widget _card({DashboardDensity density = DashboardDensity.standard}) =>
-    Scaffold(
-      body: Align(
-        alignment: Alignment.topLeft,
-        child: SizedBox(
-          width: density.isDesktop ? 600 : 380,
-          height: density.isDesktop ? 208 : null,
-          child: DashboardDensityScope(
-            density: density,
-            scale: 1,
-            child: const CurrentOutboundCard(),
-          ),
-        ),
+Widget _card({
+  DashboardDensity density = DashboardDensity.standard,
+  double? width,
+  double? height,
+}) => Scaffold(
+  body: Align(
+    alignment: Alignment.topLeft,
+    child: SizedBox(
+      width: width ?? (density.isDesktop ? 600 : 380),
+      height: height ?? (density.isDesktop ? 208 : null),
+      child: DashboardDensityScope(
+        density: density,
+        scale: 1,
+        child: const CurrentOutboundCard(),
       ),
-    );
+    ),
+  ),
+);
 
 Widget _app(
   Future<IpQuality> Function(Ref ref, String ip) quality, {
   DashboardDensity density = DashboardDensity.standard,
+  double? width,
+  double? height,
 }) {
   return TestApp(
     locale: const Locale('en'),
@@ -111,7 +116,7 @@ Widget _app(
       ipQualityProvider.overrideWith(quality),
       ipOriginProvider.overrideWith((_, _) async => IpOrigin.native),
     ],
-    child: _card(density: density),
+    child: _card(density: density, width: width, height: height),
   );
 }
 
@@ -186,6 +191,49 @@ void main() {
       expect(find.byGlyph(AppGlyphs.refresh), findsNothing);
     });
 
+    testWidgets('all three IP tags and metadata paint inside compact cards', (
+      tester,
+    ) async {
+      for (final (width, height, density) in [
+        (320.0, 182.0, DashboardDensity.mobile),
+        (390.0, 146.0, DashboardDensity.mobile),
+        (500.0, 122.0, DashboardDensity.compact),
+        (700.0, 122.0, DashboardDensity.standard),
+      ]) {
+        await tester.pumpWidget(
+          _app(
+            (_, _) async => _residential,
+            width: width,
+            height: height,
+            density: density,
+          ),
+        );
+        await settleWave(tester);
+        final card = tester.getRect(find.byType(CurrentOutboundCard));
+        for (final label in [
+          'Native IP',
+          'Residential',
+          'Good',
+          'Example Broadband',
+        ]) {
+          final finder = find.text(label);
+          expect(finder, findsOneWidget);
+          final rect = tester.getRect(finder);
+          expect(
+            rect.bottom,
+            lessThanOrEqualTo(card.bottom),
+            reason: '$width: $label',
+          );
+          expect(
+            rect.right,
+            lessThanOrEqualTo(card.right),
+            reason: '$width: $label',
+          );
+        }
+        expect(tester.takeException(), isNull, reason: '$width');
+      }
+    });
+
     testWidgets('a little wider than its card shrinks to fit', (tester) async {
       await tester.pumpWidget(_app((_, _) async => _residential));
       await tester.pump();
@@ -231,7 +279,7 @@ void main() {
         unknownChips.every((chip) => chip.tone == DashboardChipTone.idle),
         isTrue,
       );
-      expect(find.byType(DashboardChip), findsNWidgets(4));
+      expect(find.byType(DashboardChip), findsNWidgets(3));
       expect(find.text('Example Broadband'), findsNothing);
     });
 

@@ -13,6 +13,61 @@ Map<DashboardWidget, int> _widthsOf(List<DashboardWidget> order) => {
 };
 
 void main() {
+  test('grid geometry keeps all column edges aligned across window sizes', () {
+    for (final width in [320.0, 640.0, 860.0, 1040.0, 1440.0, 2560.0]) {
+      final columns = dashboardColumnsOf(width);
+      final geometry = DashboardGridGeometry(width: width, columns: columns);
+      final placements = placeDashboardWidgets(
+        [
+          DashboardWidget.currentOutbound,
+          DashboardWidget.networkSpeed,
+          DashboardWidget.outboundMode,
+          DashboardWidget.networkTakeover,
+        ],
+        _bandsOf(DashboardWidget.values),
+        _widthsOf(DashboardWidget.values),
+        columns,
+      );
+      for (final placement in placements) {
+        final rect = geometry.rectOf(placement);
+        expect(
+          rect.left,
+          placement.column * (geometry.cellWidth + dashboardGridGap),
+        );
+        expect(rect.right, lessThanOrEqualTo(geometry.contentWidth + 0.01));
+      }
+      expect(
+        geometry.contentWidth,
+        lessThanOrEqualTo(width - geometry.padding * 2),
+      );
+    }
+  });
+
+  test('mobile height scale is independent and preserves a regular rhythm', () {
+    expect(DashboardBand.low.mobileHeight, 118);
+    expect(DashboardBand.mid.mobileHeight - DashboardBand.low.mobileHeight, 32);
+    expect(
+      DashboardBand.high.mobileHeight - DashboardBand.mid.mobileHeight,
+      32,
+    );
+    expect(DashboardWidget.currentOutbound.mobileBand, DashboardBand.mid);
+    expect(
+      DashboardWidget.currentOutbound.mobileBandFor(320, hasAddress: false),
+      DashboardBand.low,
+    );
+    expect(
+      DashboardWidget.currentOutbound.mobileBandFor(320),
+      DashboardBand.high,
+    );
+    expect(
+      DashboardWidget.currentOutbound.mobileBandFor(390),
+      DashboardBand.mid,
+    );
+    for (final band in DashboardBand.values) {
+      expect(band.mobileHeight, lessThan(band.height));
+    }
+  });
+
   group('placeDashboardWidgets', () {
     test('interlocks bands without overlaps and keeps one uniform gap', () {
       final order = [
@@ -115,7 +170,7 @@ void main() {
       }
       expect(DashboardWidget.currentOutbound.band, DashboardBand.low);
       expect(DashboardWidget.networkSpeed.band, DashboardBand.mid);
-      expect(DashboardWidget.networkTakeover.band, DashboardBand.high);
+      expect(DashboardWidget.networkTakeover.band, DashboardBand.low);
       expect(DashboardWidget.proxyGroups.band, DashboardBand.high);
       expect(DashboardWidget.connectionsTable.band, DashboardBand.high);
       expect(DashboardWidget.connectionsTable.span, 4);
