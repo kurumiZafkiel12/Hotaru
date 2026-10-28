@@ -5,8 +5,13 @@ on:
     branches:
       - 'release/both/**'
 
+concurrency:
+  group: hotaru-dual-release
+  cancel-in-progress: false
+
 permissions:
   contents: write
+  actions: read
 
 jobs:
   version:
@@ -22,6 +27,15 @@ jobs:
           test -n "$version"
           test "$GITHUB_REF_NAME" = "release/both/v$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+  announce:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: apps/hotaru
+        run: python3 tool/record_release_status.py building
   prepare:
     needs: version
     uses: ./.github/workflows/build.yaml
@@ -30,3 +44,126 @@ jobs:
       include_android: true
       draft_release: true
     secrets: inherit
+
+  install:
+    needs: prepare
+    name: Android API ${{ matrix.api }} install
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 29, 35]
+    defaults:
+      run:
+        working-directory: apps/hotaru
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch released baseline and candidate APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.0.3 --pattern '*android-*.apk' --dir baseline
+          gh release download v0.0.4 --pattern '*android-*.apk' --dir published
+          sha256sum baseline/*.apk published/*.apk
+      - uses: actions/download-artifact@v4
+        with:
+          name: artifact-android
+          path: apps/hotaru/candidate
+      - name: Build framework archive probe
+        run: |
+          mkdir -p archive-probe/classes archive-probe/dex
+          sdk=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -1)
+          d8=$(find "$ANDROID_HOME/build-tools" -name d8 | sort -V | tail -1)
+          javac --release 8 -cp "$sdk" -d archive-probe/classes tool/AndroidArchiveProbe.java
+          "$d8" --min-api 24 --lib "$sdk" --output archive-probe/dex archive-probe/classes/*.class
+          jar cf archive-probe/probe.jar -C archive-probe/dex classes.dex
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Parse archives and install upgrade on Android
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          working-directory: apps/hotaru
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          script: bash tool/verify_android_install.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}
+          path: apps/hotaru/archive-probe/*.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-install-api-${{ matrix.api }}-results
+          path: apps/hotaru/archive-probe/*.log
+
+  windows-install:
+    needs: prepare
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ZIP and installer lifecycle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: apps/hotaru
+        run: ./tool/verify_windows_package.ps1
+
+  publish:
+    if: github.ref == 'refs/heads/release/both/v0.0.5'
+    needs: [prepare, install, windows-install]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/hotaru
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+          path: apps/hotaru/built
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download complete draft and verify manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' pubspec.yaml)
+          code=$(sed -nE 's/^hotaruVersionCode=([0-9]+)$/\1/p' android/gradle.properties)
+          gh release download "v$version" --dir verified
+          python3 tool/verify_release_assets.py verified "$version"
+          sed -i "s/^version: $version$/version: $version+$code/" pubspec.yaml
+          python3 tool/verify_android_release.py --dist verified --output "$RUNNER_TEMP/reverified-android.json"
+          cmp verified/ANDROID-VERIFICATION.json "$RUNNER_TEMP/reverified-android.json"
+      - name: Publish verified replacement and check public downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/publish_replacement.py
+      - name: Save publication receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        run: python3 tool/record_release_status.py published
+
+  status:
+    if: always()
+    needs: [announce, prepare, install, windows-install, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        working-directory: apps/hotaru
+        run: python3 tool/record_release_status.py complete
