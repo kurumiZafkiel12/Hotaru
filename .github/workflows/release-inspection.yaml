@@ -1,0 +1,37 @@
+name: Inspect replacement release
+on:
+  push:
+    branches: ['codex/h005-release-inspection']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read failing installation log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/kurumiZafkiel12/Hotaru/actions/jobs/122849734634/logs > "$RUNNER_TEMP/windows-install.txt"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          log = Path(os.environ['RUNNER_TEMP'], 'windows-install.txt').read_text(errors='replace')
+          Path('diagnostic.json').write_text(json.dumps({'source_run': '40694805898', 'job': '122849734634', 'log': log[-16000:]}, indent=2))
+          PY
+      - name: Save diagnostic for the cloud checkout
+        run: |
+          git config user.name 'Hotaru release CI'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          blob=$(git hash-object -w diagnostic.json)
+          tree=$(printf '100644 blob %s\tdiagnostic.json\n' "$blob" | git mktree)
+          parent=$(git ls-remote origin refs/heads/ci/release-diagnostics/v0.0.5 | cut -f1)
+          if test -n "$parent"; then
+            git fetch origin refs/heads/ci/release-diagnostics/v0.0.5
+            commit=$(printf 'chore(release): save installation diagnostic\n' | git commit-tree "$tree" -p "$parent")
+          else
+            commit=$(printf 'chore(release): save installation diagnostic\n' | git commit-tree "$tree")
+          fi
+          git push origin "$commit:refs/heads/ci/release-diagnostics/v0.0.5"
