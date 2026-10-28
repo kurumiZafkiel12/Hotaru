@@ -1,150 +1,53 @@
 {
-  "phase": "complete",
+  "phase": "published",
   "source": "527e08b2543b5cbb1e5e48f48f79731740274bb8",
-  "run": "40694805898",
-  "url": "https://github.com/kurumiZafkiel12/Hotaru/actions/runs/40694805898",
+  "workflow_source": "86f59540139546ed081eddb0af735c68c928ba8f",
+  "run": "40699693648",
+  "url": "https://github.com/kurumiZafkiel12/Hotaru/actions/runs/40699693648",
   "results": {
-    "announce": {
-      "result": "success",
-      "outputs": {}
-    },
-    "prepare": {
-      "result": "success",
-      "outputs": {}
-    },
-    "install": {
+    "verify-build": {
       "result": "success",
       "outputs": {}
     },
     "windows-install": {
-      "result": "failure",
-      "outputs": {}
-    },
-    "publish": {
-      "result": "skipped",
+      "result": "success",
       "outputs": {}
     }
   },
   "jobs": [
     {
-      "id": 122838604781,
-      "name": "version",
+      "id": 122855815796,
+      "name": "verify-build",
       "conclusion": "success",
       "status": "completed"
     },
     {
-      "id": 122838666626,
-      "name": "announce",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667327,
-      "name": "prepare / Android unit tests",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667410,
-      "name": "prepare / Desktop linux",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667450,
-      "name": "prepare / Dart",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667512,
-      "name": "prepare / Rust",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667515,
-      "name": "prepare / Windows helper test",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667532,
-      "name": "prepare / Desktop windows",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667534,
-      "name": "prepare / Plugins",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667560,
-      "name": "prepare / Go core",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667629,
-      "name": "prepare / Desktop macos",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667640,
-      "name": "prepare / build (android, ubuntu-latest)",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122838667759,
-      "name": "prepare / build (windows, Windows-2022, amd64)",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122849015718,
-      "name": "prepare / upload",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122849734634,
+      "id": 122855914320,
       "name": "windows-install",
-      "conclusion": "failure",
-      "status": "completed"
-    },
-    {
-      "id": 122849734751,
-      "name": "Android API 24 install",
       "conclusion": "success",
       "status": "completed"
     },
     {
-      "id": 122849734844,
-      "name": "Android API 29 install",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122849734868,
-      "name": "Android API 35 install",
-      "conclusion": "success",
-      "status": "completed"
-    },
-    {
-      "id": 122851739018,
-      "name": "status",
+      "id": 122856276170,
+      "name": "publish",
       "conclusion": null,
       "status": "in_progress"
-    },
-    {
-      "id": 122851740335,
-      "name": "publish",
-      "conclusion": "skipped",
-      "status": "completed"
     }
-  ]
+  ],
+  "verification": {
+    "url": "https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.5",
+    "release_id": 426574347,
+    "source": "527e08b2543b5cbb1e5e48f48f79731740274bb8",
+    "base_version_code": 16,
+    "build_run": "40694805898",
+    "sha256": {
+      "ANDROID-VERIFICATION.json": "ace18a73fc61eb5d0a7ee977567fb3fa8b2b9ebf671ea3fbefb75914dfbd4057",
+      "Hotaru-0.0.5-android-arm64-v8a.apk": "692b87ea2b1418a2ac14302ed0f92fe8a4b0b8be714474fba74863ebdb4c9706",
+      "Hotaru-0.0.5-android-armeabi-v7a.apk": "ad7bfc3e272d7c4e5f8b7facf0c1d567473fd77ee5c1e1fc98fe8b4c4392edfa",
+      "Hotaru-0.0.5-android-x86_64.apk": "17511777004f08c201e03a9aabd64c6c0b34285a2292f04fedd2c4c6895f8eee",
+      "Hotaru-0.0.5-windows-amd64-setup.exe": "915bc91ba93ba63f33128f5a23d03db39a2c46297181e46c20f8f734bf0bf85a",
+      "Hotaru-0.0.5-windows-amd64.zip": "42c353b88eae170b8dd136c7f6534620cafa70f46efcf2a165c318db0ad29f6e",
+      "SHA256SUMS": "1404e8a9af872c230cce083aad84ae9efceabb0dc8f92260d9212124341a8301"
+    }
+  }
 }
