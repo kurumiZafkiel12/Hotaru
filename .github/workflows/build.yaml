@@ -472,15 +472,6 @@ jobs:
           curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
           echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
 
-      - name: Give the Android packager its build number
-              if: startsWith(matrix.platform, 'android')
-                      shell: bash
-                              run: |
-                                        code=$(sed -n 's/^hotaruVersionCode=//p' android/gradle.properties)
-                                                  test -n "$code"
-                                                            sed -i -E "s/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/version: \1+$code/" pubspec.yaml
-                                                                      grep '^version:' pubspec.yaml
-                                                                      
       - name: Setup
         env:
           ANDROID_NDK_HOME: ${{ steps.build-ndk.outputs.ndk-path }}
