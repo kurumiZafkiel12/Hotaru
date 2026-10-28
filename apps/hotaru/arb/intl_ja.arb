@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "観測した証拠",
   "diagnosticsApplyDoh": "安全な DoH を使用",
   "diagnosticsDohScope": "Cloudflare・Google DoH のアプリ DNS 上書きを有効にします。プロファイル固有の DNS 要件がある場合は適用後に確認してください。",
-  "networkRecoverySuperseded": "新しい開始・停止要求により TUN 復旧が置き換えられました。"
+  "networkRecoverySuperseded": "新しい開始・停止要求により TUN 復旧が置き換えられました。",
+  "statusIpOrigin": "IP 属性",
+  "statusAccessType": "接続種別",
+  "statusNetworkQuality": "通信品質",
+  "statusOriginUnknownReason": "ネイティブまたはブロードキャスト IP を裏付ける証拠はありません。",
+  "statusQualityUnknownReason": "通信品質は未測定です。接続種別や IP リスク情報から通信品質は判断できません。",
+  "statusAccessSource": "接続種別の情報源：{source}。",
+  "statusAccessUnverified": "接続種別は未確認です。ホスティングやモバイルの指定がないだけでは住宅回線の証拠になりません。"
 }

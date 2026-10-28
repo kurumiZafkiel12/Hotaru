@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "观测证据",
   "diagnosticsApplyDoh": "配置安全 DoH",
   "diagnosticsDohScope": "启用应用 DNS 覆写，使用 Cloudflare 和 Google DoH。订阅可能有特定域名解析要求，请应用后核对。",
-  "networkRecoverySuperseded": "检测到新的启停操作，已跳过虚拟网卡恢复。"
+  "networkRecoverySuperseded": "检测到新的启停操作，已跳过虚拟网卡恢复。",
+  "statusIpOrigin": "IP 属性",
+  "statusAccessType": "接入类型",
+  "statusNetworkQuality": "网络质量",
+  "statusOriginUnknownReason": "暂无经过核实的原生或广播 IP 证据。",
+  "statusQualityUnknownReason": "尚未测量网络质量。接入类型与 IP 风险标记不能证明连接质量。",
+  "statusAccessSource": "接入类型来源：{source}。",
+  "statusAccessUnverified": "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。"
 }

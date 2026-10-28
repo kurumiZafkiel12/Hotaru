@@ -225,18 +225,20 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label} debe ser un solo elemento";
 
-  static String m80(value) => "Pico: ${value}";
+  static String m80(source) => "Fuente del tipo de acceso: ${source}.";
 
-  static String m81(value) => "Total: ${value}";
+  static String m81(value) => "Pico: ${value}";
 
-  static String m82(transport) => "Encabezados ${transport}";
+  static String m82(value) => "Total: ${value}";
 
-  static String m83(label) => "${label} debe ser una URL";
+  static String m83(transport) => "Encabezados ${transport}";
 
-  static String m84(count) =>
+  static String m84(label) => "${label} debe ser una URL";
+
+  static String m85(count) =>
       "${Intl.plural(count, one: 'hace 1 año', other: 'hace ${count} años')}";
 
-  static String m85(count) => "${Intl.plural(count, other: 'hace ${count} a')}";
+  static String m86(count) => "${Intl.plural(count, other: 'hace ${count} a')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1130,9 +1132,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -2093,8 +2096,23 @@ class MessageLookup extends MessageLookupByLibrary {
       "Inicio y segundo plano",
     ),
     "status": MessageLookupByLibrary.simpleMessage("Estado"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("Acceso"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "El tipo de acceso no está verificado. La ausencia de indicadores de alojamiento o red móvil no demuestra un acceso residencial.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "Con DNS desactivado, se usa el DNS del sistema.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("Origen IP"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage(
+      "Calidad de red",
+    ),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "No hay pruebas verificadas de IP nativa o anunciada.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "No se ha medido la calidad de la red. El tipo de acceso y los indicadores de riesgo de IP no determinan la calidad de conexión.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Detener"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Deteniendo VPN…"),
@@ -2156,11 +2174,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Subido"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Puerto TProxy"),
     "traffic": MessageLookupByLibrary.simpleMessage("Tráfico"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Uso de tráfico"),
     "transport": MessageLookupByLibrary.simpleMessage("Transporte"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "No se pudo autorizar TUN, por lo que se desactivó.",
@@ -2196,7 +2214,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ancho de banda de subida",
     ),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Usar hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Usar hosts del sistema",
@@ -2246,8 +2264,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "Escribir en el sistema también ajusta el reloj del sistema; Android lo ignora.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("Sí"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Chino simplificado"),
   };

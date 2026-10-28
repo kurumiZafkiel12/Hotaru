@@ -196,17 +196,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}은(는) 하나만 입력해야 합니다";
 
-  static String m80(value) => "최고 ${value}";
+  static String m80(source) => "접속 유형 출처: ${source}.";
 
-  static String m81(value) => "합계 ${value}";
+  static String m81(value) => "최고 ${value}";
 
-  static String m82(transport) => "${transport} 요청 헤더";
+  static String m82(value) => "합계 ${value}";
 
-  static String m83(label) => "${label}은(는) URL이어야 합니다";
+  static String m83(transport) => "${transport} 요청 헤더";
 
-  static String m84(count) => "${Intl.plural(count, other: '${count}년 전')}";
+  static String m84(label) => "${label}은(는) URL이어야 합니다";
 
   static String m85(count) => "${Intl.plural(count, other: '${count}년 전')}";
+
+  static String m86(count) => "${Intl.plural(count, other: '${count}년 전')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1632,8 +1634,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("VPN 시작 중…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("시작 및 백그라운드"),
     "status": MessageLookupByLibrary.simpleMessage("상태"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("접속 유형"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "접속 유형이 검증되지 않았습니다. 호스팅 또는 모바일 표시가 없다는 것만으로 가정용 회선임을 입증할 수 없습니다.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "DNS를 끄면 시스템 DNS를 사용합니다.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 속성"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("네트워크 품질"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "네이티브 또는 브로드캐스트 IP를 입증하는 검증된 근거가 없습니다.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "네트워크 품질을 아직 측정하지 않았습니다. 접속 유형과 IP 위험 표시는 연결 품질의 근거가 아닙니다.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("중지"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPN 중지 중…"),
@@ -1685,11 +1700,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("업로드량"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxy 포트"),
     "traffic": MessageLookupByLibrary.simpleMessage("트래픽"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("트래픽 사용량"),
     "transport": MessageLookupByLibrary.simpleMessage("전송"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN 권한을 얻지 못해 끄기로 되돌렸습니다.",
@@ -1719,7 +1734,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("업로드"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("업로드 대역폭"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("hosts 사용"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("시스템 hosts 사용"),
     "usedShort": MessageLookupByLibrary.simpleMessage("사용"),
@@ -1761,8 +1776,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "시스템에 기록하면 시스템 시계도 설정합니다. Android에서는 무시됩니다.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("예"),
     "zhCN": MessageLookupByLibrary.simpleMessage("중국어 간체"),
   };

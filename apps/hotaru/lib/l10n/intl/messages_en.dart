@@ -220,18 +220,20 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label} must be a single item";
 
-  static String m80(value) => "Peak ${value}";
+  static String m80(source) => "Access classification from ${source}.";
 
-  static String m81(value) => "Total ${value}";
+  static String m81(value) => "Peak ${value}";
 
-  static String m82(transport) => "${transport} Headers";
+  static String m82(value) => "Total ${value}";
 
-  static String m83(label) => "${label} must be a URL";
+  static String m83(transport) => "${transport} Headers";
 
-  static String m84(count) =>
+  static String m84(label) => "${label} must be a URL";
+
+  static String m85(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
-  static String m85(count) => "${Intl.plural(count, other: '${count}y ago')}";
+  static String m86(count) => "${Intl.plural(count, other: '${count}y ago')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1053,9 +1055,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -1938,8 +1941,23 @@ class MessageLookup extends MessageLookupByLibrary {
       "Startup and background",
     ),
     "status": MessageLookupByLibrary.simpleMessage("Status"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("Access"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "Access type is unverified. An absent hosting or mobile flag is not proof of residential access.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "With DNS off, the system DNS is used.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP origin"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage(
+      "Network quality",
+    ),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "No verified native or broadcast IP evidence.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "Network quality has not been measured. Access type and IP risk flags do not establish connection quality.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Stop"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Stopping VPN…"),
@@ -1995,11 +2013,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Uploaded"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxy port"),
     "traffic": MessageLookupByLibrary.simpleMessage("Traffic"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Traffic usage"),
     "transport": MessageLookupByLibrary.simpleMessage("Transport"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN could not be authorized, so it was turned off.",
@@ -2031,7 +2049,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("Upload bandwidth"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Use hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("Use system hosts"),
     "usedShort": MessageLookupByLibrary.simpleMessage("used"),
@@ -2077,8 +2095,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "Write to system also sets the system clock; Android ignores it.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("Yes"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };

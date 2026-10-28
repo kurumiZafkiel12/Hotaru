@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "Наблюдаемые данные",
   "diagnosticsApplyDoh": "Использовать защищённый DoH",
   "diagnosticsDohScope": "Включает переопределение DNS приложения на Cloudflare и Google DoH. После применения проверьте особые требования DNS профиля.",
-  "networkRecoverySuperseded": "Новый запрос запуска или остановки заменил восстановление TUN."
+  "networkRecoverySuperseded": "Новый запрос запуска или остановки заменил восстановление TUN.",
+  "statusIpOrigin": "Тип IP",
+  "statusAccessType": "Доступ",
+  "statusNetworkQuality": "Качество сети",
+  "statusOriginUnknownReason": "Нет проверенных данных о нативном или анонсируемом IP.",
+  "statusQualityUnknownReason": "Качество сети не измерено. Тип доступа и признаки риска IP не определяют качество соединения.",
+  "statusAccessSource": "Источник типа доступа: {source}.",
+  "statusAccessUnverified": "Тип доступа не подтверждён. Отсутствие признаков хостинга или мобильной сети не доказывает домашнее подключение."
 }

@@ -195,17 +195,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}は1項目のみ指定できます";
 
-  static String m80(value) => "ピーク ${value}";
+  static String m80(source) => "接続種別の情報源：${source}。";
 
-  static String m81(value) => "累計 ${value}";
+  static String m81(value) => "ピーク ${value}";
 
-  static String m82(transport) => "${transport} リクエストヘッダー";
+  static String m82(value) => "累計 ${value}";
 
-  static String m83(label) => "${label}はURLである必要があります";
+  static String m83(transport) => "${transport} リクエストヘッダー";
 
-  static String m84(count) => "${count} 年前";
+  static String m84(label) => "${label}はURLである必要があります";
 
   static String m85(count) => "${count} 年前";
+
+  static String m86(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1661,8 +1663,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("VPNを起動しています…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("起動とバックグラウンド"),
     "status": MessageLookupByLibrary.simpleMessage("状態"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("接続種別"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "接続種別は未確認です。ホスティングやモバイルの指定がないだけでは住宅回線の証拠になりません。",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "DNS を無効にすると、システム DNS を使用します。",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 属性"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("通信品質"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "ネイティブまたはブロードキャスト IP を裏付ける証拠はありません。",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "通信品質は未測定です。接続種別や IP リスク情報から通信品質は判断できません。",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("停止"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPNを停止しています…"),
@@ -1712,11 +1727,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("アップロード量"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxyポート"),
     "traffic": MessageLookupByLibrary.simpleMessage("通信量"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("トラフィック統計"),
     "transport": MessageLookupByLibrary.simpleMessage("トランスポート"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN の権限を取得できなかったため、オフにしました。",
@@ -1744,7 +1759,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("アップロード帯域幅"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Hostsを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムのHostsを使用"),
     "usedShort": MessageLookupByLibrary.simpleMessage("使用済み"),
@@ -1788,8 +1803,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "システムに書き込むを有効にするとシステムクロックも設定します。Android では無視されます。",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("はい"),
     "zhCN": MessageLookupByLibrary.simpleMessage("簡体字中国語"),
   };

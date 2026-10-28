@@ -8128,8 +8128,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -8768,6 +8767,71 @@ class AppLocalizations {
     return Intl.message(
       'A newer start/stop request superseded TUN recovery.',
       name: 'networkRecoverySuperseded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP origin`
+  String get statusIpOrigin {
+    return Intl.message(
+      'IP origin',
+      name: 'statusIpOrigin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access`
+  String get statusAccessType {
+    return Intl.message('Access', name: 'statusAccessType', desc: '', args: []);
+  }
+
+  /// `Network quality`
+  String get statusNetworkQuality {
+    return Intl.message(
+      'Network quality',
+      name: 'statusNetworkQuality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No verified native or broadcast IP evidence.`
+  String get statusOriginUnknownReason {
+    return Intl.message(
+      'No verified native or broadcast IP evidence.',
+      name: 'statusOriginUnknownReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network quality has not been measured. Access type and IP risk flags do not establish connection quality.`
+  String get statusQualityUnknownReason {
+    return Intl.message(
+      'Network quality has not been measured. Access type and IP risk flags do not establish connection quality.',
+      name: 'statusQualityUnknownReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access classification from {source}.`
+  String statusAccessSource(Object source) {
+    return Intl.message(
+      'Access classification from $source.',
+      name: 'statusAccessSource',
+      desc: '',
+      args: [source],
+    );
+  }
+
+  /// `Access type is unverified. An absent hosting or mobile flag is not proof of residential access.`
+  String get statusAccessUnverified {
+    return Intl.message(
+      'Access type is unverified. An absent hosting or mobile flag is not proof of residential access.',
+      name: 'statusAccessUnverified',
       desc: '',
       args: [],
     );

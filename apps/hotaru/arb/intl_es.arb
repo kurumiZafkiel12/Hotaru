@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "Pruebas observadas",
   "diagnosticsApplyDoh": "Usar DoH seguro",
   "diagnosticsDohScope": "Activa las opciones DNS de la app con Cloudflare y Google DoH. Revisa después los requisitos DNS especiales de tu perfil.",
-  "networkRecoverySuperseded": "Una nueva orden de inicio o parada sustituyó la recuperación TUN."
+  "networkRecoverySuperseded": "Una nueva orden de inicio o parada sustituyó la recuperación TUN.",
+  "statusIpOrigin": "Origen IP",
+  "statusAccessType": "Acceso",
+  "statusNetworkQuality": "Calidad de red",
+  "statusOriginUnknownReason": "No hay pruebas verificadas de IP nativa o anunciada.",
+  "statusQualityUnknownReason": "No se ha medido la calidad de la red. El tipo de acceso y los indicadores de riesgo de IP no determinan la calidad de conexión.",
+  "statusAccessSource": "Fuente del tipo de acceso: {source}.",
+  "statusAccessUnverified": "El tipo de acceso no está verificado. La ausencia de indicadores de alojamiento o red móvil no demuestra un acceso residencial."
 }

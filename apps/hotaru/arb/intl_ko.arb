@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "관측된 증거",
   "diagnosticsApplyDoh": "보안 DoH 사용",
   "diagnosticsDohScope": "Cloudflare 및 Google DoH로 앱 DNS 덮어쓰기를 켭니다. 프로필에 특별한 도메인 DNS 요구가 있다면 적용 후 확인하세요.",
-  "networkRecoverySuperseded": "새 시작/중지 요청으로 TUN 복구가 대체되었습니다."
+  "networkRecoverySuperseded": "새 시작/중지 요청으로 TUN 복구가 대체되었습니다.",
+  "statusIpOrigin": "IP 속성",
+  "statusAccessType": "접속 유형",
+  "statusNetworkQuality": "네트워크 품질",
+  "statusOriginUnknownReason": "네이티브 또는 브로드캐스트 IP를 입증하는 검증된 근거가 없습니다.",
+  "statusQualityUnknownReason": "네트워크 품질을 아직 측정하지 않았습니다. 접속 유형과 IP 위험 표시는 연결 품질의 근거가 아닙니다.",
+  "statusAccessSource": "접속 유형 출처: {source}.",
+  "statusAccessUnverified": "접속 유형이 검증되지 않았습니다. 호스팅 또는 모바일 표시가 없다는 것만으로 가정용 회선임을 입증할 수 없습니다."
 }

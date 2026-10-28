@@ -27,7 +27,7 @@ Future<IpQuality> ipQuality(Ref ref, String ip) async {
       'read',
       database.ipQualitiesDao.fresh(ip, maxAge),
     );
-    if (record != null) {
+    if (record != null && record.quality.typeIsInferred != null) {
       _expireAt(ref, record.checkedAt.add(maxAge));
       return record.quality;
     }

@@ -151,7 +151,7 @@ final class IpQualityProvider
   }
 }
 
-String _$ipQualityHash() => r'120254d66bea59cae892cd3dcc86ad651c22b3c2';
+String _$ipQualityHash() => r'6b21b510feb60aaa0df998eaa9e90749e3e46ebf';
 
 /// Invalidating skips the stored record and asks the sources again.
 

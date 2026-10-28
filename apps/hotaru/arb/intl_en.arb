@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "Observed evidence",
   "diagnosticsApplyDoh": "Use secure DoH",
   "diagnosticsDohScope": "Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.",
-  "networkRecoverySuperseded": "A newer start/stop request superseded TUN recovery."
+  "networkRecoverySuperseded": "A newer start/stop request superseded TUN recovery.",
+  "statusIpOrigin": "IP origin",
+  "statusAccessType": "Access",
+  "statusNetworkQuality": "Network quality",
+  "statusOriginUnknownReason": "No verified native or broadcast IP evidence.",
+  "statusQualityUnknownReason": "Network quality has not been measured. Access type and IP risk flags do not establish connection quality.",
+  "statusAccessSource": "Access classification from {source}.",
+  "statusAccessUnverified": "Access type is unverified. An absent hosting or mobile flag is not proof of residential access."
 }

@@ -192,17 +192,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}只能是一项";
 
-  static String m80(value) => "峰值 ${value}";
+  static String m80(source) => "接入类型来源：${source}。";
 
-  static String m81(value) => "累计 ${value}";
+  static String m81(value) => "峰值 ${value}";
 
-  static String m82(transport) => "${transport} 请求头";
+  static String m82(value) => "累计 ${value}";
 
-  static String m83(label) => "${label}必须为URL";
+  static String m83(transport) => "${transport} 请求头";
 
-  static String m84(count) => "${count} 年前";
+  static String m84(label) => "${label}必须为URL";
 
   static String m85(count) => "${count} 年前";
+
+  static String m86(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1500,7 +1502,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("正在启动VPN…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("启动与后台"),
     "status": MessageLookupByLibrary.simpleMessage("状态"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("接入类型"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage("关闭 DNS 后将使用系统 DNS。"),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 属性"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("网络质量"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "暂无经过核实的原生或广播 IP 证据。",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "尚未测量网络质量。接入类型与 IP 风险标记不能证明连接质量。",
+    ),
     "stop": MessageLookupByLibrary.simpleMessage("暂停"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("正在停止VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("策略"),
@@ -1547,11 +1562,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("上传总量"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy端口"),
     "traffic": MessageLookupByLibrary.simpleMessage("流量"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
     "transport": MessageLookupByLibrary.simpleMessage("传输协议"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "虚拟网卡授权失败，已关闭。",
@@ -1579,7 +1594,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("上行带宽"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "usedShort": MessageLookupByLibrary.simpleMessage("已用"),
@@ -1621,8 +1636,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "写入系统会同时设置系统时钟，Android 上不生效。",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("是"),
     "zhCN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

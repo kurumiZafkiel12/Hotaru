@@ -350,6 +350,7 @@ _Answer? _quality(
     ip: ip,
     source: source,
     type: type,
+    typeIsInferred: inferred,
     organization: organization,
     asn: asn,
     isProxy: isProxy,

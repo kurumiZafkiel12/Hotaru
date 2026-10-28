@@ -1036,5 +1036,12 @@
   "diagnosticsRawEvidence": "Observations",
   "diagnosticsApplyDoh": "Utiliser un DoH sécurisé",
   "diagnosticsDohScope": "Active les remplacements DNS avec Cloudflare et Google DoH. Vérifiez après application les besoins DNS spécifiques de votre profil.",
-  "networkRecoverySuperseded": "Une nouvelle demande de démarrage ou d’arrêt a remplacé la récupération TUN."
+  "networkRecoverySuperseded": "Une nouvelle demande de démarrage ou d’arrêt a remplacé la récupération TUN.",
+  "statusIpOrigin": "Origine IP",
+  "statusAccessType": "Accès",
+  "statusNetworkQuality": "Qualité réseau",
+  "statusOriginUnknownReason": "Aucune preuve vérifiée sur le caractère natif ou annoncé de l’IP.",
+  "statusQualityUnknownReason": "La qualité réseau n’a pas été mesurée. Le type d’accès et les risques IP ne déterminent pas la qualité de connexion.",
+  "statusAccessSource": "Source du type d’accès : {source}.",
+  "statusAccessUnverified": "Le type d’accès n’est pas vérifié. L’absence d’indicateur d’hébergement ou de réseau mobile ne prouve pas un accès résidentiel."
 }
