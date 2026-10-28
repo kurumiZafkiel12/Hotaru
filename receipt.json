@@ -1,5 +1,5 @@
 {
-  "phase": "published",
+  "phase": "complete",
   "source": "527e08b2543b5cbb1e5e48f48f79731740274bb8",
   "workflow_source": "86f59540139546ed081eddb0af735c68c928ba8f",
   "run": "40699693648",
@@ -10,6 +10,10 @@
       "outputs": {}
     },
     "windows-install": {
+      "result": "success",
+      "outputs": {}
+    },
+    "publish": {
       "result": "success",
       "outputs": {}
     }
@@ -30,6 +34,12 @@
     {
       "id": 122856276170,
       "name": "publish",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122856618832,
+      "name": "status",
       "conclusion": null,
       "status": "in_progress"
     }
