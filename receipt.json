@@ -1,9 +1,30 @@
 {
-  "phase": "building",
+  "phase": "complete",
   "source": "527e08b2543b5cbb1e5e48f48f79731740274bb8",
   "run": "40694805898",
   "url": "https://github.com/kurumiZafkiel12/Hotaru/actions/runs/40694805898",
-  "results": {},
+  "results": {
+    "announce": {
+      "result": "success",
+      "outputs": {}
+    },
+    "prepare": {
+      "result": "success",
+      "outputs": {}
+    },
+    "install": {
+      "result": "success",
+      "outputs": {}
+    },
+    "windows-install": {
+      "result": "failure",
+      "outputs": {}
+    },
+    "publish": {
+      "result": "skipped",
+      "outputs": {}
+    }
+  },
   "jobs": [
     {
       "id": 122838604781,
@@ -14,74 +35,116 @@
     {
       "id": 122838666626,
       "name": "announce",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667327,
       "name": "prepare / Android unit tests",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667410,
       "name": "prepare / Desktop linux",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667450,
       "name": "prepare / Dart",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667512,
       "name": "prepare / Rust",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667515,
       "name": "prepare / Windows helper test",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667532,
       "name": "prepare / Desktop windows",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667534,
       "name": "prepare / Plugins",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667560,
       "name": "prepare / Go core",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667629,
       "name": "prepare / Desktop macos",
-      "conclusion": null,
-      "status": "queued"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667640,
       "name": "prepare / build (android, ubuntu-latest)",
-      "conclusion": null,
-      "status": "in_progress"
+      "conclusion": "success",
+      "status": "completed"
     },
     {
       "id": 122838667759,
       "name": "prepare / build (windows, Windows-2022, amd64)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122849015718,
+      "name": "prepare / upload",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122849734634,
+      "name": "windows-install",
+      "conclusion": "failure",
+      "status": "completed"
+    },
+    {
+      "id": 122849734751,
+      "name": "Android API 24 install",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122849734844,
+      "name": "Android API 29 install",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122849734868,
+      "name": "Android API 35 install",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "id": 122851739018,
+      "name": "status",
       "conclusion": null,
       "status": "in_progress"
+    },
+    {
+      "id": 122851740335,
+      "name": "publish",
+      "conclusion": "skipped",
+      "status": "completed"
     }
   ]
 }
