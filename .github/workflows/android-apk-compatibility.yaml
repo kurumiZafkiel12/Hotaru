@@ -8,6 +8,13 @@ on:
       - 'apps/hotaru/tool/AndroidArchiveProbe.java'
       - 'apps/hotaru/tool/verify_android_install.sh'
       - 'apps/hotaru/android/**'
+      - 'apps/hotaru/lib/**'
+      - 'apps/hotaru/core/**'
+      - 'apps/hotaru/assets/**'
+      - 'apps/hotaru/arb/**'
+      - 'apps/hotaru/plugins/**'
+      - 'apps/hotaru/pubspec.lock'
+      - 'apps/hotaru/setup.dart'
       - 'apps/hotaru/pubspec.yaml'
       - 'apps/hotaru/tool/verify_android_release.py'
   workflow_dispatch:
