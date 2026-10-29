@@ -2,7 +2,7 @@ name: Android APK compatibility
 
 on:
   push:
-    branches: ['codex/v004-android-install-investigation', 'codex/simplify-repo-layout']
+    branches: ['codex/v004-android-install-investigation', 'codex/simplify-repo-layout', 'codex/v005-from-v004']
     paths:
       - '.github/workflows/android-apk-compatibility.yaml'
       - 'apps/hotaru/tool/AndroidArchiveProbe.java'

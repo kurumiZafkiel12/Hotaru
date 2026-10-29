@@ -565,6 +565,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Connections"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Connectivity: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("Responded"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP response received; connectivity only, not service unlock.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Unreachable",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Content"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "Content cannot be empty",
@@ -1007,6 +1014,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Hue"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE candidates"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Unable to determine: no complete, comparable public ICE sample.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "No exit mismatch observed in this ICE sample.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Icon"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("Icon records"),
     "iconSets": MessageLookupByLibrary.simpleMessage("Icon sets"),
@@ -2007,6 +2024,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Toggle"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Tolerance"),
     "tools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Connection & speed",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP diagnostics"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "System maintenance",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Privacy"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("Services & routing"),
     "torch": MessageLookupByLibrary.simpleMessage("Flashlight"),
     "total": MessageLookupByLibrary.simpleMessage("Total"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Downloaded"),

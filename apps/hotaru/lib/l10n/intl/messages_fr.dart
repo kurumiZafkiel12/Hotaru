@@ -611,6 +611,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Connexions"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Connectivité : "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage(
+      "Réponse reçue",
+    ),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "Réponse HTTP reçue. Test de connexion uniquement, sans confirmer le déblocage.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Injoignable",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Contenu"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "Le contenu ne peut pas être vide",
@@ -1075,6 +1084,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Teinte"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host : interface locale ; srflx : STUN ; relay : TURN. Test de la session ICE native Hotaru, pas des navigateurs externes. Aucun audio ni vidéo collecté.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("Candidats ICE"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Conclusion impossible : échantillon ICE public incomplet ou non comparable.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "Aucune différence de sortie observée dans cet échantillon ICE.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Icône"),
     "iconRecords": MessageLookupByLibrary.simpleMessage(
       "Historique des icônes",
@@ -2167,6 +2186,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Basculer"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Tolérance"),
     "tools": MessageLookupByLibrary.simpleMessage("Outils"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Connexion et vitesse",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("Diagnostic IP"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "Maintenance système",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Confidentialité"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage(
+      "Services et routage",
+    ),
     "torch": MessageLookupByLibrary.simpleMessage("Lampe torche"),
     "total": MessageLookupByLibrary.simpleMessage("Total"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Reçu"),

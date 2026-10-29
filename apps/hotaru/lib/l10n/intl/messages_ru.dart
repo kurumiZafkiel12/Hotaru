@@ -587,6 +587,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Соединения"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Подключение: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage(
+      "Ответ получен",
+    ),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "Получен HTTP-ответ. Проверяется соединение, а не разблокировка сервиса.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Недоступен",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Содержимое"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "Содержимое не может быть пустым",
@@ -1047,6 +1056,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Оттенок"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host — локальный адрес; srflx — STUN; relay — TURN. Проверяется нативный ICE Hotaru, а не внешние браузеры. Аудио и видео не собираются.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE-кандидаты"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно полных публичных ICE-данных для сравнения.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "В этом ICE-тесте расхождений выхода не обнаружено.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Значок"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("История значков"),
     "iconSets": MessageLookupByLibrary.simpleMessage("Наборы значков"),
@@ -2107,6 +2126,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Переключить"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Допуск"),
     "tools": MessageLookupByLibrary.simpleMessage("Инструменты"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Соединение и скорость",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("Диагностика IP"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "Обслуживание системы",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Конфиденциальность"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("Сервисы и маршруты"),
     "torch": MessageLookupByLibrary.simpleMessage("Фонарик"),
     "total": MessageLookupByLibrary.simpleMessage("Всего"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Загружено"),

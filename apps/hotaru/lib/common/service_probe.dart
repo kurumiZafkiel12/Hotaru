@@ -118,6 +118,15 @@ enum ServiceTarget {
     _ => 'ai',
   };
 
+  String get connectivityLabel => switch (this) {
+    google => 'Google',
+    youtube => 'YouTube',
+    _ => label,
+  };
+
+  bool get isConnectivityTarget =>
+      const {google, github, youtube, chatgpt}.contains(this);
+
   bool get expectsDirect => const {
     ServiceTarget.deepseek,
     ServiceTarget.kimi,
@@ -252,12 +261,14 @@ Future<Map<ServiceTarget, ServiceCheck>> checkServices(
   String proxyName = '',
   List<ServiceTarget> targets = const [],
   Duration timeout = probeTimeoutDuration,
+  bool connectivity = false,
 }) async {
   final items = await core.serviceCheck(
     ServiceCheckParams(
       proxyName: proxyName,
       names: targets.map((target) => target.id).toList(),
       timeout: timeout.inMilliseconds,
+      connectivity: connectivity,
     ),
   );
   return {

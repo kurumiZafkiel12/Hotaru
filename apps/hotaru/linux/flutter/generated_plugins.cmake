@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links_linux
   file_selector_linux
+  flutter_webrtc
   screen_retriever_linux
   tray
   url_launcher_linux

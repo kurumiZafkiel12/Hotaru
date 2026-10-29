@@ -412,6 +412,7 @@ _ServiceCheckParams _$ServiceCheckParamsFromJson(Map<String, dynamic> json) =>
       timeout: (json['timeout'] as num).toInt(),
       runId: json['run-id'] as String? ?? '',
       cancel: json['cancel'] as bool? ?? false,
+      connectivity: json['connectivity'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
@@ -421,6 +422,7 @@ Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
       'timeout': instance.timeout,
       'run-id': instance.runId,
       'cancel': instance.cancel,
+      'connectivity': instance.connectivity,
     };
 
 _ServiceCheckItem _$ServiceCheckItemFromJson(

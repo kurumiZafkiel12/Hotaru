@@ -5239,7 +5239,7 @@ as List<RouteHit>,
 /// @nodoc
 mixin _$ServiceCheckParams {
 
-@JsonKey(name: 'proxy-name') String get proxyName; List<String> get names; int get timeout;@JsonKey(name: 'run-id') String get runId; bool get cancel;
+@JsonKey(name: 'proxy-name') String get proxyName; List<String> get names; int get timeout;@JsonKey(name: 'run-id') String get runId; bool get cancel; bool get connectivity;
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5253,20 +5253,20 @@ $ServiceCheckParamsCopyWith<ServiceCheckParams> get copyWith => _$ServiceCheckPa
 @override
 bool operator ==(Object other) {
   final _this = this as ServiceCheckParams;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckParams&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName)&&const DeepCollectionEquality().equals(other.names, _this.names)&&(identical(other.timeout, _this.timeout) || other.timeout == _this.timeout)&&(identical(other.runId, _this.runId) || other.runId == _this.runId)&&(identical(other.cancel, _this.cancel) || other.cancel == _this.cancel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServiceCheckParams&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName)&&const DeepCollectionEquality().equals(other.names, _this.names)&&(identical(other.timeout, _this.timeout) || other.timeout == _this.timeout)&&(identical(other.runId, _this.runId) || other.runId == _this.runId)&&(identical(other.cancel, _this.cancel) || other.cancel == _this.cancel)&&(identical(other.connectivity, _this.connectivity) || other.connectivity == _this.connectivity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ServiceCheckParams;
-  return Object.hash(runtimeType,_this.proxyName,const DeepCollectionEquality().hash(_this.names),_this.timeout,_this.runId,_this.cancel);
+  return Object.hash(runtimeType,_this.proxyName,const DeepCollectionEquality().hash(_this.names),_this.timeout,_this.runId,_this.cancel,_this.connectivity);
 }
 
 @override
 String toString() {
   final _this = this as ServiceCheckParams;
-  return 'ServiceCheckParams(proxyName: ${_this.proxyName}, names: ${_this.names}, timeout: ${_this.timeout}, runId: ${_this.runId}, cancel: ${_this.cancel})';
+  return 'ServiceCheckParams(proxyName: ${_this.proxyName}, names: ${_this.names}, timeout: ${_this.timeout}, runId: ${_this.runId}, cancel: ${_this.cancel}, connectivity: ${_this.connectivity})';
 }
 
 
@@ -5277,7 +5277,7 @@ abstract mixin class $ServiceCheckParamsCopyWith<$Res>  {
   factory $ServiceCheckParamsCopyWith(ServiceCheckParams value, $Res Function(ServiceCheckParams) _then) = _$ServiceCheckParamsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel
+@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel, bool connectivity
 });
 
 
@@ -5294,13 +5294,14 @@ class _$ServiceCheckParamsCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,Object? connectivity = null,}) {
   return _then(ServiceCheckParams(
 proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,names: null == names ? _self.names : names // ignore: cast_nullable_to_non_nullable
 as List<String>,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
 as int,runId: null == runId ? _self.runId : runId // ignore: cast_nullable_to_non_nullable
 as String,cancel: null == cancel ? _self.cancel : cancel // ignore: cast_nullable_to_non_nullable
+as bool,connectivity: null == connectivity ? _self.connectivity : connectivity // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -5386,10 +5387,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel,  bool connectivity)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams() when $default != null:
-return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel,_that.connectivity);case _:
   return orElse();
 
 }
@@ -5407,10 +5408,10 @@ return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.canc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel,  bool connectivity)  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams():
-return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel,_that.connectivity);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5427,10 +5428,10 @@ return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.canc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'proxy-name')  String proxyName,  List<String> names,  int timeout, @JsonKey(name: 'run-id')  String runId,  bool cancel,  bool connectivity)?  $default,) {final _that = this;
 switch (_that) {
 case _ServiceCheckParams() when $default != null:
-return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel);case _:
+return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.cancel,_that.connectivity);case _:
   return null;
 
 }
@@ -5442,7 +5443,7 @@ return $default(_that.proxyName,_that.names,_that.timeout,_that.runId,_that.canc
 @JsonSerializable()
 
 class _ServiceCheckParams implements ServiceCheckParams {
-  const _ServiceCheckParams({@JsonKey(name: 'proxy-name') this.proxyName = '',  List<String> names = const [], required this.timeout, @JsonKey(name: 'run-id') this.runId = '', this.cancel = false}): _names = names;
+  const _ServiceCheckParams({@JsonKey(name: 'proxy-name') this.proxyName = '',  List<String> names = const [], required this.timeout, @JsonKey(name: 'run-id') this.runId = '', this.cancel = false, this.connectivity = false}): _names = names;
   factory _ServiceCheckParams.fromJson(Map<String, dynamic> json) => _$ServiceCheckParamsFromJson(json);
 
 @override@JsonKey(name: 'proxy-name') final  String proxyName;
@@ -5456,6 +5457,7 @@ class _ServiceCheckParams implements ServiceCheckParams {
 @override final  int timeout;
 @override@JsonKey(name: 'run-id') final  String runId;
 @override@JsonKey() final  bool cancel;
+@override@JsonKey() final  bool connectivity;
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
@@ -5470,18 +5472,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckParams&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName)&&const DeepCollectionEquality().equals(other.names, _names)&&(identical(other.timeout, timeout) || other.timeout == timeout)&&(identical(other.runId, runId) || other.runId == runId)&&(identical(other.cancel, cancel) || other.cancel == cancel));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServiceCheckParams&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName)&&const DeepCollectionEquality().equals(other.names, _names)&&(identical(other.timeout, timeout) || other.timeout == timeout)&&(identical(other.runId, runId) || other.runId == runId)&&(identical(other.cancel, cancel) || other.cancel == cancel)&&(identical(other.connectivity, connectivity) || other.connectivity == connectivity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,proxyName,const DeepCollectionEquality().hash(_names),timeout,runId,cancel);
+    return Object.hash(runtimeType,proxyName,const DeepCollectionEquality().hash(_names),timeout,runId,cancel,connectivity);
 }
 
 @override
 String toString() {
-    return 'ServiceCheckParams(proxyName: $proxyName, names: $names, timeout: $timeout, runId: $runId, cancel: $cancel)';
+    return 'ServiceCheckParams(proxyName: $proxyName, names: $names, timeout: $timeout, runId: $runId, cancel: $cancel, connectivity: $connectivity)';
 }
 
 
@@ -5492,7 +5494,7 @@ abstract mixin class _$ServiceCheckParamsCopyWith<$Res> implements $ServiceCheck
   factory _$ServiceCheckParamsCopyWith(_ServiceCheckParams value, $Res Function(_ServiceCheckParams) _then) = __$ServiceCheckParamsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel
+@JsonKey(name: 'proxy-name') String proxyName, List<String> names, int timeout,@JsonKey(name: 'run-id') String runId, bool cancel, bool connectivity
 });
 
 
@@ -5509,13 +5511,14 @@ class __$ServiceCheckParamsCopyWithImpl<$Res>
 
 /// Create a copy of ServiceCheckParams
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? proxyName = null,Object? names = null,Object? timeout = null,Object? runId = null,Object? cancel = null,Object? connectivity = null,}) {
   return _then(_ServiceCheckParams(
 proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,names: null == names ? _self._names : names // ignore: cast_nullable_to_non_nullable
 as List<String>,timeout: null == timeout ? _self.timeout : timeout // ignore: cast_nullable_to_non_nullable
 as int,runId: null == runId ? _self.runId : runId // ignore: cast_nullable_to_non_nullable
 as String,cancel: null == cancel ? _self.cancel : cancel // ignore: cast_nullable_to_non_nullable
+as bool,connectivity: null == connectivity ? _self.connectivity : connectivity // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

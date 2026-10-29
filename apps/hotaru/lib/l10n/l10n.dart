@@ -55,6 +55,116 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  /// `No exit mismatch observed in this ICE sample.`
+  String get iceMatching {
+    return Intl.message(
+      'No exit mismatch observed in this ICE sample.',
+      name: 'iceMatching',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to determine: no complete, comparable public ICE sample.`
+  String get iceInconclusive {
+    return Intl.message(
+      'Unable to determine: no complete, comparable public ICE sample.',
+      name: 'iceInconclusive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `ICE candidates`
+  String get iceCandidates {
+    return Intl.message(
+      'ICE candidates',
+      name: 'iceCandidates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.`
+  String get iceCandidateScope {
+    return Intl.message(
+      'host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.',
+      name: 'iceCandidateScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection & speed`
+  String get toolsConnection {
+    return Intl.message(
+      'Connection & speed',
+      name: 'toolsConnection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Services & routing`
+  String get toolsServices {
+    return Intl.message(
+      'Services & routing',
+      name: 'toolsServices',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Privacy`
+  String get toolsPrivacy {
+    return Intl.message('Privacy', name: 'toolsPrivacy', desc: '', args: []);
+  }
+
+  /// `IP diagnostics`
+  String get toolsIp {
+    return Intl.message('IP diagnostics', name: 'toolsIp', desc: '', args: []);
+  }
+
+  /// `System maintenance`
+  String get toolsMaintenance {
+    return Intl.message(
+      'System maintenance',
+      name: 'toolsMaintenance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unreachable`
+  String get connectivityUnreachable {
+    return Intl.message(
+      'Unreachable',
+      name: 'connectivityUnreachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Responded`
+  String get connectivityResponded {
+    return Intl.message(
+      'Responded',
+      name: 'connectivityResponded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HTTP response received; connectivity only, not service unlock.`
+  String get connectivityScope {
+    return Intl.message(
+      'HTTP response received; connectivity only, not service unlock.',
+      name: 'connectivityScope',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Card width`
   String get dashboardCardWidth {
     return Intl.message(

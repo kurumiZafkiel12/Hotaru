@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/ui/icons/icons.dart';
+import 'package:hotaru/ui/speed_dial.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -494,11 +495,11 @@ class _SpeedGauge extends StatelessWidget {
               ),
               builder: (context, value, _) => CustomPaint(
                 size: const Size.square(_size),
-                painter: _GaugePainter(
+                painter: SpeedDialPainter(
                   fraction: value,
                   trackColor: context.raisedSurfaceLevel.colorOf(colorScheme),
                   valueColor: colorScheme.primary,
-                  glowColor: const Color(0xff76c8d5),
+                  glowColor: colorScheme.tertiary,
                 ),
               ),
             ),
@@ -525,139 +526,56 @@ class _SpeedGauge extends StatelessWidget {
                   ),
                 ),
               ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  formatSpeedValue(bps),
-                  style: AppTextStyle.largeTitle
-                      .of(context, emphasized: true)
-                      .toJetBrainsMono,
-                ),
-                Text(
-                  formatSpeedUnit(bps),
-                  style: AppTextStyle.subheadline
-                      .of(context)
-                      .copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 8),
-                DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: colorScheme.primary.withValues(
-                      alpha: active ? 0.16 : 0.08,
-                    ),
-                    shape: AppShape.full,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 40,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    formatSpeedValue(bps),
+                    style: AppTextStyle.largeTitle
+                        .of(context, emphasized: true)
+                        .toJetBrainsMono,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                  Text(
+                    formatSpeedUnit(bps),
+                    style: AppTextStyle.subheadline
+                        .of(context)
+                        .copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 8),
+                  DecoratedBox(
+                    decoration: ShapeDecoration(
+                      color: colorScheme.primary.withValues(
+                        alpha: active ? 0.16 : 0.08,
+                      ),
+                      shape: AppShape.full,
                     ),
-                    child: Text(
-                      phaseLabel,
-                      style: AppTextStyle.footnote
-                          .of(context)
-                          .copyWith(
-                            color: active
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        phaseLabel,
+                        style: AppTextStyle.footnote
+                            .of(context)
+                            .copyWith(
+                              color: active
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class _GaugePainter extends CustomPainter {
-  const _GaugePainter({
-    required this.fraction,
-    required this.trackColor,
-    required this.valueColor,
-    required this.glowColor,
-  });
-
-  final double fraction;
-  final Color trackColor;
-  final Color valueColor;
-  final Color glowColor;
-
-  static const _startAngle = math.pi * 0.75;
-  static const _sweepAngle = math.pi * 1.5;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 2.5;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 26;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    final ticks = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i <= 24; i++) {
-      final angle = _startAngle + _sweepAngle * i / 24;
-      final major = i % 6 == 0;
-      final outer = size.width / 2 - 2;
-      final inner = outer - (major ? 7 : 3);
-      canvas.drawLine(
-        center + Offset(math.cos(angle), math.sin(angle)) * inner,
-        center + Offset(math.cos(angle), math.sin(angle)) * outer,
-        ticks,
-      );
-    }
-    final track = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(rect, _startAngle, _sweepAngle, false, track);
-    canvas.drawArc(
-      rect.deflate(8),
-      _startAngle,
-      _sweepAngle,
-      false,
-      track..color = trackColor.withValues(alpha: 0.5),
-    );
-    if (fraction > 0) {
-      final glow = Paint()
-        ..color = valueColor.withValues(alpha: 0.15)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth + 3
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-      canvas.drawArc(rect, _startAngle, _sweepAngle * fraction, false, glow);
-      final value = Paint()
-        ..shader = SweepGradient(
-          startAngle: _startAngle,
-          endAngle: _startAngle + _sweepAngle,
-          colors: [valueColor.withValues(alpha: 0.45), valueColor, glowColor],
-          stops: const [0, 0.55, 1],
-        ).createShader(rect)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-      canvas.drawArc(rect, _startAngle, _sweepAngle * fraction, false, value);
-      final endAngle = _startAngle + _sweepAngle * fraction;
-      canvas.drawCircle(
-        center + Offset(math.cos(endAngle), math.sin(endAngle)) * radius,
-        3,
-        Paint()..color = glowColor,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GaugePainter oldDelegate) {
-    return fraction != oldDelegate.fraction ||
-        trackColor != oldDelegate.trackColor ||
-        valueColor != oldDelegate.valueColor ||
-        glowColor != oldDelegate.glowColor;
   }
 }

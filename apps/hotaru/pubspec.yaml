@@ -75,6 +75,7 @@ dependencies:
   setup:
     path: plugins/setup
   qr: ^4.0.0
+  flutter_webrtc: 1.6.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

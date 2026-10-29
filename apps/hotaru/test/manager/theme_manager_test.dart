@@ -33,38 +33,77 @@ void main() {
     expect(scaled, closeTo(13, 1e-9));
   });
 
-  testWidgets('settings the fixed theme ignores keep the same theme', (
+  testWidgets('a changed custom font scale applies without restarting', (
     tester,
   ) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    final themes = <ThemeData>[];
+    double? scaled;
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: Consumer(
-          builder: (_, ref, _) {
-            ref.watch(themeSettingProvider);
-            themes.add(watchAppTheme(ref, Brightness.dark));
-            return const SizedBox.shrink();
-          },
+        child: MaterialApp(
+          home: ThemeManager(
+            child: Builder(
+              builder: (context) {
+                scaled = MediaQuery.textScalerOf(context).scale(10);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
         ),
       ),
     );
-    void update(ThemeProps Function(ThemeProps props) change) {
-      final notifier = container.read(themeSettingProvider.notifier);
-      notifier.value = change(notifier.value);
-    }
-
-    update((props) => props.copyWith(sidebarBlur: !props.sidebarBlur));
+    container
+        .read(themeSettingProvider.notifier)
+        .update(
+          (state) => state.copyWith(
+            textScale: const TextScale(enable: true, scale: 1.4),
+          ),
+        );
     await tester.pump();
-    update((props) => props.copyWith(pureBlack: !props.pureBlack));
-    await tester.pump();
-
-    expect(themes, hasLength(3));
-    expect(themes[1], same(themes[0]));
-    // The fixed Hotaru palette ignores pure black too, so its toggle
-    // also keeps the cached theme instead of producing a new one.
-    expect(themes[2], same(themes[1]));
+    expect(scaled, 14);
   });
+
+  testWidgets(
+    'appearance settings update colors while unrelated settings keep the cache',
+    (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final themes = <ThemeData>[];
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: Consumer(
+            builder: (_, ref, _) {
+              ref.watch(themeSettingProvider);
+              themes.add(watchAppTheme(ref, Brightness.dark));
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      void update(ThemeProps Function(ThemeProps props) change) {
+        final notifier = container.read(themeSettingProvider.notifier);
+        notifier.value = change(notifier.value);
+      }
+
+      update((props) => props.copyWith(sidebarBlur: !props.sidebarBlur));
+      await tester.pump();
+      update((props) => props.copyWith(pureBlack: !props.pureBlack));
+      await tester.pump();
+
+      expect(themes, hasLength(3));
+      expect(themes[1], same(themes[0]));
+      expect(themes[2], isNot(same(themes[1])));
+      expect(themes[2].colorScheme.surface, Colors.black);
+      update((props) => props.copyWith(primaryColor: 0xff3366ff));
+      await tester.pump();
+      expect(
+        themes.last.colorScheme.primary,
+        isNot(themes[2].colorScheme.primary),
+      );
+      expect(themes.last.colorScheme.surface, Colors.black);
+    },
+  );
 }

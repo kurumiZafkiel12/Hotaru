@@ -475,6 +475,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("接続"),
     "connectivity": MessageLookupByLibrary.simpleMessage("接続状態："),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("応答あり"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP 応答あり。接続確認のみで、地域制限の解除を示しません。",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage("到達不可"),
     "content": MessageLookupByLibrary.simpleMessage("内容"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage("内容は空にできません"),
     "controlGlobalAddedRules": MessageLookupByLibrary.simpleMessage(
@@ -845,6 +850,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("色相"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host はローカル、srflx は STUN、relay は TURN。Hotaru のネイティブ ICE のみを検査し、外部ブラウザーを対象にしません。音声・映像は取得しません。",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE 候補"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "判定不可：比較できる完全な公開 ICE サンプルがありません。",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "今回の ICE サンプルでは出口の不一致はありません。",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("アイコン"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("アイコン履歴"),
     "iconSets": MessageLookupByLibrary.simpleMessage("アイコンセット"),
@@ -1721,6 +1736,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("切り替え"),
     "tolerance": MessageLookupByLibrary.simpleMessage("許容値"),
     "tools": MessageLookupByLibrary.simpleMessage("ツール"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage("接続と速度"),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP 診断"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage("システム保守"),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("プライバシー"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("サービスとルーティング"),
     "torch": MessageLookupByLibrary.simpleMessage("ライト"),
     "total": MessageLookupByLibrary.simpleMessage("合計"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("ダウンロード量"),

@@ -20,47 +20,21 @@ import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
 
-String _statusLabel(BuildContext context, ServiceProbeStatus status) {
-  final localizations = context.appLocalizations;
-  return switch (status) {
-    ServiceProbeStatus.available => localizations.serviceAvailable,
-    ServiceProbeStatus.restricted => localizations.serviceRestricted,
-    ServiceProbeStatus.unavailable => localizations.serviceUnavailable,
-    ServiceProbeStatus.disallowedIsp => localizations.serviceDisallowedIsp,
-    ServiceProbeStatus.blocked => localizations.serviceBlocked,
-    ServiceProbeStatus.unsupportedRegion =>
-      localizations.serviceUnsupportedRegion,
-    ServiceProbeStatus.originalsOnly => localizations.serviceOriginalsOnly,
-    ServiceProbeStatus.comingSoon => localizations.serviceComingSoon,
-    ServiceProbeStatus.timeout => localizations.timeout,
-    ServiceProbeStatus.failed => localizations.serviceFailed,
-    ServiceProbeStatus.reachable => localizations.auditReachable,
-    ServiceProbeStatus.authenticationRequired =>
-      localizations.auditAuthentication,
-    ServiceProbeStatus.challenge => localizations.auditChallenge,
-    ServiceProbeStatus.inconclusive => localizations.auditInconclusive,
-  };
-}
+String _statusLabel(BuildContext context, ServiceProbeStatus status) =>
+    switch (status) {
+      ServiceProbeStatus.timeout => context.appLocalizations.timeout,
+      ServiceProbeStatus.failed || ServiceProbeStatus.unavailable =>
+        context.appLocalizations.connectivityUnreachable,
+      _ => context.appLocalizations.connectivityResponded,
+    };
 
-Color _statusColor(BuildContext context, ServiceProbeStatus status) {
-  final colorScheme = context.colorScheme;
-  return switch (status) {
-    ServiceProbeStatus.available => colorScheme.success,
-    ServiceProbeStatus.reachable => colorScheme.onSurfaceVariant,
-    ServiceProbeStatus.authenticationRequired ||
-    ServiceProbeStatus.challenge ||
-    ServiceProbeStatus.inconclusive => colorScheme.warning,
-    ServiceProbeStatus.restricted ||
-    ServiceProbeStatus.disallowedIsp ||
-    ServiceProbeStatus.blocked ||
-    ServiceProbeStatus.unsupportedRegion ||
-    ServiceProbeStatus.originalsOnly ||
-    ServiceProbeStatus.comingSoon => colorScheme.warning,
-    ServiceProbeStatus.unavailable ||
-    ServiceProbeStatus.timeout ||
-    ServiceProbeStatus.failed => colorScheme.error,
-  };
-}
+Color _statusColor(BuildContext context, ServiceProbeStatus status) =>
+    switch (status) {
+      ServiceProbeStatus.timeout ||
+      ServiceProbeStatus.failed ||
+      ServiceProbeStatus.unavailable => context.colorScheme.error,
+      _ => context.colorScheme.success,
+    };
 
 (String, Color) _statusOf(
   BuildContext context,
@@ -100,17 +74,24 @@ class _ServiceView {
   bool get loading => phase == ProbePhase.probing && check == null;
 
   bool get abnormal => switch (check) {
-    final check? => check.status != ServiceProbeStatus.available,
+    final check? =>
+      check.delay == null ||
+          check.status == ServiceProbeStatus.timeout ||
+          check.status == ServiceProbeStatus.failed,
     null => phase == ProbePhase.failed,
   };
 
   (String, Color) statusOf(BuildContext context) => switch (check) {
-    ServiceCheck(status: ServiceProbeStatus.available, :final delay) => (
-      delay != null
-          ? '$delay ms'
-          : _statusLabel(context, ServiceProbeStatus.available),
-      context.colorScheme.onSurfaceVariant,
-    ),
+    ServiceCheck(:final status, :final delay)
+        when status != ServiceProbeStatus.timeout &&
+            status != ServiceProbeStatus.failed &&
+            status != ServiceProbeStatus.unavailable =>
+      (
+        delay != null
+            ? '$delay ms'
+            : _statusLabel(context, ServiceProbeStatus.available),
+        context.colorScheme.onSurfaceVariant,
+      ),
     final ServiceCheck check => (
       _statusLabel(context, check.status),
       _statusColor(context, check.status),
@@ -308,11 +289,11 @@ class _CompactServiceRow extends StatelessWidget {
         .toTabular
         .copyWith(color: color);
     return Semantics(
-      label: service.target.label,
+      label: service.target.connectivityLabel,
       value: label,
       liveRegion: true,
       child: Tooltip(
-        message: '${service.target.label}\n$label',
+        message: '${service.target.connectivityLabel}\n$label',
         excludeFromSemantics: true,
         child: ExcludeSemantics(
           child: Row(
@@ -325,7 +306,7 @@ class _CompactServiceRow extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  service.target.label,
+                  service.target.connectivityLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: DashboardText.label(context),
@@ -452,11 +433,11 @@ class _ServiceCell extends StatelessWidget {
             ),
     );
     return Semantics(
-      label: service.target.label,
+      label: service.target.connectivityLabel,
       value: label,
       liveRegion: true,
       child: Tooltip(
-        message: '${service.target.label}\n$label',
+        message: '${service.target.connectivityLabel}\n$label',
         excludeFromSemantics: true,
         child: tile
             ? DashboardBlock(
@@ -668,7 +649,7 @@ class _ServiceBadge extends StatelessWidget {
         child: Center(
           child: target.icon.isEmpty
               ? Text(
-                  target.label.substring(0, 1),
+                  target.connectivityLabel.substring(0, 1),
                   style: AppTextStyle.title3
                       .of(context, emphasized: true)
                       .copyWith(color: ink ?? colorScheme.onSurfaceVariant),
@@ -746,7 +727,10 @@ class _BadgePainter extends CustomPainter {
 Future<void> showServiceStatusSheet(BuildContext context) {
   return showSheet<void>(
     context: context,
-    props: nestedPagedSheetProps,
+    props: SheetProps(
+      backgroundColor: Colors.transparent,
+      detents: [snapSheetDetents.first],
+    ),
     builder: (_) =>
         NestedPagedSheet(builder: (_) => const ServiceStatusSheet()),
   );
@@ -926,7 +910,7 @@ class _ServiceManageItem extends StatelessWidget {
               enabled: enabled,
             ),
             title: Text(
-              target.label,
+              target.connectivityLabel,
               style: enabled
                   ? null
                   : TextStyle(color: context.colorScheme.onSurfaceVariant),
@@ -990,7 +974,11 @@ class _ServiceRowState extends ConsumerState<_ServiceRow>
               ? context.colorScheme.onSurfaceVariant
               : service.dotOf(context),
         ),
-        title: Text(target.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          target.connectivityLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         // A one-line tile is shorter than a two-line one, so the line is always
         // there and a check does not resize the row.
         subtitle: loading

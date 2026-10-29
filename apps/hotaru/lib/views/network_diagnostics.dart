@@ -8,6 +8,7 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/ip_quality.dart';
 import 'package:hotaru/common/dns_leak.dart';
 import 'package:hotaru/common/network_diagnostics.dart';
+import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/service_probe.dart';
 import 'package:hotaru/features/ip_quality/ip_quality_sheet.dart';
 import 'package:hotaru/models/models.dart';
@@ -38,7 +39,8 @@ class _NetworkDiagnosticsViewState
   String? _ip;
   bool _risk = false;
   bool _recoverySuperseded = false;
-  StunProbe? _stun;
+  IceProbe? _ice;
+  IceProbeResult? _iceResult;
   CancelToken? _httpCancel;
   CancelToken? _qualityCancel;
 
@@ -90,7 +92,7 @@ class _NetworkDiagnosticsViewState
   @override
   void dispose() {
     _generation++;
-    _stun?.cancel();
+    unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
     super.dispose();
@@ -98,7 +100,7 @@ class _NetworkDiagnosticsViewState
 
   void _cancel() {
     _generation++;
-    _stun?.cancel();
+    unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
     setState(() => _running = false);
@@ -125,6 +127,7 @@ class _NetworkDiagnosticsViewState
       _risk = false;
       _recoverySuperseded = false;
       _ip = null;
+      _iceResult = null;
       _evidence.clear();
     });
     bool current() => mounted && generation == _generation;
@@ -243,46 +246,28 @@ class _NetworkDiagnosticsViewState
   Future<void> _checkStun(bool Function() current) async {
     final outbound = await _outbound(current);
     if (!current()) return;
-    var answers = 0;
-    for (final (host, port) in const [
-      ('stun.l.google.com', 19302),
-      ('stun.cloudflare.com', 3478),
-    ]) {
-      final probe = StunProbe();
-      _stun = probe;
-      try {
-        final answer = await probe.run(host, port);
-        if (!current()) return;
-        _evidence.add('$host:$port ➜ $answer');
-        final exitAddress = InternetAddress.tryParse(outbound.ip);
-        if (isPublicProbeAddress(answer.address) &&
-            exitAddress != null &&
-            answer.address.type == exitAddress.type) {
-          answers++;
-          _risk |= answer.address.address != exitAddress.address;
-        }
-      } catch (error) {
-        if (!current()) return;
-        _evidence.add('$host:$port · ${compactError(error)}');
-      } finally {
-        probe.cancel();
+    final probe = _ice = IceProbe();
+    final result = await probe.run();
+    if (!current()) return;
+    final verdict = result.verdict([outbound.ip]);
+    setState(() {
+      _iceResult = result;
+      _risk = verdict == IceVerdict.risk;
+      _notice = switch (verdict) {
+        IceVerdict.matching => context.appLocalizations.iceMatching,
+        IceVerdict.risk => context.appLocalizations.webrtcLeakRisk,
+        IceVerdict.inconclusive => context.appLocalizations.iceInconclusive,
+      };
+      _evidence.add(
+        'ICE · ${DateTime.now().toIso8601String()} · ${result.completed}',
+      );
+      if (result.error != null) _evidence.add('ICE: ${result.error}');
+      for (final candidate in result.candidates) {
+        _evidence.add(
+          '${candidate.kind} · ${candidate.protocol} · ${candidate.address}:${candidate.port}',
+        );
       }
-    }
-    if (!current()) return;
-    final interfaces = await NetworkInterface.list(includeLinkLocal: true);
-    if (!current()) return;
-    _evidence.addAll([
-      for (final interface in interfaces)
-        for (final address in interface.addresses)
-          '${interface.name}: ${address.address}',
-    ]);
-    setState(
-      () => _notice = answers == 0
-          ? context.appLocalizations.auditInconclusive
-          : _risk
-          ? context.appLocalizations.webrtcLeakRisk
-          : context.appLocalizations.webrtcLeakMatch,
-    );
+    });
   }
 
   Future<void> _portrait(bool Function() current) async {
@@ -491,6 +476,32 @@ class _NetworkDiagnosticsViewState
                     .copyWith(
                       color: _risk ? context.colorScheme.warning : null,
                     ),
+              ),
+            ),
+          if (_iceResult case final result?)
+            CommonCard(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Text(
+                    l10n.iceCandidates,
+                    style: AppTextStyle.subheadline.of(
+                      context,
+                      emphasized: true,
+                    ),
+                  ),
+                  Text(
+                    l10n.iceCandidateScope,
+                    style: AppTextStyle.footnote.of(context),
+                  ),
+                  for (final candidate in result.candidates)
+                    Text(
+                      '${candidate.kind} · ${candidate.protocol} · ${candidate.address}',
+                      style: AppTextStyle.footnote.of(context).toJetBrainsMono,
+                    ),
+                ],
               ),
             ),
           if (_evidence.isNotEmpty)

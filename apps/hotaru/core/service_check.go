@@ -46,11 +46,12 @@ const (
 
 // An empty Names runs every check.
 type ServiceCheckParams struct {
-	ProxyName string   `json:"proxy-name"`
-	Names     []string `json:"names"`
-	Timeout   int64    `json:"timeout"`
-	RunID     string   `json:"run-id"`
-	Cancel    bool     `json:"cancel"`
+	ProxyName    string   `json:"proxy-name"`
+	Names        []string `json:"names"`
+	Timeout      int64    `json:"timeout"`
+	RunID        string   `json:"run-id"`
+	Cancel       bool     `json:"cancel"`
+	Connectivity bool     `json:"connectivity"`
 }
 
 // runServiceCheck stamps Name; a blank Status means a rule has yet to judge it.
@@ -183,8 +184,9 @@ func (e serviceEnv) send(req probeRequest) *ProbeResult {
 }
 
 type serviceChecker struct {
-	name  string
-	check func(serviceEnv) ServiceCheckItem
+	name     string
+	claimKey string
+	check    func(serviceEnv) ServiceCheckItem
 }
 
 var serviceCheckers = []serviceChecker{
@@ -211,6 +213,9 @@ func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
 	parent, releaseRun := acquireServiceRun(params.RunID)
 	defer releaseRun()
 	wanted := selectedCheckers(params.Names)
+	if params.Connectivity {
+		wanted = connectivityCheckers(params.Names)
+	}
 	items := make([]ServiceCheckItem, len(wanted))
 	if len(wanted) == 0 {
 		return items
@@ -278,7 +283,11 @@ func claimServices(parent context.Context, checkers []serviceChecker) ([]context
 		ctx, ok := claimed[checker.name]
 		if !ok {
 			var release func()
-			ctx, release = claimService(parent, checker.name)
+			key := checker.claimKey
+			if key == "" {
+				key = checker.name
+			}
+			ctx, release = claimService(parent, key)
 			claimed[checker.name] = ctx
 			releases = append(releases, release)
 		}
@@ -313,6 +322,40 @@ func claimService(parent context.Context, name string) (context.Context, func())
 func hasBudget(ctx context.Context, timeout time.Duration) bool {
 	deadline, ok := ctx.Deadline()
 	return !ok || time.Until(deadline) >= timeout
+}
+
+func connectivityCheckers(names []string) []serviceChecker {
+	endpoints := map[string]string{
+		"google":  "https://www.google.com/generate_204",
+		"github":  "https://github.com/",
+		"youtube": "https://www.youtube.com/generate_204",
+		"chatgpt": "https://chatgpt.com/",
+	}
+	if len(names) == 0 {
+		names = []string{"google", "github", "youtube", "chatgpt"}
+	}
+	result := make([]serviceChecker, 0, len(names))
+	for _, name := range names {
+		if url, ok := endpoints[name]; ok {
+			result = append(result, serviceChecker{name: name, claimKey: "connectivity/" + name, check: checkConnectivity(url)})
+		}
+	}
+	return result
+}
+
+func checkConnectivity(url string) func(serviceEnv) ServiceCheckItem {
+	return func(env serviceEnv) ServiceCheckItem {
+		response := env.get(url, 0)
+		item := itemFrom(response)
+		if item.Status == "" {
+			if response.StatusCode >= 100 && response.StatusCode <= 599 {
+				item.Status = serviceReachable
+			} else {
+				item.Status = serviceFailed
+			}
+		}
+		return item
+	}
 }
 
 func selectedCheckers(names []string) []serviceChecker {

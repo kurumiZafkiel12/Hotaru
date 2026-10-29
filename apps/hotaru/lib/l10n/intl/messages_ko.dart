@@ -462,6 +462,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("연결"),
     "connectivity": MessageLookupByLibrary.simpleMessage("연결 상태: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("응답 수신"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP 응답을 받았습니다. 연결만 확인하며 서비스 잠금 해제를 의미하지 않습니다.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage("연결 불가"),
     "content": MessageLookupByLibrary.simpleMessage("내용"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage("내용을 입력하세요"),
     "controlGlobalAddedRules": MessageLookupByLibrary.simpleMessage(
@@ -832,6 +837,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("색조"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host: 로컬 인터페이스, srflx: STUN 주소, relay: TURN 중계. Hotaru 네이티브 ICE만 검사하며 외부 브라우저에는 적용되지 않습니다. 음성이나 영상은 수집하지 않습니다.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE 후보 주소"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "판단 불가: 비교 가능한 완전한 공인 ICE 표본이 없습니다.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "이번 ICE 표본에서 출구 불일치가 발견되지 않았습니다.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("아이콘"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("아이콘 기록"),
     "iconSets": MessageLookupByLibrary.simpleMessage("아이콘 세트"),
@@ -1694,6 +1709,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("전환"),
     "tolerance": MessageLookupByLibrary.simpleMessage("허용 오차"),
     "tools": MessageLookupByLibrary.simpleMessage("도구"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage("연결 및 속도"),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP 진단"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage("시스템 유지관리"),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("개인정보 보호"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("서비스 및 라우팅"),
     "torch": MessageLookupByLibrary.simpleMessage("손전등"),
     "total": MessageLookupByLibrary.simpleMessage("합계"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("다운로드량"),

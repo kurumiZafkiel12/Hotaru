@@ -27,7 +27,40 @@ enum ColorStyle {
   };
 }
 
-ColorScheme hotaruColorScheme(Brightness brightness) {
+ColorScheme hotaruColorScheme(
+  Brightness brightness, {
+  Color? accent,
+  ColorStyle style = ColorStyle.vivid,
+  bool pureBlack = false,
+}) {
+  final base = _hotaruBase(brightness);
+  final colors = accent == null
+      ? base
+      : seededColorScheme(
+          seedColor: accent,
+          brightness: brightness,
+          style: style,
+        );
+  return base
+      .copyWith(
+        primary: colors.primary,
+        onPrimary: colors.onPrimary,
+        primaryContainer: colors.primaryContainer,
+        onPrimaryContainer: colors.onPrimaryContainer,
+        surfaceTint: colors.primary,
+        secondary: colors.secondary,
+        onSecondary: colors.onSecondary,
+        secondaryContainer: colors.secondaryContainer,
+        onSecondaryContainer: colors.onSecondaryContainer,
+        tertiary: colors.tertiary,
+        onTertiary: colors.onTertiary,
+        tertiaryContainer: colors.tertiaryContainer,
+        onTertiaryContainer: colors.onTertiaryContainer,
+      )
+      .toPureBlack(pureBlack);
+}
+
+ColorScheme _hotaruBase(Brightness brightness) {
   if (brightness == Brightness.dark) {
     return const ColorScheme.dark(
       primary: Color(0xff75cba7),

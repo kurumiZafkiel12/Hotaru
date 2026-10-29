@@ -614,6 +614,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Conexiones"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Conectividad: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage(
+      "Respuesta recibida",
+    ),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "Respuesta HTTP recibida. Solo conectividad, no desbloqueo del servicio.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Inaccesible",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Contenido"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "El contenido no puede estar vacío",
@@ -1080,6 +1089,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Tono"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host: interfaz local; srflx: STUN; relay: TURN. Solo prueba ICE nativo de Hotaru, no navegadores externos. No se captura audio ni vídeo.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("Candidatos ICE"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "No se puede determinar: faltan muestras ICE públicas completas y comparables.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "Sin diferencias de salida observadas en esta muestra ICE.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Icono"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("Registros de iconos"),
     "iconSets": MessageLookupByLibrary.simpleMessage("Conjuntos de iconos"),
@@ -2170,6 +2189,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Alternar"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Tolerancia"),
     "tools": MessageLookupByLibrary.simpleMessage("Herramientas"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Conexión y velocidad",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("Diagnóstico IP"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "Mantenimiento del sistema",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Privacidad"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("Servicios y rutas"),
     "torch": MessageLookupByLibrary.simpleMessage("Linterna"),
     "total": MessageLookupByLibrary.simpleMessage("Total"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Descargado"),

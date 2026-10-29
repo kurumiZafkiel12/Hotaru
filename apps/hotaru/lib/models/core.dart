@@ -296,6 +296,7 @@ abstract class ServiceCheckParams with _$ServiceCheckParams {
     required int timeout,
     @JsonKey(name: 'run-id') @Default('') String runId,
     @Default(false) bool cancel,
+    @Default(false) bool connectivity,
   }) = _ServiceCheckParams;
 
   factory ServiceCheckParams.fromJson(Map<String, Object?> json) =>
