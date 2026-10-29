@@ -848,7 +848,7 @@ void main() {
       expect(theme.brightness, Brightness.dark);
       expect(
         theme.colorScheme.surface,
-        hotaruColorScheme(Brightness.dark).surface,
+        hotaruColorScheme(Brightness.dark, pureBlack: true).surface,
       );
       expect(theme.extension<ElevatedColorScheme>(), isNotNull);
       expect(theme.textTheme.bodyMedium!.fontFamily, 'Inter');

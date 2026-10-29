@@ -750,23 +750,26 @@ void main() {
     );
   });
 
-  test('the fixed scheme survives invalidation and ignores color style', () {
-    final provider = genColorSchemeProvider(
-      Brightness.dark,
-      color: Colors.teal,
-    );
-    final first = container.read(provider);
-    container.invalidate(provider);
+  test(
+    'the scheme preserves values on invalidation and applies color style',
+    () {
+      final provider = genColorSchemeProvider(
+        Brightness.dark,
+        color: Colors.teal,
+      );
+      final first = container.read(provider);
+      container.invalidate(provider);
 
-    expect(container.read(provider), same(first));
+      expect(container.read(provider), first);
 
-    // The fixed Hotaru palette ignores color style, so changing it
-    // keeps the same scheme instead of producing a new one.
-    container
-        .read(themeSettingProvider.notifier)
-        .update((state) => state.copyWith(colorStyle: ColorStyle.soft));
-    expect(container.read(provider), same(first));
-  });
+      container
+          .read(themeSettingProvider.notifier)
+          .update((state) => state.copyWith(colorStyle: ColorStyle.soft));
+      final soft = container.read(provider);
+      expect(soft.primary, isNot(first.primary));
+      expect(soft.surface, first.surface);
+    },
+  );
 
   test('hotkey, profile, and extend providers expose defaults', () {
     const action = HotKeyAction(
