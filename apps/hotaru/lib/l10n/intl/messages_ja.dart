@@ -1199,6 +1199,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IPを解決しない"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("ホスト名を解決しない"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("一致する結果はありません"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("全ノードを検査"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("位置の証拠"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage("コアを起動して一覧を更新してください。"),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage("入口サーバー・システム DNS"),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoJS の GeoIP 推定位置です。住所ではありません。地図：Natural Earth（パブリックドメイン）。",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "全ノードを読み、指定ノード経由の出口を検査します。入口 DNS と観測出口は別表示。15 分間キャッシュします。",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("ノード・IP・場所を検索"),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("情報源"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("ノードの位置・地球"),
     "nodes": MessageLookupByLibrary.simpleMessage("ノード"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "この外部リソースはテキストファイルではありません",

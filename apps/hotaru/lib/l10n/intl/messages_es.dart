@@ -1515,6 +1515,31 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No hay resultados",
     ),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage(
+      "Probar todos los nodos",
+    ),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage(
+      "Datos de ubicación",
+    ),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Inicie el núcleo y actualice la lista.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Servidor de entrada · DNS del sistema",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "Ubicaciones GeoIP estimadas por GeoJS, no direcciones. Mapa: Natural Earth, dominio público.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Prueba la salida a través de cada nodo. Separa el DNS de entrada y la IP de salida observada. Caché de 15 minutos.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Buscar nodo, IP o lugar",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Fuente"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Ubicación de nodos · globo",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodos"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Este recurso externo no es un archivo de texto",

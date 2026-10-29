@@ -1182,6 +1182,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IP 확인 안 함"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("호스트 이름 확인 안 함"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("일치하는 결과 없음"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("모든 노드 검사"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("위치 근거"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "코어를 시작하고 목록을 새로 고치세요.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage("입구 서버 · 시스템 DNS"),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoJS의 GeoIP 추정 위치이며 실제 주소가 아닙니다. 지도: Natural Earth, 퍼블릭 도메인.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "각 지정 노드를 통한 출구를 검사합니다. 시스템 DNS의 입구 주소와 관측 출구 IP를 구분합니다. 15분간 캐시합니다.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("노드, IP 또는 장소 검색"),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("출처"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("노드 위치 · 지구본"),
     "nodes": MessageLookupByLibrary.simpleMessage("노드"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "이 외부 리소스는 텍스트 파일이 아닙니다",

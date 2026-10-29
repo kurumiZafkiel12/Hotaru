@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "节点位置 · 地球",
+  "nodeGeoScope": "读取全部节点，再经指定节点探测出口。系统解析的入口地址与实测出口分别展示，结果缓存 15 分钟。",
+  "nodeGeoCheckAll": "检测全部节点",
+  "nodeGeoSearch": "搜索节点、IP 或地点",
+  "nodeGeoEmpty": "请启动核心并刷新节点列表。",
+  "nodeGeoEstimate": "GeoJS 提供 GeoIP 估计位置，并非实际门牌。底图为公共领域 Natural Earth。",
+  "nodeGeoEntry": "入口主机 · 系统解析",
+  "nodeGeoSource": "位置来源",
+  "nodeGeoDetails": "位置证据",
   "diagnosticsConclusion": "综合结论",
   "diagnosticsNoMismatch": "本次采样未发现不一致",
   "diagnosticsRisk": "存在风险",

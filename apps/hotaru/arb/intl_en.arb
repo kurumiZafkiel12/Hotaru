@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "Node locations · globe",
+  "nodeGeoScope": "Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.",
+  "nodeGeoCheckAll": "Test all nodes",
+  "nodeGeoSearch": "Search node, IP or place",
+  "nodeGeoEmpty": "Start the core and refresh the node list.",
+  "nodeGeoEstimate": "GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.",
+  "nodeGeoEntry": "Entry server · system DNS",
+  "nodeGeoSource": "Source",
+  "nodeGeoDetails": "Location evidence",
   "diagnosticsConclusion": "Conclusion",
   "diagnosticsNoMismatch": "No mismatch in this sample",
   "diagnosticsRisk": "Potential risk",

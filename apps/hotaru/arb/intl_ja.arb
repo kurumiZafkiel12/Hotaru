@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "ノードの位置・地球",
+  "nodeGeoScope": "全ノードを読み、指定ノード経由の出口を検査します。入口 DNS と観測出口は別表示。15 分間キャッシュします。",
+  "nodeGeoCheckAll": "全ノードを検査",
+  "nodeGeoSearch": "ノード・IP・場所を検索",
+  "nodeGeoEmpty": "コアを起動して一覧を更新してください。",
+  "nodeGeoEstimate": "GeoJS の GeoIP 推定位置です。住所ではありません。地図：Natural Earth（パブリックドメイン）。",
+  "nodeGeoEntry": "入口サーバー・システム DNS",
+  "nodeGeoSource": "情報源",
+  "nodeGeoDetails": "位置の証拠",
   "diagnosticsConclusion": "総合判定",
   "diagnosticsNoMismatch": "今回のサンプルでは不一致なし",
   "diagnosticsRisk": "潜在的なリスク",

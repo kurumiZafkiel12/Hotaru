@@ -1470,6 +1470,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "Ничего не найдено",
     ),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage(
+      "Проверить все узлы",
+    ),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("Данные геолокации"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Запустите ядро и обновите список.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Входной сервер · системный DNS",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "Приблизительная GeoIP-геолокация GeoJS, не адрес. Карта: Natural Earth, общественное достояние.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Проверка выхода каждого узла. Системные DNS-адреса входа и наблюдаемый выход показаны отдельно. Кэш 15 минут.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Поиск узла, IP или места",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Источник"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Положение узлов · глобус",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Этот внешний ресурс не является текстовым файлом",

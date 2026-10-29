@@ -1508,6 +1508,31 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ne pas résoudre le nom d’hôte",
     ),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("Aucun résultat"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage(
+      "Tester tous les nœuds",
+    ),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage(
+      "Preuves de localisation",
+    ),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Démarrez le cœur et actualisez la liste.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Serveur d’entrée · DNS système",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "Positions GeoIP estimées par GeoJS, pas des adresses. Carte : Natural Earth, domaine public.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Teste la sortie via chaque nœud nommé. DNS du serveur et IP de sortie sont distincts. Cache de 15 minutes.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Chercher un nœud, IP ou lieu",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Position des nœuds · globe",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nœuds"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Cette ressource externe n’est pas un fichier texte",

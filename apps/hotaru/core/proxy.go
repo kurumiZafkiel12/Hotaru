@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"maps"
+	"net"
 	"os"
 	"strings"
 	"sync"
@@ -108,6 +109,9 @@ func proxyView(proxy constant.Proxy) any {
 		ProviderName: proxy.ProxyInfo().ProviderName,
 	}
 	if !isProxyGroupType(proxy.Type()) {
+		if host, _, err := net.SplitHostPort(proxy.Addr()); err == nil && !strings.ContainsAny(host, "@/?#") {
+			node.EntryServer = host
+		}
 		return node
 	}
 	data, err := proxy.Adapter().MarshalJSON()

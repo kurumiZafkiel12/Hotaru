@@ -1181,3 +1181,31 @@ func TestDumpRuleSetRejectsText(t *testing.T) {
 		t.Fatal("dumping a text rule set succeeded")
 	}
 }
+
+func TestProxyViewReportsOnlyTheEntryHost(t *testing.T) {
+	for _, server := range []string{"entry.example", "2001:db8::1"} {
+		proxy, err := outbound.NewSocks5(outbound.Socks5Option{
+			Name: "node", Server: server, Port: 1080,
+			UserName: "private-user", Password: "private-password",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err := json.Marshal(proxyView(adapter.NewProxy(proxy)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		view := map[string]any{}
+		if err := json.Unmarshal(data, &view); err != nil {
+			t.Fatal(err)
+		}
+		if view["entry-server"] != server {
+			t.Fatalf("entry host = %v, want %s", view["entry-server"], server)
+		}
+		for _, forbidden := range []string{"private-user", "private-password", "1080"} {
+			if strings.Contains(string(data), forbidden) {
+				t.Fatalf("proxy view exposes %s", forbidden)
+			}
+		}
+	}
+}

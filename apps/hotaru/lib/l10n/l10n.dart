@@ -55,6 +55,91 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  /// `Node locations · globe`
+  String get nodeGlobeTitle {
+    return Intl.message(
+      'Node locations · globe',
+      name: 'nodeGlobeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.`
+  String get nodeGeoScope {
+    return Intl.message(
+      'Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.',
+      name: 'nodeGeoScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test all nodes`
+  String get nodeGeoCheckAll {
+    return Intl.message(
+      'Test all nodes',
+      name: 'nodeGeoCheckAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search node, IP or place`
+  String get nodeGeoSearch {
+    return Intl.message(
+      'Search node, IP or place',
+      name: 'nodeGeoSearch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start the core and refresh the node list.`
+  String get nodeGeoEmpty {
+    return Intl.message(
+      'Start the core and refresh the node list.',
+      name: 'nodeGeoEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.`
+  String get nodeGeoEstimate {
+    return Intl.message(
+      'GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.',
+      name: 'nodeGeoEstimate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Entry server · system DNS`
+  String get nodeGeoEntry {
+    return Intl.message(
+      'Entry server · system DNS',
+      name: 'nodeGeoEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source`
+  String get nodeGeoSource {
+    return Intl.message('Source', name: 'nodeGeoSource', desc: '', args: []);
+  }
+
+  /// `Location evidence`
+  String get nodeGeoDetails {
+    return Intl.message(
+      'Location evidence',
+      name: 'nodeGeoDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Conclusion`
   String get diagnosticsConclusion {
     return Intl.message(

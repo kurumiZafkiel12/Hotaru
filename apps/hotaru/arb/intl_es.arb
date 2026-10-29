@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "Ubicación de nodos · globo",
+  "nodeGeoScope": "Prueba la salida a través de cada nodo. Separa el DNS de entrada y la IP de salida observada. Caché de 15 minutos.",
+  "nodeGeoCheckAll": "Probar todos los nodos",
+  "nodeGeoSearch": "Buscar nodo, IP o lugar",
+  "nodeGeoEmpty": "Inicie el núcleo y actualice la lista.",
+  "nodeGeoEstimate": "Ubicaciones GeoIP estimadas por GeoJS, no direcciones. Mapa: Natural Earth, dominio público.",
+  "nodeGeoEntry": "Servidor de entrada · DNS del sistema",
+  "nodeGeoSource": "Fuente",
+  "nodeGeoDetails": "Datos de ubicación",
   "diagnosticsConclusion": "Conclusión",
   "diagnosticsNoMismatch": "Sin diferencias en esta muestra",
   "diagnosticsRisk": "Posible riesgo",

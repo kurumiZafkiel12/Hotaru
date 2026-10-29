@@ -258,6 +258,7 @@ type ProxiesData struct {
 }
 
 type nodeView struct {
+	EntryServer  string `json:"entry-server,omitempty"`
 	Name         string `json:"name"`
 	Type         string `json:"type"`
 	ProviderName string `json:"provider-name,omitempty"`

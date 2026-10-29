@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "Положение узлов · глобус",
+  "nodeGeoScope": "Проверка выхода каждого узла. Системные DNS-адреса входа и наблюдаемый выход показаны отдельно. Кэш 15 минут.",
+  "nodeGeoCheckAll": "Проверить все узлы",
+  "nodeGeoSearch": "Поиск узла, IP или места",
+  "nodeGeoEmpty": "Запустите ядро и обновите список.",
+  "nodeGeoEstimate": "Приблизительная GeoIP-геолокация GeoJS, не адрес. Карта: Natural Earth, общественное достояние.",
+  "nodeGeoEntry": "Входной сервер · системный DNS",
+  "nodeGeoSource": "Источник",
+  "nodeGeoDetails": "Данные геолокации",
   "diagnosticsConclusion": "Вывод",
   "diagnosticsNoMismatch": "В выборке расхождений нет",
   "diagnosticsRisk": "Возможный риск",

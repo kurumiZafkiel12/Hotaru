@@ -1,4 +1,13 @@
 {
+  "nodeGlobeTitle": "Position des nœuds · globe",
+  "nodeGeoScope": "Teste la sortie via chaque nœud nommé. DNS du serveur et IP de sortie sont distincts. Cache de 15 minutes.",
+  "nodeGeoCheckAll": "Tester tous les nœuds",
+  "nodeGeoSearch": "Chercher un nœud, IP ou lieu",
+  "nodeGeoEmpty": "Démarrez le cœur et actualisez la liste.",
+  "nodeGeoEstimate": "Positions GeoIP estimées par GeoJS, pas des adresses. Carte : Natural Earth, domaine public.",
+  "nodeGeoEntry": "Serveur d’entrée · DNS système",
+  "nodeGeoSource": "Source",
+  "nodeGeoDetails": "Preuves de localisation",
   "diagnosticsConclusion": "Conclusion",
   "diagnosticsNoMismatch": "Aucune différence dans cet échantillon",
   "diagnosticsRisk": "Risque potentiel",

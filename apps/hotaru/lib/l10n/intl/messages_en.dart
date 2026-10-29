@@ -1406,6 +1406,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No matching results",
     ),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("Test all nodes"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("Location evidence"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Start the core and refresh the node list.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Entry server · system DNS",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Search node, IP or place",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Node locations · globe",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",
