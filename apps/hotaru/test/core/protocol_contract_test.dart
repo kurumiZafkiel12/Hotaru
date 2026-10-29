@@ -171,6 +171,42 @@ class _EmptyConfigCoreHandler extends _RecordingCoreHandler {
 }
 
 void main() {
+  test(
+    'node speed routing uses an explicit flag and core-owned listener reply',
+    () {
+      const params = ChangeProxyParams(
+        groupName: '',
+        proxyName: 'node-B',
+        forSpeedTest: true,
+      );
+      expect(params.toJson()['for-speed-test'], isTrue);
+      expect(params.toJson()['proxy-name'], 'node-B');
+      const ordinary = ChangeProxyParams(
+        groupName: 'daily',
+        proxyName: 'node-A',
+      );
+      expect(ordinary.toJson()['for-speed-test'], isFalse);
+      final reply = ChangeProxyResult.fromJson({
+        'changed': true,
+        'speed-test-proxy': 'PROXY 127.0.0.1:12345',
+        'core-epoch': 7,
+      });
+      expect(reply.speedTestProxy, 'PROXY 127.0.0.1:12345');
+      expect(reply.coreEpoch, 7);
+      expect(
+        ChangeProxyResult.fromJson({'changed': true}).speedTestProxy,
+        isEmpty,
+      );
+      expect(
+        ProxiesData.fromJson({
+          'all': <String>[],
+          'proxies': <String, dynamic>{},
+        }).speedTestGroup,
+        isEmpty,
+      );
+    },
+  );
+
   test('method call keeps structured arguments', () async {
     final fixture =
         json.decode(

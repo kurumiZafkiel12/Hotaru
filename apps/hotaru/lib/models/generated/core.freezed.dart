@@ -1846,7 +1846,7 @@ as int,
 /// @nodoc
 mixin _$ChangeProxyParams {
 
-@JsonKey(name: 'group-name') String get groupName;@JsonKey(name: 'proxy-name') String get proxyName;
+@JsonKey(name: 'for-speed-test') bool get forSpeedTest;@JsonKey(name: 'group-name') String get groupName;@JsonKey(name: 'proxy-name') String get proxyName;
 /// Create a copy of ChangeProxyParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1860,20 +1860,20 @@ $ChangeProxyParamsCopyWith<ChangeProxyParams> get copyWith => _$ChangeProxyParam
 @override
 bool operator ==(Object other) {
   final _this = this as ChangeProxyParams;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyParams&&(identical(other.groupName, _this.groupName) || other.groupName == _this.groupName)&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyParams&&(identical(other.forSpeedTest, _this.forSpeedTest) || other.forSpeedTest == _this.forSpeedTest)&&(identical(other.groupName, _this.groupName) || other.groupName == _this.groupName)&&(identical(other.proxyName, _this.proxyName) || other.proxyName == _this.proxyName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ChangeProxyParams;
-  return Object.hash(runtimeType,_this.groupName,_this.proxyName);
+  return Object.hash(runtimeType,_this.forSpeedTest,_this.groupName,_this.proxyName);
 }
 
 @override
 String toString() {
   final _this = this as ChangeProxyParams;
-  return 'ChangeProxyParams(groupName: ${_this.groupName}, proxyName: ${_this.proxyName})';
+  return 'ChangeProxyParams(forSpeedTest: ${_this.forSpeedTest}, groupName: ${_this.groupName}, proxyName: ${_this.proxyName})';
 }
 
 
@@ -1884,7 +1884,7 @@ abstract mixin class $ChangeProxyParamsCopyWith<$Res>  {
   factory $ChangeProxyParamsCopyWith(ChangeProxyParams value, $Res Function(ChangeProxyParams) _then) = _$ChangeProxyParamsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'group-name') String groupName,@JsonKey(name: 'proxy-name') String proxyName
+@JsonKey(name: 'for-speed-test') bool forSpeedTest,@JsonKey(name: 'group-name') String groupName,@JsonKey(name: 'proxy-name') String proxyName
 });
 
 
@@ -1901,9 +1901,10 @@ class _$ChangeProxyParamsCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyParams
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? groupName = null,Object? proxyName = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? forSpeedTest = null,Object? groupName = null,Object? proxyName = null,}) {
   return _then(ChangeProxyParams(
-groupName: null == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+forSpeedTest: null == forSpeedTest ? _self.forSpeedTest : forSpeedTest // ignore: cast_nullable_to_non_nullable
+as bool,groupName: null == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
 as String,proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -1990,10 +1991,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'for-speed-test')  bool forSpeedTest, @JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChangeProxyParams() when $default != null:
-return $default(_that.groupName,_that.proxyName);case _:
+return $default(_that.forSpeedTest,_that.groupName,_that.proxyName);case _:
   return orElse();
 
 }
@@ -2011,10 +2012,10 @@ return $default(_that.groupName,_that.proxyName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'for-speed-test')  bool forSpeedTest, @JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyParams():
-return $default(_that.groupName,_that.proxyName);case _:
+return $default(_that.forSpeedTest,_that.groupName,_that.proxyName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2031,10 +2032,10 @@ return $default(_that.groupName,_that.proxyName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'for-speed-test')  bool forSpeedTest, @JsonKey(name: 'group-name')  String groupName, @JsonKey(name: 'proxy-name')  String proxyName)?  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyParams() when $default != null:
-return $default(_that.groupName,_that.proxyName);case _:
+return $default(_that.forSpeedTest,_that.groupName,_that.proxyName);case _:
   return null;
 
 }
@@ -2046,9 +2047,10 @@ return $default(_that.groupName,_that.proxyName);case _:
 @JsonSerializable()
 
 class _ChangeProxyParams implements ChangeProxyParams {
-  const _ChangeProxyParams({@JsonKey(name: 'group-name') required this.groupName, @JsonKey(name: 'proxy-name') required this.proxyName});
+  const _ChangeProxyParams({@JsonKey(name: 'for-speed-test') this.forSpeedTest = false, @JsonKey(name: 'group-name') required this.groupName, @JsonKey(name: 'proxy-name') required this.proxyName});
   factory _ChangeProxyParams.fromJson(Map<String, dynamic> json) => _$ChangeProxyParamsFromJson(json);
 
+@override@JsonKey(name: 'for-speed-test') final  bool forSpeedTest;
 @override@JsonKey(name: 'group-name') final  String groupName;
 @override@JsonKey(name: 'proxy-name') final  String proxyName;
 
@@ -2065,18 +2067,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyParams&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyParams&&(identical(other.forSpeedTest, forSpeedTest) || other.forSpeedTest == forSpeedTest)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.proxyName, proxyName) || other.proxyName == proxyName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,groupName,proxyName);
+    return Object.hash(runtimeType,forSpeedTest,groupName,proxyName);
 }
 
 @override
 String toString() {
-    return 'ChangeProxyParams(groupName: $groupName, proxyName: $proxyName)';
+    return 'ChangeProxyParams(forSpeedTest: $forSpeedTest, groupName: $groupName, proxyName: $proxyName)';
 }
 
 
@@ -2087,7 +2089,7 @@ abstract mixin class _$ChangeProxyParamsCopyWith<$Res> implements $ChangeProxyPa
   factory _$ChangeProxyParamsCopyWith(_ChangeProxyParams value, $Res Function(_ChangeProxyParams) _then) = __$ChangeProxyParamsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'group-name') String groupName,@JsonKey(name: 'proxy-name') String proxyName
+@JsonKey(name: 'for-speed-test') bool forSpeedTest,@JsonKey(name: 'group-name') String groupName,@JsonKey(name: 'proxy-name') String proxyName
 });
 
 
@@ -2104,9 +2106,10 @@ class __$ChangeProxyParamsCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyParams
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? groupName = null,Object? proxyName = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? forSpeedTest = null,Object? groupName = null,Object? proxyName = null,}) {
   return _then(_ChangeProxyParams(
-groupName: null == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+forSpeedTest: null == forSpeedTest ? _self.forSpeedTest : forSpeedTest // ignore: cast_nullable_to_non_nullable
+as bool,groupName: null == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
 as String,proxyName: null == proxyName ? _self.proxyName : proxyName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -2119,7 +2122,7 @@ as String,
 /// @nodoc
 mixin _$ChangeProxyResult {
 
- String get message; bool get changed;
+@JsonKey(name: 'speed-test-proxy') String get speedTestProxy;@JsonKey(name: 'core-epoch') int get coreEpoch; String get message; bool get changed;
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2133,20 +2136,20 @@ $ChangeProxyResultCopyWith<ChangeProxyResult> get copyWith => _$ChangeProxyResul
 @override
 bool operator ==(Object other) {
   final _this = this as ChangeProxyResult;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyResult&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.changed, _this.changed) || other.changed == _this.changed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyResult&&(identical(other.speedTestProxy, _this.speedTestProxy) || other.speedTestProxy == _this.speedTestProxy)&&(identical(other.coreEpoch, _this.coreEpoch) || other.coreEpoch == _this.coreEpoch)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.changed, _this.changed) || other.changed == _this.changed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ChangeProxyResult;
-  return Object.hash(runtimeType,_this.message,_this.changed);
+  return Object.hash(runtimeType,_this.speedTestProxy,_this.coreEpoch,_this.message,_this.changed);
 }
 
 @override
 String toString() {
   final _this = this as ChangeProxyResult;
-  return 'ChangeProxyResult(message: ${_this.message}, changed: ${_this.changed})';
+  return 'ChangeProxyResult(speedTestProxy: ${_this.speedTestProxy}, coreEpoch: ${_this.coreEpoch}, message: ${_this.message}, changed: ${_this.changed})';
 }
 
 
@@ -2157,7 +2160,7 @@ abstract mixin class $ChangeProxyResultCopyWith<$Res>  {
   factory $ChangeProxyResultCopyWith(ChangeProxyResult value, $Res Function(ChangeProxyResult) _then) = _$ChangeProxyResultCopyWithImpl;
 @useResult
 $Res call({
- String message, bool changed
+@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
 });
 
 
@@ -2174,9 +2177,11 @@ class _$ChangeProxyResultCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? changed = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
   return _then(ChangeProxyResult(
-message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
+as String,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,changed: null == changed ? _self.changed : changed // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -2263,10 +2268,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message,  bool changed)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult() when $default != null:
-return $default(_that.message,_that.changed);case _:
+return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   return orElse();
 
 }
@@ -2284,10 +2289,10 @@ return $default(_that.message,_that.changed);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message,  bool changed)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult():
-return $default(_that.message,_that.changed);case _:
+return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2304,10 +2309,10 @@ return $default(_that.message,_that.changed);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message,  bool changed)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult() when $default != null:
-return $default(_that.message,_that.changed);case _:
+return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   return null;
 
 }
@@ -2319,9 +2324,11 @@ return $default(_that.message,_that.changed);case _:
 @JsonSerializable()
 
 class _ChangeProxyResult implements ChangeProxyResult {
-  const _ChangeProxyResult({this.message = '', this.changed = false});
+  const _ChangeProxyResult({@JsonKey(name: 'speed-test-proxy') this.speedTestProxy = '', @JsonKey(name: 'core-epoch') this.coreEpoch = 0, this.message = '', this.changed = false});
   factory _ChangeProxyResult.fromJson(Map<String, dynamic> json) => _$ChangeProxyResultFromJson(json);
 
+@override@JsonKey(name: 'speed-test-proxy') final  String speedTestProxy;
+@override@JsonKey(name: 'core-epoch') final  int coreEpoch;
 @override@JsonKey() final  String message;
 @override@JsonKey() final  bool changed;
 
@@ -2338,18 +2345,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyResult&&(identical(other.message, message) || other.message == message)&&(identical(other.changed, changed) || other.changed == changed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyResult&&(identical(other.speedTestProxy, speedTestProxy) || other.speedTestProxy == speedTestProxy)&&(identical(other.coreEpoch, coreEpoch) || other.coreEpoch == coreEpoch)&&(identical(other.message, message) || other.message == message)&&(identical(other.changed, changed) || other.changed == changed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,message,changed);
+    return Object.hash(runtimeType,speedTestProxy,coreEpoch,message,changed);
 }
 
 @override
 String toString() {
-    return 'ChangeProxyResult(message: $message, changed: $changed)';
+    return 'ChangeProxyResult(speedTestProxy: $speedTestProxy, coreEpoch: $coreEpoch, message: $message, changed: $changed)';
 }
 
 
@@ -2360,7 +2367,7 @@ abstract mixin class _$ChangeProxyResultCopyWith<$Res> implements $ChangeProxyRe
   factory _$ChangeProxyResultCopyWith(_ChangeProxyResult value, $Res Function(_ChangeProxyResult) _then) = __$ChangeProxyResultCopyWithImpl;
 @override @useResult
 $Res call({
- String message, bool changed
+@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
 });
 
 
@@ -2377,9 +2384,11 @@ class __$ChangeProxyResultCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? changed = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
   return _then(_ChangeProxyResult(
-message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
+as String,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,changed: null == changed ? _self.changed : changed // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -6730,7 +6739,7 @@ $SubscriptionInfoCopyWith<$Res>? get subscriptionInfo {
 /// @nodoc
 mixin _$ProxiesData {
 
- Map<String, dynamic> get proxies; List<String> get all;
+@JsonKey(name: 'speed-test-group') String get speedTestGroup; Map<String, dynamic> get proxies; List<String> get all;
 /// Create a copy of ProxiesData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6744,20 +6753,20 @@ $ProxiesDataCopyWith<ProxiesData> get copyWith => _$ProxiesDataCopyWithImpl<Prox
 @override
 bool operator ==(Object other) {
   final _this = this as ProxiesData;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProxiesData&&const DeepCollectionEquality().equals(other.proxies, _this.proxies)&&const DeepCollectionEquality().equals(other.all, _this.all));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProxiesData&&(identical(other.speedTestGroup, _this.speedTestGroup) || other.speedTestGroup == _this.speedTestGroup)&&const DeepCollectionEquality().equals(other.proxies, _this.proxies)&&const DeepCollectionEquality().equals(other.all, _this.all));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProxiesData;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.proxies),const DeepCollectionEquality().hash(_this.all));
+  return Object.hash(runtimeType,_this.speedTestGroup,const DeepCollectionEquality().hash(_this.proxies),const DeepCollectionEquality().hash(_this.all));
 }
 
 @override
 String toString() {
   final _this = this as ProxiesData;
-  return 'ProxiesData(proxies: ${_this.proxies}, all: ${_this.all})';
+  return 'ProxiesData(speedTestGroup: ${_this.speedTestGroup}, proxies: ${_this.proxies}, all: ${_this.all})';
 }
 
 
@@ -6768,7 +6777,7 @@ abstract mixin class $ProxiesDataCopyWith<$Res>  {
   factory $ProxiesDataCopyWith(ProxiesData value, $Res Function(ProxiesData) _then) = _$ProxiesDataCopyWithImpl;
 @useResult
 $Res call({
- Map<String, dynamic> proxies, List<String> all
+@JsonKey(name: 'speed-test-group') String speedTestGroup, Map<String, dynamic> proxies, List<String> all
 });
 
 
@@ -6785,9 +6794,10 @@ class _$ProxiesDataCopyWithImpl<$Res>
 
 /// Create a copy of ProxiesData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? proxies = null,Object? all = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? speedTestGroup = null,Object? proxies = null,Object? all = null,}) {
   return _then(ProxiesData(
-proxies: null == proxies ? _self.proxies : proxies // ignore: cast_nullable_to_non_nullable
+speedTestGroup: null == speedTestGroup ? _self.speedTestGroup : speedTestGroup // ignore: cast_nullable_to_non_nullable
+as String,proxies: null == proxies ? _self.proxies : proxies // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,all: null == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
@@ -6874,10 +6884,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Map<String, dynamic> proxies,  List<String> all)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-group')  String speedTestGroup,  Map<String, dynamic> proxies,  List<String> all)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProxiesData() when $default != null:
-return $default(_that.proxies,_that.all);case _:
+return $default(_that.speedTestGroup,_that.proxies,_that.all);case _:
   return orElse();
 
 }
@@ -6895,10 +6905,10 @@ return $default(_that.proxies,_that.all);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Map<String, dynamic> proxies,  List<String> all)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-group')  String speedTestGroup,  Map<String, dynamic> proxies,  List<String> all)  $default,) {final _that = this;
 switch (_that) {
 case _ProxiesData():
-return $default(_that.proxies,_that.all);case _:
+return $default(_that.speedTestGroup,_that.proxies,_that.all);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -6915,10 +6925,10 @@ return $default(_that.proxies,_that.all);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Map<String, dynamic> proxies,  List<String> all)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'speed-test-group')  String speedTestGroup,  Map<String, dynamic> proxies,  List<String> all)?  $default,) {final _that = this;
 switch (_that) {
 case _ProxiesData() when $default != null:
-return $default(_that.proxies,_that.all);case _:
+return $default(_that.speedTestGroup,_that.proxies,_that.all);case _:
   return null;
 
 }
@@ -6930,9 +6940,10 @@ return $default(_that.proxies,_that.all);case _:
 @JsonSerializable()
 
 class _ProxiesData implements ProxiesData {
-  const _ProxiesData({required  Map<String, dynamic> proxies, required  List<String> all}): _proxies = proxies,_all = all;
+  const _ProxiesData({@JsonKey(name: 'speed-test-group') this.speedTestGroup = '', required  Map<String, dynamic> proxies, required  List<String> all}): _proxies = proxies,_all = all;
   factory _ProxiesData.fromJson(Map<String, dynamic> json) => _$ProxiesDataFromJson(json);
 
+@override@JsonKey(name: 'speed-test-group') final  String speedTestGroup;
  final  Map<String, dynamic> _proxies;
 @override Map<String, dynamic> get proxies {
   if (_proxies is EqualUnmodifiableMapView) return _proxies;
@@ -6961,18 +6972,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProxiesData&&const DeepCollectionEquality().equals(other.proxies, _proxies)&&const DeepCollectionEquality().equals(other.all, _all));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProxiesData&&(identical(other.speedTestGroup, speedTestGroup) || other.speedTestGroup == speedTestGroup)&&const DeepCollectionEquality().equals(other.proxies, _proxies)&&const DeepCollectionEquality().equals(other.all, _all));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_proxies),const DeepCollectionEquality().hash(_all));
+    return Object.hash(runtimeType,speedTestGroup,const DeepCollectionEquality().hash(_proxies),const DeepCollectionEquality().hash(_all));
 }
 
 @override
 String toString() {
-    return 'ProxiesData(proxies: $proxies, all: $all)';
+    return 'ProxiesData(speedTestGroup: $speedTestGroup, proxies: $proxies, all: $all)';
 }
 
 
@@ -6983,7 +6994,7 @@ abstract mixin class _$ProxiesDataCopyWith<$Res> implements $ProxiesDataCopyWith
   factory _$ProxiesDataCopyWith(_ProxiesData value, $Res Function(_ProxiesData) _then) = __$ProxiesDataCopyWithImpl;
 @override @useResult
 $Res call({
- Map<String, dynamic> proxies, List<String> all
+@JsonKey(name: 'speed-test-group') String speedTestGroup, Map<String, dynamic> proxies, List<String> all
 });
 
 
@@ -7000,9 +7011,10 @@ class __$ProxiesDataCopyWithImpl<$Res>
 
 /// Create a copy of ProxiesData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? proxies = null,Object? all = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? speedTestGroup = null,Object? proxies = null,Object? all = null,}) {
   return _then(_ProxiesData(
-proxies: null == proxies ? _self._proxies : proxies // ignore: cast_nullable_to_non_nullable
+speedTestGroup: null == speedTestGroup ? _self.speedTestGroup : speedTestGroup // ignore: cast_nullable_to_non_nullable
+as String,proxies: null == proxies ? _self._proxies : proxies // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,all: null == all ? _self._all : all // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));

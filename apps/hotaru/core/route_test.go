@@ -87,7 +87,7 @@ func selectorOver(t *testing.T, name string, members ...constant.Proxy) constant
 	group, err := outboundgroup.NewSelector(
 		outboundgroup.GroupCommonOption{Name: name},
 		outboundgroup.SelectorOption{},
-		nil,
+		namedProxy("COMPATIBLE"),
 		[]cp.ProxyProvider{pd},
 	)
 	if err != nil {

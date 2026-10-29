@@ -171,13 +171,16 @@ type RuleSetInfo struct {
 }
 
 type ChangeProxyParams struct {
-	GroupName string `json:"group-name"`
-	ProxyName string `json:"proxy-name"`
+	ForSpeedTest bool   `json:"for-speed-test"`
+	GroupName    string `json:"group-name"`
+	ProxyName    string `json:"proxy-name"`
 }
 
 type ChangeProxyResult struct {
-	Message string `json:"message"`
-	Changed bool   `json:"changed"`
+	SpeedTestProxy string `json:"speed-test-proxy,omitempty"`
+	CoreEpoch      uint64 `json:"core-epoch"`
+	Message        string `json:"message"`
+	Changed        bool   `json:"changed"`
 }
 
 type RouteState struct {
@@ -253,8 +256,9 @@ type ExternalProvider struct {
 }
 
 type ProxiesData struct {
-	Proxies map[string]any `json:"proxies"`
-	All     []string       `json:"all"`
+	SpeedTestGroup string         `json:"speed-test-group,omitempty"`
+	Proxies        map[string]any `json:"proxies"`
+	All            []string       `json:"all"`
 }
 
 type nodeView struct {

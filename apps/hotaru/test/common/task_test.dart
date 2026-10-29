@@ -108,6 +108,36 @@ void main() {
     },
   );
 
+  test(
+    'only the core-owned speed group is hidden, not user name prefixes',
+    () async {
+      const user = 'HOTARU-SPEEDTEST';
+      const owned = 'HOTARU-SPEEDTEST-2';
+      final groups = await toGroupsTask(
+        ComputeGroupsState(
+          proxiesData: ProxiesData(
+            all: const [user, owned],
+            speedTestGroup: owned,
+            proxies: {
+              for (final name in [user, owned])
+                name: {
+                  'name': name,
+                  'type': 'Selector',
+                  'all': ['node'],
+                },
+              'node': {'name': 'node', 'type': 'Direct'},
+            },
+          ),
+          sortType: ProxiesSortType.none,
+          delayMap: const {},
+          selectedMap: const {},
+          defaultTestUrl: '',
+        ),
+      );
+      expect(groups.map((group) => group.name), [user]);
+    },
+  );
+
   test('toGroupsTask leaves the source proxy map untouched', () async {
     final proxies = <String, dynamic>{
       'Selector': {

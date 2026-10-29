@@ -1,21 +1,6 @@
 const speedTestGroupBaseName = 'HOTARU-SPEEDTEST';
 const speedTestListenerName = 'hotaru-speedtest';
 const speedTestPort = 17890;
-const speedTestProxy = 'PROXY 127.0.0.1:$speedTestPort';
-
-bool isSpeedTestGroupName(String name) {
-  return name == speedTestGroupBaseName ||
-      name.startsWith('$speedTestGroupBaseName-');
-}
-
-String? findSpeedTestGroupName(Map<String, dynamic> proxies) {
-  for (final name in proxies.keys) {
-    if (isSpeedTestGroupName(name)) {
-      return name;
-    }
-  }
-  return null;
-}
 
 /// Walks group selections (`now`) from [target] down to the leaf outbound.
 List<String> resolveProxyChain(Map<String, dynamic> proxies, String target) {
@@ -82,6 +67,7 @@ String injectSpeedTestRoute(Map<dynamic, dynamic> rawConfig) {
   groups.add({
     'name': name,
     'type': 'select',
+    'hidden': true,
     'proxies': members,
     if (providerNames.isNotEmpty) 'use': providerNames.toList(),
   });
@@ -95,6 +81,7 @@ String injectSpeedTestRoute(Map<dynamic, dynamic> rawConfig) {
       'listen': '127.0.0.1',
       'port': speedTestPort,
       'proxy': name,
+      'users': <Map<String, String>>[],
     },
   ];
   return name;

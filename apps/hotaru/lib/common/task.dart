@@ -54,7 +54,7 @@ Future<List<Group>> buildGroups(ComputeGroupsState state) async {
   if (proxies.isEmpty) return [];
   final groups = <Group>[];
   for (final groupName in all) {
-    if (isSpeedTestGroupName(groupName)) continue;
+    if (groupName == proxiesData.speedTestGroup) continue;
     final raw = proxies[groupName];
     if (raw is! Map) continue;
     if (!GroupTypeExtension.valueList.contains(raw['type'])) continue;
