@@ -1045,7 +1045,7 @@
   "dnsLeakUnknown": "解析器归属证据不完整，不能判定无泄漏",
   "webrtcLeakTitle": "WebRTC / STUN 穿透测试",
   "webrtcLeakSubtitle": "对比 UDP 反射地址与代理出口",
-  "webrtcLeakScope": "原生 STUN 会主动探测 UDP 路径；浏览器 ICE、mDNS 与 TURN 行为可能不同。仅发现内网地址不等于公网 IP 泄漏。",
+  "webrtcLeakScope": "本次通过数据通道收集原生 WebRTC ICE 候选，不申请麦克风或摄像头权限。外部浏览器的 ICE、mDNS 和 TURN 策略可能不同；仅发现内网地址不等于公网 IP 泄漏。",
   "webrtcLeakRisk": "STUN 公网地址与代理出口不同，请检查 UDP 路由及浏览器 WebRTC 策略；IPv4/IPv6 地址族不同仍需分别核验。",
   "webrtcLeakMatch": "本次 STUN 地址与探测出口一致，其它浏览器路径仍未验证。",
   "webrtcBlockAction": "阻断常用 STUN 端口",
@@ -1072,5 +1072,14 @@
   "statusOriginUnknownReason": "暂无经过核实的原生或广播 IP 证据。",
   "statusQualityUnknownReason": "尚未测量网络质量。接入类型与 IP 风险标记不能证明连接质量。",
   "statusAccessSource": "接入类型来源：{source}。",
-  "statusAccessUnverified": "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。"
+  "statusAccessUnverified": "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。",
+  "auditUnlocked": "已解锁",
+  "auditPartial": "部分解锁",
+  "auditLocked": "未解锁",
+  "auditRegionUnsupported": "地区不支持",
+  "auditVerification": "验证或登录限制",
+  "auditRequestFailed": "请求失败或超时",
+  "auditUnknown": "无法判定",
+  "auditResultFilter": "检测结果",
+  "auditCatalogPartialEvidence": "所测自制内容包含可播放元数据，授权内容样本不可用；这不能证明完整片库或实际播放权益。"
 }

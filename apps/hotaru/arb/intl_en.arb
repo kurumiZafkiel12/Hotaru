@@ -1045,7 +1045,7 @@
   "dnsLeakUnknown": "Resolver classification incomplete; no clean verdict",
   "webrtcLeakTitle": "WebRTC / STUN leak test",
   "webrtcLeakSubtitle": "Compare UDP reflexive address with proxy egress",
-  "webrtcLeakScope": "Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.",
+  "webrtcLeakScope": "This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.",
   "webrtcLeakRisk": "STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.",
   "webrtcLeakMatch": "This STUN address matches the measured proxy egress; other browser paths remain untested.",
   "webrtcBlockAction": "Block common STUN ports",
@@ -1072,5 +1072,14 @@
   "statusOriginUnknownReason": "No verified native or broadcast IP evidence.",
   "statusQualityUnknownReason": "Network quality has not been measured. Access type and IP risk flags do not establish connection quality.",
   "statusAccessSource": "Access classification from {source}.",
-  "statusAccessUnverified": "Access type is unverified. An absent hosting or mobile flag is not proof of residential access."
+  "statusAccessUnverified": "Access type is unverified. An absent hosting or mobile flag is not proof of residential access.",
+  "auditUnlocked": "Unlocked",
+  "auditPartial": "Partially unlocked",
+  "auditLocked": "Not unlocked",
+  "auditRegionUnsupported": "Unsupported region",
+  "auditVerification": "Verification / login required",
+  "auditRequestFailed": "Failed / timed out",
+  "auditUnknown": "Unable to determine",
+  "auditResultFilter": "Results",
+  "auditCatalogPartialEvidence": "The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights."
 }

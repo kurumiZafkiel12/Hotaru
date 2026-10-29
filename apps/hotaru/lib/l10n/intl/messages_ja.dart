@@ -289,6 +289,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("今すぐ適用"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI・大規模モデル"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("認証が必要"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "サンプルのオリジナル作品に再生メタデータがあり、ライセンス作品は利用できません。全カタログや実際の再生権限は保証しません。",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("ボット対策の検証"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "地域と Web 応答を確認します。アカウント利用は別途確認してください。制限された場合は米国・日本・シンガポールなど対応地域の出口を試してください。",
@@ -303,12 +306,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内メディア"),
     "auditGames": MessageLookupByLibrary.simpleMessage("ゲーム・ストア"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("判定できません"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("未解除"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("海外メディア"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "ページ・地域 API の結果です。作品の再生、住宅回線の資格、契約の有無は Web 応答だけでは確定しません。",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("一部解除"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("接続可能・解放は未確認"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("接続可能"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地域対象外"),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("失敗・タイムアウト"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("結果"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "成功した接続チェーンは観測されませんでした",
     ),
@@ -325,6 +333,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Web 接続と DC1–DC5 の MTProto ハンドシェイクを確認します。アカウントへのログインは行わず、利用中のセッションの DC は特定しません。",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("サービス解放・分流チェック"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("判定不能"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("解除済み"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("認証・ログイン制限"),
     "authentication": MessageLookupByLibrary.simpleMessage("認証"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "認証を有効にすると、ローカルプロキシポートの利用にユーザー名とパスワードが必要になります。",
@@ -1835,7 +1846,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN の公開 IP がプロキシ出口と異なります。UDP 経路とブラウザーの WebRTC 設定を確認してください。IPv4 と IPv6 は別途検証が必要です。",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "ネイティブ STUN は UDP 経路を調べます。ブラウザーの ICE、mDNS、TURN は異なる場合があります。プライベート IP だけでは公開 IP の漏洩を意味しません。",
+      "データチャネルでネイティブ WebRTC ICE 候補を収集します。マイク・カメラは使用しません。外部ブラウザーの ICE、mDNS、TURN ポリシーは異なる場合があります。ローカルアドレスだけでは公開 IP 漏えいとは判定できません。",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "UDP の反射アドレスとプロキシ出口を比較",

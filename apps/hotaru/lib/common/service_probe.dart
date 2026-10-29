@@ -66,7 +66,13 @@ enum ServiceTarget {
   epic('epic', 'Epic Games', 'epic'),
   psn('psn', 'PlayStation Network', ''),
   nintendo('nintendo', 'Nintendo eShop', ''),
-  googlePlay('google-play', 'Google Play', '');
+  googlePlay('google-play', 'Google Play', ''),
+  youtubeMusic('youtube-music', 'YouTube Music', 'youtube'),
+  appleMusic('apple-music', 'Apple Music', 'apple'),
+  peacock('peacock', 'Peacock', ''),
+  uNext('u-next', 'U-NEXT', ''),
+  fod('fod', 'FOD', ''),
+  huluJapan('hulu-japan', 'Hulu Japan', '');
 
   const ServiceTarget(this.id, this.label, this.icon);
 
@@ -82,6 +88,12 @@ enum ServiceTarget {
     office ||
     notion ||
     wikipedia => 'developer',
+    youtubeMusic ||
+    appleMusic ||
+    peacock ||
+    uNext ||
+    fod ||
+    huluJapan ||
     youtube ||
     netflix ||
     disneyPlus ||
@@ -173,6 +185,35 @@ enum ServiceProbeStatus {
     }
     return ServiceProbeStatus.failed;
   }
+}
+
+enum ServiceOutcome {
+  unlocked,
+  partial,
+  locked,
+  unsupported,
+  verification,
+  failed,
+  unknown,
+}
+
+extension ServiceProbeOutcome on ServiceProbeStatus {
+  ServiceOutcome get outcome => switch (this) {
+    ServiceProbeStatus.available => ServiceOutcome.unlocked,
+    ServiceProbeStatus.originalsOnly => ServiceOutcome.partial,
+    ServiceProbeStatus.blocked ||
+    ServiceProbeStatus.disallowedIsp => ServiceOutcome.locked,
+    ServiceProbeStatus.unsupportedRegion ||
+    ServiceProbeStatus.comingSoon => ServiceOutcome.unsupported,
+    ServiceProbeStatus.authenticationRequired ||
+    ServiceProbeStatus.challenge ||
+    ServiceProbeStatus.restricted => ServiceOutcome.verification,
+    ServiceProbeStatus.failed ||
+    ServiceProbeStatus.timeout ||
+    ServiceProbeStatus.unavailable => ServiceOutcome.failed,
+    ServiceProbeStatus.reachable ||
+    ServiceProbeStatus.inconclusive => ServiceOutcome.unknown,
+  };
 }
 
 List<ServiceTarget> orderServiceTargets(List<String> order) {

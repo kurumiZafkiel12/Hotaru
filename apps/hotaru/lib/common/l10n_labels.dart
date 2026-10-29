@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'app_localizations.dart';
 import 'network_diagnostics.dart';
+import 'service_probe.dart';
 
 extension PageLabelL10n on PageLabel {
   String get label {
@@ -137,6 +138,21 @@ extension DiagnosticVerdictL10n on DiagnosticVerdict {
       DiagnosticVerdict.inconclusive => l10n.diagnosticsInsufficient,
       DiagnosticVerdict.completed => l10n.diagnosticsCompleted,
       DiagnosticVerdict.failed => l10n.diagnosticsFailed,
+    };
+  }
+}
+
+extension ServiceOutcomeL10n on ServiceOutcome {
+  String get label {
+    final l10n = currentAppLocalizations;
+    return switch (this) {
+      ServiceOutcome.unlocked => l10n.auditUnlocked,
+      ServiceOutcome.partial => l10n.auditPartial,
+      ServiceOutcome.locked => l10n.auditLocked,
+      ServiceOutcome.unsupported => l10n.auditRegionUnsupported,
+      ServiceOutcome.verification => l10n.auditVerification,
+      ServiceOutcome.failed => l10n.auditRequestFailed,
+      ServiceOutcome.unknown => l10n.auditUnknown,
     };
   }
 }

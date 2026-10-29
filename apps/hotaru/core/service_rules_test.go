@@ -25,48 +25,18 @@ func TestNormalizeRegion(t *testing.T) {
 	}
 }
 
-func TestNormalizeRegionCoversTheBlockLists(t *testing.T) {
-	for _, code := range geminiBlockedRegions {
-		if normalizeRegion(code) == "" {
-			t.Errorf("gemini block list entry %q does not fold to an alpha-2 code", code)
-		}
-	}
-	for _, code := range claudeBlockedRegions {
-		if normalizeRegion(code) != code {
-			t.Errorf("claude block list entry %q is not already alpha-2", code)
-		}
-	}
-}
-
-// The iOS endpoint turns API clients away even where ChatGPT works, so that
-// refusal is the success signal and anything else is not.
-func TestChatGptIosStatus(t *testing.T) {
-	cases := map[string]string{
-		"Request is not allowed. Please try again later.": serviceAvailable,
-		"You may be connected to a disallowed ISP":        serviceDisallowedIsp,
-		"Sorry, you have been blocked":                    serviceBlocked,
-		"<html>something else entirely</html>":            serviceFailed,
-		"":                                                serviceFailed,
-	}
-	for body, want := range cases {
-		if got := chatGptIosStatus(&ProbeResult{Body: body}); got != want {
-			t.Errorf("chatGptIosStatus(%q) = %q, want %q", body, got, want)
-		}
-	}
-}
-
 func TestTikTokStatus(t *testing.T) {
 	cases := []struct {
 		code int
 		body string
 		want string
 	}{
-		{http.StatusOK, `{"region":"JP"}`, serviceAvailable},
-		{http.StatusForbidden, "", serviceUnsupportedRegion},
-		{http.StatusUnavailableForLegalReasons, "", serviceUnsupportedRegion},
-		{http.StatusOK, "Access Denied", serviceUnsupportedRegion},
+		{http.StatusOK, `{"region":"JP"}`, serviceReachable},
+		{http.StatusForbidden, "", serviceRestricted},
+		{http.StatusUnavailableForLegalReasons, "", serviceInconclusive},
+		{http.StatusOK, "Access Denied", serviceRestricted},
 		{http.StatusOK, "TikTok is not available in your region", serviceUnsupportedRegion},
-		{http.StatusInternalServerError, "", serviceFailed},
+		{http.StatusInternalServerError, "", serviceUnavailable},
 	}
 	for _, testCase := range cases {
 		got := tikTokStatus(&ProbeResult{StatusCode: testCase.code, Body: testCase.body})
@@ -141,16 +111,48 @@ func TestYouTubeRegionPatterns(t *testing.T) {
 }
 
 func TestDisneyAndPrimePatterns(t *testing.T) {
-	if got := firstSubmatch(disneyAssertionPattern, `{"assertion":"abc.def"}`); got != "abc.def" {
-		t.Errorf("assertion = %q", got)
-	}
-	if got := firstSubmatch(disneyRefreshPattern, `{"refresh_token":"tok123"}`); got != "tok123" {
-		t.Errorf("refresh token = %q", got)
-	}
 	if got := firstSubmatch(disneySupportedPattern, `{"inSupportedLocation":false}`); got != "false" {
 		t.Errorf("supported = %q", got)
 	}
 	if got := firstSubmatch(primeRegionPattern, `{"currentTerritory":"NL"}`); got != "NL" {
 		t.Errorf("territory = %q", got)
+	}
+}
+
+func TestPrimeRestrictionReadsTheBooleanValue(t *testing.T) {
+	for _, tc := range []struct{ body, want string }{
+		{`{"currentTerritory":"JP","isServiceRestricted":false}`, serviceReachable},
+		{`{"currentTerritory":"JP","isServiceRestricted":true}`, serviceUnsupportedRegion},
+		{`{"currentTerritory":"JP"}`, serviceReachable},
+	} {
+		got := classifyPrimeVideo(&ProbeResult{StatusCode: 200, Body: tc.body})
+		if got.Status != tc.want {
+			t.Fatalf("%s => %s, want %s", tc.body, got.Status, tc.want)
+		}
+	}
+}
+
+func TestSpotifyLocaleDoesNotTurnLanguageIntoCountry(t *testing.T) {
+	for _, tc := range []struct{ path, body, want string }{
+		{"en-us", `{"countryCode":"GB"}`, "us"},
+		{"premium", `{"countryCode":"GB"}`, "GB"},
+		{"en", `{"countryCode":"US"}`, "US"},
+	} {
+		got := spotifyRegion(&ProbeResult{Url: "https://www.spotify.com/" + tc.path + "/", Body: tc.body})
+		if got != tc.want {
+			t.Fatalf("%s => %s, want %s", tc.path, got, tc.want)
+		}
+	}
+}
+
+func TestRegionEchoMustFollowTheSameNodeAsTheService(t *testing.T) {
+	web := &ProbeResult{StatusCode: 200, Chains: []string{"Exit-A", "Group"}}
+	trace := &ProbeResult{StatusCode: 200, Body: "loc=US\n", Chains: []string{"Exit-B", "Group"}}
+	if got := serviceTraceRegion(web, trace); got != "" {
+		t.Fatalf("different nodes reported a shared region: %s", got)
+	}
+	trace.Chains = web.Chains
+	if got := serviceTraceRegion(web, trace); got != "US" {
+		t.Fatalf("matching route region=%q", got)
 	}
 }

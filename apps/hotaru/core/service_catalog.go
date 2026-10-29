@@ -2,6 +2,12 @@ package core
 
 func init() {
 	serviceCheckers = append(serviceCheckers,
+		serviceChecker{name: "youtube-music", check: checkServiceEndpoint("https://music.youtube.com/")},
+		serviceChecker{name: "apple-music", check: checkServiceEndpoint("https://music.apple.com/")},
+		serviceChecker{name: "peacock", check: checkServiceEndpoint("https://www.peacocktv.com/")},
+		serviceChecker{name: "u-next", check: checkServiceEndpoint("https://video.unext.jp/")},
+		serviceChecker{name: "fod", check: checkServiceEndpoint("https://fod.fujitv.co.jp/")},
+		serviceChecker{name: "hulu-japan", check: checkServiceEndpoint("https://www.hulu.jp/")},
 		serviceChecker{name: "openai-api", check: checkServiceEndpoint("https://api.openai.com/v1/models")},
 		serviceChecker{name: "claude-api", check: checkServiceEndpoint("https://api.anthropic.com/v1/models")},
 		serviceChecker{name: "copilot", check: checkServiceEndpoint("https://copilot.microsoft.com/")},

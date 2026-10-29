@@ -1045,7 +1045,7 @@
   "dnsLeakUnknown": "리졸버 분류 미완료 · 누출 없음 판정 불가",
   "webrtcLeakTitle": "WebRTC / STUN 누출 검사",
   "webrtcLeakSubtitle": "UDP 반사 주소와 프록시 출구 비교",
-  "webrtcLeakScope": "네이티브 STUN은 UDP 경로를 검사합니다. 브라우저 ICE, mDNS, TURN은 다를 수 있습니다. 사설 주소만으로 공인 IP 누출을 의미하지 않습니다.",
+  "webrtcLeakScope": "데이터 채널로 네이티브 WebRTC ICE 후보를 수집하며 마이크나 카메라 권한을 요청하지 않습니다. 외부 브라우저의 ICE, mDNS, TURN 정책은 다를 수 있습니다. 로컬 주소만으로 공인 IP 유출을 판단할 수 없습니다.",
   "webrtcLeakRisk": "STUN 공인 주소가 프록시 출구와 다릅니다. UDP 라우팅과 브라우저 WebRTC 정책을 확인하세요. IPv4 및 IPv6는 별도 검증이 필요합니다.",
   "webrtcLeakMatch": "이번 STUN 주소가 측정된 출구와 같습니다. 다른 브라우저 경로는 검사하지 않았습니다.",
   "webrtcBlockAction": "일반 STUN 포트 차단",
@@ -1072,5 +1072,14 @@
   "statusOriginUnknownReason": "네이티브 또는 브로드캐스트 IP를 입증하는 검증된 근거가 없습니다.",
   "statusQualityUnknownReason": "네트워크 품질을 아직 측정하지 않았습니다. 접속 유형과 IP 위험 표시는 연결 품질의 근거가 아닙니다.",
   "statusAccessSource": "접속 유형 출처: {source}.",
-  "statusAccessUnverified": "접속 유형이 검증되지 않았습니다. 호스팅 또는 모바일 표시가 없다는 것만으로 가정용 회선임을 입증할 수 없습니다."
+  "statusAccessUnverified": "접속 유형이 검증되지 않았습니다. 호스팅 또는 모바일 표시가 없다는 것만으로 가정용 회선임을 입증할 수 없습니다.",
+  "auditUnlocked": "차단 해제",
+  "auditPartial": "부분 해제",
+  "auditLocked": "해제되지 않음",
+  "auditRegionUnsupported": "지원하지 않는 지역",
+  "auditVerification": "인증 / 로그인 필요",
+  "auditRequestFailed": "실패 / 시간 초과",
+  "auditUnknown": "판단 불가",
+  "auditResultFilter": "결과",
+  "auditCatalogPartialEvidence": "원본 콘텐츠 표본에는 재생 메타데이터가 있으나 라이선스 콘텐츠 표본은 사용할 수 없습니다. 전체 목록이나 실제 재생 권한을 증명하지 않습니다."
 }

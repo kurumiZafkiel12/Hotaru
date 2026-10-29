@@ -44,12 +44,18 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
   int _generation = 0;
   String? _runId;
   String? _category;
+  ServiceOutcome? _outcome;
+  int _completed = 0;
+  int _total = 0;
+  late final RouteTracker _routeTracker;
   String? _error;
   bool _running = false;
 
   @override
   void initState() {
     super.initState();
+    _routeTracker = ref.read(routeTrackerProvider.notifier);
+    _routeTracker.attach();
     ref.listenManual(routeTrackerProvider, (previous, next) {
       if (previous != null && previous != next && mounted) {
         _cancel();
@@ -83,6 +89,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
   @override
   void dispose() {
     _cancel(notify: false);
+    _routeTracker.detach();
     super.dispose();
   }
 
@@ -107,6 +114,8 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
       _runId = id;
       _running = true;
       _error = null;
+      _completed = 0;
+      _total = targets.length;
       for (final target in targets) {
         _results.remove(target);
         _stale.remove(target);
@@ -131,6 +140,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
           if (!mounted || generation != _generation) return;
           setState(() {
             _results[target] = check;
+            _completed++;
             _pending.remove(target);
             if (check.hits.isNotEmpty &&
                 (held == null ||
@@ -143,6 +153,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
           if (!mounted || generation != _generation) return;
           setState(() {
             _results[target] = const ServiceCheck(ServiceProbeStatus.failed);
+            _completed++;
             _pending.remove(target);
             _error = compactError(error);
           });
@@ -175,157 +186,167 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
     };
   }
 
+  Widget _filters(List<Widget> children) => LayoutBuilder(
+    builder: (context, constraints) => constraints.maxWidth < 600
+        ? SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(spacing: 6, children: children),
+          )
+        : Wrap(spacing: 6, runSpacing: 6, children: children),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.appLocalizations;
-    final reachable = _results.entries
-        .where(
-          (entry) =>
-              !_stale.contains(entry.key) &&
-              const {
-                ServiceProbeStatus.available,
-                ServiceProbeStatus.reachable,
-                ServiceProbeStatus.authenticationRequired,
-              }.contains(entry.value.status),
-        )
-        .length;
-    final blocked = _results.entries
-        .where(
-          (entry) =>
-              !_stale.contains(entry.key) &&
-              const {
-                ServiceProbeStatus.unsupportedRegion,
-                ServiceProbeStatus.blocked,
-                ServiceProbeStatus.disallowedIsp,
-                ServiceProbeStatus.originalsOnly,
-                ServiceProbeStatus.restricted,
-                ServiceProbeStatus.challenge,
-              }.contains(entry.value.status),
-        )
-        .length;
+    final results = _results.entries.where(
+      (entry) => _category == null || entry.key.category == _category,
+    );
+    final counts = <ServiceOutcome, int>{};
+    for (final entry in results) {
+      final outcome = _stale.contains(entry.key)
+          ? ServiceOutcome.unknown
+          : entry.value.status.outcome;
+      counts.update(outcome, (count) => count + 1, ifAbsent: () => 1);
+    }
+    final shown = ServiceTarget.values.where((target) {
+      if (_category != null && target.category != _category) return false;
+      if (_outcome == null) return true;
+      final result = _results[target];
+      if (result == null) return false;
+      return (_stale.contains(target)
+              ? ServiceOutcome.unknown
+              : result.status.outcome) ==
+          _outcome;
+    }).toList();
     return BaseScaffold(
       title: l10n.auditTitle,
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          context.appBarInset,
-          16,
-          24 + context.bottomInset,
-        ),
-        children: [
-          Text(l10n.auditScope, style: AppTextStyle.footnote.of(context)),
-          const SizedBox(height: 12),
-          CommonCard(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                for (final (value, label, color) in [
-                  (
-                    reachable,
-                    l10n.auditReachableSummary,
-                    context.colorScheme.success,
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              context.appBarInset,
+              16,
+              24 + context.bottomInset,
+            ),
+            itemCount: shown.length + 1,
+            itemBuilder: (context, index) {
+              if (index > 0) {
+                final target = shown[index - 1];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _ServiceResult(
+                    key: ValueKey(target),
+                    target: target,
+                    check: _results[target],
+                    pending: _pending.contains(target),
+                    stale: _stale.contains(target),
+                    onRetry: _running ? null : () => _start(only: target),
                   ),
-                  (blocked, l10n.serviceRestricted, context.colorScheme.error),
-                  (
-                    _results.length - reachable - blocked,
-                    l10n.auditInconclusive,
-                    context.colorScheme.warning,
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.auditScope,
+                    style: AppTextStyle.footnote.of(context),
                   ),
-                ])
-                  Expanded(
+                  const SizedBox(height: 12),
+                  CommonCard(
+                    padding: const EdgeInsets.all(12),
                     child: Column(
-                      spacing: 4,
+                      spacing: 8,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$value',
-                          style: AppTextStyle.title2
-                              .of(context, emphasized: true)
-                              .toJetBrainsMono
-                              .copyWith(color: color),
+                          l10n.auditResultFilter,
+                          style: AppTextStyle.footnote.of(
+                            context,
+                            emphasized: true,
+                          ),
                         ),
-                        Text(
-                          label,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyle.caption1.of(context),
-                        ),
+                        _filters([
+                          ChoiceChip(
+                            label: Text(l10n.selectAll),
+                            selected: _outcome == null,
+                            onSelected: (_) => setState(() => _outcome = null),
+                          ),
+                          for (final outcome in ServiceOutcome.values)
+                            ChoiceChip(
+                              label: Text(
+                                '${outcome.label} ${counts[outcome] ?? 0}',
+                              ),
+                              selected: _outcome == outcome,
+                              onSelected: (selected) => setState(
+                                () => _outcome = selected ? outcome : null,
+                              ),
+                            ),
+                        ]),
                       ],
                     ),
                   ),
-              ],
-            ),
+                  const SizedBox(height: 12),
+                  _filters([
+                    ChoiceChip(
+                      label: Text(l10n.selectAll),
+                      selected: _category == null,
+                      onSelected: _running
+                          ? null
+                          : (_) => setState(() => _category = null),
+                    ),
+                    for (final category in const [
+                      'ai',
+                      'media',
+                      'domestic',
+                      'social',
+                      'developer',
+                      'games',
+                    ])
+                      ChoiceChip(
+                        label: Text(_categoryLabel(category)),
+                        selected: _category == category,
+                        onSelected: _running
+                            ? null
+                            : (_) => setState(() => _category = category),
+                      ),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(
+                    spacing: 12,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: _running ? _cancel : _start,
+                        icon: GlyphIcon(
+                          _running ? AppGlyphs.close : AppGlyphs.playPause(0),
+                          fill: 1,
+                        ),
+                        label: Text(_running ? l10n.cancel : l10n.start),
+                      ),
+                      Text(
+                        '$_completed / $_total',
+                        style: AppTextStyle.footnote.of(context).toTabular,
+                      ),
+                    ],
+                  ),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        _error!,
+                        style: AppTextStyle.footnote
+                            .of(context)
+                            .copyWith(color: context.colorScheme.error),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ChoiceChip(
-                label: Text(l10n.selectAll),
-                selected: _category == null,
-                onSelected: _running
-                    ? null
-                    : (_) => setState(() => _category = null),
-              ),
-              for (final category in const [
-                'ai',
-                'media',
-                'domestic',
-                'social',
-                'developer',
-                'games',
-              ])
-                ChoiceChip(
-                  label: Text(_categoryLabel(category)),
-                  selected: _category == category,
-                  onSelected: _running
-                      ? null
-                      : (_) => setState(() => _category = category),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            spacing: 12,
-            children: [
-              FilledButton.icon(
-                onPressed: _running ? _cancel : _start,
-                icon: GlyphIcon(
-                  _running ? AppGlyphs.close : AppGlyphs.playPause(0),
-                  fill: 1,
-                ),
-                label: Text(_running ? l10n.cancel : l10n.start),
-              ),
-              Text(
-                '${_results.length} / ${ServiceTarget.values.length}',
-                style: AppTextStyle.footnote.of(context).toTabular,
-              ),
-            ],
-          ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                _error!,
-                style: AppTextStyle.footnote
-                    .of(context)
-                    .copyWith(color: context.colorScheme.error),
-              ),
-            ),
-          const SizedBox(height: 12),
-          for (final target in ServiceTarget.values)
-            if (_category == null || target.category == _category)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _ServiceResult(
-                  key: ValueKey(target),
-                  target: target,
-                  check: _results[target],
-                  pending: _pending.contains(target),
-                  stale: _stale.contains(target),
-                  onRetry: _running ? null : () => _start(only: target),
-                ),
-              ),
-        ],
+        ),
       ),
     );
   }
@@ -361,7 +382,7 @@ class _ServiceResult extends StatelessWidget {
         ? l10n.auditStale
         : check == null
         ? '—'
-        : serviceAuditStatus(context, check.status);
+        : check.status.outcome.label;
     final mismatch =
         target.expectsDirect &&
         observations.any(
@@ -396,25 +417,62 @@ class _ServiceResult extends StatelessWidget {
           target.label,
           style: AppTextStyle.callout.of(context, emphasized: true),
         ),
-        subtitle: EmojiText(
-          [
-            status,
-            if (check?.region != null)
-              '${check!.region!.countryFlagEmoji} ${check.region}',
-            if (check?.delay != null) '${check!.delay} ms',
-          ].join(' · '),
-          style: AppTextStyle.caption1
-              .of(context)
-              .copyWith(
-                color: stale || mismatch
-                    ? context.colorScheme.warning
-                    : context.colorScheme.onSurfaceVariant,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            Text(
+              status,
+              style: AppTextStyle.subheadline
+                  .of(context, emphasized: true)
+                  .copyWith(
+                    color: stale
+                        ? context.colorScheme.warning
+                        : check == null
+                        ? context.colorScheme.onSurface
+                        : switch (check.status.outcome) {
+                            ServiceOutcome.unlocked =>
+                              context.colorScheme.success,
+                            ServiceOutcome.partial ||
+                            ServiceOutcome.verification =>
+                              context.colorScheme.warning,
+                            ServiceOutcome.locked ||
+                            ServiceOutcome.unsupported ||
+                            ServiceOutcome.failed => context.colorScheme.error,
+                            ServiceOutcome.unknown =>
+                              context.colorScheme.onSurfaceVariant,
+                          },
+                  ),
+            ),
+            EmojiText(
+              [
+                if (check?.region != null)
+                  '${check!.region!.countryFlagEmoji} ${check.region}',
+                if (check?.delay != null) '${check!.delay} ms',
+              ].join(' · '),
+              style: AppTextStyle.caption2
+                  .of(context)
+                  .copyWith(color: context.colorScheme.onSurfaceVariant),
+            ),
+            if (!pending &&
+                !stale &&
+                check?.status == ServiceProbeStatus.reachable)
+              Text(
+                l10n.auditReachable,
+                style: AppTextStyle.caption2
+                    .of(context)
+                    .copyWith(color: context.colorScheme.onSurfaceVariant),
               ),
+          ],
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedAlignment: Alignment.centerLeft,
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (check != null)
+            Text(serviceAuditStatus(context, check.status), style: hintStyle),
+          if (check?.status == ServiceProbeStatus.originalsOnly)
+            Text(l10n.auditCatalogPartialEvidence, style: hintStyle),
           if (target.expectsDirect)
             Text(
               mismatch ? l10n.auditDirectMismatch : l10n.auditDirectExpected,

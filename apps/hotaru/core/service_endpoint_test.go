@@ -21,6 +21,8 @@ func TestServiceEndpointNeverTreatsReachabilityAsUnlock(t *testing.T) {
 		{"web shield", 403, "Just a moment... challenge-platform", serviceChallenge},
 		{"captcha with 200", 200, "g-recaptcha", serviceChallenge},
 		{"generic forbidden", 403, "Forbidden", serviceRestricted},
+		{"generic API refusal", 200, "Request is not allowed. Please try again later.", serviceRestricted},
+		{"denied page", 200, "Access Denied", serviceRestricted},
 		{"rate limit", 429, "Too many requests", serviceRestricted},
 		{"missing endpoint", 404, "Not found", serviceInconclusive},
 		{"server error", 503, "Unavailable", serviceUnavailable},
@@ -34,8 +36,8 @@ func TestServiceEndpointNeverTreatsReachabilityAsUnlock(t *testing.T) {
 	}
 }
 
-func TestServiceCatalogContainsAll57UniqueChecks(t *testing.T) {
-	if len(serviceCheckers) != 57 {
+func TestServiceCatalogContainsAll63UniqueChecks(t *testing.T) {
+	if len(serviceCheckers) != 63 {
 		t.Fatalf("catalog has %d entries", len(serviceCheckers))
 	}
 	names := map[string]bool{}

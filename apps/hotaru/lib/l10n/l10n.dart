@@ -8838,10 +8838,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.`
+  /// `This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.`
   String get webrtcLeakScope {
     return Intl.message(
-      'Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.',
+      'This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.',
       name: 'webrtcLeakScope',
       desc: '',
       args: [],
@@ -9108,6 +9108,91 @@ class AppLocalizations {
     return Intl.message(
       'Access type is unverified. An absent hosting or mobile flag is not proof of residential access.',
       name: 'statusAccessUnverified',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlocked`
+  String get auditUnlocked {
+    return Intl.message('Unlocked', name: 'auditUnlocked', desc: '', args: []);
+  }
+
+  /// `Partially unlocked`
+  String get auditPartial {
+    return Intl.message(
+      'Partially unlocked',
+      name: 'auditPartial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not unlocked`
+  String get auditLocked {
+    return Intl.message(
+      'Not unlocked',
+      name: 'auditLocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unsupported region`
+  String get auditRegionUnsupported {
+    return Intl.message(
+      'Unsupported region',
+      name: 'auditRegionUnsupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verification / login required`
+  String get auditVerification {
+    return Intl.message(
+      'Verification / login required',
+      name: 'auditVerification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed / timed out`
+  String get auditRequestFailed {
+    return Intl.message(
+      'Failed / timed out',
+      name: 'auditRequestFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to determine`
+  String get auditUnknown {
+    return Intl.message(
+      'Unable to determine',
+      name: 'auditUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Results`
+  String get auditResultFilter {
+    return Intl.message(
+      'Results',
+      name: 'auditResultFilter',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.`
+  String get auditCatalogPartialEvidence {
+    return Intl.message(
+      'The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.',
+      name: 'auditCatalogPartialEvidence',
       desc: '',
       args: [],
     );

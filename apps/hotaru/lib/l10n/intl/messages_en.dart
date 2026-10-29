@@ -337,6 +337,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditAuthentication": MessageLookupByLibrary.simpleMessage(
       "Authentication required",
     ),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage(
       "Anti-bot challenge",
     ),
@@ -355,14 +358,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("Domestic media"),
     "auditGames": MessageLookupByLibrary.simpleMessage("Games & stores"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("Inconclusive"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("Not unlocked"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("International media"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "Page or regional endpoint result; licensed playback, residential eligibility and subscription are not established by a web response.",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("Partially unlocked"),
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Reachable · unlock unconfirmed",
     ),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Connected"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "Unsupported region",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed / timed out",
+    ),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("Results"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "No successful connection chain was observed",
     ),
@@ -386,6 +398,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage(
       "Service unlock & routing check",
+    ),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("Unable to determine"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("Unlocked"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage(
+      "Verification / login required",
     ),
     "authentication": MessageLookupByLibrary.simpleMessage("Authentication"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
@@ -2146,7 +2163,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.",
+      "This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Compare UDP reflexive address with proxy egress",

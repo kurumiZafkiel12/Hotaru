@@ -345,6 +345,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditAuthentication": MessageLookupByLibrary.simpleMessage(
       "Требуется авторизация",
     ),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "У проверенного оригинального произведения есть метаданные воспроизведения, а лицензионный образец недоступен. Это не подтверждает весь каталог или реальные права на просмотр.",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage(
       "Проверка защиты от ботов",
     ),
@@ -365,14 +368,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Недостаточно данных",
     ),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("Не разблокировано"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("Зарубежные медиа"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "Результат страницы или регионального API. Веб-ответ не доказывает воспроизведение по лицензии, соответствие домашнему IP или наличие подписки.",
+    ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage(
+      "Частично разблокировано",
     ),
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Доступен · снятие ограничений не подтверждено",
     ),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Подключены"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "Регион не поддерживается",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "Ошибка / тайм-аут",
+    ),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("Результаты"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "Успешная цепочка подключения не обнаружена",
     ),
@@ -394,6 +408,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage(
       "Проверка сервисов и маршрутов",
+    ),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("Не определено"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("Разблокировано"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage(
+      "Проверка / вход в аккаунт",
     ),
     "authentication": MessageLookupByLibrary.simpleMessage("Аутентификация"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
@@ -2256,7 +2275,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Публичный STUN-адрес отличается от выхода прокси. Проверьте UDP и политику WebRTC браузера. IPv4 и IPv6 нужно проверять отдельно.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Нативный STUN проверяет UDP-маршрут. ICE, mDNS и TURN браузера могут работать иначе. Локальный адрес сам по себе не означает утечку публичного IP.",
+      "Тест собирает нативные ICE-кандидаты WebRTC через канал данных, без доступа к микрофону и камере. Во внешних браузерах политики ICE, mDNS и TURN могут отличаться. Локальный адрес сам по себе не доказывает утечку публичного IP.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Сравнение отражённого UDP-адреса с выходом прокси",

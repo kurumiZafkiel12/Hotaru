@@ -11,7 +11,7 @@ import (
 
 const (
 	// A sweep runs a few checks at a time so it cannot take every probe slot.
-	// It therefore runs in waves, and a rule like Disney+ spends several
+	// It therefore runs in waves, and a rule like Netflix spends several
 	// requests in sequence, so the run gets a multiple of the request budget.
 	serviceCheckConcurrency  = 4
 	serviceSweepBudgetFactor = 24
@@ -21,7 +21,7 @@ const (
 	serviceHtmlMaxBody  = 512 * 1024
 	serviceSmallMaxBody = 16 * 1024
 
-	// Gemini's region sits past 800 KiB, Prime Video's at times past 4 MiB.
+	// Prime Video's region sometimes sits past 4 MiB.
 	serviceScanMaxBody = 8 * 1024 * 1024
 )
 
@@ -374,19 +374,6 @@ func selectedCheckers(names []string) []serviceChecker {
 	return wanted
 }
 
-// checkReachable is the rule for a target with no unlock semantics of its own.
-func checkReachable(url string) func(serviceEnv) ServiceCheckItem {
-	return func(env serviceEnv) ServiceCheckItem {
-		result := env.get(url, 0)
-		item := itemFrom(result)
-		if item.Status != "" {
-			return item
-		}
-		item.Status = statusFromCode(result.StatusCode)
-		return item
-	}
-}
-
 func itemFrom(result *ProbeResult) ServiceCheckItem {
 	if result == nil {
 		return ServiceCheckItem{Status: serviceFailed}
@@ -402,20 +389,6 @@ func itemFrom(result *ProbeResult) ServiceCheckItem {
 		item.Delay = 0
 	}
 	return item
-}
-
-func statusFromCode(code int) string {
-	switch {
-	case code >= 200 && code < 300:
-		return serviceAvailable
-	case code == http.StatusUnauthorized,
-		code == http.StatusForbidden,
-		code == http.StatusTooManyRequests,
-		code == http.StatusUnavailableForLegalReasons:
-		return serviceRestricted
-	default:
-		return serviceUnavailable
-	}
 }
 
 func answered(item ServiceCheckItem, result *ProbeResult) bool {

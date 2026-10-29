@@ -1045,7 +1045,7 @@
   "dnsLeakUnknown": "リゾルバーの分類が不完全です・漏洩なしとは判定できません",
   "webrtcLeakTitle": "WebRTC / STUN 漏洩テスト",
   "webrtcLeakSubtitle": "UDP の反射アドレスとプロキシ出口を比較",
-  "webrtcLeakScope": "ネイティブ STUN は UDP 経路を調べます。ブラウザーの ICE、mDNS、TURN は異なる場合があります。プライベート IP だけでは公開 IP の漏洩を意味しません。",
+  "webrtcLeakScope": "データチャネルでネイティブ WebRTC ICE 候補を収集します。マイク・カメラは使用しません。外部ブラウザーの ICE、mDNS、TURN ポリシーは異なる場合があります。ローカルアドレスだけでは公開 IP 漏えいとは判定できません。",
   "webrtcLeakRisk": "STUN の公開 IP がプロキシ出口と異なります。UDP 経路とブラウザーの WebRTC 設定を確認してください。IPv4 と IPv6 は別途検証が必要です。",
   "webrtcLeakMatch": "今回の STUN アドレスは測定した出口と一致しました。他のブラウザー経路は未検証です。",
   "webrtcBlockAction": "一般的な STUN ポートを遮断",
@@ -1072,5 +1072,14 @@
   "statusOriginUnknownReason": "ネイティブまたはブロードキャスト IP を裏付ける証拠はありません。",
   "statusQualityUnknownReason": "通信品質は未測定です。接続種別や IP リスク情報から通信品質は判断できません。",
   "statusAccessSource": "接続種別の情報源：{source}。",
-  "statusAccessUnverified": "接続種別は未確認です。ホスティングやモバイルの指定がないだけでは住宅回線の証拠になりません。"
+  "statusAccessUnverified": "接続種別は未確認です。ホスティングやモバイルの指定がないだけでは住宅回線の証拠になりません。",
+  "auditUnlocked": "解除済み",
+  "auditPartial": "一部解除",
+  "auditLocked": "未解除",
+  "auditRegionUnsupported": "地域対象外",
+  "auditVerification": "認証・ログイン制限",
+  "auditRequestFailed": "失敗・タイムアウト",
+  "auditUnknown": "判定不能",
+  "auditResultFilter": "結果",
+  "auditCatalogPartialEvidence": "サンプルのオリジナル作品に再生メタデータがあり、ライセンス作品は利用できません。全カタログや実際の再生権限は保証しません。"
 }

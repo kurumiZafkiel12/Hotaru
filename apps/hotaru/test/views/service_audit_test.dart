@@ -81,16 +81,23 @@ void main() {
 
   tearDown(() => container.dispose());
 
-  Future<void> pump(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1000, 1200);
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(1000, 1200),
+    TargetPlatform platform = TargetPlatform.windows,
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    container.read(viewSizeProvider.notifier).value = const Size(1000, 1200);
+    container.read(viewSizeProvider.notifier).value = size;
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const TestApp(child: ServiceAuditView()),
+        child: TestApp(
+          theme: ThemeData(platform: platform),
+          child: const ServiceAuditView(),
+        ),
       ),
     );
     await tester.pump();
@@ -108,14 +115,14 @@ void main() {
   }
 
   test('catalog covers the requested categories without duplicates', () {
-    expect(ServiceTarget.values, hasLength(57));
+    expect(ServiceTarget.values, hasLength(63));
     final counts = <String, int>{};
     for (final target in ServiceTarget.values) {
       counts.update(target.category, (count) => count + 1, ifAbsent: () => 1);
     }
     expect(counts, {
       'ai': 13,
-      'media': 17,
+      'media': 23,
       'domestic': 6,
       'social': 9,
       'developer': 7,
@@ -144,8 +151,8 @@ void main() {
             .toSet(),
       );
       expect(checked, hasLength(13));
-      expect(find.text('Connected'), findsOneWidget);
-      expect(find.text('13'), findsOneWidget);
+      expect(find.text('Unable to determine 13'), findsOneWidget);
+      expect(find.text('13 / 13'), findsOneWidget);
       expect(find.text('Available'), findsNothing);
       expect(calls.every((call) => call.runId.isNotEmpty), isTrue);
       expect(
@@ -201,7 +208,7 @@ void main() {
       ]);
       await frames(tester);
       expect(calls.where((call) => !call.cancel), hasLength(4));
-      expect(find.text('0 / 57'), findsOneWidget);
+      expect(find.text('0 / 63'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await close(tester);
     },
@@ -219,4 +226,91 @@ void main() {
     expect(tester.takeException(), isNull);
     await close(tester);
   });
+  testWidgets(
+    'seven result filters keep successful HTTP separate from unlock evidence',
+    (tester) async {
+      const states = {
+        'google': 'available',
+        'netflix': 'originals-only',
+        'youtube': 'unsupported-region',
+        'chatgpt': 'blocked',
+        'claude': 'challenge',
+        'gemini': 'timeout',
+      };
+      answer = (params) async => [
+        ServiceCheckItem(
+          name: params.names.single,
+          status: states[params.names.single] ?? 'reachable',
+          delay: 42,
+        ),
+      ];
+      await pump(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Start'));
+      await frames(tester);
+      for (final text in [
+        'Unlocked 1',
+        'Partially unlocked 1',
+        'Not unlocked 1',
+        'Unsupported region 1',
+        'Verification / login required 1',
+        'Failed / timed out 1',
+        'Unable to determine 57',
+      ]) {
+        expect(find.text(text), findsOneWidget);
+      }
+      await tester.tap(find.text('Not unlocked 1'));
+      await frames(tester);
+      expect(find.text('ChatGPT'), findsOneWidget);
+      expect(find.text('Google Workspace'), findsNothing);
+      expect(find.text('63 / 63'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    },
+  );
+  testWidgets(
+    'phone filters stay compact and horizontal swipes preserve the result list',
+    (tester) async {
+      await pump(
+        tester,
+        size: const Size(390, 844),
+        platform: TargetPlatform.android,
+      );
+      final start = find.widgetWithText(FilledButton, 'Start');
+      expect(
+        tester.getBottomRight(find.text('Google Workspace')).dy,
+        lessThan(844),
+      );
+      await tester.tap(start);
+      await frames(tester);
+      expect(find.text('63 / 63'), findsOneWidget);
+      final strip = find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is SingleChildScrollView &&
+                widget.scrollDirection == Axis.horizontal,
+          )
+          .first;
+      final position = tester
+          .state<ScrollableState>(
+            find.descendant(of: strip, matching: find.byType(Scrollable)).first,
+          )
+          .position;
+      final before = position.pixels;
+      await tester.drag(strip, const Offset(-650, 0));
+      await frames(tester);
+      expect(position.pixels, greaterThan(before));
+      final unknown = find.widgetWithText(ChoiceChip, 'Unable to determine 63');
+      position.jumpTo(position.maxScrollExtent);
+      await frames(tester);
+      final center = tester.getCenter(unknown);
+      expect(center.dx, inExclusiveRange(0, 390));
+      expect(center.dy, greaterThan(56));
+      await tester.tap(unknown);
+      await frames(tester);
+      expect(tester.widget<ChoiceChip>(unknown).selected, isTrue);
+      expect(find.text('Google Workspace'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    },
+  );
 }

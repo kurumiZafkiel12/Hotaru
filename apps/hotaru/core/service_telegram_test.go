@@ -113,7 +113,7 @@ func TestClaudeTraceDoesNotEstablishWebAccess(t *testing.T) {
 	}{
 		{"US", 200, "Welcome", serviceReachable},
 		{"US", 403, "Just a moment...", serviceChallenge},
-		{"HK", 403, "Forbidden", serviceUnsupportedRegion},
+		{"HK", 403, "Forbidden", serviceRestricted},
 	} {
 		trace := &ProbeResult{StatusCode: 200, Body: "loc=" + tc.country + "\n"}
 		web := &ProbeResult{StatusCode: tc.code, Body: tc.body}

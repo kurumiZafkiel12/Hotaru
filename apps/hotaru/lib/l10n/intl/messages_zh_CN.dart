@@ -282,6 +282,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("立即应用"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI 与大模型"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("需要登录或 API 密钥"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "所测自制内容包含可播放元数据，授权内容样本不可用；这不能证明完整片库或实际播放权益。",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("触发网站风控或验证码"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "地区信号不等于账号可用；风控单独判断。若地区封锁，可尝试美、日、新等受支持出口。",
@@ -296,12 +299,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内影音与版权分流"),
     "auditGames": MessageLookupByLibrary.simpleMessage("游戏与应用商店"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("证据不足，无法判定"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("未解锁"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("国际影音"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "网页或地区接口结果不能证明版权播放、家宽资格或订阅权益。",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("部分解锁"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("可连接 · 解锁未确认"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("已连通"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地区不支持"),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("请求失败或超时"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("检测结果"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage("尚未观测到成功建立的连接链"),
     "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("未观测到命中规则"),
     "auditScope": MessageLookupByLibrary.simpleMessage(
@@ -316,6 +324,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "检查网页连通性与 DC1–DC5 的 MTProto 握手；不会登录账号，也不能据此判断当前账号会话使用哪个 DC。",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("服务解锁与分流体检"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("无法判定"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("已解锁"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("验证或登录限制"),
     "authentication": MessageLookupByLibrary.simpleMessage("认证"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "认证开启后，使用本地代理端口需要账号密码。",
@@ -1664,7 +1675,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN 公网地址与代理出口不同，请检查 UDP 路由及浏览器 WebRTC 策略；IPv4/IPv6 地址族不同仍需分别核验。",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "原生 STUN 会主动探测 UDP 路径；浏览器 ICE、mDNS 与 TURN 行为可能不同。仅发现内网地址不等于公网 IP 泄漏。",
+      "本次通过数据通道收集原生 WebRTC ICE 候选，不申请麦克风或摄像头权限。外部浏览器的 ICE、mDNS 和 TURN 策略可能不同；仅发现内网地址不等于公网 IP 泄漏。",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "对比 UDP 反射地址与代理出口",

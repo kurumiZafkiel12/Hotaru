@@ -286,6 +286,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("지금 적용"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI 및 모델"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("인증 필요"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "원본 콘텐츠 표본에는 재생 메타데이터가 있으나 라이선스 콘텐츠 표본은 사용할 수 없습니다. 전체 목록이나 실제 재생 권한을 증명하지 않습니다.",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("봇 방지 확인"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "지역과 웹 응답을 확인합니다. 계정 사용은 별도 검사해야 합니다. 차단되면 미국, 일본, 싱가포르 등 지원 지역의 출구를 사용하세요.",
@@ -300,12 +303,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("국내 미디어"),
     "auditGames": MessageLookupByLibrary.simpleMessage("게임 및 스토어"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("판단할 증거 부족"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("해제되지 않음"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("해외 미디어"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "웹 페이지 또는 지역 API 결과입니다. 저작권 재생, 주거용 회선 자격, 구독은 웹 응답만으로 확인할 수 없습니다.",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("부분 해제"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("연결 가능 · 제한 해제 미확인"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("연결 가능"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "지원하지 않는 지역",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("실패 / 시간 초과"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("결과"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "성공한 연결 체인이 관측되지 않음",
     ),
@@ -322,6 +332,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "웹 연결과 DC1–DC5 MTProto 핸드셰이크를 검사합니다. 계정에 로그인하거나 현재 세션의 DC를 추론하지 않습니다.",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("서비스 지역 제한 및 라우팅 검사"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("판단 불가"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("차단 해제"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("인증 / 로그인 필요"),
     "authentication": MessageLookupByLibrary.simpleMessage("인증"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "인증을 켜면 로컬 프록시 포트에서 사용자 이름과 비밀번호를 요구합니다.",
@@ -1810,7 +1823,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN 공인 주소가 프록시 출구와 다릅니다. UDP 라우팅과 브라우저 WebRTC 정책을 확인하세요. IPv4 및 IPv6는 별도 검증이 필요합니다.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "네이티브 STUN은 UDP 경로를 검사합니다. 브라우저 ICE, mDNS, TURN은 다를 수 있습니다. 사설 주소만으로 공인 IP 누출을 의미하지 않습니다.",
+      "데이터 채널로 네이티브 WebRTC ICE 후보를 수집하며 마이크나 카메라 권한을 요청하지 않습니다. 외부 브라우저의 ICE, mDNS, TURN 정책은 다를 수 있습니다. 로컬 주소만으로 공인 IP 유출을 판단할 수 없습니다.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "UDP 반사 주소와 프록시 출구 비교",

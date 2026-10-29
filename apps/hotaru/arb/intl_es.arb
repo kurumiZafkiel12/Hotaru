@@ -1045,7 +1045,7 @@
   "dnsLeakUnknown": "Clasificación incompleta; no se puede afirmar que no haya fugas",
   "webrtcLeakTitle": "Prueba de fugas WebRTC / STUN",
   "webrtcLeakSubtitle": "Comparar la dirección reflexiva UDP con la salida proxy",
-  "webrtcLeakScope": "STUN nativo prueba la ruta UDP. ICE, mDNS y TURN del navegador pueden funcionar de otra forma. Una dirección privada por sí sola no implica fuga de IP pública.",
+  "webrtcLeakScope": "Esta prueba recopila candidatos ICE WebRTC nativos mediante un canal de datos, sin solicitar micrófono ni cámara. Los navegadores externos pueden usar otras políticas ICE, mDNS y TURN. Una dirección local por sí sola no demuestra una fuga de IP pública.",
   "webrtcLeakRisk": "La IP pública STUN difiere de la salida proxy. Revisa las rutas UDP y la política WebRTC. IPv4 e IPv6 requieren comprobaciones separadas.",
   "webrtcLeakMatch": "Esta dirección STUN coincide con la salida medida; otras rutas del navegador siguen sin probarse.",
   "webrtcBlockAction": "Bloquear puertos STUN comunes",
@@ -1072,5 +1072,14 @@
   "statusOriginUnknownReason": "No hay pruebas verificadas de IP nativa o anunciada.",
   "statusQualityUnknownReason": "No se ha medido la calidad de la red. El tipo de acceso y los indicadores de riesgo de IP no determinan la calidad de conexión.",
   "statusAccessSource": "Fuente del tipo de acceso: {source}.",
-  "statusAccessUnverified": "El tipo de acceso no está verificado. La ausencia de indicadores de alojamiento o red móvil no demuestra un acceso residencial."
+  "statusAccessUnverified": "El tipo de acceso no está verificado. La ausencia de indicadores de alojamiento o red móvil no demuestra un acceso residencial.",
+  "auditUnlocked": "Desbloqueado",
+  "auditPartial": "Desbloqueo parcial",
+  "auditLocked": "Sin desbloquear",
+  "auditRegionUnsupported": "Región no admitida",
+  "auditVerification": "Verificación / inicio de sesión",
+  "auditRequestFailed": "Error / tiempo agotado",
+  "auditUnknown": "Sin determinar",
+  "auditResultFilter": "Resultados",
+  "auditCatalogPartialEvidence": "El título original de muestra expone metadatos de reproducción y la muestra con licencia no está disponible. Esto no confirma el catálogo completo ni los derechos reales de reproducción."
 }

@@ -369,24 +369,6 @@ func TestHandleServiceCheckCancelsTheOlderCheckOfTheSameService(t *testing.T) {
 	}
 }
 
-func TestStatusFromCode(t *testing.T) {
-	cases := map[int]string{
-		http.StatusOK:                         serviceAvailable,
-		http.StatusNoContent:                  serviceAvailable,
-		http.StatusUnauthorized:               serviceRestricted,
-		http.StatusForbidden:                  serviceRestricted,
-		http.StatusTooManyRequests:            serviceRestricted,
-		http.StatusUnavailableForLegalReasons: serviceRestricted,
-		http.StatusNotFound:                   serviceUnavailable,
-		http.StatusInternalServerError:        serviceUnavailable,
-	}
-	for code, want := range cases {
-		if got := statusFromCode(code); got != want {
-			t.Errorf("statusFromCode(%d) = %q, want %q", code, got, want)
-		}
-	}
-}
-
 func TestItemFromMapsTransportErrors(t *testing.T) {
 	timedOut := itemFrom(&ProbeResult{Error: probeErrorTimeout, Delay: 900})
 	if timedOut.Status != serviceTimeout {

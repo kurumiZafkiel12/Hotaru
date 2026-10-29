@@ -356,6 +356,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditAuthentication": MessageLookupByLibrary.simpleMessage(
       "Se requiere autenticación",
     ),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "El título original de muestra expone metadatos de reproducción y la muestra con licencia no está disponible. Esto no confirma el catálogo completo ni los derechos reales de reproducción.",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage(
       "Verificación contra bots",
     ),
@@ -376,16 +379,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Sin pruebas concluyentes",
     ),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("Sin desbloquear"),
     "auditMedia": MessageLookupByLibrary.simpleMessage(
       "Medios internacionales",
     ),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "Resultado de página o API regional. Una respuesta web no confirma reproducción con licencia, requisitos residenciales ni suscripción.",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("Desbloqueo parcial"),
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Accesible · desbloqueo sin confirmar",
     ),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Conectados"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "Región no admitida",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "Error / tiempo agotado",
+    ),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("Resultados"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "No se observó una cadena de conexión correcta",
     ),
@@ -409,6 +421,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage(
       "Comprobar servicios y rutas",
+    ),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("Sin determinar"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("Desbloqueado"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage(
+      "Verificación / inicio de sesión",
     ),
     "authentication": MessageLookupByLibrary.simpleMessage("Autenticación"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
@@ -2321,7 +2338,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "La IP pública STUN difiere de la salida proxy. Revisa las rutas UDP y la política WebRTC. IPv4 e IPv6 requieren comprobaciones separadas.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "STUN nativo prueba la ruta UDP. ICE, mDNS y TURN del navegador pueden funcionar de otra forma. Una dirección privada por sí sola no implica fuga de IP pública.",
+      "Esta prueba recopila candidatos ICE WebRTC nativos mediante un canal de datos, sin solicitar micrófono ni cámara. Los navegadores externos pueden usar otras políticas ICE, mDNS y TURN. Una dirección local por sí sola no demuestra una fuga de IP pública.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Comparar la dirección reflexiva UDP con la salida proxy",
