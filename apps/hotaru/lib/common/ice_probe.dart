@@ -86,39 +86,60 @@ class IceProbeResult {
   }
 }
 
+typedef IcePeerFactory =
+    Future<RTCPeerConnection> Function(Map<String, dynamic> configuration);
+
 class IceProbe {
+  IceProbe({IcePeerFactory? createPeer})
+    : _createPeer = createPeer ?? createPeerConnection;
+
+  final IcePeerFactory _createPeer;
   RTCPeerConnection? _peer;
-  Completer<void>? _done;
+  Completer<String>? _done;
   bool _cancelled = false;
+  bool _running = false;
 
   Future<void> cancel() async {
     _cancelled = true;
     final done = _done;
-    if (done != null && !done.isCompleted) done.complete();
+    if (done != null && !done.isCompleted) done.complete('cancelled');
     await _release();
+  }
+
+  Future<void> _disposePeer(RTCPeerConnection peer) async {
+    try {
+      await peer.dispose().timeout(const Duration(seconds: 1));
+    } catch (_) {
+      // An unavailable native plugin must not replace the diagnostic outcome.
+    }
   }
 
   Future<void> _release() async {
     final peer = _peer;
     _peer = null;
-    if (peer != null) await peer.dispose();
+    if (peer != null) await _disposePeer(peer);
   }
 
   Future<IceProbeResult> run({
     Duration timeout = const Duration(seconds: 12),
   }) async {
-    if (_cancelled) {
-      return const IceProbeResult(
-        candidates: [],
+    if (_cancelled || _running) {
+      return IceProbeResult(
+        candidates: const [],
         completed: false,
-        error: 'cancelled',
+        error: _cancelled ? 'cancelled' : 'unavailable',
       );
     }
+    _running = true;
     final candidates = <String, IceAddress>{};
-    final done = _done = Completer<void>();
-    var completed = false;
-    try {
-      final peer = await createPeerConnection({
+    final done = _done = Completer<String>();
+    void finish(String outcome) {
+      if (!done.isCompleted) done.complete(outcome);
+    }
+
+    final timer = Timer(timeout, () => finish('timeout'));
+    Future<void> gather() async {
+      final peer = await _createPeer({
         'iceServers': [
           {
             'urls': [
@@ -129,48 +150,41 @@ class IceProbe {
         ],
         'iceTransportPolicy': 'all',
       });
-      _peer = peer;
-      if (_cancelled) {
-        return const IceProbeResult(
-          candidates: [],
-          completed: false,
-          error: 'cancelled',
-        );
+      if (done.isCompleted) {
+        unawaited(_disposePeer(peer));
+        return;
       }
+      _peer = peer;
       peer.onIceCandidate = (candidate) {
-        if (_cancelled) return;
+        if (done.isCompleted) return;
         final address = IceAddress.parse(candidate.candidate ?? '');
         if (address != null) candidates[address.identity] = address;
       };
       peer.onIceGatheringState = (state) {
         if (state == RTCIceGatheringState.RTCIceGatheringStateComplete) {
-          completed = true;
-          if (!done.isCompleted) done.complete();
+          finish('completed');
         }
       };
       await peer.createDataChannel('hotaru-diagnostics', RTCDataChannelInit());
-      await peer.setLocalDescription(await peer.createOffer());
-      await done.future.timeout(timeout);
+      if (done.isCompleted) return;
+      final offer = await peer.createOffer();
+      if (done.isCompleted) return;
+      await peer.setLocalDescription(offer);
+    }
+
+    unawaited(gather().catchError((Object _) => finish('unavailable')));
+    try {
+      final outcome = await done.future;
       return IceProbeResult(
         candidates: List.unmodifiable(candidates.values),
-        completed: completed && !_cancelled,
-        error: _cancelled ? 'cancelled' : null,
-      );
-    } on TimeoutException {
-      return IceProbeResult(
-        candidates: List.unmodifiable(candidates.values),
-        completed: false,
-        error: 'timeout',
-      );
-    } catch (_) {
-      return IceProbeResult(
-        candidates: List.unmodifiable(candidates.values),
-        completed: false,
-        error: 'unavailable',
+        completed: outcome == 'completed',
+        error: outcome == 'completed' ? null : outcome,
       );
     } finally {
-      await _release();
+      timer.cancel();
       _done = null;
+      _running = false;
+      unawaited(_release());
     }
   }
 }
