@@ -194,3 +194,18 @@ TextTheme _onAppScale(
     desktop: desktop,
   ),
 );
+
+extension AppThemeColors on ThemeData {
+  ThemeData withAppColorScheme(ColorScheme colors) => copyWith(
+    colorScheme: colors,
+    textTheme: textTheme.apply(
+      bodyColor: colors.onSurface,
+      displayColor: colors.onSurface,
+    ),
+    primaryTextTheme: primaryTextTheme.apply(
+      bodyColor: colors.onSurface,
+      displayColor: colors.onSurface,
+    ),
+    iconTheme: iconTheme.copyWith(color: colors.onSurfaceVariant),
+  );
+}

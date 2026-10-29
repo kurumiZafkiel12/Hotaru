@@ -25,7 +25,7 @@ class ThemeDashboardPreview extends StatelessWidget {
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 720),
       child: Theme(
-        data: Theme.of(context).copyWith(colorScheme: colors),
+        data: Theme.of(context).withAppColorScheme(colors).withAppSurfaces,
         child: Builder(
           builder: (context) {
             final l10n = context.appLocalizations;
@@ -43,7 +43,12 @@ class ThemeDashboardPreview extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          l10n.dashboard,
+                          switch (selected) {
+                            1 => l10n.proxies,
+                            2 => l10n.profiles,
+                            3 => l10n.tools,
+                            _ => l10n.dashboard,
+                          },
                           style: AppTextStyle.subheadline.of(
                             context,
                             emphasized: true,
