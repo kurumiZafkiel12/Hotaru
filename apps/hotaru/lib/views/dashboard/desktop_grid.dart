@@ -7,6 +7,7 @@ import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -172,17 +173,96 @@ class DesktopDashboardEditor extends ConsumerStatefulWidget {
       _DesktopDashboardEditorState();
 }
 
-class _DesktopDashboardEditorState
-    extends ConsumerState<DesktopDashboardEditor> {
+class _DesktopDashboardEditorState extends ConsumerState<DesktopDashboardEditor>
+    with SingleTickerProviderStateMixin {
   late List<DashboardWidget> _order;
   late Map<String, int> _widths;
   List<DashboardWidget>? _dropOrder;
   DashboardWidget? _dragging;
   final _gridKey = GlobalKey();
+  final _viewportKey = GlobalKey();
+  late final ScrollController _scroll;
+  late final Ticker _edgeTicker = createTicker(_scrollAtEdge);
+  Duration? _lastTick;
+  double _edgeVelocity = 0;
+  DragTargetDetails<DashboardWidget>? _lastDrag;
+  _GridGeometry? _dragGeometry;
+
+  void _stopEdgeScroll() {
+    _edgeTicker.stop();
+    _lastTick = null;
+    _edgeVelocity = 0;
+  }
+
+  void _updateEdgeScroll(DragUpdateDetails details) {
+    final box = _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    if (_dragging == null || box == null || !_scroll.hasClients) return;
+    final pointer = box.globalToLocal(details.globalPosition);
+    const edge = 48.0;
+    final room = math.min(edge, box.size.height / 4);
+    _edgeVelocity = pointer.dx < 0 || pointer.dx > box.size.width
+        ? 0
+        : pointer.dy < room
+        ? -600 * ((room - pointer.dy) / room).clamp(0.0, 1.0)
+        : pointer.dy > box.size.height - room
+        ? 600 * ((pointer.dy - box.size.height + room) / room).clamp(0.0, 1.0)
+        : 0;
+    if (_edgeVelocity == 0) {
+      _stopEdgeScroll();
+    } else if (!_edgeTicker.isActive) {
+      _lastTick = null;
+      _edgeTicker.start();
+    }
+  }
+
+  void _scrollAtEdge(Duration elapsed) {
+    if (!mounted || _dragging == null || !_scroll.hasClients) {
+      _stopEdgeScroll();
+      return;
+    }
+    final seconds = _lastTick == null
+        ? 1 / 60
+        : ((elapsed - _lastTick!).inMicroseconds / 1000000).clamp(0.0, 0.05);
+    _lastTick = elapsed;
+    final position = _scroll.position;
+    final next = (position.pixels + _edgeVelocity * seconds).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if ((next - position.pixels).abs() < 0.1) {
+      _stopEdgeScroll();
+      return;
+    }
+    _scroll.jumpTo(next);
+    final details = _lastDrag;
+    final geometry = _dragGeometry;
+    if (details != null && geometry != null) {
+      final order = _dropOrder ?? _order;
+      _dragMoved(
+        details,
+        placeDashboardWidgets(
+          order,
+          _tiersOf(order),
+          widget.columns,
+          widths: _widths,
+        ),
+        geometry,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _stopEdgeScroll();
+    _edgeTicker.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    _scroll = sheetScrollController(context);
     final setting = ref.read(appSettingProvider);
     _widths = Map.of(setting.dashboardWidgetSpans);
     _order = [
@@ -192,6 +272,9 @@ class _DesktopDashboardEditorState
   }
 
   void _finishDrag({required bool accept}) {
+    _stopEdgeScroll();
+    _lastDrag = null;
+    _dragGeometry = null;
     if (_dragging == null && _dropOrder == null) {
       return;
     }
@@ -244,6 +327,7 @@ class _DesktopDashboardEditorState
   }
 
   void _resetDefaults() {
+    _stopEdgeScroll();
     setState(() {
       for (final item in DashboardWidget.values) {
         if (item.platforms.contains(widget.platform)) {
@@ -264,6 +348,8 @@ class _DesktopDashboardEditorState
     List<DashboardPlacement> placements,
     _GridGeometry geometry,
   ) {
+    _lastDrag = details;
+    _dragGeometry = geometry;
     final dragged = _dragging;
     if (dragged == null) {
       return;
@@ -327,6 +413,8 @@ class _DesktopDashboardEditorState
           DashboardDensityScope.scaleOf(context),
         );
         return SingleChildScrollView(
+          key: _viewportKey,
+          controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             _sidePadding + geometry.inset,
@@ -463,6 +551,7 @@ class _DesktopDashboardEditorState
               _dragging = item;
               _dropOrder = null;
             }),
+            onDragUpdate: _updateEdgeScroll,
             onDragEnd: (_) => _finishDrag(accept: false),
             onDraggableCanceled: (_, _) => _finishDrag(accept: false),
             child: cardContent(keyed: true),

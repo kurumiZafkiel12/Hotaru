@@ -379,6 +379,52 @@ void main() {
     await teardown(tester);
   });
 
+  testWidgets(
+    'desktop edge scrolling stops on drag cancellation without saving a draft',
+    (tester) async {
+      const original = [
+        DashboardWidget.currentOutbound,
+        DashboardWidget.networkSpeed,
+        DashboardWidget.networkTakeover,
+        DashboardWidget.outboundMode,
+        DashboardWidget.profiles,
+        DashboardWidget.memoryInfo,
+      ];
+      seed(original);
+      await pumpEditor(
+        tester,
+        platform: SupportPlatform.Windows,
+        size: const Size(620, 500),
+      );
+      final position = positionOf(tester);
+      expect(position.maxScrollExtent, greaterThan(0));
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CurrentOutboundCard)),
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(0, 24));
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.moveTo(const Offset(300, 488));
+      for (var frame = 0; frame < 12; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(position.pixels, greaterThan(20));
+      expect(saved(), original);
+      await gesture.cancel();
+      await settle(tester);
+      final stopped = position.pixels;
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(position.pixels, stopped);
+      position.jumpTo(0);
+      await tester.pump();
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+      expect(saved(), original);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
   testWidgets('narrow desktop uses its fixed grid and mouse reordering', (
     tester,
   ) async {

@@ -187,7 +187,18 @@ class ApplicationState extends ConsumerState<Application> {
           theme: watchAppTheme(ref, Brightness.light),
           darkTheme: watchAppTheme(ref, Brightness.dark),
           themeAnimationStyle: AnimationStyle.noAnimation,
-          home: KeyboardInsetHold(child: AppArrival(child: child!)),
+          home: KeyboardInsetHold(
+            child: AppArrival(
+              brandMark: system.isAndroid
+                  ? Image.asset(
+                      'assets/images/icon.png',
+                      filterQuality: FilterQuality.high,
+                    )
+                  : null,
+              brandLabel: appName,
+              child: child!,
+            ),
+          ),
         );
       },
       child: const HomePage(),
