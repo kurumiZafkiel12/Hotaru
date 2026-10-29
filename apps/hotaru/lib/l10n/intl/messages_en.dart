@@ -627,6 +627,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Available to add",
     ),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("Card width"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("Resize card"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "Restore defaults",

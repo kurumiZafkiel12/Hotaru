@@ -14,6 +14,41 @@ void main() {
     }
   });
 
+  test(
+    'width bands stay independent of height and survive a narrow window',
+    () {
+      const card = DashboardWidget.connectionStats;
+      for (final width in DashboardWidth.values) {
+        final saved = {DashboardWidth.storageKey(card): width.span};
+        final wide = placeDashboardWidgets(
+          [card],
+          {card: card.tier},
+          4,
+          widths: saved,
+        ).single;
+        final narrow = placeDashboardWidgets(
+          [card],
+          {card: card.tier},
+          2,
+          widths: saved,
+        ).single;
+        expect(wide.columns, width.span);
+        expect(narrow.columns, width.span.clamp(1, 2));
+        expect(wide.height, 122);
+        expect(narrow.height, 122);
+        expect(DashboardWidth.of(card, card.tier, saved), width);
+      }
+    },
+  );
+
+  test('invalid or legacy widths cannot squeeze primary card content', () {
+    const card = DashboardWidget.currentOutbound;
+    for (final stored in [-1, 0, 1, 3, 5, 999]) {
+      final saved = {card.name: 4, DashboardWidth.storageKey(card): stored};
+      expect(DashboardWidth.of(card, card.tier, saved), DashboardWidth.regular);
+    }
+  });
+
   test('column boundaries and gaps remain regular after reordering', () {
     for (final columns in [2, 4]) {
       for (final order in [

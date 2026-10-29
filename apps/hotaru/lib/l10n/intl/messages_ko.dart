@@ -516,6 +516,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("다크"),
     "dashboard": MessageLookupByLibrary.simpleMessage("대시보드"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("추가 가능"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("카드 너비"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("카드 크기 조정"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "기본 레이아웃 복원",

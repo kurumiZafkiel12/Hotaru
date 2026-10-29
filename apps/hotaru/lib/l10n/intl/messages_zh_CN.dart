@@ -488,6 +488,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("深色"),
     "dashboard": MessageLookupByLibrary.simpleMessage("仪表盘"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("可添加"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("卡片宽度"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("调整卡片大小"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage("恢复默认布局"),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("我的小组件"),

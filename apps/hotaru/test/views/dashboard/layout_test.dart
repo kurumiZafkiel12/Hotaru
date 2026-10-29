@@ -140,6 +140,82 @@ void main() {
     },
   );
 
+  testWidgets(
+    'width selection saves, cancels and resets without changing height',
+    (tester) async {
+      await pumpDashboard(
+        tester,
+        const Size(1440, 900),
+        platform: SupportPlatform.Windows,
+      );
+      final hold = container.listen(appSettingProvider, (_, _) {});
+      addTearDown(hold.close);
+      final key = DashboardWidth.storageKey(DashboardWidget.currentOutbound);
+      Future<void> editWidth(String width) async {
+        await tester.tap(find.byTooltip('Edit dashboard'));
+        await tester.pump(const Duration(milliseconds: 350));
+        await tester.tap(find.byKey(const ValueKey('width-currentOutbound')));
+        for (var frame = 0; frame < 6; frame++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.tap(
+          find.widgetWithText(CheckedPopupMenuItem<DashboardWidth>, width),
+        );
+        for (var frame = 0; frame < 6; frame++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      await editWidth('4×');
+      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      expect(rectOf(tester, CurrentOutboundCard).height, 160);
+      await tester.tap(find.text('Done').last);
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
+      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      await pumpDashboard(
+        tester,
+        const Size(740, 900),
+        platform: SupportPlatform.Windows,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(rectOf(tester, CurrentOutboundCard).width, 412);
+      expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
+      await pumpDashboard(
+        tester,
+        const Size(1440, 900),
+        platform: SupportPlatform.Windows,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      await editWidth('2×');
+      await tester.tap(find.text('Cancel').last);
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
+      await tester.tap(find.byTooltip('Edit dashboard'));
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.tap(find.text('Restore defaults'));
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.tap(find.text('Done').last);
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(rectOf(tester, CurrentOutboundCard).width, 412);
+      expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 2);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
   testWidgets('the title bar, grid and editor share the compact page budget', (
     tester,
   ) async {

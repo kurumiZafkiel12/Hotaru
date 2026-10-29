@@ -55,6 +55,16 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  /// `Card width`
+  String get dashboardCardWidth {
+    return Intl.message(
+      'Card width',
+      name: 'dashboardCardWidth',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Rule`
   String get rule {
     return Intl.message('Rule', name: 'rule', desc: '', args: []);

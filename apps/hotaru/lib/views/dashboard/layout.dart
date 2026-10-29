@@ -27,6 +27,28 @@ abstract final class DashboardSizing {
   static double height(int level) => low + step * level;
 }
 
+enum DashboardWidth {
+  narrow(1),
+  regular(2),
+  wide(4);
+
+  const DashboardWidth(this.span);
+  final int span;
+  static String storageKey(DashboardWidget widget) =>
+      'desktop.width.${widget.name}';
+  static DashboardWidth of(
+    DashboardWidget widget,
+    DashboardTier tier,
+    Map<String, int> saved,
+  ) {
+    final stored = saved[storageKey(widget)];
+    return values.firstWhere(
+      (width) => width.span == stored && width.span >= tier.columns(4),
+      orElse: () => values.firstWhere((width) => width.span == tier.columns(4)),
+    );
+  }
+}
+
 enum DashboardTier {
   narrow,
   short,
@@ -68,12 +90,16 @@ class DashboardPlacement {
 List<DashboardPlacement> placeDashboardWidgets(
   List<DashboardWidget> order,
   Map<DashboardWidget, DashboardTier> tiers,
-  int columns,
-) {
+  int columns, {
+  Map<String, int> widths = const {},
+}) {
   final result = <DashboardPlacement>[];
   for (final widget in order) {
     final tier = tiers[widget] ?? DashboardTier.mid;
-    final width = tier.columns(columns);
+    final width = math.min(
+      DashboardWidth.of(widget, tier, widths).span,
+      columns,
+    );
     final candidates = {
       0.0,
       for (final item in result) item.bottom + DashboardSizing.gap,

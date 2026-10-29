@@ -529,6 +529,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("ダーク"),
     "dashboard": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("追加できるカード"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("カードの幅"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("カードのサイズを変更"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "デフォルトに戻す",

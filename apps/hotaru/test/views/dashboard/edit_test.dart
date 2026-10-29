@@ -458,29 +458,27 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets(
-    'desktop editing preserves fixed sizes and removes legacy resize controls',
-    (tester) async {
-      seed(const [
-        DashboardWidget.currentOutbound,
-        DashboardWidget.networkSpeed,
-      ]);
-      await pumpEditor(
-        tester,
-        platform: SupportPlatform.Windows,
-        size: const Size(1220, 900),
-      );
-      expect(
-        find.byKey(const ValueKey('resize-currentOutbound')),
-        findsNothing,
-      );
-      final before = tester.getRect(find.byType(CurrentOutboundCard));
-      expect(before.height, 160);
-      await tester.tap(find.text('Done'));
-      await settle(tester);
-      expect(container.read(appSettingProvider).dashboardWidgetSpans, isEmpty);
-      expect(tester.takeException(), isNull);
-      await teardown(tester);
-    },
-  );
+  testWidgets('desktop editing keeps fixed heights and saves discrete widths', (
+    tester,
+  ) async {
+    seed(const [DashboardWidget.currentOutbound, DashboardWidget.networkSpeed]);
+    await pumpEditor(
+      tester,
+      platform: SupportPlatform.Windows,
+      size: const Size(1220, 900),
+    );
+    expect(find.byKey(const ValueKey('resize-currentOutbound')), findsNothing);
+    final before = tester.getRect(find.byType(CurrentOutboundCard));
+    expect(before.height, 160);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(
+      container
+          .read(appSettingProvider)
+          .dashboardWidgetSpans['desktop.width.currentOutbound'],
+      2,
+    );
+    expect(tester.takeException(), isNull);
+    await teardown(tester);
+  });
 }

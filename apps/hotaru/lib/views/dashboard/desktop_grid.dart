@@ -92,7 +92,15 @@ class DesktopDashboardGrid extends ConsumerWidget {
       for (final widget in saved)
         if (widget.platforms.contains(platform)) widget,
     ];
-    final placements = placeDashboardWidgets(order, _tiersOf(order), columns);
+    final widths = ref.watch(
+      appSettingProvider.select((state) => state.dashboardWidgetSpans),
+    );
+    final placements = placeDashboardWidgets(
+      order,
+      _tiersOf(order),
+      columns,
+      widths: widths,
+    );
     final duration = _motionOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -167,6 +175,7 @@ class DesktopDashboardEditor extends ConsumerStatefulWidget {
 class _DesktopDashboardEditorState
     extends ConsumerState<DesktopDashboardEditor> {
   late List<DashboardWidget> _order;
+  late Map<String, int> _widths;
   List<DashboardWidget>? _dropOrder;
   DashboardWidget? _dragging;
   final _gridKey = GlobalKey();
@@ -175,6 +184,7 @@ class _DesktopDashboardEditorState
   void initState() {
     super.initState();
     final setting = ref.read(appSettingProvider);
+    _widths = Map.of(setting.dashboardWidgetSpans);
     _order = [
       for (final item in setting.dashboardWidgets)
         if (item.platforms.contains(widget.platform)) item,
@@ -203,7 +213,14 @@ class _DesktopDashboardEditorState
               state.dashboardWidgets,
               _order,
             ),
-            dashboardWidgetSpans: const {},
+            dashboardWidgetSpans: {
+              ...state.dashboardWidgetSpans,
+              for (final item in DashboardWidget.values)
+                if (item.platforms.contains(widget.platform))
+                  DashboardWidth.storageKey(item):
+                      _widths[DashboardWidth.storageKey(item)] ??
+                      item.tier.columns(4),
+            },
           ),
         );
     widget.onDone();
@@ -228,6 +245,11 @@ class _DesktopDashboardEditorState
 
   void _resetDefaults() {
     setState(() {
+      for (final item in DashboardWidget.values) {
+        if (item.platforms.contains(widget.platform)) {
+          _widths[DashboardWidth.storageKey(item)] = item.tier.columns(4);
+        }
+      }
       _order = [
         for (final item in platformDefaultDashboardWidgets)
           if (item.platforms.contains(widget.platform)) item,
@@ -287,6 +309,7 @@ class _DesktopDashboardEditorState
       _dropOrder ?? _order,
       _tiersOf(_dropOrder ?? _order),
       widget.columns,
+      widths: _widths,
     );
     final addable = [
       for (final item in DashboardWidget.values)
@@ -443,6 +466,42 @@ class _DesktopDashboardEditorState
             onDragEnd: (_) => _finishDrag(accept: false),
             onDraggableCanceled: (_, _) => _finishDrag(accept: false),
             child: cardContent(keyed: true),
+          ),
+          PositionedDirectional(
+            bottom: 4,
+            start: 8,
+            child: Material(
+              color: colorScheme.surface,
+              shape: AppShape.full,
+              child: PopupMenuButton<DashboardWidth>(
+                key: ValueKey('width-${item.name}'),
+                tooltip: context.appLocalizations.dashboardCardWidth,
+                onSelected: (width) => setState(() {
+                  _widths[DashboardWidth.storageKey(item)] = width.span;
+                }),
+                itemBuilder: (context) => [
+                  for (final width in DashboardWidth.values)
+                    if (width.span >= item.tier.columns(4))
+                      CheckedPopupMenuItem(
+                        value: width,
+                        checked:
+                            DashboardWidth.of(item, item.tier, _widths) ==
+                            width,
+                        child: Text('${width.span}×'),
+                      ),
+                ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  child: Text(
+                    '${DashboardWidth.of(item, item.tier, _widths).span}×',
+                    style: AppTextStyle.caption1.of(context),
+                  ),
+                ),
+              ),
+            ),
           ),
           if (item.removable)
             PositionedDirectional(
