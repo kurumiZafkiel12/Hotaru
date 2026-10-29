@@ -229,40 +229,124 @@ class _ServiceStatusCardState extends ConsumerState<ServiceStatusCard>
     return DashboardCard(
       semanticLabel: appLocalizations.serviceStatus,
       onTap: mobile ? openSheet : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          DashboardCardHeader(
-            glyph: AppGlyphs.verified,
-            title: appLocalizations.serviceStatus,
-            chevron: mobile,
-            trailing: [
-              if (!stacked) ?verdict,
-              if (!mobile)
-                Transform.translate(
-                  offset: const Offset(8, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!stacked)
-                        _CheckAllButton(
-                          loading: shown.any(state.isLoading),
-                          onPressed: () => _services.refresh(shown),
-                        ),
-                      DashboardIconButton(
-                        glyph: AppGlyphs.chevronForward,
-                        tooltip: appLocalizations.serviceStatus,
-                        onPressed: openSheet,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compactList =
+              !mobile &&
+              widget.columns > 1 &&
+              constraints.maxWidth < 260 * scale;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
+            children: [
+              DashboardCardHeader(
+                glyph: compactList ? null : AppGlyphs.verified,
+                title: appLocalizations.serviceStatus,
+                chevron: mobile,
+                trailing: [
+                  if (!stacked && !compactList) ?verdict,
+                  if (!mobile)
+                    Transform.translate(
+                      offset: const Offset(8, 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!stacked)
+                            _CheckAllButton(
+                              loading: shown.any(state.isLoading),
+                              onPressed: () => _services.refresh(shown),
+                            ),
+                          DashboardIconButton(
+                            glyph: AppGlyphs.chevronForward,
+                            tooltip: appLocalizations.serviceStatus,
+                            onPressed: openSheet,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                ],
+              ),
+              if (compactList)
+                const SizedBox(height: 6)
+              else if (mobile)
+                const SizedBox(height: 12)
+              else
+                const Spacer(),
+              if (compactList)
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemExtent: max(
+                      24.0,
+                      AppTextStyle.caption1.leading * scale,
+                    ),
+                    itemCount: services.length,
+                    itemBuilder: (context, index) =>
+                        _CompactServiceRow(service: services[index]),
                   ),
+                )
+              else
+                grid,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CompactServiceRow extends StatelessWidget {
+  const _CompactServiceRow({required this.service});
+
+  final _ServiceView service;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = service.statusOf(context);
+    final style = AppTextStyle.caption1
+        .of(context)
+        .toTabular
+        .copyWith(color: color);
+    return Semantics(
+      label: service.target.label,
+      value: label,
+      liveRegion: true,
+      child: Tooltip(
+        message: '${service.target.label}\n$label',
+        excludeFromSemantics: true,
+        child: ExcludeSemantics(
+          child: Row(
+            spacing: 6,
+            children: [
+              _ServiceBadge(
+                target: service.target,
+                size: 20,
+                dot: service.dotOf(context),
+              ),
+              Expanded(
+                child: Text(
+                  service.target.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DashboardText.label(context),
                 ),
+              ),
+              Flexible(
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: service.loading
+                      ? SkeletonText(width: 44, style: style)
+                      : Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: style,
+                        ),
+                ),
+              ),
             ],
           ),
-          if (mobile) const SizedBox(height: 12) else const Spacer(),
-          grid,
-        ],
+        ),
       ),
     );
   }

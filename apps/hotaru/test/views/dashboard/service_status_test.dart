@@ -84,6 +84,9 @@ void main() {
     Locale locale = const Locale('en'),
     Widget body = const ServiceStatusCard(),
     IpQuality? ipQuality,
+    double desktopHeight = 176,
+    double textScale = 1,
+    ThemeData? theme,
   }) {
     when(() => core.outboundIp(any())).thenAnswer((invocation) async {
       if (outboundIp == null) return Completer<OutboundIpResult?>().future;
@@ -93,6 +96,15 @@ void main() {
     });
     return TestApp(
       locale: locale,
+      theme: theme,
+      homeBuilder: (child) => Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child,
+        ),
+      ),
       overrides: [
         viewSizeProvider.overrideWithBuild((_, _) => const Size(400, 800)),
         appSettingProvider.overrideWithBuild((_, _) => settings),
@@ -118,10 +130,10 @@ void main() {
         body: Center(
           child: SizedBox(
             width: width,
-            height: density.isDesktop ? 176 : null,
+            height: density.isDesktop ? desktopHeight : null,
             child: DashboardDensityScope(
               density: density,
-              scale: 1,
+              scale: textScale,
               child: body,
             ),
           ),
@@ -224,6 +236,54 @@ void main() {
 
   double rowWidth(WidgetTester tester) =>
       tester.getSize(find.byType(DashboardCardHeader)).width;
+
+  for (final scale in [1.0, 1.4]) {
+    testWidgets(
+      'a narrow 200 by 160 desktop card keeps four named latency rows at scale $scale',
+      (tester) async {
+        final asked = <String>[];
+        answer((params) {
+          asked.addAll(params.names);
+          return [
+            for (final name in params.names)
+              _item(name, ServiceProbeStatus.available, delay: 123),
+          ];
+        });
+        await tester.pumpWidget(
+          app(
+            width: 200,
+            desktopHeight: 160,
+            density: DashboardDensity.compact,
+            textScale: scale,
+            theme: ThemeData(
+              platform: TargetPlatform.windows,
+            ).withAppTypography,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          asked,
+          unorderedEquals([
+            for (final target in ServiceTarget.values.take(4)) target.id,
+          ]),
+        );
+        expect(find.text('123 ms'), findsNWidgets(4));
+        final card = tester.getRect(find.byType(ServiceStatusCard));
+        var last = card.top;
+        for (final target in ServiceTarget.values.take(4)) {
+          final rect = tester.getRect(find.text(target.label));
+          expect(rect.top, greaterThan(last));
+          expect(card.contains(rect.bottomRight), isTrue);
+          last = rect.bottom;
+        }
+        for (final text in tester.widgetList<Text>(find.text('123 ms'))) {
+          expect(text.maxLines, 1);
+        }
+        expect(find.byTooltip('Check all'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets('a lone last service takes the whole row', (tester) async {
     answer((_) => const []);

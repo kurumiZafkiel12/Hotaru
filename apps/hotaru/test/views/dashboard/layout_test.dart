@@ -22,14 +22,14 @@ void main() {
     expect(of(1220, 824), DashboardDensity.standard);
     expect(of(1220, 823), DashboardDensity.compact);
     expect(of(1220, 500), DashboardDensity.compact);
-    expect(of(1039, 900), DashboardDensity.compact);
-    expect(of(860, 900), DashboardDensity.compact);
-    expect(of(859, 900), DashboardDensity.standard);
+    expect(of(839, 900), DashboardDensity.compact);
+    expect(of(760, 900), DashboardDensity.compact);
+    expect(of(759, 900), DashboardDensity.standard);
     expect(of(640, 900), DashboardDensity.standard);
     expect(of(640, 823), DashboardDensity.compact);
     expect(of(639, 900), DashboardDensity.mobile);
-    expect(dashboardColumnsOf(860), 4);
-    expect(dashboardColumnsOf(859), 2);
+    expect(dashboardColumnsOf(760), 4);
+    expect(dashboardColumnsOf(759), 2);
   });
 
   late ProviderContainer container;
@@ -99,8 +99,8 @@ void main() {
     final hero = rectOf(tester, CurrentOutboundCard);
     final speed = rectOf(tester, NetworkSpeedCard);
     final mode = rectOf(tester, OutboundModeCard);
-    expect(hero.left, 12);
-    expect(hero.width, 290 * 2 + 12);
+    expect(hero.left, (1220 - 860) / 2 + 12);
+    expect(hero.width, 412);
     expect(hero.height, 160);
     expect(speed.left, hero.right + 12);
     expect(speed.top, hero.top);
@@ -140,6 +140,68 @@ void main() {
     },
   );
 
+  testWidgets('the title bar, grid and editor share the compact page budget', (
+    tester,
+  ) async {
+    await pumpDashboard(
+      tester,
+      const Size(1440, 900),
+      platform: SupportPlatform.Windows,
+    );
+    final before = rectOf(tester, CurrentOutboundCard);
+    final bar = tester.getRect(find.byType(AppBar));
+    expect(bar.width, 860);
+    expect(before.width, 412);
+    expect(before.left - bar.left, 12);
+    await tester.tap(find.byTooltip('Edit dashboard'));
+    for (var frame = 0; frame < 6; frame++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final editing = rectOf(tester, CurrentOutboundCard);
+    expect(editing.left, before.left);
+    expect(editing.width, before.width);
+    expect(editing.height, before.height);
+    expect(tester.takeException(), isNull);
+    await teardown(tester);
+  });
+
+  testWidgets(
+    'four compact columns fit a medium window without a wide-card fallback',
+    (tester) async {
+      await pumpDashboard(
+        tester,
+        const Size(800, 900),
+        platform: SupportPlatform.Windows,
+      );
+      final hero = rectOf(tester, CurrentOutboundCard);
+      final speed = rectOf(tester, NetworkSpeedCard);
+      expect(hero.width, lessThanOrEqualTo(412));
+      expect(speed.top, hero.top);
+      expect(hero.right + 12, speed.left);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
+  testWidgets(
+    'text scaling expands the width allowance but keeps fixed card bands',
+    (tester) async {
+      await pumpDashboard(
+        tester,
+        const Size(1600, 1000),
+        platform: SupportPlatform.Windows,
+        textScale: 1.4,
+      );
+      final hero = rectOf(tester, CurrentOutboundCard);
+      expect(hero.width, greaterThan(412));
+      expect(hero.width, lessThanOrEqualTo(572.1));
+      expect(hero.height, 160);
+      expect(rectOf(tester, OutboundModeCard).height, 122);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
   testWidgets('short windows scroll without dropping widgets', (tester) async {
     seedGroups(12);
     container
@@ -164,20 +226,20 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.left, (2560 - (320 * 4 + 12 * 3)) / 2);
-    expect(hero.width, 320 * 2 + 12);
+    expect(hero.left, (2560 - 836) / 2);
+    expect(hero.width, 412);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
 
-  testWidgets('mid-width desktop retains all cards in two columns', (
+  testWidgets('narrow desktop keeps a bounded two-column layout', (
     tester,
   ) async {
-    await pumpDashboard(tester, const Size(800, 900));
+    await pumpDashboard(tester, const Size(740, 900));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.center.dx, 400);
-    expect(hero.width, lessThanOrEqualTo(768));
+    expect(hero.center.dx, 370);
+    expect(hero.width, 412);
     expect(rectOf(tester, OutboundModeCard).width, hero.width);
     expect(find.byType(NetworkSpeedCard), findsOneWidget);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
@@ -266,7 +328,7 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(620, 700));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.width, 596);
+    expect(hero.width, 412);
     expect(hero.center.dx, 310);
     expect(find.byType(NetworkTakeoverCard), findsOneWidget);
     expect(find.byType(VpnCard), findsNothing);

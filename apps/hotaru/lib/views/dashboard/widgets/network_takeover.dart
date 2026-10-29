@@ -117,33 +117,47 @@ class NetworkTakeoverCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const metrics = _cardRowMetrics;
+    final density = DashboardDensityScope.of(context);
+    final scale = DashboardDensityScope.scaleOf(context);
     final appLocalizations = context.appLocalizations;
     return DashboardCard(
       semanticLabel: appLocalizations.networkTakeover,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DashboardCardHeader(
-            glyph: AppGlyphs.shuffle,
-            title: appLocalizations.networkTakeover,
-          ),
-          const SizedBox(height: 6),
-          Row(
-            spacing: 10,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final stacked =
+              density.isDesktop && constraints.maxWidth < 520 * scale;
+          final metrics = stacked
+              ? (
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  titleStart: 12.0,
+                  radius: DashboardCorner.block,
+                  icon: 38.0,
+                  subtitle: scale <= 1,
+                )
+              : _cardRowMetrics;
+          final rows = [
+            for (final kind in TakeoverSwitch.values)
+              _TakeoverRow(kind: kind, metrics: metrics, showIcon: false),
+          ];
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final kind in TakeoverSwitch.values)
-                Expanded(
-                  child: _TakeoverRow(
-                    kind: kind,
-                    metrics: metrics,
-                    showIcon: false,
-                  ),
+              DashboardCardHeader(
+                glyph: AppGlyphs.shuffle,
+                title: appLocalizations.networkTakeover,
+              ),
+              SizedBox(height: stacked ? 4 : 6),
+              if (stacked)
+                Column(spacing: 4, children: rows)
+              else
+                Row(
+                  spacing: 10,
+                  children: [for (final row in rows) Expanded(child: row)],
                 ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

@@ -197,7 +197,7 @@ class _SidebarDensity extends InheritedWidget {
   static _SidebarDensity of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_SidebarDensity>()!;
 
-  double get width => dense ? 160 : _expandedWidth;
+  double get width => dense ? 144 : _expandedWidth;
   double get item => dense ? 36 : _itemSize;
   double get gap => dense ? 4 : _itemGap;
   double get icon => dense ? 20 : _iconSize;

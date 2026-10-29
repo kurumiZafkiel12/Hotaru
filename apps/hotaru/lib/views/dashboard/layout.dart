@@ -4,8 +4,8 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _minDesktopWidth = 640.0;
-const _minFourColumnWidth = 860.0;
-const _minStandardFourColumnWidth = 1040.0;
+const _minFourColumnWidth = 760.0;
+const _minStandardFourColumnWidth = 840.0;
 const _minStandardHeight = 824.0;
 const _mobileMaxWidth = 560.0;
 
@@ -16,10 +16,13 @@ abstract final class DashboardSizing {
   static const inset = 12.0;
   static const low = 122.0;
   static const step = 38.0;
-  static const maxColumn = 320.0;
+  static const maxColumn = 200.0;
   static const desktopControlHeight = 32.0;
   static const desktopStartButton = 56.0;
   static const desktopSwitchScale = 0.875;
+
+  static double maxPageWidth(int columns) =>
+      maxColumn * columns + gap * (columns - 1) + inset * 2;
 
   static double height(int level) => low + step * level;
 }

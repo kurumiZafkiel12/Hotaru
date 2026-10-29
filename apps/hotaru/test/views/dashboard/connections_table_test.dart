@@ -164,7 +164,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(tester.getTopLeft(ruleHead).dx, greaterThan(rule + 30));
+    final after = tester.getTopLeft(ruleHead).dx;
+    expect(after, greaterThan(rule));
     expect(
       container
           .read(appSettingProvider)
@@ -172,6 +173,9 @@ void main() {
       contains('target'),
     );
 
+    await teardown(tester);
+    await pumpRequestsTable(tester);
+    expect(tester.getTopLeft(ruleHead).dx, closeTo(after, 1));
     await teardown(tester);
   });
 

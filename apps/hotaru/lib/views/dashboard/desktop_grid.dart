@@ -46,9 +46,10 @@ _GridGeometry _geometry(
   int columns,
   double gap,
   List<DashboardPlacement> placements,
+  double scale,
 ) {
   final room = maxWidth - _sidePadding * 2 - gap * (columns - 1);
-  final cell = math.min(room / columns, _maxColumnWidth);
+  final cell = math.min(room / columns, _maxColumnWidth * scale);
   final contentWidth = cell * columns + gap * (columns - 1);
   final inset = math.max(0.0, (maxWidth - _sidePadding * 2 - contentWidth) / 2);
   final totalHeight = placements.fold(
@@ -100,6 +101,7 @@ class DesktopDashboardGrid extends ConsumerWidget {
           columns,
           gap,
           placements,
+          DashboardDensityScope.scaleOf(context),
         );
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -299,6 +301,7 @@ class _DesktopDashboardEditorState
           widget.columns,
           widget.gap,
           placements,
+          DashboardDensityScope.scaleOf(context),
         );
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),

@@ -71,7 +71,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     final editing = _editing;
     const gap = DashboardSizing.gap;
     final appLocalizations = context.appLocalizations;
-    return CommonScaffold(
+    final page = CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
@@ -144,6 +144,21 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           },
         ),
       ),
+    );
+    if (!isDesktop) return page;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = dashboardColumnsOf(constraints.maxWidth / scale);
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DashboardSizing.maxPageWidth(columns) * scale,
+            ),
+            child: page,
+          ),
+        );
+      },
     );
   }
 }

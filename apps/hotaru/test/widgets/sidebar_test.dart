@@ -118,7 +118,7 @@ void main() {
         _sidebar(dense: true, onSelected: (value) => selected = value),
       );
       await tester.pumpAndSettle();
-      expect(tester.getSize(_sidebarFinder).width, 160);
+      expect(tester.getSize(_sidebarFinder).width, 144);
       final label = tester.widget<Text>(find.text('Dashboard'));
       expect(label.style?.fontSize, 13);
       expect(
@@ -156,7 +156,7 @@ void main() {
       );
       await tester.tap(find.byTooltip('Expand'));
       await tester.pumpAndSettle();
-      expect(tester.getSize(_paneFinder).width, 160);
+      expect(tester.getSize(_paneFinder).width, 144);
       await tester.tap(_shown('Profiles'));
       await tester.pumpAndSettle();
       expect(selected, 2);

@@ -9,8 +9,13 @@ insets and card radii. Windows card heights are strictly 122, 160
 or 198 logical pixels: text scaling may change the column layout but must
 not multiply these heights. Android uses its own content and touch metrics.
 Desktop uses compact typography (page title 20, body 15, secondary 13),
-a 56-dp page bar, and a 160-dp sidebar with 36-dp rows. Keep Android touch
-metrics and system text scaling independent.
+a 56-dp page bar, and a 144-dp sidebar with 36-dp rows. Keep Android touch
+metrics and system text scaling independent. Cap the complete desktop dashboard,
+including its title bar and editor, at the column width budget: 200-dp columns,
+860-dp four-column page or 436-dp two-column page at normal text size. Permit
+width allowances to grow with accessibility text scaling, never card heights.
+Four columns start at 760 dp of available normal-text room. New desktop windows
+default to 1024 by 760; retain explicitly saved window geometry.
 Theme modes, pure black and configurable accents remain required; a fixed
 brand palette must not silently disable the appearance settings.
 

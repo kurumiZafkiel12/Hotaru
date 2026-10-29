@@ -609,7 +609,6 @@ class _Cells extends StatelessWidget {
   final bool active;
   final double gap;
 
-  /// Label and value share one line, the compact desktop arrangement.
   final bool inline;
 
   @override
@@ -620,26 +619,51 @@ class _Cells extends StatelessWidget {
       IpQuality(asn: final asn?) => 'AS$asn',
       _ => null,
     };
+    final runTime = active ? const _RunTimeValue() : const _Placeholder();
+    final network = organization != null
+        ? _CellText(organization)
+        : loading
+        ? SkeletonText(width: 96, style: _cellStyle(context))
+        : const _Placeholder();
+    if (inline) {
+      return Row(
+        spacing: gap,
+        children: [
+          Semantics(
+            label: appLocalizations.runTime,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Tooltip(
+                  message: appLocalizations.runTime,
+                  child: GlyphIcon(
+                    AppGlyphs.clock,
+                    size: 12,
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                runTime,
+              ],
+            ),
+          ),
+          Expanded(
+            child: Semantics(
+              label: appLocalizations.ipOrganization,
+              child: network,
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       spacing: gap,
       children: [
         Flexible(
-          child: _Cell(
-            label: appLocalizations.runTime,
-            inline: inline,
-            value: active ? const _RunTimeValue() : const _Placeholder(),
-          ),
+          child: _Cell(label: appLocalizations.runTime, value: runTime),
         ),
         Flexible(
-          child: _Cell(
-            label: appLocalizations.ipOrganization,
-            inline: inline,
-            value: organization != null
-                ? _CellText(organization)
-                : loading
-                ? SkeletonText(width: 96, style: _cellStyle(context))
-                : const _Placeholder(),
-          ),
+          child: _Cell(label: appLocalizations.ipOrganization, value: network),
         ),
       ],
     );
@@ -647,34 +671,26 @@ class _Cells extends StatelessWidget {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.label, required this.value, this.inline = false});
+  const _Cell({required this.label, required this.value});
 
   final String label;
   final Widget value;
-  final bool inline;
 
   @override
   Widget build(BuildContext context) {
-    final labelText = Text(
-      label,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: DashboardText.label(context),
-    );
-    if (inline) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 6,
-        children: [
-          Flexible(child: labelText),
-          Flexible(child: value),
-        ],
-      );
-    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [labelText, const SizedBox(height: 2), value],
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: DashboardText.label(context),
+        ),
+        const SizedBox(height: 2),
+        value,
+      ],
     );
   }
 }
