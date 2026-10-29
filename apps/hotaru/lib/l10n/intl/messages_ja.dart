@@ -575,16 +575,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "テスト完了・証拠を確認してください",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("総合判定"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Cloudflare・Google DoH のアプリ DNS 上書きを有効にします。プロファイル固有の DNS 要件がある場合は適用後に確認してください。",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "テスト失敗・証拠を確認してください",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("詳細 · 16 回"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("証拠不足"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "経路テスト前にプロファイルを選び Hotaru を起動してください。",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "今回のサンプルでは不一致なし",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("簡易 · 4 回"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("観測した証拠"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("潜在的なリスク"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("ダイヤラープロキシ"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "ダイヤラープロキシは NTP サーバーへの接続に使用するアウトバウンドです。",
@@ -678,6 +686,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "新しいバージョンが見つかりました",
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNSキャッシュをクリアしました"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "リゾルバーの応答は今回のサンプルのみです。想定リゾルバーが未確認のため、すべての DNS 問い合わせの保護は証明できません。",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "追加しない場合、ポート 53 宛てのすべての DNS 問い合わせをハイジャックします（any:53）。",
     ),

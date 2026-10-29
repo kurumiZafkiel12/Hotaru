@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "综合结论",
+  "diagnosticsNoMismatch": "本次采样未发现不一致",
+  "diagnosticsRisk": "存在风险",
+  "diagnosticsInsufficient": "证据不足",
+  "diagnosticsQuick": "快速 · 4 次查询",
+  "diagnosticsFull": "完整 · 16 次查询",
+  "dnsEvidenceLimits": "解析器回执仅代表本次样本。缺少经过核验的预期解析器基线，不能证明所有 DNS 查询均受保护。",
   "iceMatching": "本次 ICE 采样未发现出口不一致。",
   "iceInconclusive": "无法判定：缺少完整且可对比的公网 ICE 样本。",
   "iceCandidates": "ICE 候选地址",

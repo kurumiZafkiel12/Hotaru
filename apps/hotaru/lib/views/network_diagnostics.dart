@@ -33,6 +33,10 @@ class NetworkDiagnosticsView extends ConsumerStatefulWidget {
 class _NetworkDiagnosticsViewState
     extends ConsumerState<NetworkDiagnosticsView> {
   bool _running = false;
+  DiagnosticVerdict _verdict = DiagnosticVerdict.notTested;
+  List<DnsResolverReceipt> _resolvers = const [];
+  int _dnsSamples = 16;
+  double _progress = 0;
   int _generation = 0;
   final _evidence = <String>[];
   String? _notice;
@@ -103,7 +107,10 @@ class _NetworkDiagnosticsViewState
     unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
-    setState(() => _running = false);
+    setState(() {
+      _running = false;
+      _verdict = DiagnosticVerdict.inconclusive;
+    });
   }
 
   Future<void> _start() async {
@@ -123,6 +130,9 @@ class _NetworkDiagnosticsViewState
     _httpCancel = CancelToken();
     setState(() {
       _running = true;
+      _verdict = DiagnosticVerdict.running;
+      _progress = 0;
+      _resolvers = const [];
       _notice = null;
       _risk = false;
       _recoverySuperseded = false;
@@ -150,20 +160,40 @@ class _NetworkDiagnosticsViewState
     } catch (error) {
       if (current()) {
         setState(() {
+          _verdict = DiagnosticVerdict.failed;
           _notice = context.appLocalizations.diagnosticsFailed;
           _evidence.add(compactError(error));
         });
       }
     } finally {
-      if (current()) setState(() => _running = false);
+      if (current()) {
+        setState(() {
+          _running = false;
+          if (_verdict == DiagnosticVerdict.running) {
+            _verdict = _risk
+                ? DiagnosticVerdict.risk
+                : widget.kind == NetworkDiagnostic.recovery
+                ? DiagnosticVerdict.completed
+                : DiagnosticVerdict.inconclusive;
+          }
+        });
+      }
     }
   }
 
   Future<void> _dns(bool Function() current) async {
     try {
-      final receipts = await DnsLeakProbe(dio: request.dio).run(_httpCancel!);
+      final receipts = await DnsLeakProbe(dio: request.dio).run(
+        _httpCancel!,
+        samples: _dnsSamples,
+        onProgress: (done, total) {
+          if (current()) setState(() => _progress = done / total);
+        },
+      );
       if (!current()) return;
-      _evidence.add('bash.ws · 16 DNS · ${DateTime.now().toIso8601String()}');
+      _evidence.add(
+        'bash.ws · $_dnsSamples DNS · ${DateTime.now().toIso8601String()}',
+      );
       for (final receipt in receipts) {
         _evidence.add(
           '${receipt.ip} · ${receipt.country} · ${receipt.organization}',
@@ -171,10 +201,14 @@ class _NetworkDiagnosticsViewState
       }
       if (receipts.isNotEmpty) {
         setState(() {
+          _resolvers = receipts;
           _risk = receipts.any((receipt) => receipt.domesticIsp);
+          _verdict = _risk
+              ? DiagnosticVerdict.risk
+              : DiagnosticVerdict.inconclusive;
           _notice = _risk
               ? context.appLocalizations.dnsLeakRisk
-              : context.appLocalizations.dnsLeakScope;
+              : context.appLocalizations.dnsEvidenceLimits;
         });
         return;
       }
@@ -251,6 +285,11 @@ class _NetworkDiagnosticsViewState
     if (!current()) return;
     final verdict = result.verdict([outbound.ip]);
     setState(() {
+      _verdict = switch (verdict) {
+        IceVerdict.matching => DiagnosticVerdict.matching,
+        IceVerdict.risk => DiagnosticVerdict.risk,
+        IceVerdict.inconclusive => DiagnosticVerdict.inconclusive,
+      };
       _iceResult = result;
       _risk = verdict == IceVerdict.risk;
       _notice = switch (verdict) {
@@ -361,6 +400,11 @@ class _NetworkDiagnosticsViewState
             : '${l10n.networkRecoveryTun}: ${recovered ? l10n.done : l10n.diagnosticsFailed}',
       );
       _risk = !reset || !dnsCleared || !recovered;
+      _verdict = _recoverySuperseded
+          ? DiagnosticVerdict.inconclusive
+          : _risk
+          ? DiagnosticVerdict.failed
+          : DiagnosticVerdict.completed;
       _notice = _recoverySuperseded
           ? l10n.networkRecoverySuperseded
           : _risk
@@ -462,22 +506,71 @@ class _NetworkDiagnosticsViewState
               onChanged: _running ? null : _setStunBlock,
             ),
           if (_running)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: LinearProgressIndicator(),
-            ),
-          if (_notice != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                _notice!,
-                style: AppTextStyle.callout
-                    .of(context)
-                    .copyWith(
-                      color: _risk ? context.colorScheme.warning : null,
-                    ),
+              child: LinearProgressIndicator(
+                value: widget.kind == NetworkDiagnostic.dns && _progress > 0
+                    ? _progress
+                    : null,
               ),
             ),
+          const SizedBox(height: 12),
+          CommonCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                Text(
+                  l10n.diagnosticsConclusion,
+                  style: AppTextStyle.caption1.of(context),
+                ),
+                Text(
+                  _verdict.label,
+                  style: AppTextStyle.title3
+                      .of(context, emphasized: true)
+                      .copyWith(
+                        color: _risk ? context.colorScheme.warning : null,
+                      ),
+                ),
+                if (_notice != null)
+                  Text(_notice!, style: AppTextStyle.footnote.of(context)),
+              ],
+            ),
+          ),
+          if (widget.kind == NetworkDiagnostic.dns) ...[
+            const SizedBox(height: 12),
+            DropdownButton<int>(
+              value: _dnsSamples,
+              onChanged: _running
+                  ? null
+                  : (samples) => setState(() => _dnsSamples = samples!),
+              items: [
+                DropdownMenuItem(value: 4, child: Text(l10n.diagnosticsQuick)),
+                DropdownMenuItem(value: 16, child: Text(l10n.diagnosticsFull)),
+              ],
+            ),
+            for (final resolver in _resolvers)
+              CommonCard(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      resolver.ip,
+                      style: AppTextStyle.subheadline
+                          .of(context)
+                          .toJetBrainsMono,
+                    ),
+                    Text(
+                      '${resolver.country} · ${resolver.organization}',
+                      style: AppTextStyle.footnote.of(context),
+                    ),
+                  ],
+                ),
+              ),
+          ],
           if (_iceResult case final result?)
             CommonCard(
               padding: const EdgeInsets.all(12),
@@ -506,25 +599,29 @@ class _NetworkDiagnosticsViewState
             ),
           if (_evidence.isNotEmpty)
             CommonCard(
-              padding: const EdgeInsets.all(16),
-              child: SelectionArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 12,
-                  children: [
-                    Text(
-                      l10n.diagnosticsRawEvidence,
-                      style: AppTextStyle.headline.of(context),
+              padding: EdgeInsets.zero,
+              child: ExpansionTile(
+                title: Text(l10n.diagnosticsRawEvidence),
+                shape: AppShape.lg,
+                collapsedShape: AppShape.lg,
+                childrenPadding: const EdgeInsets.all(12),
+                children: [
+                  SelectionArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12,
+                      children: [
+                        for (final evidence in _evidence)
+                          Text(
+                            evidence,
+                            style: AppTextStyle.footnote
+                                .of(context)
+                                .toJetBrainsMono,
+                          ),
+                      ],
                     ),
-                    for (final evidence in _evidence)
-                      Text(
-                        evidence,
-                        style: AppTextStyle.footnote
-                            .of(context)
-                            .toJetBrainsMono,
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
         ],

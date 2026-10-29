@@ -195,7 +195,14 @@ jobs:
       # Compiles the desktop runners and the native plugin code that only the
       # tagged release matrix built before; the bundle itself is discarded.
       - name: Build debug bundle
-        run: flutter build ${{ matrix.platform }} --debug
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build ${{ matrix.platform }} --debug 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+
+      - name: Report native compilation failure
+        if: failure()
+        run: python tool/summarize_native_failure.py "${{ runner.temp }}/hotaru-native-build.log"
 
       - name: Verify Windows recovery against the registry
         if: matrix.platform == 'windows'
@@ -296,6 +303,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
+          set -o pipefail
           {
             echo "flutter.sdk=$FLUTTER_ROOT"
             echo "sdk.dir=$ANDROID_HOME"
@@ -308,7 +316,12 @@ jobs:
           # the gomobile AAR, so one ABI of it is built.
           ./gradlew :common:testDebugUnitTest :service:testDebugUnitTest :app:testDebugUnitTest \
             -Ptarget-platform=android-arm64 \
-            -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug
+            -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug \
+            2>&1 | tee "$RUNNER_TEMP/hotaru-android-unit.log"
+
+      - name: Report Android verification failure
+        if: failure()
+        run: python3 tool/summarize_native_failure.py "$RUNNER_TEMP/hotaru-android-unit.log"
 
   rust:
     name: Rust

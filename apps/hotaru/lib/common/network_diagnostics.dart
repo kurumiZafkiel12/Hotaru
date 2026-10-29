@@ -3,6 +3,16 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+enum DiagnosticVerdict {
+  notTested,
+  running,
+  matching,
+  risk,
+  inconclusive,
+  completed,
+  failed,
+}
+
 const _stunCookie = 0x2112a442;
 
 class StunEndpoint {

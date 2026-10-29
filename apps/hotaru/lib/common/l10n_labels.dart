@@ -3,6 +3,7 @@ import 'package:hotaru/ui/color.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app_localizations.dart';
+import 'network_diagnostics.dart';
 
 extension PageLabelL10n on PageLabel {
   String get label {
@@ -121,6 +122,21 @@ extension LocaleL10n on Locale {
       'ru' => appLocalizations.ru,
       'zh_CN' => appLocalizations.zhCN,
       final code => code,
+    };
+  }
+}
+
+extension DiagnosticVerdictL10n on DiagnosticVerdict {
+  String get label {
+    final l10n = currentAppLocalizations;
+    return switch (this) {
+      DiagnosticVerdict.notTested => l10n.servicePending,
+      DiagnosticVerdict.running => l10n.loading,
+      DiagnosticVerdict.matching => l10n.diagnosticsNoMismatch,
+      DiagnosticVerdict.risk => l10n.diagnosticsRisk,
+      DiagnosticVerdict.inconclusive => l10n.diagnosticsInsufficient,
+      DiagnosticVerdict.completed => l10n.diagnosticsCompleted,
+      DiagnosticVerdict.failed => l10n.diagnosticsFailed,
     };
   }
 }

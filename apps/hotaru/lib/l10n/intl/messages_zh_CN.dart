@@ -526,14 +526,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage("开发者模式已启用。"),
     "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage("配置安全 DoH"),
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage("探测完成，请核对证据"),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("综合结论"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "启用应用 DNS 覆写，使用 Cloudflare 和 Google DoH。订阅可能有特定域名解析要求，请应用后核对。",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("探测失败，请查看证据"),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("完整 · 16 次查询"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("证据不足"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "请先加载配置并启动 Hotaru，再检测实际分流路线。",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage("本次采样未发现不一致"),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("快速 · 4 次查询"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("观测证据"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("存在风险"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("拨号代理"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "拨号代理为连接 NTP 服务器使用的出站。",
@@ -615,6 +621,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "disconnected": MessageLookupByLibrary.simpleMessage("已断开"),
     "discoverNewVersion": MessageLookupByLibrary.simpleMessage("发现新版本"),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNS缓存已清除"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "解析器回执仅代表本次样本。缺少经过核验的预期解析器基线，不能证明所有 DNS 查询均受保护。",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "未添加时劫持所有发往 53 端口的 DNS 请求（any:53）。",
     ),

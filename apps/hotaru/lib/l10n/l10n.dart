@@ -55,6 +55,76 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  /// `Conclusion`
+  String get diagnosticsConclusion {
+    return Intl.message(
+      'Conclusion',
+      name: 'diagnosticsConclusion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No mismatch in this sample`
+  String get diagnosticsNoMismatch {
+    return Intl.message(
+      'No mismatch in this sample',
+      name: 'diagnosticsNoMismatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potential risk`
+  String get diagnosticsRisk {
+    return Intl.message(
+      'Potential risk',
+      name: 'diagnosticsRisk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insufficient evidence`
+  String get diagnosticsInsufficient {
+    return Intl.message(
+      'Insufficient evidence',
+      name: 'diagnosticsInsufficient',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick · 4 queries`
+  String get diagnosticsQuick {
+    return Intl.message(
+      'Quick · 4 queries',
+      name: 'diagnosticsQuick',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full · 16 queries`
+  String get diagnosticsFull {
+    return Intl.message(
+      'Full · 16 queries',
+      name: 'diagnosticsFull',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.`
+  String get dnsEvidenceLimits {
+    return Intl.message(
+      'Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.',
+      name: 'dnsEvidenceLimits',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No exit mismatch observed in this ICE sample.`
   String get iceMatching {
     return Intl.message(
@@ -8248,7 +8318,8 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one:
+          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',

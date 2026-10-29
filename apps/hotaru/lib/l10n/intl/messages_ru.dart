@@ -715,18 +715,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "Тест завершён; изучите наблюдения",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("Вывод"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Включает переопределение DNS приложения на Cloudflare и Google DoH. После применения проверьте особые требования DNS профиля.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "Тест не выполнен; см. наблюдения",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage(
+      "Полный · 16 запросов",
+    ),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно данных",
+    ),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "Перед проверкой маршрута запустите Hotaru с профилем.",
+    ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "В выборке расхождений нет",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage(
+      "Быстро · 4 запроса",
     ),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
       "Наблюдаемые данные",
     ),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("Возможный риск"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage(
       "Прокси для подключения",
     ),
@@ -844,6 +858,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Доступна новая версия",
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("Кэш DNS очищен"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "Ответы описывают только эту выборку. Без проверенного списка ожидаемых DNS-резолверов нельзя подтвердить защиту всех запросов.",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "Без этого параметра TUN перехватывает все DNS-запросы на порт 53 (any:53).",
     ),
@@ -1117,10 +1134,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),

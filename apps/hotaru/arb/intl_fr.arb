@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "Conclusion",
+  "diagnosticsNoMismatch": "Aucune différence dans cet échantillon",
+  "diagnosticsRisk": "Risque potentiel",
+  "diagnosticsInsufficient": "Preuves insuffisantes",
+  "diagnosticsQuick": "Rapide · 4 requêtes",
+  "diagnosticsFull": "Complet · 16 requêtes",
+  "dnsEvidenceLimits": "Les réponses ne décrivent que cet échantillon. Sans référence de résolveurs attendus vérifiée, elles ne prouvent pas la protection de toutes les requêtes DNS.",
   "iceMatching": "Aucune différence de sortie observée dans cet échantillon ICE.",
   "iceInconclusive": "Conclusion impossible : échantillon ICE public incomplet ou non comparable.",
   "iceCandidates": "Candidats ICE",

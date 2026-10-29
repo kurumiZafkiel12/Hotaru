@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "Вывод",
+  "diagnosticsNoMismatch": "В выборке расхождений нет",
+  "diagnosticsRisk": "Возможный риск",
+  "diagnosticsInsufficient": "Недостаточно данных",
+  "diagnosticsQuick": "Быстро · 4 запроса",
+  "diagnosticsFull": "Полный · 16 запросов",
+  "dnsEvidenceLimits": "Ответы описывают только эту выборку. Без проверенного списка ожидаемых DNS-резолверов нельзя подтвердить защиту всех запросов.",
   "iceMatching": "В этом ICE-тесте расхождений выхода не обнаружено.",
   "iceInconclusive": "Недостаточно полных публичных ICE-данных для сравнения.",
   "iceCandidates": "ICE-кандидаты",

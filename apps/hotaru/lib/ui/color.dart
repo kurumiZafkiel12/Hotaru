@@ -34,20 +34,35 @@ ColorScheme hotaruColorScheme(
   bool pureBlack = false,
 }) {
   final base = _hotaruBase(brightness);
-  final colors = accent == null
-      ? base
-      : seededColorScheme(
-          seedColor: accent,
-          brightness: brightness,
-          style: style,
-        );
+  final colors = seededColorScheme(
+    seedColor: accent ?? base.primary,
+    brightness: brightness,
+    style: style,
+  );
   return base
       .copyWith(
-        primary: colors.primary,
-        onPrimary: colors.onPrimary,
-        primaryContainer: colors.primaryContainer,
-        onPrimaryContainer: colors.onPrimaryContainer,
-        surfaceTint: colors.primary,
+        primary: accent == null ? base.primary : colors.primary,
+        onPrimary: accent == null ? base.onPrimary : colors.onPrimary,
+        primaryContainer: accent == null
+            ? base.primaryContainer
+            : colors.primaryContainer,
+        onPrimaryContainer: accent == null
+            ? base.onPrimaryContainer
+            : colors.onPrimaryContainer,
+        surfaceTint: accent == null ? base.primary : colors.primary,
+        primaryFixed: colors.primaryFixed,
+        primaryFixedDim: colors.primaryFixedDim,
+        onPrimaryFixed: colors.onPrimaryFixed,
+        onPrimaryFixedVariant: colors.onPrimaryFixedVariant,
+        secondaryFixed: colors.secondaryFixed,
+        secondaryFixedDim: colors.secondaryFixedDim,
+        onSecondaryFixed: colors.onSecondaryFixed,
+        onSecondaryFixedVariant: colors.onSecondaryFixedVariant,
+        tertiaryFixed: colors.tertiaryFixed,
+        tertiaryFixedDim: colors.tertiaryFixedDim,
+        onTertiaryFixed: colors.onTertiaryFixed,
+        onTertiaryFixedVariant: colors.onTertiaryFixedVariant,
+        inversePrimary: colors.inversePrimary,
         secondary: colors.secondary,
         onSecondary: colors.onSecondary,
         secondaryContainer: colors.secondaryContainer,

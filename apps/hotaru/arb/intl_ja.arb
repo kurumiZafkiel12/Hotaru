@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "総合判定",
+  "diagnosticsNoMismatch": "今回のサンプルでは不一致なし",
+  "diagnosticsRisk": "潜在的なリスク",
+  "diagnosticsInsufficient": "証拠不足",
+  "diagnosticsQuick": "簡易 · 4 回",
+  "diagnosticsFull": "詳細 · 16 回",
+  "dnsEvidenceLimits": "リゾルバーの応答は今回のサンプルのみです。想定リゾルバーが未確認のため、すべての DNS 問い合わせの保護は証明できません。",
   "iceMatching": "今回の ICE サンプルでは出口の不一致はありません。",
   "iceInconclusive": "判定不可：比較できる完全な公開 ICE サンプルがありません。",
   "iceCandidates": "ICE 候補",

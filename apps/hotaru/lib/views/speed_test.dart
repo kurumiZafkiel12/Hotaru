@@ -151,154 +151,168 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final gaugeBps = _gaugeBps;
+    final statistics = LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth < 600 ? 2 : 4;
+        final width = (constraints.maxWidth - (columns - 1) * 8) / columns;
+        final stats = [
+          (AppGlyphs.clock, appLocalizations.delay, _latencyText(_latencyMs)),
+          (
+            AppGlyphs.target,
+            appLocalizations.speedTestJitter,
+            _latencyText(_jitterMs),
+          ),
+          (
+            AppGlyphs.arrowDown,
+            appLocalizations.download,
+            _speedText(_downloadBps),
+          ),
+          (
+            AppGlyphs.arrowUp,
+            appLocalizations.upload,
+            _uploadUnsupported
+                ? appLocalizations.speedTestNotSupported
+                : _speedText(_uploadBps),
+          ),
+        ];
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (glyph, label, value) in stats)
+              SizedBox(
+                width: width,
+                child: _StatCard(glyph: glyph, label: label, value: value),
+              ),
+          ],
+        );
+      },
+    );
     return BaseScaffold(
       title: appLocalizations.speedTest,
-      body: ListView(
-        padding: EdgeInsets.only(
-          top: context.appBarInset,
-          bottom: 32 + context.bottomInset,
-          left: 16,
-          right: 16,
-        ),
-        children: [
-          generateSection(
-            items: [
-              ListItem<SpeedTestProvider>.options(
-                leading: const GlyphIcon(AppGlyphs.speed),
-                title: Text(appLocalizations.speedTestProvider),
-                subtitle: Text(_provider.endpointLabel),
-                options: SpeedTestProvider.values,
-                value: _provider,
-                textBuilder: (provider) => provider.label,
-                subtitleBuilder: (provider) => provider.endpointLabel,
-                onChanged: (provider) {
-                  if (!_running) {
-                    setState(() {
-                      _provider = provider;
-                    });
-                  }
-                },
-              ),
-              ListItem<int>.options(
-                leading: const GlyphIcon(AppGlyphs.clock),
-                title: Text(appLocalizations.duration),
-                options: _durations,
-                value: _duration,
-                textBuilder: (duration) =>
-                    '$duration ${appLocalizations.seconds}',
-                onChanged: (duration) {
-                  if (!_running) {
-                    setState(() {
-                      _duration = duration;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _SpeedGauge(
-            bps: gaugeBps,
-            phaseLabel: _phaseLabel(_phase),
-            active: _running,
-          ),
-          const SizedBox(height: 16),
-          if (_samples.length > 1) ...[
-            const SizedBox(height: 16),
-            _LiveTrace(samples: _samples, liveBps: _liveBps),
-          ],
-          const SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth < 600 ? 2 : 4;
-              final width =
-                  (constraints.maxWidth - (columns - 1) * 8) / columns;
-              final stats = [
-                (
-                  AppGlyphs.clock,
-                  appLocalizations.delay,
-                  _latencyText(_latencyMs),
-                ),
-                (
-                  AppGlyphs.target,
-                  appLocalizations.speedTestJitter,
-                  _latencyText(_jitterMs),
-                ),
-                (
-                  AppGlyphs.arrowDown,
-                  appLocalizations.download,
-                  _speedText(_downloadBps),
-                ),
-                (
-                  AppGlyphs.arrowUp,
-                  appLocalizations.upload,
-                  _uploadUnsupported
-                      ? appLocalizations.speedTestNotSupported
-                      : _speedText(_uploadBps),
-                ),
-              ];
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final (glyph, label, value) in stats)
-                    SizedBox(
-                      width: width,
-                      child: _StatCard(
-                        glyph: glyph,
-                        label: label,
-                        value: value,
-                      ),
-                    ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: ListView(
+            padding: EdgeInsets.only(
+              top: context.appBarInset,
+              bottom: 32 + context.bottomInset,
+              left: 16,
+              right: 16,
+            ),
+            children: [
+              generateSection(
+                items: [
+                  ListItem<SpeedTestProvider>.options(
+                    leading: const GlyphIcon(AppGlyphs.speed),
+                    title: Text(appLocalizations.speedTestProvider),
+                    subtitle: Text(_provider.endpointLabel),
+                    options: SpeedTestProvider.values,
+                    value: _provider,
+                    textBuilder: (provider) => provider.label,
+                    subtitleBuilder: (provider) => provider.endpointLabel,
+                    onChanged: (provider) {
+                      if (!_running) {
+                        setState(() {
+                          _provider = provider;
+                        });
+                      }
+                    },
+                  ),
+                  ListItem<int>.options(
+                    leading: const GlyphIcon(AppGlyphs.clock),
+                    title: Text(appLocalizations.duration),
+                    options: _durations,
+                    value: _duration,
+                    textBuilder: (duration) =>
+                        '$duration ${appLocalizations.seconds}',
+                    onChanged: (duration) {
+                      if (!_running) {
+                        setState(() {
+                          _duration = duration;
+                        });
+                      }
+                    },
+                  ),
                 ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          generateSection(
-            items: [
-              ListItem(
-                title: Text(appLocalizations.server),
-                trailing: Text(
-                  _serverLabel.isEmpty
-                      ? appLocalizations.unknown
-                      : _serverLabel,
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final gauge = _SpeedGauge(
+                    bps: gaugeBps,
+                    phaseLabel: _phaseLabel(_phase),
+                    active: _running,
+                  );
+                  final information = Column(
+                    spacing: 12,
+                    children: [
+                      statistics,
+                      if (_samples.length > 1)
+                        _LiveTrace(samples: _samples, liveBps: _liveBps),
+                    ],
+                  );
+                  return Theme.of(context).platform != TargetPlatform.android &&
+                          constraints.maxWidth >= 680
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 16,
+                          children: [
+                            gauge,
+                            Expanded(child: information),
+                          ],
+                        )
+                      : Column(spacing: 12, children: [gauge, information]);
+                },
+              ),
+              const SizedBox(height: 16),
+              generateSection(
+                items: [
+                  ListItem(
+                    title: Text(appLocalizations.server),
+                    trailing: Text(
+                      _serverLabel.isEmpty
+                          ? appLocalizations.unknown
+                          : _serverLabel,
+                    ),
+                  ),
+                  ListItem(
+                    title: Text(appLocalizations.speedTestExitNode),
+                    trailing: Text(appLocalizations.speedTestRouteEvidence),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _running ? _stop : _start,
+                child: Text(
+                  _running ? appLocalizations.stop : appLocalizations.start,
                 ),
               ),
-              ListItem(
-                title: Text(appLocalizations.speedTestExitNode),
-                trailing: Text(appLocalizations.speedTestRouteEvidence),
+              const SizedBox(height: 12),
+              Text(
+                _serverLabel.isEmpty && !_running
+                    ? appLocalizations.speedTestTrafficWarning
+                    : _routed
+                    ? appLocalizations.speedTestViaProxy
+                    : appLocalizations.speedTestDirect,
+                style: AppTextStyle.footnote.of(context),
+                textAlign: TextAlign.center,
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  '${appLocalizations.error}: $_error',
+                  style: AppTextStyle.footnote
+                      .of(context)
+                      .copyWith(color: Theme.of(context).colorScheme.error),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _running ? _stop : _start,
-            child: Text(
-              _running ? appLocalizations.stop : appLocalizations.start,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _serverLabel.isEmpty && !_running
-                ? appLocalizations.speedTestTrafficWarning
-                : _routed
-                ? appLocalizations.speedTestViaProxy
-                : appLocalizations.speedTestDirect,
-            style: AppTextStyle.footnote.of(context),
-            textAlign: TextAlign.center,
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              '${appLocalizations.error}: $_error',
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

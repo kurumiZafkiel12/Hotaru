@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "종합 결과",
+  "diagnosticsNoMismatch": "이번 표본에서 불일치 없음",
+  "diagnosticsRisk": "잠재적 위험",
+  "diagnosticsInsufficient": "근거 부족",
+  "diagnosticsQuick": "빠른 검사 · 4회",
+  "diagnosticsFull": "전체 검사 · 16회",
+  "dnsEvidenceLimits": "확인된 해석기는 이번 표본만 나타냅니다. 검증된 예상 DNS 해석기 기준이 없으면 모든 DNS 쿼리가 보호된다고 증명할 수 없습니다.",
   "iceMatching": "이번 ICE 표본에서 출구 불일치가 발견되지 않았습니다.",
   "iceInconclusive": "판단 불가: 비교 가능한 완전한 공인 ICE 표본이 없습니다.",
   "iceCandidates": "ICE 후보 주소",

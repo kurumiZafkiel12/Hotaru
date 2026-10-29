@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "Conclusión",
+  "diagnosticsNoMismatch": "Sin diferencias en esta muestra",
+  "diagnosticsRisk": "Posible riesgo",
+  "diagnosticsInsufficient": "Evidencia insuficiente",
+  "diagnosticsQuick": "Rápida · 4 consultas",
+  "diagnosticsFull": "Completa · 16 consultas",
+  "dnsEvidenceLimits": "Los resultados solo describen esta muestra. Sin una referencia de resolutores esperados verificada, no prueban que todas las consultas DNS estén protegidas.",
   "iceMatching": "Sin diferencias de salida observadas en esta muestra ICE.",
   "iceInconclusive": "No se puede determinar: faltan muestras ICE públicas completas y comparables.",
   "iceCandidates": "Candidatos ICE",

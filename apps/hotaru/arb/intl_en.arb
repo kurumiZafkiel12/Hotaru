@@ -1,4 +1,11 @@
 {
+  "diagnosticsConclusion": "Conclusion",
+  "diagnosticsNoMismatch": "No mismatch in this sample",
+  "diagnosticsRisk": "Potential risk",
+  "diagnosticsInsufficient": "Insufficient evidence",
+  "diagnosticsQuick": "Quick · 4 queries",
+  "diagnosticsFull": "Full · 16 queries",
+  "dnsEvidenceLimits": "Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.",
   "iceMatching": "No exit mismatch observed in this ICE sample.",
   "iceInconclusive": "Unable to determine: no complete, comparable public ICE sample.",
   "iceCandidates": "ICE candidates",

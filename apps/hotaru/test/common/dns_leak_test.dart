@@ -89,6 +89,31 @@ void main() {
   );
 
   test(
+    'quick sampling reports completion even for NXDOMAIN and rejects invalid sizes',
+    () async {
+      final adapter = _ReceiptAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      addTearDown(dio.close);
+      final progress = <int>[];
+      final probe = DnsLeakProbe(
+        dio: dio,
+        lookup: (_) async => throw const SocketException('NXDOMAIN'),
+      );
+      await probe.run(
+        CancelToken(),
+        samples: 4,
+        onProgress: (done, total) {
+          expect(total, 4);
+          progress.add(done);
+        },
+      );
+      expect(progress, [1, 2, 3, 4]);
+      expect(() => probe.run(CancelToken(), samples: 0), throwsRangeError);
+      expect(() => probe.run(CancelToken(), samples: 51), throwsRangeError);
+    },
+  );
+
+  test(
     'sends sixteen lease-specific DNS queries with at most four outstanding',
     () async {
       final adapter = _ReceiptAdapter();

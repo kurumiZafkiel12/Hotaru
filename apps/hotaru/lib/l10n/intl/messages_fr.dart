@@ -741,18 +741,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "Test terminé ; examiner les observations",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("Conclusion"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Active les remplacements DNS avec Cloudflare et Google DoH. Vérifiez après application les besoins DNS spécifiques de votre profil.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "Échec du test ; voir les observations",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage(
+      "Complet · 16 requêtes",
+    ),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Preuves insuffisantes",
+    ),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "Démarrez Hotaru avec un profil avant de tester le chemin routé.",
+    ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "Aucune différence dans cet échantillon",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage(
+      "Rapide · 4 requêtes",
     ),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
       "Observations",
     ),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("Risque potentiel"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Proxy de connexion"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "Le proxy de connexion est la sortie utilisée pour joindre le serveur NTP.",
@@ -866,6 +880,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Nouvelle version disponible",
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("Cache DNS vidé"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "Les réponses ne décrivent que cet échantillon. Sans référence de résolveurs attendus vérifiée, elles ne prouvent pas la protection de toutes les requêtes DNS.",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "Sans cette entrée, TUN détourne toutes les requêtes DNS vers le port 53 (any:53).",
     ),
@@ -1151,10 +1168,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Saisissez le contenu de la règle",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Ce système masque la liste des apps installées tant que l’autorisation n’est pas accordée. Accordez-la pour configurer le proxy par app.",
     ),

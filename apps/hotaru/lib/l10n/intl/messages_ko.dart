@@ -562,14 +562,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "검사 완료 · 증거 검토",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("종합 결과"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Cloudflare 및 Google DoH로 앱 DNS 덮어쓰기를 켭니다. 프로필에 특별한 도메인 DNS 요구가 있다면 적용 후 확인하세요.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("검사 실패 · 증거 확인"),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("전체 검사 · 16회"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("근거 부족"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "라우팅 검사 전에 프로필을 선택하고 Hotaru를 시작하세요.",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "이번 표본에서 불일치 없음",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("빠른 검사 · 4회"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("관측된 증거"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("잠재적 위험"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("다이얼러 프록시"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "다이얼러 프록시는 NTP 서버에 연결할 때 사용하는 아웃바운드입니다.",
@@ -665,6 +673,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "disconnected": MessageLookupByLibrary.simpleMessage("연결 끊김"),
     "discoverNewVersion": MessageLookupByLibrary.simpleMessage("새 버전 발견"),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNS 캐시를 지웠습니다"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "확인된 해석기는 이번 표본만 나타냅니다. 검증된 예상 DNS 해석기 기준이 없으면 모든 DNS 쿼리가 보호된다고 증명할 수 없습니다.",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "추가하지 않으면 53번 포트로 가는 모든 DNS 쿼리를 하이재킹합니다(any:53).",
     ),

@@ -685,18 +685,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "Probe completed; review evidence",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("Conclusion"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "Probe failed; see evidence",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage(
+      "Full · 16 queries",
+    ),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Insufficient evidence",
+    ),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "Start Hotaru with a profile before testing the routed path.",
+    ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "No mismatch in this sample",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage(
+      "Quick · 4 queries",
     ),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
       "Observed evidence",
     ),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("Potential risk"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Dialer proxy"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "Dialer proxy is the outbound used to reach the NTP server.",
@@ -809,6 +823,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage(
       "DNS cache cleared",
+    ),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.",
     ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "Without this entry, TUN hijacks every DNS query to port 53 (any:53).",
@@ -1073,10 +1090,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
