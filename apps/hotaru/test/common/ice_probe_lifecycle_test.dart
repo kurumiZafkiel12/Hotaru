@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:hotaru/common/ice_probe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:mocktail/mocktail.dart';
 
 class _Channel extends Fake implements RTCDataChannel {}
 
