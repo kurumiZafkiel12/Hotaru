@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/common/country_names.dart';
+import 'package:hotaru/common/network_quality.dart';
+import 'package:hotaru/providers/network_quality.dart';
+import 'package:hotaru/views/network_quality.dart';
 import 'package:hotaru/common/service_probe.dart';
-import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/features/features.dart';
 import 'package:hotaru/features/ip_quality/labels.dart';
 import 'package:hotaru/models/models.dart';
@@ -87,70 +90,118 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
         : isStart
         ? (appLocalizations.running, DashboardChipTone.ok)
         : (appLocalizations.notRunning, DashboardChipTone.idle);
+    final country = _CountryColumn(
+      countryCode: ipInfo?.countryCode,
+      metrics: metrics,
+      active: isStart,
+      checking: phase == ProbePhase.probing,
+      onRefresh: () => _refresh(ipInfo?.ip),
+    );
+    final status = _StatusLine(label: chipLabel, tone: chipTone);
+    final address = _ExitRow(
+      info: ipInfo,
+      failed: failed,
+      metrics: metrics,
+      active: isStart,
+    );
+    final dimensions = _IpDimensions(quality: quality, loading: qualityLoading);
+    final metadata = _Cells(
+      quality: quality,
+      loading: loading,
+      active: isStart && !suspended,
+      gap: metrics.cellGap,
+      inline: density.isDesktop,
+    );
+    final toggle = SizedBox(
+      width: metrics.buttonSlot,
+      child: Center(
+        heightFactor: 1,
+        child: _StartToggle(
+          size: metrics.buttonSize,
+          enabled: hasProfile,
+          running: isStart,
+          suspended: suspended,
+        ),
+      ),
+    );
     return DashboardCard(
-      padding: EdgeInsets.zero,
+      padding: metrics.padding,
       highlighted: true,
       semanticLabel: appLocalizations.status,
-      child: Padding(
-        padding: metrics.padding,
-        child: Row(
-          spacing: metrics.gap,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DashboardCardHeader(
-                    glyph: AppGlyphs.status,
-                    title: appLocalizations.status,
-                    leading: [
-                      DashboardChip(
-                        label: chipLabel,
-                        tone: chipTone,
-                        dot: isStart,
-                      ),
-                    ],
+      child: density.isDesktop
+          ? Row(
+              spacing: metrics.gap,
+              children: [
+                country,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 2,
+                    children: [status, address, dimensions, metadata],
                   ),
-                  SizedBox(height: metrics.ipTop),
-                  _ExitRow(
-                    info: ipInfo,
-                    failed: failed,
-                    loading: loading,
-                    checking: phase == ProbePhase.probing || qualityLoading,
-                    onRefresh: () => _refresh(ipInfo?.ip),
-                    quality: quality,
-                    active: isStart,
-                    metrics: metrics,
-                    large: true,
-                  ),
-                  if (density.isDesktop)
-                    const Spacer()
-                  else
-                    const SizedBox(height: 16),
-                  if (!density.isDesktop || !failed)
-                    _Cells(
-                      quality: quality,
-                      loading: loading,
-                      active: isStart && !suspended,
-                      gap: metrics.cellGap,
-                      inline: density.isDesktop,
-                    ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: metrics.buttonSlot,
-              child: Center(
-                child: _StartToggle(
-                  size: metrics.buttonSize,
-                  enabled: hasProfile,
-                  running: isStart,
-                  suspended: suspended,
                 ),
-              ),
+                toggle,
+              ],
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                Row(
+                  spacing: metrics.gap,
+                  children: [
+                    country,
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [status, address],
+                      ),
+                    ),
+                    toggle,
+                  ],
+                ),
+                dimensions,
+                metadata,
+              ],
             ),
-          ],
-        ),
+    );
+  }
+}
+
+class _StatusLine extends StatelessWidget {
+  const _StatusLine({required this.label, required this.tone});
+
+  final String label;
+  final DashboardChipTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DashboardColors.of(context);
+    final color = switch (tone) {
+      DashboardChipTone.ok => colors.ok,
+      DashboardChipTone.warn => colors.warn,
+      DashboardChipTone.idle => context.colorScheme.onSurfaceVariant,
+    };
+    return Semantics(
+      liveRegion: true,
+      child: Row(
+        spacing: 6,
+        children: [
+          DecoratedBox(
+            decoration: ShapeDecoration(color: color, shape: AppShape.circle),
+            child: const SizedBox.square(dimension: 6),
+          ),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 2,
+              style: DashboardText.label(context, color: color),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -160,7 +211,6 @@ class _OutboundMetrics {
   const _OutboundMetrics({
     required this.padding,
     required this.gap,
-    required this.ipTop,
     required this.cellGap,
     required this.badgeSize,
     required this.ip,
@@ -171,39 +221,35 @@ class _OutboundMetrics {
   factory _OutboundMetrics.of(DashboardDensity density) => switch (density) {
     DashboardDensity.standard => _OutboundMetrics(
       padding: dashboardCardPadding(density),
-      gap: 12,
-      ipTop: 6,
-      cellGap: 24,
+      gap: 10,
+      cellGap: 12,
       badgeSize: 40,
       ip: AppTextStyle.title1,
-      buttonSize: 72,
-      buttonSlot: 88,
+      buttonSize: DashboardSizing.desktopStartButton,
+      buttonSlot: 60,
     ),
     DashboardDensity.compact => _OutboundMetrics(
       padding: dashboardCardPadding(density),
-      gap: 12,
-      ipTop: 4,
-      cellGap: 20,
+      gap: 8,
+      cellGap: 8,
       badgeSize: 36,
       ip: AppTextStyle.title2,
-      buttonSize: 64,
-      buttonSlot: 76,
+      buttonSize: DashboardSizing.desktopStartButton,
+      buttonSlot: 60,
     ),
     DashboardDensity.mobile => const _OutboundMetrics(
-      padding: EdgeInsetsDirectional.fromSTEB(20, 18, 16, 18),
-      gap: 10,
-      ipTop: 12,
-      cellGap: 24,
-      badgeSize: 48,
+      padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+      gap: 8,
+      cellGap: 8,
+      badgeSize: 36,
       ip: AppTextStyle.title2,
-      buttonSize: 88,
-      buttonSlot: 88,
+      buttonSize: 56,
+      buttonSlot: 56,
     ),
   };
 
   final EdgeInsetsGeometry padding;
   final double gap;
-  final double ipTop;
   final double cellGap;
   final double badgeSize;
   final AppTextStyle ip;
@@ -211,28 +257,70 @@ class _OutboundMetrics {
   final double buttonSlot;
 }
 
+class _CountryColumn extends StatelessWidget {
+  const _CountryColumn({
+    required this.countryCode,
+    required this.metrics,
+    required this.active,
+    required this.checking,
+    required this.onRefresh,
+  });
+
+  final String? countryCode;
+  final _OutboundMetrics metrics;
+  final bool active;
+  final bool checking;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final code = countryCode?.trim().toUpperCase();
+    final name = countryName(
+      code,
+      Localizations.localeOf(context).languageCode,
+    );
+    return SizedBox(
+      width: metrics.badgeSize + 12,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 2,
+        children: [
+          _CountryBadge(
+            countryCode: name == null ? null : code,
+            size: metrics.badgeSize,
+            active: active,
+            checking: checking,
+            onRefresh: onRefresh,
+          ),
+          Text(name == null ? '—' : code!, style: DashboardText.label(context)),
+          Tooltip(
+            message: name ?? context.appLocalizations.unknown,
+            child: Text(
+              name ?? context.appLocalizations.unknown,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: DashboardText.label(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ExitRow extends StatelessWidget {
   const _ExitRow({
     required this.info,
     required this.failed,
-    required this.loading,
-    required this.checking,
-    required this.onRefresh,
-    required this.quality,
     required this.active,
     required this.metrics,
-    required this.large,
   });
 
   final IpInfo? info;
   final bool failed;
-  final bool loading;
-  final bool checking;
-  final VoidCallback onRefresh;
-  final IpQuality? quality;
   final bool active;
   final _OutboundMetrics metrics;
-  final bool large;
 
   @override
   Widget build(BuildContext context) {
@@ -244,73 +332,34 @@ class _ExitRow extends StatelessWidget {
     ).copyWith(letterSpacing: 0);
     final info = this.info;
     final appLocalizations = context.appLocalizations;
-    final Widget ip = info != null
-        ? Tooltip(
-            message: appLocalizations.details(appLocalizations.outboundIp),
-            child: FocusRing(
-              shape: AppShape.xs,
-              standsOff: true,
-              child: InkWell(
-                onTap: () => showIpQualitySheet(context, ip: info.ip),
-                customBorder: AppShape.xs,
-                hoverColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                child: _IpText(ip: info.ip, style: style),
-              ),
-            ),
-          )
-        : failed
-        ? Text(
-            appLocalizations.serviceFailed,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: style.copyWith(color: colorScheme.error),
-          )
-        : SkeletonText(width: 140, style: style);
-    return Row(
-      spacing: 12,
-      children: [
-        _CountryBadge(
-          countryCode: info?.countryCode,
-          size: metrics.badgeSize,
-          active: active,
-          checking: checking,
-          onRefresh: onRefresh,
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height:
-                    metrics.ip.leading * DashboardDensityScope.scaleOf(context),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: ip,
-                ),
-              ),
-              if (failed || large) const SizedBox(height: 4),
-              if (failed)
-                SizedBox(
-                  height: _chipHeight(large),
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      appLocalizations.tapIconToRetry,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: DashboardText.label(context),
-                    ),
-                  ),
-                )
-              else if (large)
-                _IpChips(quality: quality, loading: loading, large: large),
-            ],
+    if (info != null) {
+      return Tooltip(
+        message: appLocalizations.details(appLocalizations.outboundIp),
+        child: FocusRing(
+          shape: AppShape.xs,
+          standsOff: true,
+          child: InkWell(
+            onTap: () => showIpQualitySheet(context, ip: info.ip),
+            customBorder: AppShape.xs,
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            child: _IpText(ip: info.ip, style: style),
           ),
         ),
-      ],
-    );
+      );
+    }
+    return failed
+        ? Tooltip(
+            message: appLocalizations.tapIconToRetry,
+            child: Text(
+              appLocalizations.serviceFailed,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style.copyWith(color: colorScheme.error),
+            ),
+          )
+        : SkeletonText(width: 140, style: style);
   }
 }
 
@@ -329,59 +378,121 @@ class _IpText extends ConsumerWidget {
   }
 }
 
-double _chipHeight(bool large) => large ? 28 : 24;
-
-const _chipSkeletonWidths = [48.0, 72.0];
-
-class _IpChips extends StatelessWidget {
-  const _IpChips({
-    required this.quality,
-    required this.loading,
-    required this.large,
-  });
+class _IpDimensions extends StatelessWidget {
+  const _IpDimensions({required this.quality, required this.loading});
 
   final IpQuality? quality;
   final bool loading;
-  final bool large;
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.appLocalizations;
     final quality = this.quality;
-    final height = _chipHeight(large);
-    // Chips that do not fit wrap onto a clipped second line; the details
-    // sheet still lists them all.
-    return SizedBox(
-      height: height,
-      child: ClipRect(
-        child: Wrap(
-          spacing: 6,
-          runSpacing: height,
-          children: switch (quality) {
-            final quality? => [
-              DashboardChip(label: quality.type.label(context), large: large),
-              DashboardChip(
-                label:
-                    '${context.appLocalizations.ipQualityShort} ${quality.level.label(context)}',
-                tone: switch (quality.level) {
-                  IpQualityLevel.good => DashboardChipTone.ok,
-                  IpQualityLevel.normal => DashboardChipTone.idle,
-                  IpQualityLevel.risky => DashboardChipTone.warn,
-                },
-                large: large,
-              ),
-            ],
-            null when loading => [
-              for (final width in _chipSkeletonWidths)
-                SkeletonPill(width: width, height: height),
-            ],
-            null => [
-              DashboardChip(
-                label: context.appLocalizations.ipTypeUnknown,
-                large: large,
-              ),
-            ],
-          },
+    final hasAccessEvidence = quality?.typeIsInferred == false;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        Expanded(
+          child: _IpDimension(
+            label: strings.statusIpOrigin,
+            value: strings.unknown,
+            evidence: strings.statusOriginUnknownReason,
+          ),
         ),
+        Expanded(
+          child: _IpDimension(
+            label: strings.statusAccessType,
+            value: hasAccessEvidence
+                ? quality!.type.label(context)
+                : strings.unknown,
+            evidence: hasAccessEvidence
+                ? strings.statusAccessSource(quality!.source.label)
+                : strings.statusAccessUnverified,
+            loading: loading,
+          ),
+        ),
+        const Expanded(child: _NetworkQualityDimension()),
+      ],
+    );
+  }
+}
+
+class _NetworkQualityDimension extends ConsumerWidget {
+  const _NetworkQualityDimension();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(networkQualityProvider);
+    final report = state.reportFor(ref.watch(routeTrackerProvider));
+    final l10n = context.appLocalizations;
+    return _IpDimension(
+      label: l10n.statusNetworkQuality,
+      value: (report?.grade ?? NetworkQualityGrade.unknown).label,
+      evidence: report == null
+          ? l10n.statusQualityUnknownReason
+          : '${l10n.qualityScope}\n$networkQualityUrl · ${report.completed}/$networkQualityRounds · ${report.medianMs?.toStringAsFixed(1) ?? "—"} ms',
+      loading: state.running,
+      onPressed: () => showNetworkQualitySheet(context),
+    );
+  }
+}
+
+class _IpDimension extends StatelessWidget {
+  const _IpDimension({
+    required this.label,
+    required this.value,
+    required this.evidence,
+    this.loading = false,
+    this.onPressed,
+  });
+
+  final VoidCallback? onPressed;
+  final String label;
+  final String value;
+  final String evidence;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final dimension = Tooltip(
+      message: '$label: $value\n$evidence',
+      child: Semantics(
+        label: '$label: $value. $evidence',
+        excludeSemantics: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              maxLines: DashboardDensityScope.of(context).isDesktop ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyle.caption2
+                  .of(context)
+                  .copyWith(color: context.colorScheme.onSurfaceVariant),
+            ),
+            if (loading)
+              SkeletonText(width: 48, style: DashboardText.label(context))
+            else
+              Text(
+                value,
+                maxLines: DashboardDensityScope.of(context).isDesktop ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyle.caption1.of(context, emphasized: true),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (onPressed == null) return dimension;
+    return FocusRing(
+      shape: AppShape.xs,
+      standsOff: true,
+      child: InkWell(
+        customBorder: AppShape.xs,
+        onTap: onPressed,
+        child: dimension,
       ),
     );
   }
@@ -441,6 +552,7 @@ class _CountryBadgeState extends State<_CountryBadge>
 
   void _spin() {
     if (context.disableAnimations) {
+      _turns.stop();
       _turns.value = 0;
     } else if (widget.checking) {
       _turns.repeat();
@@ -526,7 +638,6 @@ class _Cells extends StatelessWidget {
   final bool active;
   final double gap;
 
-  /// Label and value share one line, the compact desktop arrangement.
   final bool inline;
 
   @override
@@ -537,24 +648,51 @@ class _Cells extends StatelessWidget {
       IpQuality(asn: final asn?) => 'AS$asn',
       _ => null,
     };
+    final runTime = active ? const _RunTimeValue() : const _Placeholder();
+    final network = organization != null
+        ? _CellText(organization)
+        : loading
+        ? SkeletonText(width: 96, style: _cellStyle(context))
+        : const _Placeholder();
+    if (inline) {
+      return Row(
+        spacing: gap,
+        children: [
+          Semantics(
+            label: appLocalizations.runTime,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Tooltip(
+                  message: appLocalizations.runTime,
+                  child: GlyphIcon(
+                    AppGlyphs.clock,
+                    size: 12,
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                runTime,
+              ],
+            ),
+          ),
+          Expanded(
+            child: Semantics(
+              label: appLocalizations.ipOrganization,
+              child: network,
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       spacing: gap,
       children: [
-        _Cell(
-          label: appLocalizations.runTime,
-          inline: inline,
-          value: active ? const _RunTimeValue() : const _Placeholder(),
+        Flexible(
+          child: _Cell(label: appLocalizations.runTime, value: runTime),
         ),
         Flexible(
-          child: _Cell(
-            label: appLocalizations.ipOrganization,
-            inline: inline,
-            value: organization != null
-                ? _CellText(organization)
-                : loading
-                ? SkeletonText(width: 96, style: _cellStyle(context))
-                : const _Placeholder(),
-          ),
+          child: _Cell(label: appLocalizations.ipOrganization, value: network),
         ),
       ],
     );
@@ -562,40 +700,32 @@ class _Cells extends StatelessWidget {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.label, required this.value, this.inline = false});
+  const _Cell({required this.label, required this.value});
 
   final String label;
   final Widget value;
-  final bool inline;
 
   @override
   Widget build(BuildContext context) {
-    final labelText = Text(
-      label,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: DashboardText.label(context),
-    );
-    if (inline) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 6,
-        children: [
-          labelText,
-          Flexible(child: value),
-        ],
-      );
-    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [labelText, const SizedBox(height: 2), value],
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: DashboardText.label(context),
+        ),
+        const SizedBox(height: 2),
+        value,
+      ],
     );
   }
 }
 
 TextStyle _cellStyle(BuildContext context) =>
-    AppTextStyle.subheadline.of(context, emphasized: true).toTabular;
+    AppTextStyle.caption1.of(context, emphasized: true).toTabular;
 
 class _CellText extends StatelessWidget {
   const _CellText(this.text);
@@ -604,11 +734,14 @@ class _CellText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: _cellStyle(context),
+    return Tooltip(
+      message: text,
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: _cellStyle(context),
+      ),
     );
   }
 }

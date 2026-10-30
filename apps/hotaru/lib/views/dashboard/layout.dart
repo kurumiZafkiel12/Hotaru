@@ -4,113 +4,131 @@ import 'package:hotaru/enum/enum.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _minDesktopWidth = 640.0;
-const _minFourColumnWidth = 860.0;
-const _minStandardFourColumnWidth = 1040.0;
+const _minFourColumnWidth = 760.0;
+const _minStandardFourColumnWidth = 840.0;
 const _minStandardHeight = 824.0;
 const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
+
+abstract final class DashboardSizing {
+  static const gap = 12.0;
+  static const inset = 12.0;
+  static const low = 122.0;
+  static const step = 38.0;
+  static const maxColumn = 200.0;
+  static const desktopControlHeight = 32.0;
+  static const desktopStartButton = 56.0;
+  static const desktopSwitchScale = 0.875;
+
+  static double maxPageWidth(int columns) =>
+      maxColumn * columns + gap * (columns - 1) + inset * 2;
+
+  static double height(int level) => low + step * level;
+}
+
+enum DashboardWidth {
+  narrow(1),
+  regular(2),
+  wide(4);
+
+  const DashboardWidth(this.span);
+  final int span;
+  static String storageKey(DashboardWidget widget) =>
+      'desktop.width.${widget.name}';
+  static DashboardWidth of(
+    DashboardWidget widget,
+    DashboardTier tier,
+    Map<String, int> saved,
+  ) {
+    final stored = saved[storageKey(widget)];
+    return values.firstWhere(
+      (width) => width.span == stored && width.span >= tier.columns(4),
+      orElse: () => values.firstWhere((width) => width.span == tier.columns(4)),
+    );
+  }
+}
 
 enum DashboardTier {
   narrow,
   short,
   mid,
   tall,
-  wide;
+  wide,
+  small;
 
-  /// The tier's footprint in grid cells at [columns] columns.
-  (int, int) cells(int columns) => switch (this) {
-    DashboardTier.narrow => (1, 3),
-    DashboardTier.short => (2, 2),
-    DashboardTier.mid => (2, 3),
-    DashboardTier.tall => (2, 4),
-    DashboardTier.wide => (columns, 4),
+  int columns(int available) => switch (this) {
+    narrow || small => 1,
+    wide => available,
+    _ => math.min(2, available),
   };
+
+  double get height => DashboardSizing.height(switch (this) {
+    short || small => 0,
+    narrow || mid => 1,
+    tall || wide => 2,
+  });
 }
 
-/// The height of one grid unit; a card spanning n units is
-/// n units plus the gaps between them tall.
-double dashboardUnitHeight({required bool compact}) => compact ? 40 : 44;
-
-/// Where one card lands in the cell grid.
 class DashboardPlacement {
   const DashboardPlacement({
     required this.widget,
     required this.column,
-    required this.row,
+    required this.top,
     required this.columns,
-    required this.rows,
+    required this.height,
   });
 
   final DashboardWidget widget;
   final int column;
-  final int row;
+  final double top;
   final int columns;
-  final int rows;
+  final double height;
+  double get bottom => top + height;
 }
 
-/// First-fit packing over the cell grid, keeping the user's order: each
-/// card takes the earliest free block of its tier's cells, so cards
-/// interlock with one uniform gap and no ragged seams.
 List<DashboardPlacement> placeDashboardWidgets(
   List<DashboardWidget> order,
   Map<DashboardWidget, DashboardTier> tiers,
   int columns, {
-  Map<String, int> spans = const {},
+  Map<String, int> widths = const {},
 }) {
-  final occupied = <int>{};
-  final placements = <DashboardPlacement>[];
+  final result = <DashboardPlacement>[];
   for (final widget in order) {
     final tier = tiers[widget] ?? DashboardTier.mid;
-    final fallback = tier.cells(columns);
-    final span = spans[widget.name];
-    final (wantColumns, wantRows) = span == null
-        ? fallback
-        : ((span ~/ 10).clamp(1, columns), 2 + (span % 10).clamp(0, 2));
     final width = math.min(
-      math.max(wantColumns, tier == DashboardTier.narrow ? 1 : 2),
+      DashboardWidth.of(widget, tier, widths).span,
       columns,
     );
-    final rows = math.max(wantRows, fallback.$2);
-    var row = 0;
-    while (true) {
-      var placed = false;
-      for (var column = 0; column + width <= columns; column++) {
-        var free = true;
-        for (var y = row; y < row + rows && free; y++) {
-          for (var x = column; x < column + width; x++) {
-            if (occupied.contains(y * columns + x)) {
-              free = false;
-              break;
-            }
-          }
-        }
-        if (free) {
-          for (var y = row; y < row + rows; y++) {
-            for (var x = column; x < column + width; x++) {
-              occupied.add(y * columns + x);
-            }
-          }
-          placements.add(
-            DashboardPlacement(
-              widget: widget,
-              column: column,
-              row: row,
-              columns: width,
-              rows: rows,
-            ),
-          );
-          placed = true;
-          break;
-        }
-      }
-      if (placed) {
+    final candidates = {
+      0.0,
+      for (final item in result) item.bottom + DashboardSizing.gap,
+    }.toList()..sort();
+    DashboardPlacement? selected;
+    for (final top in candidates) {
+      for (var column = 0; column <= columns - width; column++) {
+        final occupied = result.any(
+          (item) =>
+              item.column < column + width &&
+              column < item.column + item.columns &&
+              item.top < top + tier.height + DashboardSizing.gap &&
+              top < item.bottom + DashboardSizing.gap,
+        );
+        if (occupied) continue;
+        selected = DashboardPlacement(
+          widget: widget,
+          column: column,
+          top: top,
+          columns: width,
+          height: tier.height,
+        );
         break;
       }
-      row++;
+      if (selected != null) break;
     }
+    result.add(selected!);
   }
-  return placements;
+  return result;
 }
 
 /// The mobile cards and their editor share one centered column.
@@ -140,7 +158,7 @@ enum DashboardDensity {
   }
 }
 
-/// Every fixed height on the dashboard grows by [scale] so its text fits.
+/// Text metrics are separate from the fixed desktop height bands.
 class DashboardDensityScope extends InheritedWidget {
   const DashboardDensityScope({
     super.key,

@@ -1,18 +1,29 @@
 package core
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
+	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/metacubex/mihomo/adapter"
+	adapterInbound "github.com/metacubex/mihomo/adapter/inbound"
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
+	"github.com/metacubex/mihomo/component/auth"
+	"github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/constant"
+	listenerFactory "github.com/metacubex/mihomo/listener"
+	authStore "github.com/metacubex/mihomo/listener/auth"
+	"github.com/metacubex/mihomo/listener/inbound"
 	"github.com/metacubex/mihomo/rules"
 	"github.com/metacubex/mihomo/tunnel"
 )
@@ -20,38 +31,8 @@ import (
 func TestServiceAuditObservesActualControlledExitsAndRules(t *testing.T) {
 	recordRoutes(t)
 	observed := make(chan string, 32)
-	startExit := func(name string) constant.Proxy {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodConnect {
-				http.Error(w, "CONNECT required", 400)
-				return
-			}
-			remote, err := net.DialTimeout("tcp", r.Host, time.Second)
-			if err != nil {
-				http.Error(w, "origin unavailable", 502)
-				return
-			}
-			client, buffered, err := w.(http.Hijacker).Hijack()
-			if err != nil {
-				remote.Close()
-				return
-			}
-			observed <- name
-			_, _ = buffered.WriteString("HTTP/1.1 200 Connection established\r\n\r\n")
-			_ = buffered.Flush()
-			go func() { defer remote.Close(); defer client.Close(); _, _ = io.Copy(remote, buffered) }()
-			go func() { defer remote.Close(); defer client.Close(); _, _ = io.Copy(client, remote) }()
-		}))
-		t.Cleanup(server.Close)
-		host, portText, _ := net.SplitHostPort(server.Listener.Addr().String())
-		port, _ := strconv.Atoi(portText)
-		proxy, err := adapter.ParseProxy(map[string]any{"name": name, "type": "http", "server": host, "port": port})
-		if err != nil {
-			t.Fatal(err)
-		}
-		return proxy
-	}
-	a, b := startExit("A"), startExit("B")
+
+	a, b := controlledHttpExit(t, "A", observed), controlledHttpExit(t, "B", observed)
 	inner := selectorOver(t, "Inner", b)
 	daily := selectorOver(t, "Daily", a, inner)
 	proxies := map[string]constant.Proxy{"A": a, "B": b, "Inner": inner, "Daily": daily, "DIRECT": namedProxy("DIRECT")}
@@ -123,5 +104,263 @@ func TestServiceAuditObservesActualControlledExitsAndRules(t *testing.T) {
 	case unexpected := <-observed:
 		t.Fatalf("unexpected fallback exit %s", unexpected)
 	default:
+	}
+}
+
+func controlledHttpExit(t *testing.T, name string, observed chan<- string) constant.Proxy {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodConnect {
+			http.Error(w, "CONNECT required", 400)
+			return
+		}
+		remote, err := net.DialTimeout("tcp", r.Host, time.Second)
+		if err != nil {
+			http.Error(w, "origin unavailable", 502)
+			return
+		}
+		client, buffered, err := w.(http.Hijacker).Hijack()
+		if err != nil {
+			remote.Close()
+			return
+		}
+		observed <- name
+		_, _ = buffered.WriteString("HTTP/1.1 200 Connection established\r\n\r\n")
+		_ = buffered.Flush()
+		go func() { defer remote.Close(); defer client.Close(); _, _ = io.Copy(remote, buffered) }()
+		go func() { defer remote.Close(); defer client.Close(); _, _ = io.Copy(client, remote) }()
+	}))
+	t.Cleanup(server.Close)
+	host, portText, _ := net.SplitHostPort(server.Listener.Addr().String())
+	port, _ := strconv.Atoi(portText)
+	proxy, err := adapter.ParseProxy(map[string]any{"name": name, "type": "http", "server": host, "port": port})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return proxy
+}
+
+func TestNodeBandwidthListenerPinsActualTrafficInEveryMode(t *testing.T) {
+	recordRoutes(t)
+	previousAuth := authStore.Default.Authenticator()
+	previousAllowed := adapterInbound.AllowedIPs()
+	previousSkip := adapterInbound.SkipAuthPrefixes()
+	authStore.Default.SetAuthenticator(auth.NewAuthenticator([]auth.AuthUser{{User: "lan-user", Pass: "test-password"}}))
+	adapterInbound.SetAllowedIPs([]netip.Prefix{netip.MustParsePrefix("127.0.0.0/8")})
+	adapterInbound.SetSkipAuthPrefixes(nil)
+	t.Cleanup(func() {
+		authStore.Default.SetAuthenticator(previousAuth)
+		adapterInbound.SetAllowedIPs(previousAllowed)
+		adapterInbound.SetSkipAuthPrefixes(previousSkip)
+	})
+	observed := make(chan string, 32)
+	a := controlledHttpExit(t, "A", observed)
+	b := controlledHttpExit(t, "B", observed)
+	daily := selectorOver(t, "Daily", a, b)
+	global := selectorOver(t, "GLOBAL", a, b)
+	selected := selectorOver(t, "HOTARU-SPEEDTEST-2", a, b)
+	userGroup := selectorOver(t, "HOTARU-SPEEDTEST", a, b)
+	tunnel.UpdateProxies(map[string]constant.Proxy{
+		"A": a, "B": b, "Daily": daily, "GLOBAL": global, "HOTARU-SPEEDTEST-2": selected, "HOTARU-SPEEDTEST": userGroup, "DIRECT": namedProxy("DIRECT"),
+	}, nil)
+	previousMode := tunnel.Mode()
+	tunnel.OnRunning()
+	t.Cleanup(func() {
+		tunnel.OnSuspend()
+		tunnel.SetMode(previousMode)
+		tunnel.UpdateProxies(nil, nil)
+		tunnel.UpdateRules(nil, nil, nil)
+	})
+	rule, err := rules.ParseRule("MATCH", "", "Daily", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tunnel.UpdateRules([]constant.Rule{rule}, nil, nil)
+	raw, err := config.UnmarshalRawConfig([]byte(`listeners:
+  - name: hotaru-speedtest
+    type: mixed
+    listen: 127.0.0.1
+    port: 0
+    proxy: HOTARU-SPEEDTEST-2
+    users: []
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	listener, err := listenerFactory.ParseListener(raw.Listeners[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = listener.Listen(tunnel.Tunnel); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	withCurrentConfig(t, &config.Config{Listeners: map[string]constant.InboundListener{nodeSpeedListenerName: listener}})
+	previousRunning := isRunning.Swap(true)
+	t.Cleanup(func() { isRunning.Store(previousRunning) })
+	if got := handleGetProxies().SpeedTestGroup; got != "HOTARU-SPEEDTEST-2" {
+		t.Fatalf("declared speed-test group=%s", got)
+	}
+
+	address, err := url.Parse("http://" + listener.Address())
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := bytes.Repeat([]byte("controlled-bandwidth-payload"), 4096)
+	originHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(payload) })
+	origin := probeServer(t, originHandler)
+	secureOrigin := httptest.NewTLSServer(originHandler)
+	t.Cleanup(secureOrigin.Close)
+	legacy, err := inbound.NewMixed(&inbound.MixedOption{BaseOption: inbound.BaseOption{NameStr: "legacy-speedtest", Listen: "127.0.0.1", Port: "0", SpecialProxy: "HOTARU-SPEEDTEST"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := legacy.Listen(tunnel.Tunnel); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = legacy.Close() })
+	legacyAddress, err := url.Parse("http://" + legacy.Address())
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyTransport := &http.Transport{Proxy: http.ProxyURL(legacyAddress)}
+	t.Cleanup(legacyTransport.CloseIdleConnections)
+	legacyResponse, err := (&http.Client{Transport: legacyTransport, Timeout: time.Second}).Get(origin.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyResponse.Body.Close()
+	if legacyResponse.StatusCode != http.StatusProxyAuthRequired {
+		t.Fatalf("legacy listener status=%d, want 407", legacyResponse.StatusCode)
+	}
+	t.Log("control: inherited proxy authentication returned HTTP 407 before reaching either exit")
+	transport := &http.Transport{Proxy: http.ProxyURL(address), DisableKeepAlives: true,
+		TLSClientConfig: secureOrigin.Client().Transport.(*http.Transport).TLSClientConfig,
+	}
+	t.Cleanup(transport.CloseIdleConnections)
+	client := &http.Client{Transport: transport, Timeout: 3 * time.Second}
+	for _, mode := range []tunnel.TunnelMode{tunnel.Rule, tunnel.Global, tunnel.Direct} {
+		tunnel.SetMode(mode)
+		for _, node := range []string{"B", "A"} {
+			t.Run(mode.String()+"/"+node, func(t *testing.T) {
+				change := handleChangeProxy(&ChangeProxyParams{GroupName: "HOTARU-SPEEDTEST", ProxyName: node, ForSpeedTest: true})
+				if change.Message != "" || change.SpeedTestProxy != "PROXY "+listener.Address() {
+					t.Fatalf("prepare=%+v", change)
+				}
+				for _, endpoint := range []string{origin.URL, secureOrigin.URL} {
+					response, err := client.Get(endpoint + "/download?mode=" + mode.String() + "&node=" + node)
+					if err != nil {
+						t.Fatal(err)
+					}
+					received, err := io.ReadAll(response.Body)
+					response.Body.Close()
+					if err != nil || !bytes.Equal(received, payload) {
+						t.Fatalf("download bytes=%d err=%v", len(received), err)
+					}
+					select {
+					case actual := <-observed:
+						if actual != node {
+							t.Fatalf("actual wire exit=%s, selected node=%s", actual, node)
+						}
+					case <-time.After(time.Second):
+						t.Fatal("download bypassed the selected proxy")
+					}
+					select {
+					case extra := <-observed:
+						t.Fatalf("unexpected additional exit %s", extra)
+					default:
+					}
+				}
+				if daily.Adapter().(*outboundgroup.Selector).Now() != "A" || global.Adapter().(*outboundgroup.Selector).Now() != "A" || userGroup.Adapter().(*outboundgroup.Selector).Now() != "A" {
+					t.Fatal("per-node bandwidth test changed the daily/global selection")
+				}
+			})
+		}
+	}
+}
+
+func TestProviderOnlyNodeSpeedUsesParsedIncludeAllProvider(t *testing.T) {
+	recordRoutes(t)
+	observed := make(chan string, 4)
+	a := controlledHttpExit(t, "provider-A", observed)
+	b := controlledHttpExit(t, "provider-B", observed)
+	hostA, portA, _ := net.SplitHostPort(a.Addr())
+	hostB, portB, _ := net.SplitHostPort(b.Addr())
+	previousNames := config.GetProxyNameList()
+	t.Cleanup(func() { config.SetProxyNameList(previousNames) })
+	cfg, err := config.Parse([]byte(fmt.Sprintf(`proxy-providers:
+  subscription:
+    type: inline
+    payload:
+      - {name: provider-A, type: http, server: %s, port: %s}
+      - {name: provider-B, type: http, server: %s, port: %s}
+proxy-groups:
+  - {name: Select, type: select, include-all: true}
+  - name: HOTARU-SPEEDTEST
+    type: select
+    hidden: true
+    proxies: [Select, DIRECT]
+    use: [subscription]
+listeners:
+  - {name: hotaru-speedtest, type: mixed, listen: 127.0.0.1, port: 0, proxy: HOTARU-SPEEDTEST, users: []}
+rules: ['MATCH,DIRECT']
+`, hostA, portA, hostB, portB)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, provider := range cfg.Providers {
+		if closer, ok := provider.(io.Closer); ok {
+			t.Cleanup(func() { _ = closer.Close() })
+		}
+	}
+	previousMode := tunnel.Mode()
+	tunnel.UpdateProxies(cfg.Proxies, cfg.Providers)
+	tunnel.UpdateRules(cfg.Rules, nil, nil)
+	tunnel.SetMode(tunnel.Rule)
+	tunnel.OnRunning()
+	previousRunning := isRunning.Swap(true)
+	t.Cleanup(func() {
+		isRunning.Store(previousRunning)
+		tunnel.OnSuspend()
+		tunnel.SetMode(previousMode)
+		tunnel.UpdateProxies(nil, nil)
+		tunnel.UpdateRules(nil, nil, nil)
+	})
+	listener := cfg.Listeners[nodeSpeedListenerName]
+	if err := listener.Listen(tunnel.Tunnel); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	withCurrentConfig(t, cfg)
+	result := handleChangeProxy(&ChangeProxyParams{ForSpeedTest: true, ProxyName: "provider-B"})
+	if result.Message != "" || result.SpeedTestProxy == "" {
+		t.Fatalf("provider node unavailable: %+v", result)
+	}
+	address, err := url.Parse("http://" + strings.TrimPrefix(result.SpeedTestProxy, "PROXY "))
+	if err != nil {
+		t.Fatal(err)
+	}
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("provider-only-payload")) }))
+	defer origin.Close()
+	transport := &http.Transport{Proxy: http.ProxyURL(address), DisableKeepAlives: true}
+	defer transport.CloseIdleConnections()
+	response, err := (&http.Client{Transport: transport, Timeout: time.Second * 3}).Get(origin.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	body, _ := io.ReadAll(response.Body)
+	if string(body) != "provider-only-payload" {
+		t.Fatal("provider payload mismatch")
+	}
+	select {
+	case node := <-observed:
+		if node != "provider-B" {
+			t.Fatalf("provider traffic used %s", node)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("provider exit never saw the request")
+	}
+	if group, err := selectableGroup("Select"); err != nil || group.Now() != "provider-A" {
+		t.Fatal("user group selection changed")
 	}
 }

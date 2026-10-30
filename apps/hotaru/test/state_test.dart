@@ -18,7 +18,7 @@ void main() {
     },
   );
 
-  test('genColorScheme returns the fixed palette regardless of seeds', () {
+  test('genColorScheme applies separate system light and dark seeds', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     container
@@ -31,15 +31,15 @@ void main() {
 
     expect(
       container.read(genColorSchemeProvider(Brightness.light)),
-      hotaruColorScheme(Brightness.light),
+      hotaruColorScheme(Brightness.light, accent: const Color(0xFF00FF00)),
     );
     expect(
       container.read(genColorSchemeProvider(Brightness.dark)),
-      hotaruColorScheme(Brightness.dark),
+      hotaruColorScheme(Brightness.dark, accent: const Color(0xFF0000FF)),
     );
   });
 
-  test('pure black leaves both schemes unchanged under the fixed palette', () {
+  test('pure black darkens the dark canvas and preserves the light theme', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final light = container.read(genColorSchemeProvider(Brightness.light));
@@ -49,11 +49,13 @@ void main() {
         .update((state) => state.copyWith(pureBlack: true));
 
     expect(container.read(genColorSchemeProvider(Brightness.light)), light);
-    expect(container.read(genColorSchemeProvider(Brightness.dark)), dark);
+    final black = container.read(genColorSchemeProvider(Brightness.dark));
+    expect(black.surface, Colors.black);
+    expect(black.primary, dark.primary);
   });
 
   test(
-    'genColorScheme ignores the accent seed and returns the fixed palette',
+    'genColorScheme uses the accent when system brightness seeds are absent',
     () {
       const accent = Color(0xFFFF0000);
       final container = ProviderContainer();
@@ -64,7 +66,7 @@ void main() {
 
       expect(
         container.read(genColorSchemeProvider(Brightness.light)),
-        hotaruColorScheme(Brightness.light),
+        hotaruColorScheme(Brightness.light, accent: accent),
       );
     },
   );

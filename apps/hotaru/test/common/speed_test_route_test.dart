@@ -38,7 +38,39 @@ void main() {
       expect(listener['listen'], '127.0.0.1');
       expect(listener['port'], speedTestPort);
       expect(listener['proxy'], speedTestGroupBaseName);
+      expect(listener['users'], isEmpty);
     });
+
+    test(
+      'the loopback test listener does not inherit profile authentication',
+      () {
+        final config = <String, dynamic>{
+          'authentication': ['lan-user:test-password'],
+          'proxies': [
+            {'name': 'NodeA', 'type': 'http'},
+          ],
+          'listeners': [
+            {
+              'name': 'private',
+              'type': 'mixed',
+              'port': 7890,
+              'users': [
+                {'username': 'u', 'password': 'p'},
+              ],
+            },
+          ],
+        };
+        injectSpeedTestRoute(config);
+        expect(config['authentication'], ['lan-user:test-password']);
+        final listeners = config['listeners'] as List;
+        expect((listeners.first as Map)['users'], [
+          {'username': 'u', 'password': 'p'},
+        ]);
+        final internal = listeners.last as Map;
+        expect(internal['listen'], '127.0.0.1');
+        expect(internal['users'], isEmpty);
+      },
+    );
 
     test('preserves existing listeners and avoids name collisions', () {
       final config = <String, dynamic>{
@@ -58,6 +90,30 @@ void main() {
       final reserved = groups.single as Map;
       expect(reserved['proxies'], [speedTestGroupBaseName, 'DIRECT']);
     });
+
+    test(
+      'provider-only include-all profiles get a usable dedicated speed group',
+      () {
+        final config = <String, dynamic>{
+          'proxy-providers': {
+            'subscription': {
+              'type': 'http',
+              'url': 'https://example.test/nodes.yaml',
+            },
+          },
+          'proxy-groups': [
+            {'name': 'Select', 'type': 'select', 'include-all': true},
+          ],
+        };
+        expect(injectSpeedTestRoute(config), speedTestGroupBaseName);
+        final reserved = (config['proxy-groups'] as List).last as Map;
+        expect(reserved['use'], ['subscription']);
+        expect(
+          (config['listeners'] as List).single['proxy'],
+          speedTestGroupBaseName,
+        );
+      },
+    );
 
     test('skips injection when the profile has nothing testable', () {
       final config = <String, dynamic>{'proxies': [], 'proxy-groups': []};
@@ -117,18 +173,5 @@ void main() {
       expect(second, isNotNull);
       NodeSpeedTestGate.release(second!);
     });
-  });
-
-  test('findSpeedTestGroupName matches base and uniquified names', () {
-    expect(findSpeedTestGroupName({'Other': {}}), isNull);
-    expect(
-      findSpeedTestGroupName({speedTestGroupBaseName: {}}),
-      speedTestGroupBaseName,
-    );
-    expect(
-      findSpeedTestGroupName({'$speedTestGroupBaseName-3': {}}),
-      '$speedTestGroupBaseName-3',
-    );
-    expect(isSpeedTestGroupName('HOTARU-SPEEDTESTX'), isFalse);
   });
 }

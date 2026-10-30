@@ -173,6 +173,7 @@ func applyConfig(params *SetupParams) error {
 		cfg = fallback
 	}
 
+	reuseNodeSpeedListener(cfg, currentConfig)
 	currentConfig = cfg
 	hub.ApplyConfig(cfg)
 	patchSelectGroup(params.SelectedMap)

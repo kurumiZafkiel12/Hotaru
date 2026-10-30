@@ -48,6 +48,7 @@ const _saved = IpQuality(
   ip: _ip,
   source: IpQualitySource.proxyCheck,
   type: IpType.hosting,
+  typeIsInferred: false,
 );
 
 void main() {
@@ -168,6 +169,24 @@ void main() {
     expect(await container.read(provider.future), _saved);
     expect(adapter.requests, 0);
   });
+
+  test(
+    'refreshes legacy cached records that lack classification evidence',
+    () async {
+      await testDatabase.ipQualitiesDao.put(
+        _saved.copyWith(typeIsInferred: null),
+        DateTime.now(),
+        const Duration(days: 3),
+      );
+      final adapter = _Adapter(succeed: true);
+      final container = build(adapter);
+      container.listen(provider, (_, _) {});
+
+      final quality = await container.read(provider.future);
+      expect(quality.typeIsInferred, isFalse);
+      expect(adapter.requests, greaterThan(0));
+    },
+  );
 
   test('saves a lookup for the next run', () async {
     final adapter = _Adapter(succeed: true);

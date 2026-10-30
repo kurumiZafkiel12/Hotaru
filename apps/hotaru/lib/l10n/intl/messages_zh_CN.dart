@@ -192,17 +192,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}只能是一项";
 
-  static String m80(value) => "峰值 ${value}";
+  static String m80(source) => "接入类型来源：${source}。";
 
-  static String m81(value) => "累计 ${value}";
+  static String m81(value) => "峰值 ${value}";
 
-  static String m82(transport) => "${transport} 请求头";
+  static String m82(value) => "累计 ${value}";
 
-  static String m83(label) => "${label}必须为URL";
+  static String m83(transport) => "${transport} 请求头";
 
-  static String m84(count) => "${count} 年前";
+  static String m84(label) => "${label}必须为URL";
 
   static String m85(count) => "${count} 年前";
+
+  static String m86(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -270,6 +272,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("局域网代理"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("允许的 IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("应用设置"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage("网络需要网页登录"),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("系统 DNS 服务器"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("按流量计费的连接"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "读取当前默认网络及其系统 DNS。它可能与 Hotaru 内部 DNS 或其他应用不同；系统开关状态不能证明无泄漏。需要修改时，请在相应系统设置中自行操作。",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "查看 VPN、系统 DNS 与网络设置",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage("Android 网络维护"),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "无法读取网络状态，或系统限制了访问。请刷新，或打开系统设置查看。",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android 已验证此网络",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("系统私人 DNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "此设备无法打开该系统设置页面。",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage("默认网络的系统 VPN"),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi 设置"),
     "answers": MessageLookupByLibrary.simpleMessage("应答"),
     "app": MessageLookupByLibrary.simpleMessage("应用"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("应用访问控制"),
@@ -280,6 +305,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("立即应用"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI 与大模型"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("需要登录或 API 密钥"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "所测自制内容包含可播放元数据，授权内容样本不可用；这不能证明完整片库或实际播放权益。",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("触发网站风控或验证码"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "地区信号不等于账号可用；风控单独判断。若地区封锁，可尝试美、日、新等受支持出口。",
@@ -294,12 +322,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内影音与版权分流"),
     "auditGames": MessageLookupByLibrary.simpleMessage("游戏与应用商店"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("证据不足，无法判定"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("未解锁"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("国际影音"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "网页或地区接口结果不能证明版权播放、家宽资格或订阅权益。",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("部分解锁"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("可连接 · 解锁未确认"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("已连通"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地区不支持"),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("请求失败或超时"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("检测结果"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage("尚未观测到成功建立的连接链"),
     "auditRuleUnknown": MessageLookupByLibrary.simpleMessage("未观测到命中规则"),
     "auditScope": MessageLookupByLibrary.simpleMessage(
@@ -314,6 +347,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "检查网页连通性与 DC1–DC5 的 MTProto 握手；不会登录账号，也不能据此判断当前账号会话使用哪个 DC。",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("服务解锁与分流体检"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("无法判定"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("已解锁"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("验证或登录限制"),
     "authentication": MessageLookupByLibrary.simpleMessage("认证"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "认证开启后，使用本地代理端口需要账号密码。",
@@ -438,6 +474,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("连接"),
     "connectivity": MessageLookupByLibrary.simpleMessage("连通性："),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("已响应"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "已收到 HTTP 响应；仅测试连通性，不代表服务解锁。",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage("不可达"),
     "content": MessageLookupByLibrary.simpleMessage("内容"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage("内容不能为空"),
     "controlGlobalAddedRules": MessageLookupByLibrary.simpleMessage("控制全局附加规则"),
@@ -486,6 +527,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("深色"),
     "dashboard": MessageLookupByLibrary.simpleMessage("仪表盘"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("可添加"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("卡片宽度"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("调整卡片大小"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage("恢复默认布局"),
     "dashboardWidgetsTitle": MessageLookupByLibrary.simpleMessage("我的小组件"),
@@ -518,14 +560,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "developerModeEnableTip": MessageLookupByLibrary.simpleMessage("开发者模式已启用。"),
     "diagnosticsApplyDoh": MessageLookupByLibrary.simpleMessage("配置安全 DoH"),
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage("探测完成，请核对证据"),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("综合结论"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "启用应用 DNS 覆写，使用 Cloudflare 和 Google DoH。订阅可能有特定域名解析要求，请应用后核对。",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("探测失败，请查看证据"),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("完整 · 16 次查询"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("证据不足"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "请先加载配置并启动 Hotaru，再检测实际分流路线。",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage("本次采样未发现不一致"),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("快速 · 4 次查询"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("观测证据"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("存在风险"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("拨号代理"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "拨号代理为连接 NTP 服务器使用的出站。",
@@ -607,6 +655,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "disconnected": MessageLookupByLibrary.simpleMessage("已断开"),
     "discoverNewVersion": MessageLookupByLibrary.simpleMessage("发现新版本"),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNS缓存已清除"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "解析器回执仅代表本次样本。缺少经过核验的预期解析器基线，不能证明所有 DNS 查询均受保护。",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "未添加时劫持所有发往 53 端口的 DNS 请求（any:53）。",
     ),
@@ -769,6 +820,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("色相"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host 为本机网卡，srflx 为 STUN 反射地址，relay 为 TURN 中继。本测试覆盖 Hotaru 原生 ICE 会话，不代表外部浏览器；不采集音视频。",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE 候选地址"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "无法判定：缺少完整且可对比的公网 ICE 样本。",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage("本次 ICE 采样未发现出口不一致。"),
     "icon": MessageLookupByLibrary.simpleMessage("图标"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("图标记录"),
     "iconSets": MessageLookupByLibrary.simpleMessage("图标集"),
@@ -1061,6 +1120,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("不解析IP"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("不解析主机名"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("没有匹配的结果"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("检测全部节点"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("位置证据"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage("请启动核心并刷新节点列表。"),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage("入口主机 · 系统解析"),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoJS 提供 GeoIP 估计位置，并非实际门牌。底图为公共领域 Natural Earth。",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "读取全部节点，再经指定节点探测出口。系统解析的入口地址与实测出口分别展示，结果缓存 15 分钟。",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("搜索节点、IP 或地点"),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("位置来源"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("节点位置 · 地球"),
     "nodes": MessageLookupByLibrary.simpleMessage("节点"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage("该外部资源不是文本文件"),
     "none": MessageLookupByLibrary.simpleMessage("无"),
@@ -1123,6 +1195,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("端口跳跃"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "分别观测 IPv4、IPv6 出口，仅将这些公网 IP 发送至 GeoJS、IPQuery 和 ipapi.is 查询。不收集账户资料或浏览器指纹。",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "快速检查：本进程经系统 DNS 查询 4 个随机域名，由 bash.ws 回执实际解析器。无回执或预期解析器未知时证据不足；不覆盖其他应用和浏览器。",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "保留提供方的原始指标及查询时间；不同指标量纲不通用，不混合取平均。",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "住宅接入不代表原生 IP。这些来源不能证明原生或广播归属。",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "提供方报告了风险信号。这是第三方分类，不代表所有网站封禁，也不是网络质量评分。",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "规则与节点链路来自这些实际请求。目标站点未回显时，其公网出口 IP 为未知，不能用另一查 IP 请求替代。",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "来源结论不一致，请结合提供方、地址与查询时间查看差异。",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "证据尚不完整。IP 可达或未返回风险标记，不能证明纯净、没有泄漏。",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("端口"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("预共享密钥"),
     "preferred": MessageLookupByLibrary.simpleMessage("首选"),
@@ -1191,6 +1287,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeDesc": MessageLookupByLibrary.simpleMessage("扫描二维码获取配置文件"),
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "链接过长，无法生成二维码，请改用“复制链接”。",
+    ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("优"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "样本保留 5 分钟；分流或网络变化后立即失效。",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("请求失败率"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("良"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("中位响应时间"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("差"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "手动对同一目标发送 6 次 HTTPS 请求，遵循当前规则。结论仅描述此目标和链路，不代表带宽、所有站点或 IP 纯净度。请求失败率不是 ICMP 丢包率。",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "至少需要 3 次有效响应，且节点链路一致。优：6 次全成功、中位响应≤150 ms、波动≤30 ms。差：失败超过1次、中位响应>400 ms或波动>80 ms。其余有效样本为良。波动为相邻有效响应时间差绝对值的均值。",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("快捷操作"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("快速编辑"),
@@ -1500,7 +1610,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("正在启动VPN…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("启动与后台"),
     "status": MessageLookupByLibrary.simpleMessage("状态"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("接入类型"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage("关闭 DNS 后将使用系统 DNS。"),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 属性"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("网络质量"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "暂无经过核实的原生或广播 IP 证据。",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "尚未测量网络质量。接入类型与 IP 风险标记不能证明连接质量。",
+    ),
     "stop": MessageLookupByLibrary.simpleMessage("暂停"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("正在停止VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("策略"),
@@ -1540,6 +1663,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("切换"),
     "tolerance": MessageLookupByLibrary.simpleMessage("容差"),
     "tools": MessageLookupByLibrary.simpleMessage("工具"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage("连通与速度"),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP 诊断"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage("系统维护"),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("隐私安全"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("服务与路由"),
     "torch": MessageLookupByLibrary.simpleMessage("手电筒"),
     "total": MessageLookupByLibrary.simpleMessage("总计"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("下载总量"),
@@ -1547,11 +1675,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("上传总量"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy端口"),
     "traffic": MessageLookupByLibrary.simpleMessage("流量"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
     "transport": MessageLookupByLibrary.simpleMessage("传输协议"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "虚拟网卡授权失败，已关闭。",
@@ -1579,7 +1707,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("上行带宽"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "usedShort": MessageLookupByLibrary.simpleMessage("已用"),
@@ -1608,7 +1736,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN 公网地址与代理出口不同，请检查 UDP 路由及浏览器 WebRTC 策略；IPv4/IPv6 地址族不同仍需分别核验。",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "原生 STUN 会主动探测 UDP 路径；浏览器 ICE、mDNS 与 TURN 行为可能不同。仅发现内网地址不等于公网 IP 泄漏。",
+      "本次通过数据通道收集原生 WebRTC ICE 候选，不申请麦克风或摄像头权限。外部浏览器的 ICE、mDNS 和 TURN 策略可能不同；仅发现内网地址不等于公网 IP 泄漏。",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "对比 UDP 反射地址与代理出口",
@@ -1621,8 +1749,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "写入系统会同时设置系统时钟，Android 上不生效。",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("是"),
     "zhCN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

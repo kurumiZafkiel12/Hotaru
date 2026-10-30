@@ -196,17 +196,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}은(는) 하나만 입력해야 합니다";
 
-  static String m80(value) => "최고 ${value}";
+  static String m80(source) => "접속 유형 출처: ${source}.";
 
-  static String m81(value) => "합계 ${value}";
+  static String m81(value) => "최고 ${value}";
 
-  static String m82(transport) => "${transport} 요청 헤더";
+  static String m82(value) => "합계 ${value}";
 
-  static String m83(label) => "${label}은(는) URL이어야 합니다";
+  static String m83(transport) => "${transport} 요청 헤더";
 
-  static String m84(count) => "${Intl.plural(count, other: '${count}년 전')}";
+  static String m84(label) => "${label}은(는) URL이어야 합니다";
 
   static String m85(count) => "${Intl.plural(count, other: '${count}년 전')}";
+
+  static String m86(count) => "${Intl.plural(count, other: '${count}년 전')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -274,6 +276,33 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("LAN 허용"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("허용 IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("앱 설정"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage("네트워크 로그인 필요"),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("시스템 DNS 서버"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("종량제 연결"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "현재 기본 네트워크와 시스템 DNS를 읽습니다. Hotaru 내부 DNS나 다른 앱과 다를 수 있습니다. 설정 상태만으로 누출이 없다고 볼 수 없습니다. 변경은 시스템 설정에서 직접 진행하세요.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN, 시스템 DNS 및 네트워크 설정",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Android 네트워크 도구",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "네트워크 상태를 읽을 수 없거나 시스템에서 제한했습니다. 새로 고치거나 시스템 설정을 확인하세요.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android 네트워크 검증",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("시스템 프라이빗 DNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "이 기기에서 해당 설정 화면을 열 수 없습니다.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "기본 네트워크의 시스템 VPN",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi 설정"),
     "answers": MessageLookupByLibrary.simpleMessage("응답"),
     "app": MessageLookupByLibrary.simpleMessage("앱"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("앱 접근 제어"),
@@ -284,6 +313,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("지금 적용"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI 및 모델"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("인증 필요"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "원본 콘텐츠 표본에는 재생 메타데이터가 있으나 라이선스 콘텐츠 표본은 사용할 수 없습니다. 전체 목록이나 실제 재생 권한을 증명하지 않습니다.",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("봇 방지 확인"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "지역과 웹 응답을 확인합니다. 계정 사용은 별도 검사해야 합니다. 차단되면 미국, 일본, 싱가포르 등 지원 지역의 출구를 사용하세요.",
@@ -298,12 +330,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("국내 미디어"),
     "auditGames": MessageLookupByLibrary.simpleMessage("게임 및 스토어"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("판단할 증거 부족"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("해제되지 않음"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("해외 미디어"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "웹 페이지 또는 지역 API 결과입니다. 저작권 재생, 주거용 회선 자격, 구독은 웹 응답만으로 확인할 수 없습니다.",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("부분 해제"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("연결 가능 · 제한 해제 미확인"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("연결 가능"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "지원하지 않는 지역",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("실패 / 시간 초과"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("결과"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "성공한 연결 체인이 관측되지 않음",
     ),
@@ -320,6 +359,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "웹 연결과 DC1–DC5 MTProto 핸드셰이크를 검사합니다. 계정에 로그인하거나 현재 세션의 DC를 추론하지 않습니다.",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("서비스 지역 제한 및 라우팅 검사"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("판단 불가"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("차단 해제"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("인증 / 로그인 필요"),
     "authentication": MessageLookupByLibrary.simpleMessage("인증"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "인증을 켜면 로컬 프록시 포트에서 사용자 이름과 비밀번호를 요구합니다.",
@@ -460,6 +502,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("연결"),
     "connectivity": MessageLookupByLibrary.simpleMessage("연결 상태: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("응답 수신"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP 응답을 받았습니다. 연결만 확인하며 서비스 잠금 해제를 의미하지 않습니다.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage("연결 불가"),
     "content": MessageLookupByLibrary.simpleMessage("내용"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage("내용을 입력하세요"),
     "controlGlobalAddedRules": MessageLookupByLibrary.simpleMessage(
@@ -514,6 +561,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("다크"),
     "dashboard": MessageLookupByLibrary.simpleMessage("대시보드"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("추가 가능"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("카드 너비"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("카드 크기 조정"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "기본 레이아웃 복원",
@@ -554,14 +602,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "검사 완료 · 증거 검토",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("종합 결과"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Cloudflare 및 Google DoH로 앱 DNS 덮어쓰기를 켭니다. 프로필에 특별한 도메인 DNS 요구가 있다면 적용 후 확인하세요.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage("검사 실패 · 증거 확인"),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("전체 검사 · 16회"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("근거 부족"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "라우팅 검사 전에 프로필을 선택하고 Hotaru를 시작하세요.",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "이번 표본에서 불일치 없음",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("빠른 검사 · 4회"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("관측된 증거"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("잠재적 위험"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("다이얼러 프록시"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "다이얼러 프록시는 NTP 서버에 연결할 때 사용하는 아웃바운드입니다.",
@@ -657,6 +713,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "disconnected": MessageLookupByLibrary.simpleMessage("연결 끊김"),
     "discoverNewVersion": MessageLookupByLibrary.simpleMessage("새 버전 발견"),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNS 캐시를 지웠습니다"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "확인된 해석기는 이번 표본만 나타냅니다. 검증된 예상 DNS 해석기 기준이 없으면 모든 DNS 쿼리가 보호된다고 증명할 수 없습니다.",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "추가하지 않으면 53번 포트로 가는 모든 DNS 쿼리를 하이재킹합니다(any:53).",
     ),
@@ -829,6 +888,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("색조"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host: 로컬 인터페이스, srflx: STUN 주소, relay: TURN 중계. Hotaru 네이티브 ICE만 검사하며 외부 브라우저에는 적용되지 않습니다. 음성이나 영상은 수집하지 않습니다.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE 후보 주소"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "판단 불가: 비교 가능한 완전한 공인 ICE 표본이 없습니다.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "이번 ICE 표본에서 출구 불일치가 발견되지 않았습니다.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("아이콘"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("아이콘 기록"),
     "iconSets": MessageLookupByLibrary.simpleMessage("아이콘 세트"),
@@ -1153,6 +1222,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IP 확인 안 함"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("호스트 이름 확인 안 함"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("일치하는 결과 없음"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("모든 노드 검사"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("위치 근거"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "코어를 시작하고 목록을 새로 고치세요.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage("입구 서버 · 시스템 DNS"),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoJS의 GeoIP 추정 위치이며 실제 주소가 아닙니다. 지도: Natural Earth, 퍼블릭 도메인.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "각 지정 노드를 통한 출구를 검사합니다. 시스템 DNS의 입구 주소와 관측 출구 IP를 구분합니다. 15분간 캐시합니다.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("노드, IP 또는 장소 검색"),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("출처"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("노드 위치 · 지구본"),
     "nodes": MessageLookupByLibrary.simpleMessage("노드"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "이 외부 리소스는 텍스트 파일이 아닙니다",
@@ -1221,6 +1305,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("포트 호핑"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "IPv4와 IPv6 출구를 각각 관측하고 해당 공인 IP만 GeoJS, IPQuery, ipapi.is에 전송합니다. 계정 정보나 브라우저 지문은 수집하지 않습니다.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "빠른 검사: 이 프로세스의 시스템 DNS로 임의 도메인 4개를 조회하고 bash.ws 기록을 확인합니다. 기록이나 예상 해석기가 없으면 증거가 부족합니다. 다른 앱과 브라우저는 검사하지 않습니다.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "원본 지표의 출처와 시간을 유지합니다. 서로 다른 척도를 혼합하거나 평균하지 않습니다.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "주거용 연결이 원생 IP를 증명하지는 않습니다. 이 출처들은 원생 또는 브로드캐스트 소유를 확인하지 못합니다.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "제공자가 위험 신호를 보고했습니다. 모든 사이트의 차단이나 연결 품질을 의미하지 않습니다.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "규칙과 노드 경로는 실제 요청 결과입니다. 대상 사이트가 반환하지 않은 공인 출구 IP는 알 수 없습니다.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "제공자 결과가 다릅니다. 출처, 주소, 조회 시간을 비교하세요.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "증거가 부족합니다. IP에 접속되거나 위험 표시가 없다고 안전하거나 누출이 없다고 볼 수 없습니다.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("포트"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("사전 공유 키"),
     "preferred": MessageLookupByLibrary.simpleMessage("우선"),
@@ -1289,6 +1397,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeDesc": MessageLookupByLibrary.simpleMessage("QR 코드를 스캔하여 프로필 가져오기"),
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "이 링크는 너무 길어 QR 코드로 만들 수 없습니다. 링크 복사를 사용하세요.",
+    ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("우수"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "표본은 5분간 유효하며 경로나 네트워크가 바뀌면 삭제됩니다.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("요청 실패율"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("양호"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("응답 시간 중앙값"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("나쁨"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "현재 규칙으로 같은 대상에 HTTPS 요청 6회를 수동 전송합니다. 이 대상과 경로만 평가하며 대역폭, 모든 사이트나 IP 평판을 측정하지 않습니다. 요청 실패율은 ICMP 손실률이 아닙니다.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "유효 응답 3회 이상과 동일한 노드 경로가 필요합니다. 우수: 6회 성공, 중앙값≤150ms, 변동≤30ms. 나쁨: 실패 2회 이상, 중앙값>400ms 또는 변동>80ms. 나머지 유효 표본은 양호입니다. 변동은 연속된 유효 응답 시간 차이의 절댓값 평균입니다.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("빠른 작업"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("빠른 편집"),
@@ -1632,8 +1754,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("VPN 시작 중…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("시작 및 백그라운드"),
     "status": MessageLookupByLibrary.simpleMessage("상태"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("접속 유형"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "접속 유형이 검증되지 않았습니다. 호스팅 또는 모바일 표시가 없다는 것만으로 가정용 회선임을 입증할 수 없습니다.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "DNS를 끄면 시스템 DNS를 사용합니다.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 속성"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("네트워크 품질"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "네이티브 또는 브로드캐스트 IP를 입증하는 검증된 근거가 없습니다.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "네트워크 품질을 아직 측정하지 않았습니다. 접속 유형과 IP 위험 표시는 연결 품질의 근거가 아닙니다.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("중지"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPN 중지 중…"),
@@ -1678,6 +1813,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("전환"),
     "tolerance": MessageLookupByLibrary.simpleMessage("허용 오차"),
     "tools": MessageLookupByLibrary.simpleMessage("도구"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage("연결 및 속도"),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP 진단"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage("시스템 유지관리"),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("개인정보 보호"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("서비스 및 라우팅"),
     "torch": MessageLookupByLibrary.simpleMessage("손전등"),
     "total": MessageLookupByLibrary.simpleMessage("합계"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("다운로드량"),
@@ -1685,11 +1825,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("업로드량"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxy 포트"),
     "traffic": MessageLookupByLibrary.simpleMessage("트래픽"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("트래픽 사용량"),
     "transport": MessageLookupByLibrary.simpleMessage("전송"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN 권한을 얻지 못해 끄기로 되돌렸습니다.",
@@ -1719,7 +1859,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("업로드"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("업로드 대역폭"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("hosts 사용"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("시스템 hosts 사용"),
     "usedShort": MessageLookupByLibrary.simpleMessage("사용"),
@@ -1748,7 +1888,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN 공인 주소가 프록시 출구와 다릅니다. UDP 라우팅과 브라우저 WebRTC 정책을 확인하세요. IPv4 및 IPv6는 별도 검증이 필요합니다.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "네이티브 STUN은 UDP 경로를 검사합니다. 브라우저 ICE, mDNS, TURN은 다를 수 있습니다. 사설 주소만으로 공인 IP 누출을 의미하지 않습니다.",
+      "데이터 채널로 네이티브 WebRTC ICE 후보를 수집하며 마이크나 카메라 권한을 요청하지 않습니다. 외부 브라우저의 ICE, mDNS, TURN 정책은 다를 수 있습니다. 로컬 주소만으로 공인 IP 유출을 판단할 수 없습니다.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "UDP 반사 주소와 프록시 출구 비교",
@@ -1761,8 +1901,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "시스템에 기록하면 시스템 시계도 설정합니다. Android에서는 무시됩니다.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("예"),
     "zhCN": MessageLookupByLibrary.simpleMessage("중국어 간체"),
   };

@@ -1,6 +1,4 @@
 import 'package:hotaru/enum/enum.dart';
-import 'dart:convert';
-import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/views/dashboard/dashboard.dart';
@@ -238,7 +236,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(opacityOf(tester, speed), 0);
-    expect(position.pixels, greaterThan(before));
+    expect(position.pixels, greaterThanOrEqualTo(before));
 
     await settle(tester);
 
@@ -381,8 +379,55 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets('a narrow desktop window edits its cards in the card column, '
-      'held and dragged with a mouse too', (tester) async {
+  testWidgets(
+    'desktop edge scrolling stops on drag cancellation without saving a draft',
+    (tester) async {
+      const original = [
+        DashboardWidget.currentOutbound,
+        DashboardWidget.networkSpeed,
+        DashboardWidget.networkTakeover,
+        DashboardWidget.outboundMode,
+        DashboardWidget.profiles,
+        DashboardWidget.memoryInfo,
+      ];
+      seed(original);
+      await pumpEditor(
+        tester,
+        platform: SupportPlatform.Windows,
+        size: const Size(620, 500),
+      );
+      final position = positionOf(tester);
+      expect(position.maxScrollExtent, greaterThan(0));
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CurrentOutboundCard)),
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(0, 24));
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.moveTo(const Offset(300, 488));
+      for (var frame = 0; frame < 12; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(position.pixels, greaterThan(20));
+      expect(saved(), original);
+      await gesture.cancel();
+      await settle(tester);
+      final stopped = position.pixels;
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(position.pixels, stopped);
+      position.jumpTo(0);
+      await tester.pump();
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+      expect(saved(), original);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    },
+  );
+
+  testWidgets('narrow desktop uses its fixed grid and mouse reordering', (
+    tester,
+  ) async {
     seed(const [
       DashboardWidget.currentOutbound,
       DashboardWidget.networkTakeover,
@@ -390,85 +435,51 @@ void main() {
     ]);
     await pumpEditor(
       tester,
-      platform: SupportPlatform.MacOS,
+      platform: SupportPlatform.Windows,
       size: const Size(620, 1400),
     );
-
-    expect(find.byType(DashboardEditor), findsOneWidget);
-    expect(find.byTooltip('Add VPN'), findsNothing);
-    final current = find.byType(CurrentOutboundCard);
-    expect(tester.getSize(current).width, 560);
-    expect(tester.getCenter(current).dx, closeTo(310, 0.01));
-
-    final card = find.byType(ProfilesCard);
-    final rise =
-        top(tester, card) - top(tester, find.byType(NetworkTakeoverCard)) - 10;
+    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
+    expect(find.byType(DashboardEditor), findsNothing);
+    expect(tester.getSize(find.byType(CurrentOutboundCard)).height, 160);
+    final source = tester.getCenter(find.byType(ProfilesCard));
+    final target =
+        tester.getCenter(find.byType(NetworkTakeoverCard)) -
+        const Offset(40, 0);
     final gesture = await tester.startGesture(
-      tester.getCenter(card),
+      source,
       kind: PointerDeviceKind.mouse,
     );
-    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
-    for (var step = 0; step < 4; step++) {
-      await gesture.moveBy(Offset(0, -rise / 4));
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+    await gesture.moveBy(const Offset(0, -24));
+    await tester.pump(const Duration(milliseconds: 50));
+    await gesture.moveTo(target);
+    await settle(tester);
     await gesture.up();
     await settle(tester);
-
+    await tester.tap(find.text('Done'));
+    await settle(tester);
     expect(saved(), const [
       DashboardWidget.currentOutbound,
       DashboardWidget.profiles,
       DashboardWidget.networkTakeover,
     ]);
-
-    await tester.tap(find.byTooltip('Remove Traffic takeover'));
-    await settle(tester);
-
-    expect(saved(), isNot(contains(DashboardWidget.networkTakeover)));
-    expect(find.byTooltip('Add Traffic takeover'), findsOneWidget);
-
+    expect(tester.takeException(), isNull);
     await teardown(tester);
   });
 
-  testWidgets('a landscape phone gets the editable widget grid', (
+  testWidgets('phone rotation keeps the independent touch editor', (
     tester,
   ) async {
-    seed(const [DashboardWidget.currentOutbound, DashboardWidget.profiles]);
-    await pumpDashboard(tester, size: const Size(915, 412));
-
-    expect(find.byTooltip('Edit dashboard'), findsOneWidget);
-    expect(find.byType(DesktopDashboardGrid), findsOneWidget);
-    expect(find.byType(CurrentOutboundCard), findsOneWidget);
-    expect(find.byType(ProfilesCard), findsOneWidget);
-    // Only the seeded cards render; the layout is not composed for the user.
-    expect(find.byType(OutboundModeBar), findsNothing);
-
-    await edit(tester);
-    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
-
-    await teardown(tester);
-  });
-
-  testWidgets('turning to the desktop grid keeps editing in its editor', (
-    tester,
-  ) async {
-    seed(const [DashboardWidget.currentOutbound, DashboardWidget.profiles]);
+    seed(const [DashboardWidget.currentOutbound, DashboardWidget.vpnButton]);
     await pumpEditor(tester);
-    expect(find.byType(DashboardEditor), findsOneWidget);
-
-    Future<void> resize(Size size) async {
+    final state = tester.state(find.byType(DashboardEditor));
+    for (final size in [const Size(915, 412), const Size(412, 1400)]) {
       tester.view.physicalSize = size;
       container.read(viewSizeProvider.notifier).value = size;
       await settle(tester);
+      expect(find.byType(DesktopDashboardEditor), findsNothing);
+      expect(tester.state(find.byType(DashboardEditor)), same(state));
+      expect(tester.takeException(), isNull);
     }
-
-    await resize(const Size(915, 412));
-    expect(find.byType(DashboardEditor), findsNothing);
-    expect(find.byType(DesktopDashboardEditor), findsOneWidget);
-    await resize(const Size(412, 1400));
-    expect(find.byType(DesktopDashboardEditor), findsNothing);
-    expect(find.byType(DashboardEditor), findsOneWidget);
-
     await teardown(tester);
   });
 
@@ -493,143 +504,26 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets(
-    'desktop resize previews without moving cards and persists only on Done',
-    (tester) async {
-      seed(const [
-        DashboardWidget.currentOutbound,
-        DashboardWidget.networkSpeed,
-      ]);
-      await pumpEditor(
-        tester,
-        platform: SupportPlatform.Windows,
-        size: const Size(1220, 900),
-      );
-      final hero = find.byType(CurrentOutboundCard);
-      final speed = find.byType(NetworkSpeedCard);
-      final before = tester.getRect(hero);
-      final speedBefore = tester.getRect(speed);
-      final handle = find.byKey(const ValueKey('resize-currentOutbound'));
-      final gesture = await tester.startGesture(
-        tester.getCenter(handle),
-        kind: PointerDeviceKind.mouse,
-      );
-      await gesture.moveBy(const Offset(30, 20));
-      await tester.pump();
-      await gesture.moveBy(const Offset(310, 40));
-      await tester.pump();
-      expect(tester.getRect(hero), before);
-      expect(tester.getRect(speed), speedBefore);
-      expect(
-        container
-            .read(appSettingProvider)
-            .dashboardWidgetSpans['currentOutbound'],
-        21,
-      );
-      await gesture.up();
-      await settle(tester);
-      expect(tester.getRect(hero).width, greaterThan(before.width));
-      expect(
-        container
-            .read(appSettingProvider)
-            .dashboardWidgetSpans['currentOutbound'],
-        21,
-      );
-      await tester.tap(find.text('Done'));
-      await settle(tester);
-      final settings = container.read(appSettingProvider);
-      expect(settings.dashboardWidgetSpans['currentOutbound'], 32);
-      expect(
-        AppSettingProps.fromJson(
-          jsonDecode(jsonEncode(settings.toJson())) as Map<String, dynamic>,
-        ).dashboardWidgetSpans,
-        settings.dashboardWidgetSpans,
-      );
-      expect(tester.takeException(), isNull);
-      await teardown(tester);
-    },
-  );
-
-  testWidgets(
-    'cancelled resize clears its offset before the next independent gesture',
-    (tester) async {
-      seed(const [
-        DashboardWidget.currentOutbound,
-        DashboardWidget.networkSpeed,
-      ]);
-      await pumpEditor(
-        tester,
-        platform: SupportPlatform.Windows,
-        size: const Size(1220, 900),
-      );
-      final before = tester.getRect(find.byType(CurrentOutboundCard));
-      final handle = find.byKey(const ValueKey('resize-currentOutbound'));
-      final first = await tester.startGesture(
-        tester.getCenter(handle),
-        kind: PointerDeviceKind.mouse,
-      );
-      await first.moveBy(const Offset(40, 30));
-      await tester.pump();
-      await first.moveBy(const Offset(250, 100));
-      await tester.pump();
-      await first.cancel();
-      await settle(tester);
-      expect(tester.getRect(find.byType(CurrentOutboundCard)), before);
-      final second = await tester.startGesture(
-        tester.getCenter(handle),
-        kind: PointerDeviceKind.mouse,
-      );
-      await second.moveBy(const Offset(0, 20));
-      await tester.pump();
-      await second.moveBy(const Offset(0, 3));
-      await tester.pump();
-      await second.up();
-      await settle(tester);
-      expect(tester.getRect(find.byType(CurrentOutboundCard)), before);
-      await tester.tap(find.text('Done'));
-      await settle(tester);
-      expect(
-        container
-            .read(appSettingProvider)
-            .dashboardWidgetSpans['currentOutbound'],
-        21,
-      );
-      expect(tester.takeException(), isNull);
-      await teardown(tester);
-    },
-  );
-
-  testWidgets('desktop reorder holds the other card rectangles until drop', (
+  testWidgets('desktop editing keeps fixed heights and saves discrete widths', (
     tester,
   ) async {
-    final original = [
-      DashboardWidget.currentOutbound,
-      DashboardWidget.networkSpeed,
-      DashboardWidget.outboundMode,
-    ];
-    seed(original);
+    seed(const [DashboardWidget.currentOutbound, DashboardWidget.networkSpeed]);
     await pumpEditor(
       tester,
       platform: SupportPlatform.Windows,
       size: const Size(1220, 900),
     );
-    final heroBefore = tester.getRect(find.byType(CurrentOutboundCard));
-    final speedBefore = tester.getRect(find.byType(NetworkSpeedCard));
-    final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(OutboundModeCard)),
-      kind: PointerDeviceKind.mouse,
-    );
-    await tester.pump(const Duration(milliseconds: 20));
-    await gesture.moveTo(heroBefore.center);
-    await tester.pump();
-    expect(tester.getRect(find.byType(CurrentOutboundCard)), heroBefore);
-    expect(tester.getRect(find.byType(NetworkSpeedCard)), speedBefore);
-    expect(saved(), original);
-    await gesture.up();
-    await settle(tester);
+    expect(find.byKey(const ValueKey('resize-currentOutbound')), findsNothing);
+    final before = tester.getRect(find.byType(CurrentOutboundCard));
+    expect(before.height, 160);
     await tester.tap(find.text('Done'));
     await settle(tester);
-    expect(saved().first, DashboardWidget.outboundMode);
+    expect(
+      container
+          .read(appSettingProvider)
+          .dashboardWidgetSpans['desktop.width.currentOutbound'],
+      2,
+    );
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });

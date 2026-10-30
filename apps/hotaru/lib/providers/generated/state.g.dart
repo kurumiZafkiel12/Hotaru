@@ -727,7 +727,7 @@ final class GenColorSchemeProvider
   }
 }
 
-String _$genColorSchemeHash() => r'2df9ab7ac00a199439c5a6b65a7e15c5d1f589ba';
+String _$genColorSchemeHash() => r'f02535449b7c64404481f246d6def240196f5c2a';
 
 final class GenColorSchemeFamily extends $Family
     with
@@ -3131,7 +3131,7 @@ final class OverlayTopOffsetProvider
   }
 }
 
-String _$overlayTopOffsetHash() => r'44c3b3c9f8f3af5e10ba91e0f2514f52f3c6ddac';
+String _$overlayTopOffsetHash() => r'6daf9d376177b815db46abf1a8320ce419ac1c8d';
 
 @ProviderFor(profilesState)
 final profilesStateProvider = ProfilesStateProvider._();

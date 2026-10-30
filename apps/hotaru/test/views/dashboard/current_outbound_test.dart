@@ -17,7 +17,6 @@ import 'package:hotaru/views/dashboard/widgets/card.dart';
 import 'package:hotaru/views/dashboard/widgets/current_outbound.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +35,7 @@ const _residential = IpQuality(
   ip: _ip,
   source: IpQualitySource.ipLocate,
   type: IpType.residential,
+  typeIsInferred: false,
   organization: 'Example Broadband',
   asn: 64500,
 );
@@ -76,42 +76,58 @@ OutboundIpResult _address({int coreEpoch = 1}) => OutboundIpResult(
   routeVersion: 1,
 );
 
-Widget _card({DashboardDensity density = DashboardDensity.standard}) =>
-    Scaffold(
-      body: Align(
-        alignment: Alignment.topLeft,
-        child: SizedBox(
-          width: density.isDesktop ? 600 : 380,
-          height: density.isDesktop ? 208 : null,
-          child: DashboardDensityScope(
-            density: density,
-            scale: 1,
-            child: const CurrentOutboundCard(),
-          ),
-        ),
+Widget _card({
+  DashboardDensity density = DashboardDensity.standard,
+  double? width,
+  double scale = 1,
+}) => Scaffold(
+  body: Align(
+    alignment: Alignment.topLeft,
+    child: SizedBox(
+      width: width ?? (density.isDesktop ? 600 : 380),
+      height: density.isDesktop ? 160 : null,
+      child: DashboardDensityScope(
+        density: density,
+        scale: scale,
+        child: const CurrentOutboundCard(),
       ),
-    );
+    ),
+  ),
+);
 
 Widget _app(
   Future<IpQuality> Function(Ref ref, String ip) quality, {
   DashboardDensity density = DashboardDensity.standard,
+  String countryCode = 'GB',
+  String ip = _ip,
+  Locale locale = const Locale('en'),
+  double? width,
+  double scale = 1,
 }) {
   return TestApp(
-    locale: const Locale('en'),
+    locale: locale,
+    homeBuilder: (child) => Builder(
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(scale)),
+        child: child,
+      ),
+    ),
     overrides: [
       profilesProvider.overrideWithValue(const [_profile]),
       suspendProvider.overrideWithValue(false),
       outboundIpProbeProvider.overrideWithBuild(
-        (_, _) => const RoutedProbeState({
+        (_, _) => RoutedProbeState({
           routedOutbound: ProbeEntry(
             phase: ProbePhase.fresh,
-            value: IpInfo(ip: _ip, countryCode: 'GB'),
+            value: IpInfo(ip: ip, countryCode: countryCode),
           ),
         }),
       ),
       ipQualityProvider.overrideWith(quality),
     ],
-    child: _card(density: density),
+    child: _card(density: density, width: width, scale: scale),
   );
 }
 
@@ -160,11 +176,6 @@ double _cloverTurn(WidgetTester tester) => tester
     )
     .rotation;
 
-DashboardChip _chip(WidgetTester tester, String label) =>
-    tester.widget<DashboardChip>(
-      find.ancestor(of: find.text(label), matching: find.byType(DashboardChip)),
-    );
-
 Future<void> settleWave(WidgetTester tester) async {
   for (var frame = 0; frame < 12; frame++) {
     await tester.pump(const Duration(milliseconds: 50));
@@ -188,9 +199,14 @@ void main() {
         FontFamily.twEmoji.value,
       );
       expect(find.text('Residential'), findsOneWidget);
-      expect(_chip(tester, 'Quality Good').tone, DashboardChipTone.ok);
+      expect(find.text('GB'), findsOneWidget);
+      expect(find.text('United Kingdom'), findsOneWidget);
+      expect(find.text('IP origin'), findsOneWidget);
+      expect(find.text('Access'), findsOneWidget);
+      expect(find.text('Network quality'), findsOneWidget);
+      expect(find.text('Unknown'), findsNWidgets(2));
       expect(find.text('Example Broadband'), findsOneWidget);
-      expect(find.text('Status'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp('Status')), findsOneWidget);
       expect(find.byGlyph(AppGlyphs.refresh), findsNothing);
     });
 
@@ -205,7 +221,7 @@ void main() {
       );
     });
 
-    testWidgets('a risky one shows its quality in the warning tone', (
+    testWidgets('IP risk flags do not masquerade as measured network quality', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -213,7 +229,34 @@ void main() {
       );
       await tester.pump();
 
-      expect(_chip(tester, 'Quality Risky').tone, DashboardChipTone.warn);
+      expect(find.text('Unknown'), findsNWidgets(2));
+      expect(find.text('Residential'), findsOneWidget);
+      expect(find.text('Quality Risky'), findsNothing);
+      expect(find.text('Quality Good'), findsNothing);
+    });
+
+    testWidgets('inferred or legacy access types remain unknown with a reason', (
+      tester,
+    ) async {
+      for (final inferred in [true, null]) {
+        await tester.pumpWidget(
+          _app((_, _) async => _residential.copyWith(typeIsInferred: inferred)),
+        );
+        await tester.pump();
+        expect(find.text('Residential'), findsNothing);
+        expect(find.text('Unknown'), findsNWidgets(3));
+        final strings = tester
+            .element(find.byType(CurrentOutboundCard))
+            .appLocalizations;
+        expect(
+          find.byTooltip(
+            '${strings.statusAccessType}: ${strings.unknown}\n${strings.statusAccessUnverified}',
+          ),
+          findsOneWidget,
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      }
     });
 
     testWidgets('says its type is unknown when no type was found', (
@@ -226,8 +269,8 @@ void main() {
 
       expect(find.text('GB'.countryFlagEmoji), findsOneWidget);
       expect(find.text('Not running'), findsOneWidget);
-      expect(_chip(tester, 'Unknown type').tone, DashboardChipTone.idle);
-      expect(find.byType(DashboardChip), findsNWidgets(2));
+      expect(find.text('Unknown'), findsNWidgets(3));
+      expect(find.byType(DashboardChip), findsNothing);
       expect(find.text('Example Broadband'), findsNothing);
     });
 
@@ -249,19 +292,19 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(SkeletonPill), findsNWidgets(3));
-      expect(find.byType(SkeletonText), findsOneWidget);
-      expect(tester.widget<InkResponse>(_clover()).onTap, isNull);
+      expect(find.byType(SkeletonPill), findsNWidgets(2));
+      expect(find.byType(SkeletonText), findsNWidgets(2));
+      expect(tester.widget<InkResponse>(_clover()).onTap, isNotNull);
       final turn = _cloverTurn(tester);
       await tester.pump(const Duration(milliseconds: 300));
-      expect(_cloverTurn(tester), isNot(turn));
+      expect(_cloverTurn(tester), turn);
 
       quality.complete(_residential);
       await settleWave(tester);
 
       expect(find.byType(SkeletonPill), findsNothing);
       expect(find.text('Residential'), findsOneWidget);
-      expect(_cloverTurn(tester) % (math.pi / 2), closeTo(0, 1e-9));
+      expect(_cloverTurn(tester), 0);
       expect(tester.widget<InkResponse>(_clover()).onTap, isNotNull);
     });
 
@@ -282,7 +325,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(commonDuration);
-      expect(find.text('Unknown type'), findsOneWidget);
+      expect(find.text('Unknown'), findsNWidgets(3));
 
       await tester.tap(find.byTooltip('Retry'));
       await settleWave(tester);
@@ -312,6 +355,61 @@ void main() {
       expect(find.text('Residential'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    for (final density in [DashboardDensity.compact, DashboardDensity.mobile]) {
+      for (final locale in [
+        const Locale('zh', 'CN'),
+        const Locale('en'),
+        const Locale('ru'),
+        const Locale('ja'),
+        const Locale('ko'),
+        const Locale('es'),
+        const Locale('fr'),
+      ]) {
+        for (final scale in [1.0, 1.4]) {
+          testWidgets(
+            '${density.name} ${locale.languageCode} at text scale $scale keeps three dimensions visible',
+            (tester) async {
+              await tester.pumpWidget(
+                _app(
+                  (_, _) async => _residential,
+                  density: density,
+                  width: density.isDesktop ? 600 : 320,
+                  countryCode: 'BA',
+                  ip: '2001:db8:1234:5678:90ab:cdef:1234:5678',
+                  locale: locale,
+                  scale: scale,
+                ),
+              );
+              await tester.pump();
+              final context = tester.element(find.byType(CurrentOutboundCard));
+              final strings = context.appLocalizations;
+              expect(find.text('BA'), findsOneWidget);
+              expect(find.text(strings.statusIpOrigin), findsOneWidget);
+              expect(find.text(strings.statusAccessType), findsOneWidget);
+              expect(find.text(strings.statusNetworkQuality), findsOneWidget);
+              expect(find.text(strings.unknown), findsNWidgets(2));
+              expect(tester.takeException(), isNull);
+              final card = tester.getRect(find.byType(DashboardCard));
+              for (final label in [
+                strings.statusIpOrigin,
+                strings.statusAccessType,
+                strings.statusNetworkQuality,
+              ]) {
+                final bounds = tester.getRect(find.text(label));
+                expect(card.contains(bounds.topLeft), isTrue);
+                expect(card.contains(bounds.bottomRight), isTrue);
+              }
+              if (density.isDesktop) {
+                expect(card.height, 160);
+              } else {
+                expect(card.height, lessThan(scale == 1 ? 230 : 300));
+              }
+            },
+          );
+        }
+      }
+    }
 
     testWidgets('opens its details from the address, not the card', (
       tester,
@@ -472,7 +570,7 @@ void main() {
 
       await tester.pump(const Duration(seconds: 5));
       expect(find.text('Check failed'), findsOneWidget);
-      expect(find.text('Tap the icon to retry'), findsOneWidget);
+      expect(find.byTooltip('Tap the icon to retry'), findsOneWidget);
       await tester.tap(find.byTooltip('Retry'));
       await tester.pump();
       expect(asked, [directOutbound, routedOutbound, routedOutbound]);

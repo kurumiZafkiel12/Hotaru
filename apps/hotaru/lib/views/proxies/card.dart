@@ -159,7 +159,7 @@ class ProxyCard extends ConsumerWidget {
                 children: [
                   delayText,
                   if (groupType == GroupType.Selector)
-                    _NodeSpeedTest(groupName: groupName, proxyName: proxy.name),
+                    _NodeSpeedTest(proxyName: proxy.name),
                 ],
               ),
             ],
@@ -178,7 +178,7 @@ class ProxyCard extends ConsumerWidget {
                 ),
                 delayText,
                 if (groupType == GroupType.Selector)
-                  _NodeSpeedTest(groupName: groupName, proxyName: proxy.name),
+                  _NodeSpeedTest(proxyName: proxy.name),
               ],
             ),
           );
@@ -422,9 +422,7 @@ class _DelayTextState extends ConsumerState<_DelayText> {
 }
 
 class _NodeSpeedTest extends ConsumerStatefulWidget {
-  const _NodeSpeedTest({required this.groupName, required this.proxyName});
-
-  final String groupName;
+  const _NodeSpeedTest({required this.proxyName});
   final String proxyName;
 
   @override
@@ -440,11 +438,50 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
   String? _error;
   List<String> _chain = const [];
   SpeedTestRunner? _runner;
+  late final RouteTracker _routeTracker;
+  int? _runEpoch;
+  int? _runVersion;
+  bool _routeChanged = false;
+  bool _watchingRoute = false;
+  bool _cancelRequested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _routeTracker = ref.read(routeTrackerProvider.notifier);
+    ref.listenManual(routeTrackerProvider, (before, after) {
+      if (_running &&
+          ((!after.proxied) ||
+              (_runEpoch != null &&
+                  after.synced &&
+                  after.coreEpoch != _runEpoch) ||
+              (_runVersion != null &&
+                  after.synced &&
+                  after.routeVersion > _runVersion!) ||
+              (before != null &&
+                  before.synced &&
+                  after.synced &&
+                  before.hostEpoch != after.hostEpoch))) {
+        _routeChanged = true;
+        _cancelRequested = true;
+        _runner?.cancel();
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _cancelRequested = true;
     _runner?.cancel();
+    _releaseRoute();
     super.dispose();
+  }
+
+  void _releaseRoute() {
+    if (_watchingRoute) {
+      _watchingRoute = false;
+      _routeTracker.detach();
+    }
   }
 
   String _speedText(double? bps) {
@@ -456,6 +493,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
 
   Future<void> _toggle() async {
     if (_running) {
+      _cancelRequested = true;
       _runner?.cancel();
       return;
     }
@@ -473,24 +511,25 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       _downloadBps = null;
       _liveBps = 0;
       _chain = const [];
+      _routeChanged = false;
+      _cancelRequested = false;
     });
     try {
+      _watchingRoute = true;
+      _routeTracker.attach();
+      final startRoute = ref.read(routeTrackerProvider);
       final core = ref.read(coreHandlerProvider);
       final proxiesData = await core.getProxies();
-      final testGroup = findSpeedTestGroupName(proxiesData.proxies);
-      if (testGroup == null) {
-        if (mounted) {
-          setState(() {
-            _error = failedText;
-          });
-        }
-        return;
-      }
+      if (!mounted || _cancelRequested) return;
       final chain = resolveProxyChain(proxiesData.proxies, widget.proxyName);
       final result = await core.changeProxy(
-        ChangeProxyParams(groupName: testGroup, proxyName: widget.proxyName),
+        ChangeProxyParams(
+          groupName: '',
+          proxyName: chain.last,
+          forSpeedTest: true,
+        ),
       );
-      if (result.message.isNotEmpty) {
+      if (result.message.isNotEmpty || result.speedTestProxy.isEmpty) {
         if (mounted) {
           setState(() {
             _error = failedText;
@@ -498,13 +537,28 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
         }
         return;
       }
-      if (!mounted) {
+      if (!mounted || _cancelRequested) {
+        if (mounted && _routeChanged) {
+          setState(() => _error = context.appLocalizations.auditStale);
+        }
+        return;
+      }
+      final currentRoute = ref.read(routeTrackerProvider);
+      if (!currentRoute.proxied ||
+          (startRoute.synced &&
+              currentRoute.hostEpoch != startRoute.hostEpoch) ||
+          (currentRoute.synced && currentRoute.coreEpoch != result.coreEpoch) ||
+          (currentRoute.synced &&
+              currentRoute.routeVersion > result.routeVersion)) {
+        setState(() => _error = context.appLocalizations.auditStale);
         return;
       }
       setState(() {
         _chain = chain;
       });
-      final runner = SpeedTestRunner(findProxy: (_) => speedTestProxy);
+      _runEpoch = result.coreEpoch;
+      _runVersion = result.routeVersion;
+      final runner = SpeedTestRunner(findProxy: (_) => result.speedTestProxy);
       _runner = runner;
       final testResult = await runner.run(
         provider: SpeedTestProvider.apple,
@@ -526,7 +580,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       }
       setState(() {
         if (testResult.cancelled) {
-          _error = null;
+          _error = _routeChanged ? context.appLocalizations.auditStale : null;
         } else if (testResult.error != null) {
           _error = testResult.error;
         } else {
@@ -541,6 +595,10 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       }
     } finally {
       NodeSpeedTestGate.release(token);
+      _runner = null;
+      _runEpoch = null;
+      _runVersion = null;
+      _releaseRoute();
       if (mounted) {
         setState(() {
           _running = false;

@@ -54,7 +54,7 @@ Future<List<Group>> buildGroups(ComputeGroupsState state) async {
   if (proxies.isEmpty) return [];
   final groups = <Group>[];
   for (final groupName in all) {
-    if (isSpeedTestGroupName(groupName)) continue;
+    if (groupName == proxiesData.speedTestGroup) continue;
     final raw = proxies[groupName];
     if (raw is! Map) continue;
     if (!GroupTypeExtension.valueList.contains(raw['type'])) continue;
@@ -370,7 +370,7 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .map((item) => item.definition)
         .toList();
   }
-  injectSpeedTestRoute(rawConfig);
+  final speedTestGroup = injectSpeedTestRoute(rawConfig);
   if (realPatchConfig.blockCommonStun) {
     rules = [
       'AND,((NETWORK,UDP),(DST-PORT,3478)),REJECT',
@@ -380,7 +380,16 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
   }
   rawConfig['rules'] = rules;
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
-  return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));
+  final counts = configCountsOf(rawConfig);
+  return (
+    yaml: yaml,
+    md5: yaml.toMd5(),
+    counts: (
+      groups: counts.groups - (speedTestGroup.isEmpty ? 0 : 1),
+      proxies: counts.proxies,
+      rules: counts.rules,
+    ),
+  );
 }
 
 typedef ShakingStoreArgs = ({

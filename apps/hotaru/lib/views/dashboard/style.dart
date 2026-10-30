@@ -1,5 +1,6 @@
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/ui/ui.dart';
+import 'layout.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:material_ui/material_ui.dart';
 
@@ -99,7 +100,7 @@ abstract final class DashboardShadows {
 }
 
 abstract final class DashboardCorner {
-  static const desktopCard = AppCorner.lg;
+  static const desktopCard = 12.0;
   static const mobileCard = AppCorner.xl;
   static const block = AppCorner.md;
   static const mobileBlock = AppCorner.md;
@@ -156,5 +157,8 @@ abstract final class DashboardText {
       .copyWith(color: context.colorScheme.onSurfaceVariant);
 
   static TextStyle rowTitle(BuildContext context) =>
-      AppTextStyle.subheadline.of(context, emphasized: true);
+      (DashboardDensityScope.of(context).isDesktop
+              ? AppTextStyle.footnote
+              : AppTextStyle.subheadline)
+          .of(context, emphasized: true);
 }

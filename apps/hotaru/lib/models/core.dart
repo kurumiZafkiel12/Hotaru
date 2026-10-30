@@ -139,6 +139,7 @@ abstract class InitParams with _$InitParams {
 @freezed
 abstract class ChangeProxyParams with _$ChangeProxyParams {
   const factory ChangeProxyParams({
+    @JsonKey(name: 'for-speed-test') @Default(false) bool forSpeedTest,
     @JsonKey(name: 'group-name') required String groupName,
     @JsonKey(name: 'proxy-name') required String proxyName,
   }) = _ChangeProxyParams;
@@ -150,6 +151,9 @@ abstract class ChangeProxyParams with _$ChangeProxyParams {
 @freezed
 abstract class ChangeProxyResult with _$ChangeProxyResult {
   const factory ChangeProxyResult({
+    @JsonKey(name: 'route-version') @Default(0) int routeVersion,
+    @JsonKey(name: 'speed-test-proxy') @Default('') String speedTestProxy,
+    @JsonKey(name: 'core-epoch') @Default(0) int coreEpoch,
     @Default('') String message,
     @Default(false) bool changed,
   }) = _ChangeProxyResult;
@@ -296,6 +300,7 @@ abstract class ServiceCheckParams with _$ServiceCheckParams {
     required int timeout,
     @JsonKey(name: 'run-id') @Default('') String runId,
     @Default(false) bool cancel,
+    @Default(false) bool connectivity,
   }) = _ServiceCheckParams;
 
   factory ServiceCheckParams.fromJson(Map<String, Object?> json) =>
@@ -388,6 +393,7 @@ extension ExternalProviderExt on ExternalProvider {
 @freezed
 abstract class ProxiesData with _$ProxiesData {
   const factory ProxiesData({
+    @JsonKey(name: 'speed-test-group') @Default('') String speedTestGroup,
     required Map<String, dynamic> proxies,
     required List<String> all,
   }) = _ProxiesData;

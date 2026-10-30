@@ -29,6 +29,13 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/glyph_finders.dart';
 import '../../helpers/test_app.dart';
 
+const _homeTargets = [
+  ServiceTarget.google,
+  ServiceTarget.github,
+  ServiceTarget.youtube,
+  ServiceTarget.chatgpt,
+];
+
 class _MockCore extends Mock implements CoreHandlerInterface {}
 
 ServiceCheckItem _item(
@@ -84,6 +91,9 @@ void main() {
     Locale locale = const Locale('en'),
     Widget body = const ServiceStatusCard(),
     IpQuality? ipQuality,
+    double desktopHeight = 176,
+    double textScale = 1,
+    ThemeData? theme,
   }) {
     when(() => core.outboundIp(any())).thenAnswer((invocation) async {
       if (outboundIp == null) return Completer<OutboundIpResult?>().future;
@@ -93,6 +103,15 @@ void main() {
     });
     return TestApp(
       locale: locale,
+      theme: theme,
+      homeBuilder: (child) => Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child,
+        ),
+      ),
       overrides: [
         viewSizeProvider.overrideWithBuild((_, _) => const Size(400, 800)),
         appSettingProvider.overrideWithBuild((_, _) => settings),
@@ -118,10 +137,10 @@ void main() {
         body: Center(
           child: SizedBox(
             width: width,
-            height: density.isDesktop ? 176 : null,
+            height: density.isDesktop ? desktopHeight : null,
             child: DashboardDensityScope(
               density: density,
-              scale: 1,
+              scale: textScale,
               child: body,
             ),
           ),
@@ -131,13 +150,11 @@ void main() {
   }
 
   /// A phone card shows the first two enabled services.
-  final shownIds = [
-    for (final target in ServiceTarget.values.take(2)) target.id,
-  ];
+  final shownIds = [for (final target in _homeTargets.take(2)) target.id];
 
   AppSettingProps only(List<ServiceTarget> targets) => AppSettingProps(
     disabledServices: [
-      for (final target in ServiceTarget.values)
+      for (final target in _homeTargets)
         if (!targets.contains(target)) target.id,
     ],
   );
@@ -146,7 +163,8 @@ void main() {
     of: find.byType(ServiceStatusCard),
     matching: find.byWidgetPredicate(
       (widget) =>
-          widget is Semantics && widget.properties.label == target.label,
+          widget is Semantics &&
+          widget.properties.label == target.connectivityLabel,
     ),
   );
 
@@ -188,12 +206,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(asked, unorderedEquals(shownIds));
-    for (final target in ServiceTarget.values.take(2)) {
+    for (final target in _homeTargets.take(2)) {
       expect(tile(target), findsOneWidget);
     }
-    expect(tile(ServiceTarget.values[2]), findsNothing);
+    expect(tile(_homeTargets[2]), findsNothing);
     expect(find.text('45 ms'), findsNWidgets(2));
-    expect(find.text(ServiceTarget.google.label), findsNothing);
+    expect(find.text(ServiceTarget.google.connectivityLabel), findsNothing);
   });
 
   testWidgets('a desktop card checks the first four services', (tester) async {
@@ -209,9 +227,7 @@ void main() {
 
     expect(
       asked,
-      unorderedEquals([
-        for (final target in ServiceTarget.values.take(4)) target.id,
-      ]),
+      unorderedEquals([for (final target in _homeTargets.take(4)) target.id]),
     );
     expect(find.byTooltip('Check all'), findsOneWidget);
     expect(find.text('Check all'), findsNothing);
@@ -225,9 +241,57 @@ void main() {
   double rowWidth(WidgetTester tester) =>
       tester.getSize(find.byType(DashboardCardHeader)).width;
 
+  for (final scale in [1.0, 1.4]) {
+    testWidgets(
+      'a narrow 200 by 160 desktop card keeps four named latency rows at scale $scale',
+      (tester) async {
+        final asked = <String>[];
+        answer((params) {
+          asked.addAll(params.names);
+          return [
+            for (final name in params.names)
+              _item(name, ServiceProbeStatus.available, delay: 123),
+          ];
+        });
+        await tester.pumpWidget(
+          app(
+            width: 200,
+            desktopHeight: 160,
+            density: DashboardDensity.compact,
+            textScale: scale,
+            theme: ThemeData(
+              platform: TargetPlatform.windows,
+            ).withAppTypography,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          asked,
+          unorderedEquals([
+            for (final target in _homeTargets.take(4)) target.id,
+          ]),
+        );
+        expect(find.text('123 ms'), findsNWidgets(4));
+        final card = tester.getRect(find.byType(ServiceStatusCard));
+        var last = card.top;
+        for (final target in _homeTargets.take(4)) {
+          final rect = tester.getRect(find.text(target.connectivityLabel));
+          expect(rect.top, greaterThan(last));
+          expect(card.contains(rect.bottomRight), isTrue);
+          last = rect.bottom;
+        }
+        for (final text in tester.widgetList<Text>(find.text('123 ms'))) {
+          expect(text.maxLines, 1);
+        }
+        expect(find.byTooltip('Check all'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('a lone last service takes the whole row', (tester) async {
     answer((_) => const []);
-    final [first, second, third, ...] = ServiceTarget.values;
+    final [first, second, third, ...] = _homeTargets;
     await tester.pumpWidget(
       app(
         settings: only([first, second, third]),
@@ -252,7 +316,7 @@ void main() {
           _item(name, ServiceProbeStatus.unsupportedRegion),
       ];
     });
-    final [first, second, ...] = ServiceTarget.values;
+    final [first, second, ...] = _homeTargets;
     await tester.pumpWidget(
       app(
         width: 212,
@@ -275,7 +339,7 @@ void main() {
     tester,
   ) async {
     answer((_) => const []);
-    final [first, second, ...] = ServiceTarget.values;
+    final [first, second, ...] = _homeTargets;
     await tester.pumpWidget(
       app(
         settings: only([first, second]),
@@ -319,40 +383,40 @@ void main() {
     expect(button.width, button.height);
   });
 
-  testWidgets('a problem keeps its place and counts in the verdict', (
-    tester,
-  ) async {
-    answer(
-      (params) => [
-        for (final name in params.names)
-          _item(
-            name,
-            name == 'google'
-                ? ServiceProbeStatus.unsupportedRegion
-                : ServiceProbeStatus.available,
-            delay: 30,
-          ),
-      ],
-    );
-    await tester.pumpWidget(app());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'a cached unlock restriction never becomes a home connectivity verdict',
+    (tester) async {
+      answer(
+        (params) => [
+          for (final name in params.names)
+            _item(
+              name,
+              name == 'google'
+                  ? ServiceProbeStatus.unsupportedRegion
+                  : ServiceProbeStatus.available,
+              delay: 30,
+            ),
+        ],
+      );
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
 
-    final google = tester.getTopLeft(tile(ServiceTarget.google));
-    final github = tester.getTopLeft(tile(ServiceTarget.github));
-    expect(google.dx, lessThan(github.dx));
-    expect(google.dy, github.dy);
-    expect(find.text('Region not supported'), findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Tooltip &&
-            widget.message == 'Google Workspace\nRegion not supported',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('1 issue'), findsOneWidget);
-    expect(find.text('All available'), findsNothing);
-  });
+      final google = tester.getTopLeft(tile(ServiceTarget.google));
+      final github = tester.getTopLeft(tile(ServiceTarget.github));
+      expect(google.dx, lessThan(github.dx));
+      expect(google.dy, github.dy);
+      expect(find.text('Region not supported'), findsNothing);
+      expect(find.text('30 ms'), findsNWidgets(2));
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Tooltip && widget.message == 'Google\n30 ms',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('1 issue'), findsNothing);
+      expect(find.text('All available'), findsOneWidget);
+    },
+  );
 
   testWidgets('checks the shown service directly while the proxy is off', (
     tester,
@@ -498,7 +562,12 @@ void main() {
           heights.add(height());
         }
         for (var i = 1; i < heights.length; i++) {
-          expect(heights[i], lessThanOrEqualTo(heights[i - 1]));
+          expect(
+            (800 * snapSheetDetents.first - heights[i]).abs(),
+            lessThanOrEqualTo(
+              (800 * snapSheetDetents.first - heights[i - 1]).abs(),
+            ),
+          );
         }
         expect(heights.last, 800 * snapSheetDetents.first);
 
@@ -589,7 +658,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(ServiceStatusSheet),
-        matching: find.text(ServiceTarget.github.label),
+        matching: find.text(ServiceTarget.github.connectivityLabel),
       ),
       findsOneWidget,
     );
@@ -613,7 +682,7 @@ void main() {
       ),
     );
     final delegate = list.delegate as SliverChildBuilderDelegate;
-    expect(delegate.childCount, ServiceTarget.values.length);
+    expect(delegate.childCount, _homeTargets.length);
     for (final tooltip in ['Check all', 'Manage services']) {
       expect(
         find.ancestor(
@@ -636,7 +705,7 @@ void main() {
       app(
         settings: AppSettingProps(
           disabledServices: [
-            for (final target in ServiceTarget.values)
+            for (final target in _homeTargets)
               if (target != ServiceTarget.google) target.id,
           ],
         ),
@@ -678,13 +747,13 @@ void main() {
     await tester.tap(checkAllButton());
     await tester.pump();
     expect(asked.skip(shownIds.length), [
-      for (final target in ServiceTarget.values) [target.id],
+      for (final target in _homeTargets) [target.id],
     ]);
     expect(tester.widget<IconButton>(checkAllButton()).onPressed, isNull);
 
     sweep.complete();
     await tester.pumpAndSettle();
-    expect(asked, hasLength(ServiceTarget.values.length + shownIds.length));
+    expect(asked, hasLength(_homeTargets.length + shownIds.length));
     expect(find.text('Not checked'), findsNothing);
     expect(tester.widget<IconButton>(checkAllButton()).onPressed, isNotNull);
   });
@@ -706,7 +775,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(ServiceStatusSheet),
-        matching: find.text(ServiceTarget.chatgpt.label),
+        matching: find.text(ServiceTarget.chatgpt.connectivityLabel),
       ),
     );
     await tester.pumpAndSettle();
@@ -737,13 +806,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(asked, ['google', 'google']);
-    expect(find.text('Available'), findsOneWidget);
+    expect(find.text('Responded'), findsOneWidget);
   });
 
   testWidgets('a row keeps its height through a check', (tester) async {
     final claude = Completer<void>();
     answer((params) async {
-      if (params.names.contains('claude')) await claude.future;
+      if (params.names.contains('chatgpt')) await claude.future;
       return [
         for (final name in params.names)
           _item(
@@ -757,19 +826,25 @@ void main() {
     await tester.pumpWidget(
       app(
         outboundIp: (_) => _address('203.0.113.7', 'US'),
-        settings: only(ServiceTarget.values.take(5).toList()),
+        settings: only(_homeTargets.take(5).toList()),
       ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byType(ServiceStatusCard));
     await tester.pumpAndSettle();
 
-    final row = find.widgetWithText(ListTile, ServiceTarget.claude.label);
+    final row = find.widgetWithText(
+      ListTile,
+      ServiceTarget.chatgpt.connectivityLabel,
+    );
     await tester.ensureVisible(row);
     await tester.pumpAndSettle();
     final unchecked = tester.getSize(row).height;
     await tester.tap(
-      find.descendant(of: row, matching: find.text(ServiceTarget.claude.label)),
+      find.descendant(
+        of: row,
+        matching: find.text(ServiceTarget.chatgpt.connectivityLabel),
+      ),
     );
     await tester.pump();
     expect(tester.getSize(row).height, unchecked);
@@ -815,7 +890,7 @@ void main() {
   }
 
   Finder switchOf(ServiceTarget target) => find.descendant(
-    of: find.widgetWithText(DecorationListItem, target.label),
+    of: find.widgetWithText(DecorationListItem, target.connectivityLabel),
     matching: find.byType(CommonSwitch),
   );
 
@@ -831,15 +906,15 @@ void main() {
     await tester.pumpWidget(
       app(
         settings: const AppSettingProps(
-          serviceOrder: ['claude', 'google'],
+          serviceOrder: ['chatgpt', 'google'],
           disabledServices: ['github'],
         ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(asked, ['claude', 'google']);
+    expect(asked, ['chatgpt', 'google']);
     expect(
-      tester.getCenter(tile(ServiceTarget.claude)).dx,
+      tester.getCenter(tile(ServiceTarget.chatgpt)).dx,
       lessThan(tester.getCenter(tile(ServiceTarget.google)).dx),
     );
 
@@ -852,16 +927,16 @@ void main() {
             matching: find.byWidgetPredicate(
               (widget) =>
                   widget is Text &&
-                  ServiceTarget.values.any(
-                    (target) => target.label == widget.data,
+                  _homeTargets.any(
+                    (target) => target.connectivityLabel == widget.data,
                   ),
             ),
           ),
         )
         .map((text) => text.data)
         .take(3);
-    expect(labels, ['Claude', 'Google Workspace', 'YouTube Premium']);
-    expect(find.text(ServiceTarget.github.label), findsNothing);
+    expect(labels, ['ChatGPT', 'Google', 'YouTube']);
+    expect(find.text(ServiceTarget.github.connectivityLabel), findsNothing);
   });
 
   testWidgets('services are turned off from a page pushed inside the sheet', (
@@ -881,7 +956,7 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.byType(ServiceStatusSheet), findsOneWidget);
-    expect(find.text(ServiceTarget.youtube.label), findsNothing);
+    expect(find.text(ServiceTarget.youtube.connectivityLabel), findsNothing);
 
     await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
@@ -900,18 +975,18 @@ void main() {
     await openManage(tester);
 
     Finder marked(ServiceTarget target) => find.descendant(
-      of: find.widgetWithText(DecorationListItem, target.label),
+      of: find.widgetWithText(DecorationListItem, target.connectivityLabel),
       matching: find.text('Shown on the dashboard'),
     );
     for (final target in [ServiceTarget.google, ServiceTarget.youtube]) {
-      expect(marked(target), findsOneWidget, reason: target.label);
+      expect(marked(target), findsOneWidget, reason: target.connectivityLabel);
     }
     for (final target in [
       ServiceTarget.github,
       ServiceTarget.chatgpt,
-      ServiceTarget.claude,
+      ServiceTarget.chatgpt,
     ]) {
-      expect(marked(target), findsNothing, reason: target.label);
+      expect(marked(target), findsNothing, reason: target.connectivityLabel);
     }
   });
 
@@ -950,7 +1025,7 @@ void main() {
       app(
         settings: AppSettingProps(
           disabledServices: [
-            for (final target in ServiceTarget.values)
+            for (final target in _homeTargets)
               if (target != ServiceTarget.google) target.id,
           ],
         ),
@@ -980,14 +1055,14 @@ void main() {
     expect(find.byGlyph(AppGlyphs.dragHandle), findsNothing);
     final row = find.widgetWithText(
       DecorationListItem,
-      ServiceTarget.google.label,
+      ServiceTarget.google.connectivityLabel,
     );
     final rowHeight = tester.getSize(row).height;
     final gesture = await tester.startGesture(
       tester.getCenter(
         find.descendant(
           of: row,
-          matching: find.text(ServiceTarget.google.label),
+          matching: find.text(ServiceTarget.google.connectivityLabel),
         ),
       ),
     );
@@ -1025,7 +1100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tile(ServiceTarget.google), findsNothing);
-    expect(asked.skip(2), [ServiceTarget.values[2].id]);
+    expect(asked.skip(2), [_homeTargets[2].id]);
   });
 
   testWidgets('an unexpected error shows the check as failed', (tester) async {
@@ -1036,7 +1111,7 @@ void main() {
     );
     await tester.pumpWidget(app(settings: only([ServiceTarget.google])));
     await tester.pumpAndSettle();
-    expect(find.text('Check failed'), findsOneWidget);
+    expect(find.text('Unreachable'), findsOneWidget);
   });
 
   testWidgets('a check without a node keeps the status in place', (
@@ -1051,7 +1126,7 @@ void main() {
 
     completion.complete([_item('google', ServiceProbeStatus.failed)]);
     await tester.pumpAndSettle();
-    expect(tester.getCenter(find.text('Check failed')).dy, checking);
+    expect(tester.getCenter(find.text('Unreachable')).dy, checking);
   });
 
   ProviderContainer containerOf(WidgetTester tester) =>
@@ -1091,7 +1166,7 @@ void main() {
     await tester.pump();
     await tester.pump(probeSettleDuration);
     expect(checkPhase(tester), ProbePhase.failed);
-    expect(find.text('Check failed'), findsNothing);
+    expect(find.text('Unreachable'), findsNothing);
     expect(find.byType(SkeletonText), findsWidgets);
 
     epoch = 2;
@@ -1100,7 +1175,7 @@ void main() {
         .applySnapshot(const RouteSnapshot(coreEpoch: 2, routeVersion: 1));
     await tester.pump(probeSettleDuration);
     await tester.pump(commonDuration);
-    expect(find.text('Available'), findsOneWidget);
+    expect(find.text('Responded'), findsOneWidget);
     expect(find.byType(SkeletonText), findsNothing);
   });
 
@@ -1125,10 +1200,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 4));
     expect(checkPhase(tester), ProbePhase.failed);
-    expect(find.text('Check failed'), findsNothing);
+    expect(find.text('Unreachable'), findsNothing);
 
     await tester.pump(const Duration(seconds: 2));
-    expect(find.text('Check failed'), findsOneWidget);
+    expect(find.text('Unreachable'), findsOneWidget);
   });
 
   testWidgets('stopping the proxy shows a failure without waiting', (
@@ -1148,12 +1223,12 @@ void main() {
     await tester.pump();
     await tester.pump(probeSettleDuration);
     expect(checkPhase(tester), ProbePhase.failed);
-    expect(find.text('Check failed'), findsNothing);
+    expect(find.text('Unreachable'), findsNothing);
 
     setStarted(tester, false);
     await tester.pump(probeSettleDuration);
     await tester.pump(commonDuration);
-    expect(find.text('Check failed'), findsOneWidget);
+    expect(find.text('Unreachable'), findsOneWidget);
   });
 
   testWidgets('leaving the dashboard releases the shown services', (

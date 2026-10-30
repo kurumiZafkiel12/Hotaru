@@ -286,9 +286,16 @@ void main() {
       expect(fittedWindowSize(const Size(1920, 1040)), defaultWindowSize);
     });
 
+    test('uses a compact fresh window without replacing saved geometry', () {
+      expect(defaultWindowSize, const Size(1024, 760));
+      const saved = WindowProps(width: 1280, height: 880);
+      expect(saved.savedSize, const Size(1280, 880));
+      expect(saved.size, const Size(1280, 880));
+    });
+
     test('leaves a margin of a small work area', () {
-      final size = fittedWindowSize(const Size(1366, 728));
-      expect(size.width, closeTo(1366 * 0.9, 0.001));
+      final size = fittedWindowSize(const Size(960, 728));
+      expect(size.width, closeTo(960 * 0.9, 0.001));
       expect(size.height, closeTo(728 * 0.9, 0.001));
     });
   });

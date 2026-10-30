@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hotaru/common/boot_record.dart';
+import 'package:hotaru/common/android_network.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
@@ -154,6 +155,33 @@ class App {
   Future<bool?> openAppSettings() async {
     if (!Platform.isAndroid) return false;
     return methodChannel.invokeMethod<bool>('openAppSettings');
+  }
+
+  Future<AndroidNetworkSnapshot> networkSnapshot() async {
+    try {
+      final json = await methodChannel
+          .invokeMapMethod<String, Object?>('networkSnapshot')
+          .timeout(_platformProbeTimeout);
+      return AndroidNetworkSnapshot.fromJson(json);
+    } catch (_) {
+      return const AndroidNetworkSnapshot(
+        readable: false,
+        reason: 'unavailable',
+      );
+    }
+  }
+
+  Future<bool> openNetworkSettings(AndroidNetworkSetting setting) async {
+    try {
+      return await methodChannel
+              .invokeMethod<bool>('openNetworkSettings', {
+                'page': setting.platformValue,
+              })
+              .timeout(_platformProbeTimeout) ??
+          false;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<AppExitInfo?> getLastExitInfo() async {

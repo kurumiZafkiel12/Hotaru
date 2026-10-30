@@ -215,7 +215,7 @@ class NetworkSpeedCard extends ConsumerWidget {
               speed: direction.of(latest),
               total: direction.of(total),
               traffics: traffics,
-              strip: desktop,
+              strip: true,
             ),
           ),
       ],
@@ -287,7 +287,7 @@ class _SpeedTile extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+            padding: const EdgeInsets.fromLTRB(10, 6, 10, 2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -313,7 +313,7 @@ class _SpeedTile extends StatelessWidget {
                 _Figure(
                   show: show,
                   unit: _speedUnit(show),
-                  style: AppTextStyle.title1,
+                  style: AppTextStyle.title2,
                   unitStyle: AppTextStyle.caption2,
                 ),
                 Text(
@@ -405,7 +405,7 @@ class _SpeedTile extends StatelessWidget {
                     _Figure(
                       show: show,
                       unit: _speedUnit(show),
-                      style: AppTextStyle.title1,
+                      style: AppTextStyle.title2,
                       unitStyle: AppTextStyle.footnote,
                     ),
                     Text(

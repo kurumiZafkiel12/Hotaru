@@ -12,6 +12,8 @@ func classifyServiceEndpoint(result *ProbeResult) ServiceCheckItem {
 		item.Status = serviceUnsupportedRegion
 	case bodyContains(result, "cf-chl-", "challenge-platform", "verify you are human", "just a moment...", "g-recaptcha", "/sorry/index"):
 		item.Status = serviceChallenge
+	case bodyContains(result, "access denied", "request is not allowed", "sorry, you have been blocked"):
+		item.Status = serviceRestricted
 	case result.StatusCode == http.StatusUnauthorized:
 		item.Status = serviceAuthentication
 	case result.StatusCode >= 200 && result.StatusCode < 300:

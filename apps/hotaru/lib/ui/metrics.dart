@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension AdaptiveSizeExt on num {
   double ap(BuildContext context) => this * _adaptiveScaleOf(context);
@@ -21,6 +21,22 @@ EdgeInsets listHeaderPaddingOf(BuildContext context) =>
 const listRowMinHeight = 56.0;
 const listRowVerticalPadding = 10.0;
 const pageToolbarHeight = 72.0;
+const desktopToolbarHeight = 56.0;
+
+double pageToolbarHeightFor({required bool isDesktop}) =>
+    isDesktop ? desktopToolbarHeight : pageToolbarHeight;
+
+bool usesDesktopMetrics(TargetPlatform platform) => switch (platform) {
+  TargetPlatform.windows ||
+  TargetPlatform.linux ||
+  TargetPlatform.macOS => true,
+  _ => false,
+};
+
+double pageToolbarHeightOf(BuildContext context) => pageToolbarHeightFor(
+  isDesktop: usesDesktopMetrics(Theme.of(context).platform),
+);
+
 const sheetToolbarHeight = 48.0;
 const sheetAppBarHeight = 68.0;
 

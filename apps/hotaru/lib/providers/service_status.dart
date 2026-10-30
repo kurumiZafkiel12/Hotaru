@@ -31,6 +31,7 @@ class ServiceStatus extends _$ServiceStatus
       ref.read(coreHandlerProvider),
       proxyName: route.proxied ? '' : directOutbound,
       targets: [target],
+      connectivity: true,
     );
     final check = checks[target];
     return {
@@ -59,7 +60,9 @@ List<ServiceTarget> serviceTargets(Ref ref) {
   final order = ref.watch(
     appSettingProvider.select((state) => SelectValue(state.serviceOrder)),
   );
-  return orderServiceTargets(order.value);
+  return orderServiceTargets(
+    order.value,
+  ).where((target) => target.isConnectivityTarget).toList();
 }
 
 @riverpod

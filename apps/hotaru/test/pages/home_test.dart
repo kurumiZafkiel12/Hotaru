@@ -244,7 +244,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     final sidebar = find.byType(NavigationSidebar);
-    expect(tester.getSize(sidebar).width, 176);
+    expect(tester.getSize(sidebar).width, 144);
 
     await tester.tap(find.byTooltip('Collapse'));
     await tester.pump();
@@ -255,7 +255,7 @@ void main() {
     await tester.tap(find.byTooltip('Expand'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(tester.getSize(sidebar).width, 176);
+    expect(tester.getSize(sidebar).width, 144);
 
     tester.view.physicalSize = const Size(800, 800);
     container.read(viewSizeProvider.notifier).value = const Size(800, 800);

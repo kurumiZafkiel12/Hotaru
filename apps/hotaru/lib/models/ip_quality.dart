@@ -10,6 +10,7 @@ abstract class IpQuality with _$IpQuality {
     required String ip,
     required IpQualitySource source,
     required IpType type,
+    bool? typeIsInferred,
     String? organization,
     int? asn,
     @Default(false) bool isProxy,

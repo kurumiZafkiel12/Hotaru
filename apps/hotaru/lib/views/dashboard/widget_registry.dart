@@ -57,7 +57,7 @@ extension DashboardWidgetView on DashboardWidget {
     };
   }
 
-  /// The card's one fixed size in the desktop grid.
+  /// The column span and fixed height band of each desktop component.
   DashboardTier get tier => switch (this) {
     DashboardWidget.currentOutbound => DashboardTier.mid,
     DashboardWidget.networkSpeed => DashboardTier.mid,
@@ -67,11 +67,11 @@ extension DashboardWidgetView on DashboardWidget {
     DashboardWidget.serviceStatus => DashboardTier.narrow,
     DashboardWidget.profiles => DashboardTier.narrow,
     DashboardWidget.proxyGroups => DashboardTier.tall,
-    DashboardWidget.connectionStats => DashboardTier.short,
+    DashboardWidget.connectionStats => DashboardTier.small,
     DashboardWidget.intranetIp => DashboardTier.narrow,
     DashboardWidget.memoryInfo => DashboardTier.narrow,
     DashboardWidget.speedTest => DashboardTier.mid,
-    DashboardWidget.connectionsTable => DashboardTier.wide,
+    DashboardWidget.connectionsTable => DashboardTier.tall,
   };
 
   String? description(BuildContext context) {

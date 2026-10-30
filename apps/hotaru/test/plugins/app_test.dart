@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:hotaru/common/boot_record.dart';
+import 'package:hotaru/common/android_network.dart';
 import 'package:hotaru/common/constant.dart';
 import 'package:hotaru/plugins/app.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,64 @@ void main() {
         .setMockMethodCallHandler(channel, null);
     App().clearPackageIconCache();
   });
+
+  test(
+    'network snapshot keeps system observations separate from app service state',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'networkSnapshot');
+            return {
+              'readable': true,
+              'api': 35,
+              'vpn': true,
+              'active': true,
+              'private-dns-active': false,
+              'dns-servers': ['10.0.2.3'],
+            };
+          });
+      final result = await App().networkSnapshot();
+      expect(result.readable, isTrue);
+      expect(result.vpn, isTrue);
+      expect(result.privateDnsActive, isFalse);
+      expect(result.dnsServers, ['10.0.2.3']);
+    },
+  );
+
+  test(
+    'network settings use a typed page allowlist instead of arbitrary intents',
+    () async {
+      final pages = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'openNetworkSettings');
+            pages.add(call.arguments['page'] as String);
+            return true;
+          });
+      for (final setting in AndroidNetworkSetting.values) {
+        expect(await App().openNetworkSettings(setting), isTrue);
+      }
+      expect(pages, ['vpn', 'private-dns', 'wifi', 'application']);
+    },
+  );
+
+  test(
+    'unavailable network APIs and rejected settings remain unavailable',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            channel,
+            (_) async => throw PlatformException(code: 'unavailable'),
+          );
+      final snapshot = await App().networkSnapshot();
+      expect(snapshot.readable, isFalse);
+      expect(snapshot.vpn, isNull);
+      expect(
+        await App().openNetworkSettings(AndroidNetworkSetting.vpn),
+        isFalse,
+      );
+    },
+  );
 
   test('requests every package icon from Android only once', () async {
     var iconCallCount = 0;

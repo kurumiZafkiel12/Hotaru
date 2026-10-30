@@ -185,24 +185,35 @@ Map<String, dynamic> _$InitParamsToJson(_InitParams instance) =>
 
 _ChangeProxyParams _$ChangeProxyParamsFromJson(Map<String, dynamic> json) =>
     _ChangeProxyParams(
+      forSpeedTest: json['for-speed-test'] as bool? ?? false,
       groupName: json['group-name'] as String,
       proxyName: json['proxy-name'] as String,
     );
 
 Map<String, dynamic> _$ChangeProxyParamsToJson(_ChangeProxyParams instance) =>
     <String, dynamic>{
+      'for-speed-test': instance.forSpeedTest,
       'group-name': instance.groupName,
       'proxy-name': instance.proxyName,
     };
 
 _ChangeProxyResult _$ChangeProxyResultFromJson(Map<String, dynamic> json) =>
     _ChangeProxyResult(
+      routeVersion: (json['route-version'] as num?)?.toInt() ?? 0,
+      speedTestProxy: json['speed-test-proxy'] as String? ?? '',
+      coreEpoch: (json['core-epoch'] as num?)?.toInt() ?? 0,
       message: json['message'] as String? ?? '',
       changed: json['changed'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ChangeProxyResultToJson(_ChangeProxyResult instance) =>
-    <String, dynamic>{'message': instance.message, 'changed': instance.changed};
+    <String, dynamic>{
+      'route-version': instance.routeVersion,
+      'speed-test-proxy': instance.speedTestProxy,
+      'core-epoch': instance.coreEpoch,
+      'message': instance.message,
+      'changed': instance.changed,
+    };
 
 _RouteSnapshot _$RouteSnapshotFromJson(Map<String, dynamic> json) =>
     _RouteSnapshot(
@@ -412,6 +423,7 @@ _ServiceCheckParams _$ServiceCheckParamsFromJson(Map<String, dynamic> json) =>
       timeout: (json['timeout'] as num).toInt(),
       runId: json['run-id'] as String? ?? '',
       cancel: json['cancel'] as bool? ?? false,
+      connectivity: json['connectivity'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
@@ -421,6 +433,7 @@ Map<String, dynamic> _$ServiceCheckParamsToJson(_ServiceCheckParams instance) =>
       'timeout': instance.timeout,
       'run-id': instance.runId,
       'cancel': instance.cancel,
+      'connectivity': instance.connectivity,
     };
 
 _ServiceCheckItem _$ServiceCheckItemFromJson(
@@ -529,9 +542,14 @@ Map<String, dynamic> _$ExternalProviderToJson(_ExternalProvider instance) =>
     };
 
 _ProxiesData _$ProxiesDataFromJson(Map<String, dynamic> json) => _ProxiesData(
+  speedTestGroup: json['speed-test-group'] as String? ?? '',
   proxies: json['proxies'] as Map<String, dynamic>,
   all: (json['all'] as List<dynamic>).map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$ProxiesDataToJson(_ProxiesData instance) =>
-    <String, dynamic>{'proxies': instance.proxies, 'all': instance.all};
+    <String, dynamic>{
+      'speed-test-group': instance.speedTestGroup,
+      'proxies': instance.proxies,
+      'all': instance.all,
+    };

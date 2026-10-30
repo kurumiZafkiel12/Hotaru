@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"maps"
+	"net"
 	"os"
 	"strings"
 	"sync"
@@ -83,6 +84,8 @@ func proxyGroupNames(
 }
 
 func handleGetProxies() ProxiesData {
+	configMu.Lock()
+	defer configMu.Unlock()
 	proxies := tunnel.AllProxies()
 
 	names := proxyGroupNames(config.GetProxyNameList(), func(name string) (constant.AdapterType, bool) {
@@ -97,7 +100,7 @@ func handleGetProxies() ProxiesData {
 	for name, proxy := range proxies {
 		views[name] = proxyView(proxy)
 	}
-	return ProxiesData{All: names, Proxies: views}
+	return ProxiesData{All: names, Proxies: views, SpeedTestGroup: configuredNodeSpeedGroup(currentConfig)}
 }
 
 // Proxy.MarshalJSON encodes each node twice, with history the host never reads.
@@ -108,6 +111,9 @@ func proxyView(proxy constant.Proxy) any {
 		ProviderName: proxy.ProxyInfo().ProviderName,
 	}
 	if !isProxyGroupType(proxy.Type()) {
+		if host, _, err := net.SplitHostPort(proxy.Addr()); err == nil && !strings.ContainsAny(host, "@/?#") {
+			node.EntryServer = host
+		}
 		return node
 	}
 	data, err := proxy.Adapter().MarshalJSON()
@@ -158,10 +164,24 @@ func selectableGroup(groupName string) (pickableGroup, error) {
 }
 
 func handleChangeProxy(params *ChangeProxyParams) *ChangeProxyResult {
+	groupName := params.GroupName
+	speedProxy := ""
+	if params.ForSpeedTest {
+		if params.ProxyName == "" {
+			return &ChangeProxyResult{Message: "node speed-test target missing"}
+		}
+		configMu.Lock()
+		defer configMu.Unlock()
+		var err error
+		groupName, speedProxy, err = nodeSpeedRoute(currentConfig)
+		if err != nil {
+			return &ChangeProxyResult{Message: err.Error()}
+		}
+	}
 	selectMu.Lock()
 	defer selectMu.Unlock()
 
-	selector, err := selectableGroup(params.GroupName)
+	selector, err := selectableGroup(groupName)
 	if err != nil {
 		return &ChangeProxyResult{Message: err.Error()}
 	}
@@ -173,7 +193,8 @@ func handleChangeProxy(params *ChangeProxyParams) *ChangeProxyResult {
 	}
 	changed := selector.Now() != before
 	refreshRouteLocked(routeUnchanged)
-	return &ChangeProxyResult{Changed: changed}
+	epoch, version := routeStamp()
+	return &ChangeProxyResult{Changed: changed, SpeedTestProxy: speedProxy, CoreEpoch: epoch, RouteVersion: version}
 }
 
 func patchSelectGroup(mapping map[string]string) {

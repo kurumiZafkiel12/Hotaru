@@ -195,17 +195,19 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label}は1項目のみ指定できます";
 
-  static String m80(value) => "ピーク ${value}";
+  static String m80(source) => "接続種別の情報源：${source}。";
 
-  static String m81(value) => "累計 ${value}";
+  static String m81(value) => "ピーク ${value}";
 
-  static String m82(transport) => "${transport} リクエストヘッダー";
+  static String m82(value) => "累計 ${value}";
 
-  static String m83(label) => "${label}はURLである必要があります";
+  static String m83(transport) => "${transport} リクエストヘッダー";
 
-  static String m84(count) => "${count} 年前";
+  static String m84(label) => "${label}はURLである必要があります";
 
   static String m85(count) => "${count} 年前";
+
+  static String m86(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -277,6 +279,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("LANプロキシ"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("許可する IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("アプリ設定"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "ネットワークへのログインが必要",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("システムDNSサーバー"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("従量制接続"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "既定ネットワークとシステムDNSを読み取ります。Hotaru内部や他のアプリと異なる場合があり、設定状態だけでは漏洩がない証明になりません。変更はシステム設定で行ってください。",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN、システムDNSとネットワーク設定",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Androidネットワークツール",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "ネットワーク状態を取得できないか、システムに制限されています。更新するかシステム設定を確認してください。",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Androidがネットワークを検証済み",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("システムのプライベートDNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "この端末では設定画面を開けません。",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "既定ネットワークのシステムVPN",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi設定"),
     "answers": MessageLookupByLibrary.simpleMessage("応答"),
     "app": MessageLookupByLibrary.simpleMessage("アプリ"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("アプリアクセス制御"),
@@ -287,6 +318,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "applyNow": MessageLookupByLibrary.simpleMessage("今すぐ適用"),
     "auditAI": MessageLookupByLibrary.simpleMessage("AI・大規模モデル"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage("認証が必要"),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "サンプルのオリジナル作品に再生メタデータがあり、ライセンス作品は利用できません。全カタログや実際の再生権限は保証しません。",
+    ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage("ボット対策の検証"),
     "auditClaudeHint": MessageLookupByLibrary.simpleMessage(
       "地域と Web 応答を確認します。アカウント利用は別途確認してください。制限された場合は米国・日本・シンガポールなど対応地域の出口を試してください。",
@@ -301,12 +335,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内メディア"),
     "auditGames": MessageLookupByLibrary.simpleMessage("ゲーム・ストア"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("判定できません"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("未解除"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("海外メディア"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "ページ・地域 API の結果です。作品の再生、住宅回線の資格、契約の有無は Web 応答だけでは確定しません。",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("一部解除"),
     "auditReachable": MessageLookupByLibrary.simpleMessage("接続可能・解放は未確認"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("接続可能"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地域対象外"),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage("失敗・タイムアウト"),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("結果"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "成功した接続チェーンは観測されませんでした",
     ),
@@ -323,6 +362,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Web 接続と DC1–DC5 の MTProto ハンドシェイクを確認します。アカウントへのログインは行わず、利用中のセッションの DC は特定しません。",
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage("サービス解放・分流チェック"),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("判定不能"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("解除済み"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage("認証・ログイン制限"),
     "authentication": MessageLookupByLibrary.simpleMessage("認証"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
       "認証を有効にすると、ローカルプロキシポートの利用にユーザー名とパスワードが必要になります。",
@@ -473,6 +515,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("接続"),
     "connectivity": MessageLookupByLibrary.simpleMessage("接続状態："),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("応答あり"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP 応答あり。接続確認のみで、地域制限の解除を示しません。",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage("到達不可"),
     "content": MessageLookupByLibrary.simpleMessage("内容"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage("内容は空にできません"),
     "controlGlobalAddedRules": MessageLookupByLibrary.simpleMessage(
@@ -527,6 +574,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dark": MessageLookupByLibrary.simpleMessage("ダーク"),
     "dashboard": MessageLookupByLibrary.simpleMessage("ダッシュボード"),
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage("追加できるカード"),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("カードの幅"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("カードのサイズを変更"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "デフォルトに戻す",
@@ -567,16 +615,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "テスト完了・証拠を確認してください",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("総合判定"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Cloudflare・Google DoH のアプリ DNS 上書きを有効にします。プロファイル固有の DNS 要件がある場合は適用後に確認してください。",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "テスト失敗・証拠を確認してください",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage("詳細 · 16 回"),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage("証拠不足"),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "経路テスト前にプロファイルを選び Hotaru を起動してください。",
     ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "今回のサンプルでは不一致なし",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage("簡易 · 4 回"),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage("観測した証拠"),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("潜在的なリスク"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("ダイヤラープロキシ"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "ダイヤラープロキシは NTP サーバーへの接続に使用するアウトバウンドです。",
@@ -670,6 +726,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "新しいバージョンが見つかりました",
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("DNSキャッシュをクリアしました"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "リゾルバーの応答は今回のサンプルのみです。想定リゾルバーが未確認のため、すべての DNS 問い合わせの保護は証明できません。",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "追加しない場合、ポート 53 宛てのすべての DNS 問い合わせをハイジャックします（any:53）。",
     ),
@@ -842,6 +901,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("色相"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host はローカル、srflx は STUN、relay は TURN。Hotaru のネイティブ ICE のみを検査し、外部ブラウザーを対象にしません。音声・映像は取得しません。",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE 候補"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "判定不可：比較できる完全な公開 ICE サンプルがありません。",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "今回の ICE サンプルでは出口の不一致はありません。",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("アイコン"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("アイコン履歴"),
     "iconSets": MessageLookupByLibrary.simpleMessage("アイコンセット"),
@@ -1170,6 +1239,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IPを解決しない"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("ホスト名を解決しない"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("一致する結果はありません"),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("全ノードを検査"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("位置の証拠"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage("コアを起動して一覧を更新してください。"),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage("入口サーバー・システム DNS"),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoJS の GeoIP 推定位置です。住所ではありません。地図：Natural Earth（パブリックドメイン）。",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "全ノードを読み、指定ノード経由の出口を検査します。入口 DNS と観測出口は別表示。15 分間キャッシュします。",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("ノード・IP・場所を検索"),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("情報源"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("ノードの位置・地球"),
     "nodes": MessageLookupByLibrary.simpleMessage("ノード"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "この外部リソースはテキストファイルではありません",
@@ -1242,6 +1324,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("ポートホッピング"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "IPv4とIPv6の出口を個別に観測し、その公開IPのみをGeoJS、IPQuery、ipapi.isへ送信します。アカウント情報やブラウザー指紋は収集しません。",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "簡易検査：このプロセスのシステムDNSで4つのランダムドメインを照会し、bash.wsの記録を取得します。記録や想定経路が不明なら証拠不十分です。他のアプリやブラウザーは未検査です。",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "提供元の元の指標と時刻を表示します。異なる尺度を混在させたり平均したりしません。",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "住宅回線はネイティブIPを証明しません。これらの情報源ではネイティブやブロードキャストの帰属を確認できません。",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "提供元がリスクを報告しました。第三者の分類であり、すべてのサイトの禁止や回線品質を意味しません。",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "ルールとノードは実際のリクエストの結果です。対象サイトが返さない出口IPは不明であり、別のIP照会で代用できません。",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "提供元の結果が異なります。提供元、IP、照会時刻を確認してください。",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "証拠が不十分です。IPへの到達やリスク項目の欠如だけでは安全性を証明できません。",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("ポート"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("事前共有鍵"),
     "preferred": MessageLookupByLibrary.simpleMessage("優先"),
@@ -1312,6 +1418,20 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "このリンクは長すぎて QR コードにできません。「リンクをコピー」を使ってください。",
+    ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("優"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "有効期間は5分です。ルートやネットワークの変更で無効になります。",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("リクエスト失敗率"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("良"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("応答時間の中央値"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("不良"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "現在のルールで同じ宛先にHTTPSを6回送信します。この宛先と経路のみを評価し、帯域、全サイトやIP評判は評価しません。失敗率はICMP損失率ではありません。",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "有効な応答3回以上と同じノード経路が必要です。優：6回成功、中央値≤150ms、変動≤30ms。不良：失敗2回以上、中央値>400msまたは変動>80ms。それ以外は良です。 変動は隣り合う有効な応答時間の差の絶対値の平均です。",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("クイック操作"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("クイック編集"),
@@ -1661,8 +1781,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("VPNを起動しています…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("起動とバックグラウンド"),
     "status": MessageLookupByLibrary.simpleMessage("状態"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("接続種別"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "接続種別は未確認です。ホスティングやモバイルの指定がないだけでは住宅回線の証拠になりません。",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "DNS を無効にすると、システム DNS を使用します。",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP 属性"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage("通信品質"),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "ネイティブまたはブロードキャスト IP を裏付ける証拠はありません。",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "通信品質は未測定です。接続種別や IP リスク情報から通信品質は判断できません。",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("停止"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPNを停止しています…"),
@@ -1705,6 +1838,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("切り替え"),
     "tolerance": MessageLookupByLibrary.simpleMessage("許容値"),
     "tools": MessageLookupByLibrary.simpleMessage("ツール"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage("接続と速度"),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP 診断"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage("システム保守"),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("プライバシー"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("サービスとルーティング"),
     "torch": MessageLookupByLibrary.simpleMessage("ライト"),
     "total": MessageLookupByLibrary.simpleMessage("合計"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("ダウンロード量"),
@@ -1712,11 +1850,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("アップロード量"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxyポート"),
     "traffic": MessageLookupByLibrary.simpleMessage("通信量"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("トラフィック統計"),
     "transport": MessageLookupByLibrary.simpleMessage("トランスポート"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN の権限を取得できなかったため、オフにしました。",
@@ -1744,7 +1882,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("アップロード帯域幅"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Hostsを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムのHostsを使用"),
     "usedShort": MessageLookupByLibrary.simpleMessage("使用済み"),
@@ -1775,7 +1913,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN の公開 IP がプロキシ出口と異なります。UDP 経路とブラウザーの WebRTC 設定を確認してください。IPv4 と IPv6 は別途検証が必要です。",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "ネイティブ STUN は UDP 経路を調べます。ブラウザーの ICE、mDNS、TURN は異なる場合があります。プライベート IP だけでは公開 IP の漏洩を意味しません。",
+      "データチャネルでネイティブ WebRTC ICE 候補を収集します。マイク・カメラは使用しません。外部ブラウザーの ICE、mDNS、TURN ポリシーは異なる場合があります。ローカルアドレスだけでは公開 IP 漏えいとは判定できません。",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "UDP の反射アドレスとプロキシ出口を比較",
@@ -1788,8 +1926,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "システムに書き込むを有効にするとシステムクロックも設定します。Android では無視されます。",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("はい"),
     "zhCN": MessageLookupByLibrary.simpleMessage("簡体字中国語"),
   };

@@ -128,5 +128,6 @@ double overlayTopOffset(Ref ref) {
     version: version,
     isMobileView: isMobileView,
   );
-  return pageToolbarHeight + (showsHeader ? kHeaderHeight : 0);
+  return pageToolbarHeightFor(isDesktop: system.isDesktop) +
+      (showsHeader ? kHeaderHeight : 0);
 }

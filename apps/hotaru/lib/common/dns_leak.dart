@@ -51,7 +51,13 @@ class DnsLeakProbe {
   final Dio dio;
   final Future<List<InternetAddress>> Function(String) lookup;
 
-  Future<List<DnsResolverReceipt>> run(CancelToken cancelToken) async {
+  Future<List<DnsResolverReceipt>> run(
+    CancelToken cancelToken, {
+    int samples = 16,
+    void Function(int done, int total)? onProgress,
+  }) async {
+    RangeError.checkValueInInterval(samples, 1, 50, 'samples');
+    var completed = 0;
     final options = Options(
       responseType: ResponseType.plain,
       receiveTimeout: const Duration(seconds: 8),
@@ -68,7 +74,7 @@ class DnsLeakProbe {
     }
     var cursor = 1;
     Future<void> worker() async {
-      while (!cancelToken.isCancelled && cursor <= 16) {
+      while (!cancelToken.isCancelled && cursor <= samples) {
         final index = cursor++;
         try {
           await lookup(
@@ -78,6 +84,9 @@ class DnsLeakProbe {
           continue;
         } on SocketException {
           // NXDOMAIN still leaves an authoritative receipt.
+        } finally {
+          completed++;
+          if (!cancelToken.isCancelled) onProgress?.call(completed, samples);
         }
       }
     }

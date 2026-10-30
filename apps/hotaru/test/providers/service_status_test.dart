@@ -89,6 +89,7 @@ void main() {
         ['claude'],
       ]);
       expect(sweeps.first.proxyName, isEmpty);
+      expect(sweeps.first.connectivity, isTrue);
       expect(sweeps.first.timeout, probeTimeoutDuration.inMilliseconds);
       final state = stateOf(scope);
       expect(state.entryOf(ServiceTarget.youtube).phase, ProbePhase.fresh);
@@ -106,9 +107,16 @@ void main() {
       return (gates[params.names.single] = Completer()).future;
     });
 
-    notifierOf(scope).refresh(ServiceTarget.values);
+    notifierOf(scope).refresh(
+      ServiceTarget.values.where((target) => target.isConnectivityTarget),
+    );
     await pumpEventQueue();
-    expect(gates.keys, [for (final target in ServiceTarget.values) target.id]);
+    expect(gates.keys, [
+      for (final target in ServiceTarget.values.where(
+        (target) => target.isConnectivityTarget,
+      ))
+        target.id,
+    ]);
 
     gates['google']!.complete([_item('google')]);
     await pumpEventQueue();
@@ -127,16 +135,37 @@ void main() {
         return Completer<List<ServiceCheckItem>>().future;
       });
       final notifier = notifierOf(scope);
-      ServiceTarget.values.forEach(notifier.watch);
+      ServiceTarget.values
+          .where((target) => target.isConnectivityTarget)
+          .forEach(notifier.watch);
       await tester.pump();
-      expect(sweeps, hasLength(ServiceTarget.values.length));
+      expect(
+        sweeps,
+        hasLength(
+          ServiceTarget.values
+              .where((target) => target.isConnectivityTarget)
+              .length,
+        ),
+      );
 
       scope.read(routeTrackerProvider.notifier).bumpHostEpoch();
       await tester.pump(probeSettleDuration);
 
-      expect(sweeps.skip(ServiceTarget.values.length).map((s) => s.names), [
-        for (final target in ServiceTarget.values) [target.id],
-      ]);
+      expect(
+        sweeps
+            .skip(
+              ServiceTarget.values
+                  .where((target) => target.isConnectivityTarget)
+                  .length,
+            )
+            .map((s) => s.names),
+        [
+          for (final target in ServiceTarget.values.where(
+            (target) => target.isConnectivityTarget,
+          ))
+            [target.id],
+        ],
+      );
       await tester.pump(probeThrottleDuration);
     },
   );
@@ -302,9 +331,10 @@ void main() {
       );
 
       expect(scope.read(enabledServiceTargetsProvider).map((t) => t.id), [
-        'claude',
         'google',
-        for (final target in ServiceTarget.values)
+        for (final target in ServiceTarget.values.where(
+          (target) => target.isConnectivityTarget,
+        ))
           if (!['claude', 'google', 'github', 'bilibili'].contains(target.id))
             target.id,
       ]);
@@ -314,9 +344,17 @@ void main() {
   test('a config that turns every service off still offers them all', () {
     final scope = container();
     scope.read(appSettingProvider.notifier).value = AppSettingProps(
-      disabledServices: [for (final target in ServiceTarget.values) target.id],
+      disabledServices: [
+        for (final target in ServiceTarget.values.where(
+          (target) => target.isConnectivityTarget,
+        ))
+          target.id,
+      ],
     );
 
-    expect(scope.read(enabledServiceTargetsProvider), ServiceTarget.values);
+    expect(
+      scope.read(enabledServiceTargetsProvider),
+      ServiceTarget.values.where((target) => target.isConnectivityTarget),
+    );
   });
 }

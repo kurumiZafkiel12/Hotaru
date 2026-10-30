@@ -220,18 +220,20 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "${label} must be a single item";
 
-  static String m80(value) => "Peak ${value}";
+  static String m80(source) => "Access classification from ${source}.";
 
-  static String m81(value) => "Total ${value}";
+  static String m81(value) => "Peak ${value}";
 
-  static String m82(transport) => "${transport} Headers";
+  static String m82(value) => "Total ${value}";
 
-  static String m83(label) => "${label} must be a URL";
+  static String m83(transport) => "${transport} Headers";
 
-  static String m84(count) =>
+  static String m84(label) => "${label} must be a URL";
+
+  static String m85(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
-  static String m85(count) => "${Intl.plural(count, other: '${count}y ago')}";
+  static String m86(count) => "${Intl.plural(count, other: '${count}y ago')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -319,6 +321,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("Allow LAN"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("Allowed IPs"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("App settings"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "Network login required",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage(
+      "System DNS servers",
+    ),
+    "androidMetered": MessageLookupByLibrary.simpleMessage(
+      "Metered connection",
+    ),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Check VPN, system DNS and network settings",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Android network tools",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Network status could not be read or is restricted by the system. Refresh or inspect the system settings.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android validated this network",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage(
+      "System Private DNS",
+    ),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "This settings page is unavailable on this device.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "System VPN on default network",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage(
+      "Wi-Fi settings",
+    ),
     "answers": MessageLookupByLibrary.simpleMessage("Answers"),
     "app": MessageLookupByLibrary.simpleMessage("App"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(
@@ -334,6 +373,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditAI": MessageLookupByLibrary.simpleMessage("AI & models"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage(
       "Authentication required",
+    ),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.",
     ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage(
       "Anti-bot challenge",
@@ -353,14 +395,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditDomestic": MessageLookupByLibrary.simpleMessage("Domestic media"),
     "auditGames": MessageLookupByLibrary.simpleMessage("Games & stores"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("Inconclusive"),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("Not unlocked"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("International media"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "Page or regional endpoint result; licensed playback, residential eligibility and subscription are not established by a web response.",
     ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage("Partially unlocked"),
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Reachable · unlock unconfirmed",
     ),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Connected"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "Unsupported region",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed / timed out",
+    ),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("Results"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "No successful connection chain was observed",
     ),
@@ -384,6 +435,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage(
       "Service unlock & routing check",
+    ),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("Unable to determine"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("Unlocked"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage(
+      "Verification / login required",
     ),
     "authentication": MessageLookupByLibrary.simpleMessage("Authentication"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
@@ -563,6 +619,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Connections"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Connectivity: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage("Responded"),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "HTTP response received; connectivity only, not service unlock.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Unreachable",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Content"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "Content cannot be empty",
@@ -625,6 +688,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Available to add",
     ),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage("Card width"),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage("Resize card"),
     "dashboardRestoreDefaults": MessageLookupByLibrary.simpleMessage(
       "Restore defaults",
@@ -675,18 +739,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "Probe completed; review evidence",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("Conclusion"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Enable app DNS overrides with Cloudflare and Google DoH. Your profile may have special domain DNS requirements; review after applying.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "Probe failed; see evidence",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage(
+      "Full · 16 queries",
+    ),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Insufficient evidence",
+    ),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "Start Hotaru with a profile before testing the routed path.",
+    ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "No mismatch in this sample",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage(
+      "Quick · 4 queries",
     ),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
       "Observed evidence",
     ),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("Potential risk"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage("Dialer proxy"),
     "dialerProxyDesc": MessageLookupByLibrary.simpleMessage(
       "Dialer proxy is the outbound used to reach the NTP server.",
@@ -799,6 +877,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage(
       "DNS cache cleared",
+    ),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.",
     ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "Without this entry, TUN hijacks every DNS query to port 53 (any:53).",
@@ -1004,6 +1085,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Hue"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE candidates"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Unable to determine: no complete, comparable public ICE sample.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "No exit mismatch observed in this ICE sample.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Icon"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("Icon records"),
     "iconSets": MessageLookupByLibrary.simpleMessage("Icon sets"),
@@ -1369,6 +1460,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No matching results",
     ),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage("Test all nodes"),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("Location evidence"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Start the core and refresh the node list.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Entry server · system DNS",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Search node, IP or place",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Source"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Node locations · globe",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",
@@ -1453,6 +1565,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Port hopping"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Providers disagree. Review the source, address and time before drawing a conclusion.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Ports"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Pre-shared key"),
     "preferred": MessageLookupByLibrary.simpleMessage("Preferred"),
@@ -1533,6 +1669,24 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "This link is too long for a QR code. Use Copy link instead.",
+    ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("Excellent"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "Samples expire after five minutes. A route or network change clears the result.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage(
+      "Failed requests",
+    ),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("Good"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage(
+      "Median response time",
+    ),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("Poor"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Quick actions"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Quick edit"),
@@ -1938,8 +2092,23 @@ class MessageLookup extends MessageLookupByLibrary {
       "Startup and background",
     ),
     "status": MessageLookupByLibrary.simpleMessage("Status"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("Access"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "Access type is unverified. An absent hosting or mobile flag is not proof of residential access.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "With DNS off, the system DNS is used.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("IP origin"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage(
+      "Network quality",
+    ),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "No verified native or broadcast IP evidence.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "Network quality has not been measured. Access type and IP risk flags do not establish connection quality.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Stop"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Stopping VPN…"),
@@ -1988,6 +2157,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Toggle"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Tolerance"),
     "tools": MessageLookupByLibrary.simpleMessage("Tools"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Connection & speed",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("IP diagnostics"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "System maintenance",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Privacy"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("Services & routing"),
     "torch": MessageLookupByLibrary.simpleMessage("Flashlight"),
     "total": MessageLookupByLibrary.simpleMessage("Total"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Downloaded"),
@@ -1995,11 +2173,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Uploaded"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("TProxy port"),
     "traffic": MessageLookupByLibrary.simpleMessage("Traffic"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Traffic usage"),
     "transport": MessageLookupByLibrary.simpleMessage("Transport"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN could not be authorized, so it was turned off.",
@@ -2031,7 +2209,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("Upload bandwidth"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Use hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("Use system hosts"),
     "usedShort": MessageLookupByLibrary.simpleMessage("used"),
@@ -2064,7 +2242,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "STUN public address differs from proxy egress. Review UDP routing and browser WebRTC policy. Different IPv4/IPv6 families need separate verification.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.",
+      "This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Compare UDP reflexive address with proxy egress",
@@ -2077,8 +2255,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "Write to system also sets the system clock; Android ignores it.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("Yes"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };

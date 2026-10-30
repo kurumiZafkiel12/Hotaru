@@ -43,7 +43,32 @@ ColorScheme genColorScheme(
   bool ignoreConfig = false,
   bool? pureBlack,
 }) {
-  return hotaruColorScheme(brightness);
+  final settings = ref.watch(
+    themeSettingProvider.select(
+      (state) => (
+        primary: state.primaryColor,
+        style: state.colorStyle,
+        black: state.pureBlack,
+      ),
+    ),
+  );
+  final seed =
+      color ??
+      (ignoreConfig
+          ? const Color(defaultPrimaryColor)
+          : settings.primary == null
+          ? ref.watch(dynamicColorProvider).seedOf(brightness)
+          : Color(settings.primary!));
+  return hotaruColorScheme(
+    brightness,
+    accent:
+        seed.toARGB32() == defaultPrimaryColor &&
+            settings.style == ColorStyle.vivid
+        ? null
+        : seed,
+    style: settings.style,
+    pureBlack: pureBlack ?? (!ignoreConfig && settings.black),
+  );
 }
 
 typedef WindowBlurRequest = ({bool enabled, Brightness brightness, Color tint});

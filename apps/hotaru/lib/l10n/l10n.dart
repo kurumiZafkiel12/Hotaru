@@ -55,6 +55,281 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  /// `Node locations · globe`
+  String get nodeGlobeTitle {
+    return Intl.message(
+      'Node locations · globe',
+      name: 'nodeGlobeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.`
+  String get nodeGeoScope {
+    return Intl.message(
+      'Read all nodes, then test their exit through the named node. Entry DNS answers and observed exit IPs are separate. Results are cached for 15 minutes.',
+      name: 'nodeGeoScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test all nodes`
+  String get nodeGeoCheckAll {
+    return Intl.message(
+      'Test all nodes',
+      name: 'nodeGeoCheckAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search node, IP or place`
+  String get nodeGeoSearch {
+    return Intl.message(
+      'Search node, IP or place',
+      name: 'nodeGeoSearch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start the core and refresh the node list.`
+  String get nodeGeoEmpty {
+    return Intl.message(
+      'Start the core and refresh the node list.',
+      name: 'nodeGeoEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.`
+  String get nodeGeoEstimate {
+    return Intl.message(
+      'GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.',
+      name: 'nodeGeoEstimate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Entry server · system DNS`
+  String get nodeGeoEntry {
+    return Intl.message(
+      'Entry server · system DNS',
+      name: 'nodeGeoEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source`
+  String get nodeGeoSource {
+    return Intl.message('Source', name: 'nodeGeoSource', desc: '', args: []);
+  }
+
+  /// `Location evidence`
+  String get nodeGeoDetails {
+    return Intl.message(
+      'Location evidence',
+      name: 'nodeGeoDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Conclusion`
+  String get diagnosticsConclusion {
+    return Intl.message(
+      'Conclusion',
+      name: 'diagnosticsConclusion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No mismatch in this sample`
+  String get diagnosticsNoMismatch {
+    return Intl.message(
+      'No mismatch in this sample',
+      name: 'diagnosticsNoMismatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potential risk`
+  String get diagnosticsRisk {
+    return Intl.message(
+      'Potential risk',
+      name: 'diagnosticsRisk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insufficient evidence`
+  String get diagnosticsInsufficient {
+    return Intl.message(
+      'Insufficient evidence',
+      name: 'diagnosticsInsufficient',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick · 4 queries`
+  String get diagnosticsQuick {
+    return Intl.message(
+      'Quick · 4 queries',
+      name: 'diagnosticsQuick',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full · 16 queries`
+  String get diagnosticsFull {
+    return Intl.message(
+      'Full · 16 queries',
+      name: 'diagnosticsFull',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.`
+  String get dnsEvidenceLimits {
+    return Intl.message(
+      'Resolver receipts describe this sample. Without a verified expected resolver baseline, they cannot prove that every DNS request is protected.',
+      name: 'dnsEvidenceLimits',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No exit mismatch observed in this ICE sample.`
+  String get iceMatching {
+    return Intl.message(
+      'No exit mismatch observed in this ICE sample.',
+      name: 'iceMatching',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to determine: no complete, comparable public ICE sample.`
+  String get iceInconclusive {
+    return Intl.message(
+      'Unable to determine: no complete, comparable public ICE sample.',
+      name: 'iceInconclusive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `ICE candidates`
+  String get iceCandidates {
+    return Intl.message(
+      'ICE candidates',
+      name: 'iceCandidates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.`
+  String get iceCandidateScope {
+    return Intl.message(
+      'host: local interface; srflx: STUN-reflected address; relay: TURN server. This tests Hotaru’s native ICE session, not external browsers. No audio or video is collected.',
+      name: 'iceCandidateScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection & speed`
+  String get toolsConnection {
+    return Intl.message(
+      'Connection & speed',
+      name: 'toolsConnection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Services & routing`
+  String get toolsServices {
+    return Intl.message(
+      'Services & routing',
+      name: 'toolsServices',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Privacy`
+  String get toolsPrivacy {
+    return Intl.message('Privacy', name: 'toolsPrivacy', desc: '', args: []);
+  }
+
+  /// `IP diagnostics`
+  String get toolsIp {
+    return Intl.message('IP diagnostics', name: 'toolsIp', desc: '', args: []);
+  }
+
+  /// `System maintenance`
+  String get toolsMaintenance {
+    return Intl.message(
+      'System maintenance',
+      name: 'toolsMaintenance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unreachable`
+  String get connectivityUnreachable {
+    return Intl.message(
+      'Unreachable',
+      name: 'connectivityUnreachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Responded`
+  String get connectivityResponded {
+    return Intl.message(
+      'Responded',
+      name: 'connectivityResponded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HTTP response received; connectivity only, not service unlock.`
+  String get connectivityScope {
+    return Intl.message(
+      'HTTP response received; connectivity only, not service unlock.',
+      name: 'connectivityScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Card width`
+  String get dashboardCardWidth {
+    return Intl.message(
+      'Card width',
+      name: 'dashboardCardWidth',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Rule`
   String get rule {
     return Intl.message('Rule', name: 'rule', desc: '', args: []);
@@ -8563,10 +8838,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.`
+  /// `This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.`
   String get webrtcLeakScope {
     return Intl.message(
-      'Native STUN deliberately probes the UDP path. Browser ICE policies, mDNS and TURN may behave differently. Private addresses alone are not a public IP leak.',
+      'This test gathers native WebRTC ICE candidates through a data channel; it does not request microphone or camera access. External browsers can use different ICE, mDNS and TURN policies. Local addresses alone do not establish a public IP leak.',
       name: 'webrtcLeakScope',
       desc: '',
       args: [],
@@ -8768,6 +9043,436 @@ class AppLocalizations {
     return Intl.message(
       'A newer start/stop request superseded TUN recovery.',
       name: 'networkRecoverySuperseded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP origin`
+  String get statusIpOrigin {
+    return Intl.message(
+      'IP origin',
+      name: 'statusIpOrigin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access`
+  String get statusAccessType {
+    return Intl.message('Access', name: 'statusAccessType', desc: '', args: []);
+  }
+
+  /// `Network quality`
+  String get statusNetworkQuality {
+    return Intl.message(
+      'Network quality',
+      name: 'statusNetworkQuality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No verified native or broadcast IP evidence.`
+  String get statusOriginUnknownReason {
+    return Intl.message(
+      'No verified native or broadcast IP evidence.',
+      name: 'statusOriginUnknownReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network quality has not been measured. Access type and IP risk flags do not establish connection quality.`
+  String get statusQualityUnknownReason {
+    return Intl.message(
+      'Network quality has not been measured. Access type and IP risk flags do not establish connection quality.',
+      name: 'statusQualityUnknownReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access classification from {source}.`
+  String statusAccessSource(Object source) {
+    return Intl.message(
+      'Access classification from $source.',
+      name: 'statusAccessSource',
+      desc: '',
+      args: [source],
+    );
+  }
+
+  /// `Access type is unverified. An absent hosting or mobile flag is not proof of residential access.`
+  String get statusAccessUnverified {
+    return Intl.message(
+      'Access type is unverified. An absent hosting or mobile flag is not proof of residential access.',
+      name: 'statusAccessUnverified',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlocked`
+  String get auditUnlocked {
+    return Intl.message('Unlocked', name: 'auditUnlocked', desc: '', args: []);
+  }
+
+  /// `Partially unlocked`
+  String get auditPartial {
+    return Intl.message(
+      'Partially unlocked',
+      name: 'auditPartial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not unlocked`
+  String get auditLocked {
+    return Intl.message(
+      'Not unlocked',
+      name: 'auditLocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unsupported region`
+  String get auditRegionUnsupported {
+    return Intl.message(
+      'Unsupported region',
+      name: 'auditRegionUnsupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verification / login required`
+  String get auditVerification {
+    return Intl.message(
+      'Verification / login required',
+      name: 'auditVerification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed / timed out`
+  String get auditRequestFailed {
+    return Intl.message(
+      'Failed / timed out',
+      name: 'auditRequestFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to determine`
+  String get auditUnknown {
+    return Intl.message(
+      'Unable to determine',
+      name: 'auditUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Results`
+  String get auditResultFilter {
+    return Intl.message(
+      'Results',
+      name: 'auditResultFilter',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.`
+  String get auditCatalogPartialEvidence {
+    return Intl.message(
+      'The sampled original title exposes playback metadata, while the licensed sample is unavailable. This does not establish the complete catalog or actual playback rights.',
+      name: 'auditCatalogPartialEvidence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.`
+  String get portraitDataScope {
+    return Intl.message(
+      'Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.',
+      name: 'portraitDataScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Providers disagree. Review the source, address and time before drawing a conclusion.`
+  String get portraitSourceConflict {
+    return Intl.message(
+      'Providers disagree. Review the source, address and time before drawing a conclusion.',
+      name: 'portraitSourceConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.`
+  String get portraitRiskNoted {
+    return Intl.message(
+      'A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.',
+      name: 'portraitRiskNoted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.`
+  String get portraitUnclear {
+    return Intl.message(
+      'Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.',
+      name: 'portraitUnclear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.`
+  String get portraitMetricsScope {
+    return Intl.message(
+      'Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.',
+      name: 'portraitMetricsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.`
+  String get portraitRoutingScope {
+    return Intl.message(
+      'Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.',
+      name: 'portraitRoutingScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.`
+  String get portraitOriginScope {
+    return Intl.message(
+      'Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.',
+      name: 'portraitOriginScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.`
+  String get portraitDnsScope {
+    return Intl.message(
+      'Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.',
+      name: 'portraitDnsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Excellent`
+  String get qualityExcellent {
+    return Intl.message(
+      'Excellent',
+      name: 'qualityExcellent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good`
+  String get qualityGood {
+    return Intl.message('Good', name: 'qualityGood', desc: '', args: []);
+  }
+
+  /// `Poor`
+  String get qualityPoor {
+    return Intl.message('Poor', name: 'qualityPoor', desc: '', args: []);
+  }
+
+  /// `Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.`
+  String get qualityScope {
+    return Intl.message(
+      'Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.',
+      name: 'qualityScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.`
+  String get qualityThresholds {
+    return Intl.message(
+      'At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.',
+      name: 'qualityThresholds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Median response time`
+  String get qualityMedian {
+    return Intl.message(
+      'Median response time',
+      name: 'qualityMedian',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed requests`
+  String get qualityFailureRate {
+    return Intl.message(
+      'Failed requests',
+      name: 'qualityFailureRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Samples expire after five minutes. A route or network change clears the result.`
+  String get qualityExpiry {
+    return Intl.message(
+      'Samples expire after five minutes. A route or network change clears the result.',
+      name: 'qualityExpiry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Android network tools`
+  String get androidNetworkTitle {
+    return Intl.message(
+      'Android network tools',
+      name: 'androidNetworkTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check VPN, system DNS and network settings`
+  String get androidNetworkSubtitle {
+    return Intl.message(
+      'Check VPN, system DNS and network settings',
+      name: 'androidNetworkSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.`
+  String get androidNetworkScope {
+    return Intl.message(
+      'Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.',
+      name: 'androidNetworkScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network status could not be read or is restricted by the system. Refresh or inspect the system settings.`
+  String get androidNetworkUnavailable {
+    return Intl.message(
+      'Network status could not be read or is restricted by the system. Refresh or inspect the system settings.',
+      name: 'androidNetworkUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System VPN on default network`
+  String get androidSystemVpn {
+    return Intl.message(
+      'System VPN on default network',
+      name: 'androidSystemVpn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Android validated this network`
+  String get androidNetworkValidated {
+    return Intl.message(
+      'Android validated this network',
+      name: 'androidNetworkValidated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network login required`
+  String get androidCaptivePortal {
+    return Intl.message(
+      'Network login required',
+      name: 'androidCaptivePortal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Metered connection`
+  String get androidMetered {
+    return Intl.message(
+      'Metered connection',
+      name: 'androidMetered',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System Private DNS`
+  String get androidPrivateDns {
+    return Intl.message(
+      'System Private DNS',
+      name: 'androidPrivateDns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System DNS servers`
+  String get androidDnsServers {
+    return Intl.message(
+      'System DNS servers',
+      name: 'androidDnsServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wi-Fi settings`
+  String get androidWifiSettings {
+    return Intl.message(
+      'Wi-Fi settings',
+      name: 'androidWifiSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `App settings`
+  String get androidAppSettings {
+    return Intl.message(
+      'App settings',
+      name: 'androidAppSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This settings page is unavailable on this device.`
+  String get androidSettingsUnavailable {
+    return Intl.message(
+      'This settings page is unavailable on this device.',
+      name: 'androidSettingsUnavailable',
       desc: '',
       args: [],
     );

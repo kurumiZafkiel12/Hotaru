@@ -217,18 +217,20 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m79(label) => "«${label}» — только одно значение";
 
-  static String m80(value) => "Пик ${value}";
+  static String m80(source) => "Источник типа доступа: ${source}.";
 
-  static String m81(value) => "Всего ${value}";
+  static String m81(value) => "Пик ${value}";
 
-  static String m82(transport) => "Заголовки ${transport}";
+  static String m82(value) => "Всего ${value}";
 
-  static String m83(label) => "Значение «${label}» должно быть URL";
+  static String m83(transport) => "Заголовки ${transport}";
 
-  static String m84(count) =>
-      "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
+  static String m84(label) => "Значение «${label}» должно быть URL";
 
   static String m85(count) =>
+      "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
+
+  static String m86(count) =>
       "${Intl.plural(count, one: '${count} г. назад', few: '${count} г. назад', many: '${count} л. назад', other: '${count} г. назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -323,6 +325,45 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("Разрешить LAN"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("Разрешённые IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки приложения",
+    ),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "Требуется вход в сеть",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage(
+      "Системные DNS-серверы",
+    ),
+    "androidMetered": MessageLookupByLibrary.simpleMessage(
+      "Лимитное подключение",
+    ),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "Показывает сеть по умолчанию и её системный DNS. Они могут отличаться от DNS Hotaru и других приложений. Настройка не доказывает отсутствие утечек. Изменения выполняются в системных настройках.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN, системный DNS и настройки сети",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Сетевые инструменты Android",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Состояние сети недоступно или ограничено системой. Обновите данные или откройте настройки.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Сеть проверена Android",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage(
+      "Системный частный DNS",
+    ),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Эта страница настроек недоступна на устройстве.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "Системный VPN сети по умолчанию",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки Wi-Fi",
+    ),
     "answers": MessageLookupByLibrary.simpleMessage("Ответы"),
     "app": MessageLookupByLibrary.simpleMessage("Приложение"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(
@@ -342,6 +383,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditAI": MessageLookupByLibrary.simpleMessage("ИИ и модели"),
     "auditAuthentication": MessageLookupByLibrary.simpleMessage(
       "Требуется авторизация",
+    ),
+    "auditCatalogPartialEvidence": MessageLookupByLibrary.simpleMessage(
+      "У проверенного оригинального произведения есть метаданные воспроизведения, а лицензионный образец недоступен. Это не подтверждает весь каталог или реальные права на просмотр.",
     ),
     "auditChallenge": MessageLookupByLibrary.simpleMessage(
       "Проверка защиты от ботов",
@@ -363,14 +407,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Недостаточно данных",
     ),
+    "auditLocked": MessageLookupByLibrary.simpleMessage("Не разблокировано"),
     "auditMedia": MessageLookupByLibrary.simpleMessage("Зарубежные медиа"),
     "auditMediaHint": MessageLookupByLibrary.simpleMessage(
       "Результат страницы или регионального API. Веб-ответ не доказывает воспроизведение по лицензии, соответствие домашнему IP или наличие подписки.",
+    ),
+    "auditPartial": MessageLookupByLibrary.simpleMessage(
+      "Частично разблокировано",
     ),
     "auditReachable": MessageLookupByLibrary.simpleMessage(
       "Доступен · снятие ограничений не подтверждено",
     ),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Подключены"),
+    "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
+      "Регион не поддерживается",
+    ),
+    "auditRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "Ошибка / тайм-аут",
+    ),
+    "auditResultFilter": MessageLookupByLibrary.simpleMessage("Результаты"),
     "auditRouteMissing": MessageLookupByLibrary.simpleMessage(
       "Успешная цепочка подключения не обнаружена",
     ),
@@ -392,6 +447,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "auditTitle": MessageLookupByLibrary.simpleMessage(
       "Проверка сервисов и маршрутов",
+    ),
+    "auditUnknown": MessageLookupByLibrary.simpleMessage("Не определено"),
+    "auditUnlocked": MessageLookupByLibrary.simpleMessage("Разблокировано"),
+    "auditVerification": MessageLookupByLibrary.simpleMessage(
+      "Проверка / вход в аккаунт",
     ),
     "authentication": MessageLookupByLibrary.simpleMessage("Аутентификация"),
     "authenticationDesc": MessageLookupByLibrary.simpleMessage(
@@ -585,6 +645,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Соединения"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Подключение: "),
+    "connectivityResponded": MessageLookupByLibrary.simpleMessage(
+      "Ответ получен",
+    ),
+    "connectivityScope": MessageLookupByLibrary.simpleMessage(
+      "Получен HTTP-ответ. Проверяется соединение, а не разблокировка сервиса.",
+    ),
+    "connectivityUnreachable": MessageLookupByLibrary.simpleMessage(
+      "Недоступен",
+    ),
     "content": MessageLookupByLibrary.simpleMessage("Содержимое"),
     "contentNotEmpty": MessageLookupByLibrary.simpleMessage(
       "Содержимое не может быть пустым",
@@ -647,6 +716,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dashboardAddableSection": MessageLookupByLibrary.simpleMessage(
       "Можно добавить",
     ),
+    "dashboardCardWidth": MessageLookupByLibrary.simpleMessage(
+      "Ширина карточки",
+    ),
     "dashboardResizeCard": MessageLookupByLibrary.simpleMessage(
       "Изменить размер карточки",
     ),
@@ -701,18 +773,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "diagnosticsCompleted": MessageLookupByLibrary.simpleMessage(
       "Тест завершён; изучите наблюдения",
     ),
+    "diagnosticsConclusion": MessageLookupByLibrary.simpleMessage("Вывод"),
     "diagnosticsDohScope": MessageLookupByLibrary.simpleMessage(
       "Включает переопределение DNS приложения на Cloudflare и Google DoH. После применения проверьте особые требования DNS профиля.",
     ),
     "diagnosticsFailed": MessageLookupByLibrary.simpleMessage(
       "Тест не выполнен; см. наблюдения",
     ),
+    "diagnosticsFull": MessageLookupByLibrary.simpleMessage(
+      "Полный · 16 запросов",
+    ),
+    "diagnosticsInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно данных",
+    ),
     "diagnosticsNeedCore": MessageLookupByLibrary.simpleMessage(
       "Перед проверкой маршрута запустите Hotaru с профилем.",
+    ),
+    "diagnosticsNoMismatch": MessageLookupByLibrary.simpleMessage(
+      "В выборке расхождений нет",
+    ),
+    "diagnosticsQuick": MessageLookupByLibrary.simpleMessage(
+      "Быстро · 4 запроса",
     ),
     "diagnosticsRawEvidence": MessageLookupByLibrary.simpleMessage(
       "Наблюдаемые данные",
     ),
+    "diagnosticsRisk": MessageLookupByLibrary.simpleMessage("Возможный риск"),
     "dialerProxy": MessageLookupByLibrary.simpleMessage(
       "Прокси для подключения",
     ),
@@ -830,6 +916,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Доступна новая версия",
     ),
     "dnsCacheCleared": MessageLookupByLibrary.simpleMessage("Кэш DNS очищен"),
+    "dnsEvidenceLimits": MessageLookupByLibrary.simpleMessage(
+      "Ответы описывают только эту выборку. Без проверенного списка ожидаемых DNS-резолверов нельзя подтвердить защиту всех запросов.",
+    ),
     "dnsHijackDesc": MessageLookupByLibrary.simpleMessage(
       "Без этого параметра TUN перехватывает все DNS-запросы на порт 53 (any:53).",
     ),
@@ -1042,6 +1131,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "hoursAgo": m36,
     "hoursAgoShort": m37,
     "hue": MessageLookupByLibrary.simpleMessage("Оттенок"),
+    "iceCandidateScope": MessageLookupByLibrary.simpleMessage(
+      "host — локальный адрес; srflx — STUN; relay — TURN. Проверяется нативный ICE Hotaru, а не внешние браузеры. Аудио и видео не собираются.",
+    ),
+    "iceCandidates": MessageLookupByLibrary.simpleMessage("ICE-кандидаты"),
+    "iceInconclusive": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно полных публичных ICE-данных для сравнения.",
+    ),
+    "iceMatching": MessageLookupByLibrary.simpleMessage(
+      "В этом ICE-тесте расхождений выхода не обнаружено.",
+    ),
     "icon": MessageLookupByLibrary.simpleMessage("Значок"),
     "iconRecords": MessageLookupByLibrary.simpleMessage("История значков"),
     "iconSets": MessageLookupByLibrary.simpleMessage("Наборы значков"),
@@ -1429,6 +1528,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "Ничего не найдено",
     ),
+    "nodeGeoCheckAll": MessageLookupByLibrary.simpleMessage(
+      "Проверить все узлы",
+    ),
+    "nodeGeoDetails": MessageLookupByLibrary.simpleMessage("Данные геолокации"),
+    "nodeGeoEmpty": MessageLookupByLibrary.simpleMessage(
+      "Запустите ядро и обновите список.",
+    ),
+    "nodeGeoEntry": MessageLookupByLibrary.simpleMessage(
+      "Входной сервер · системный DNS",
+    ),
+    "nodeGeoEstimate": MessageLookupByLibrary.simpleMessage(
+      "Приблизительная GeoIP-геолокация GeoJS, не адрес. Карта: Natural Earth, общественное достояние.",
+    ),
+    "nodeGeoScope": MessageLookupByLibrary.simpleMessage(
+      "Проверка выхода каждого узла. Системные DNS-адреса входа и наблюдаемый выход показаны отдельно. Кэш 15 минут.",
+    ),
+    "nodeGeoSearch": MessageLookupByLibrary.simpleMessage(
+      "Поиск узла, IP или места",
+    ),
+    "nodeGeoSource": MessageLookupByLibrary.simpleMessage("Источник"),
+    "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
+      "Положение узлов · глобус",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Этот внешний ресурс не является текстовым файлом",
@@ -1519,6 +1641,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Перескок портов"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Выходы IPv4 и IPv6 проверяются отдельно. Только эти публичные IP передаются GeoJS, IPQuery и ipapi.is. Данные аккаунтов и отпечатки браузера не собираются.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Быстрая проверка: четыре случайных домена через системный DNS процесса и записи bash.ws. Без записей или известного ожидаемого резолвера данных недостаточно. Другие приложения и браузеры не проверяются.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Исходные показатели сохраняют источник и время. Разные шкалы не смешиваются и не усредняются.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Домашний доступ не доказывает нативность IP. Эти источники не подтверждают такое происхождение.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "Поставщик сообщает о рисках. Его классификация не означает повсеместную блокировку и не оценивает качество связи.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Правила и узлы относятся к реальным запросам. Внешний IP сайта неизвестен, если сам сайт его не сообщает.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Источники расходятся. Сравните поставщика, адрес и время проверки.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно данных. Доступность IP или отсутствие признака не доказывает отсутствие рисков и утечек.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Порты"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Общий ключ"),
     "preferred": MessageLookupByLibrary.simpleMessage("Предпочтительный"),
@@ -1601,6 +1747,24 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "Ссылка слишком длинная для QR-кода. Используйте «Копировать ссылку».",
+    ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("Отличное"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "Результат действует пять минут и сбрасывается при изменении маршрута или сети.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage(
+      "Неудачные запросы",
+    ),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("Хорошее"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage(
+      "Медиана времени ответа",
+    ),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("Плохое"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "Вручную отправляет шесть HTTPS-запросов одной цели по текущим правилам. Не измеряет скорость, репутацию IP или все сайты. Сбой запроса не равен потере ICMP.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "Нужны три ответа и неизменная цепочка узлов. Отличное: шесть ответов, медиана ≤150 мс и колебания ≤30 мс. Плохое: более одного сбоя, медиана >400 мс или колебания >80 мс. Иначе хорошее. Колебание — среднее абсолютное изменение соседних корректных времен ответа.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Быстрые действия"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Быстрое редактирование"),
@@ -2028,8 +2192,23 @@ class MessageLookup extends MessageLookupByLibrary {
       "Запуск и фоновая работа",
     ),
     "status": MessageLookupByLibrary.simpleMessage("Статус"),
+    "statusAccessSource": m80,
+    "statusAccessType": MessageLookupByLibrary.simpleMessage("Доступ"),
+    "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
+      "Тип доступа не подтверждён. Отсутствие признаков хостинга или мобильной сети не доказывает домашнее подключение.",
+    ),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
       "При отключённом DNS используется системный DNS.",
+    ),
+    "statusIpOrigin": MessageLookupByLibrary.simpleMessage("Тип IP"),
+    "statusNetworkQuality": MessageLookupByLibrary.simpleMessage(
+      "Качество сети",
+    ),
+    "statusOriginUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "Нет проверенных данных о нативном или анонсируемом IP.",
+    ),
+    "statusQualityUnknownReason": MessageLookupByLibrary.simpleMessage(
+      "Качество сети не измерено. Тип доступа и признаки риска IP не определяют качество соединения.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Стоп"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Остановка VPN…"),
@@ -2086,6 +2265,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Переключить"),
     "tolerance": MessageLookupByLibrary.simpleMessage("Допуск"),
     "tools": MessageLookupByLibrary.simpleMessage("Инструменты"),
+    "toolsConnection": MessageLookupByLibrary.simpleMessage(
+      "Соединение и скорость",
+    ),
+    "toolsIp": MessageLookupByLibrary.simpleMessage("Диагностика IP"),
+    "toolsMaintenance": MessageLookupByLibrary.simpleMessage(
+      "Обслуживание системы",
+    ),
+    "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Конфиденциальность"),
+    "toolsServices": MessageLookupByLibrary.simpleMessage("Сервисы и маршруты"),
     "torch": MessageLookupByLibrary.simpleMessage("Фонарик"),
     "total": MessageLookupByLibrary.simpleMessage("Всего"),
     "totalDownload": MessageLookupByLibrary.simpleMessage("Загружено"),
@@ -2093,11 +2281,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Отдано"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Порт TProxy"),
     "traffic": MessageLookupByLibrary.simpleMessage("Трафик"),
-    "trafficPeak": m80,
-    "trafficTotal": m81,
+    "trafficPeak": m81,
+    "trafficTotal": m82,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Статистика трафика"),
     "transport": MessageLookupByLibrary.simpleMessage("Транспорт"),
-    "transportHeaders": m82,
+    "transportHeaders": m83,
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось получить права для TUN, поэтому он выключен.",
@@ -2131,7 +2319,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Отдача"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("Скорость отдачи"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m83,
+    "urlTip": m84,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системный hosts",
@@ -2168,7 +2356,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Публичный STUN-адрес отличается от выхода прокси. Проверьте UDP и политику WebRTC браузера. IPv4 и IPv6 нужно проверять отдельно.",
     ),
     "webrtcLeakScope": MessageLookupByLibrary.simpleMessage(
-      "Нативный STUN проверяет UDP-маршрут. ICE, mDNS и TURN браузера могут работать иначе. Локальный адрес сам по себе не означает утечку публичного IP.",
+      "Тест собирает нативные ICE-кандидаты WebRTC через канал данных, без доступа к микрофону и камере. Во внешних браузерах политики ICE, mDNS и TURN могут отличаться. Локальный адрес сам по себе не доказывает утечку публичного IP.",
     ),
     "webrtcLeakSubtitle": MessageLookupByLibrary.simpleMessage(
       "Сравнение отражённого UDP-адреса с выходом прокси",
@@ -2185,8 +2373,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "«Записывать в систему» также устанавливает системные часы; Android это игнорирует.",
     ),
-    "yearsAgo": m84,
-    "yearsAgoShort": m85,
+    "yearsAgo": m85,
+    "yearsAgoShort": m86,
     "yes": MessageLookupByLibrary.simpleMessage("Да"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Упрощённый китайский"),
   };

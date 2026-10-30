@@ -27,6 +27,14 @@ on:
         type: string
   workflow_dispatch:
     inputs:
+      include_android:
+        description: 'Build Windows and Android together'
+        default: false
+        type: boolean
+      draft_release:
+        description: 'Stage packages privately until validation completes'
+        default: true
+        type: boolean
       release_version:
         description: 'Optional Windows x64 release version (for example 0.0.2); leave empty for checks'
         required: false
@@ -195,11 +203,58 @@ jobs:
       # Compiles the desktop runners and the native plugin code that only the
       # tagged release matrix built before; the bundle itself is discarded.
       - name: Build debug bundle
-        run: flutter build ${{ matrix.platform }} --debug
+        shell: bash
+        run: |
+          set -o pipefail
+          if [ "${{ matrix.platform }}" = windows ]; then
+            flutter build windows --debug --dart-define=SAFE_MODE=true 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+          else
+            flutter build ${{ matrix.platform }} --debug 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+          fi
+
+      - name: Report native compilation failure
+        if: failure()
+        run: python tool/summarize_native_failure.py "${{ runner.temp }}/hotaru-native-build.log"
 
       - name: Verify Windows recovery against the registry
         if: matrix.platform == 'windows'
         run: flutter test test/common/network_diagnostics_windows_test.dart
+
+      - name: Verify node bandwidth routing on Windows
+        if: matrix.platform == 'windows'
+        working-directory: apps/hotaru/core
+        shell: bash
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          set -o pipefail
+          go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed|TestProviderOnlyNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
+
+      - name: Capture actual Windows UI in safe mode
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: ./tool/capture_windows_safe_ui.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'windows'
+        with:
+          name: windows-safe-ui
+          path: apps/hotaru/native-ui/windows/
+
+      - name: Build safe native ICE harness
+        if: matrix.platform == 'windows'
+        run: flutter build windows --debug --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+
+      - name: Verify native ICE on Windows
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: ./tool/verify_native_ice_windows.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'windows'
+        with:
+          name: windows-native-ice
+          path: apps/hotaru/native-ice/windows/
 
   go:
     name: Go core
@@ -296,6 +351,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
+          set -o pipefail
           {
             echo "flutter.sdk=$FLUTTER_ROOT"
             echo "sdk.dir=$ANDROID_HOME"
@@ -308,7 +364,12 @@ jobs:
           # the gomobile AAR, so one ABI of it is built.
           ./gradlew :common:testDebugUnitTest :service:testDebugUnitTest :app:testDebugUnitTest \
             -Ptarget-platform=android-arm64 \
-            -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug
+            -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug \
+            2>&1 | tee "$RUNNER_TEMP/hotaru-android-unit.log"
+
+      - name: Report Android verification failure
+        if: failure()
+        run: python3 tool/summarize_native_failure.py "$RUNNER_TEMP/hotaru-android-unit.log"
 
   rust:
     name: Rust
@@ -526,7 +587,8 @@ jobs:
           IS_STABLE: ${{ env.IS_STABLE }}
           TAG: ${{ env.RELEASE_TAG }}
         run: |
-          release_notes="docs/RELEASE-${TAG#v}.md"
+          public_version=$(printf '%s' "${TAG#v}" | sed -E 's/-pre\.[0-9]+$//')
+          release_notes="docs/RELEASE-${public_version}.md"
           if [[ -f "$release_notes" ]]; then
             cp "$release_notes" release.md
             exit 0

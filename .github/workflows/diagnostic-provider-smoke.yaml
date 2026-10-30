@@ -1,0 +1,31 @@
+name: Diagnostic provider survey
+
+on:
+  push:
+    branches: ['codex/v005-from-v004']
+    paths:
+      - '.github/workflows/diagnostic-provider-smoke.yaml'
+      - 'apps/hotaru/tool/diagnostic_provider_smoke.py'
+      - 'apps/hotaru/lib/common/dns_leak.dart'
+      - 'apps/hotaru/lib/common/ip_portrait.dart'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  survey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Observe public providers from the runner network
+        run: python apps/hotaru/tool/diagnostic_provider_smoke.py "$RUNNER_TEMP/providers.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-provider-observations
+          path: ${{ runner.temp }}/providers.json
+          retention-days: 14

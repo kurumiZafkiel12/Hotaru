@@ -32,6 +32,7 @@ import dev.hotaru.hotaru.common.quickIntent
 import dev.hotaru.hotaru.common.registerReceiverCompat
 import dev.hotaru.hotaru.common.shortcutId
 import dev.hotaru.hotaru.getPackageIconPath
+import dev.hotaru.hotaru.network.NetworkDiagnostics
 import dev.hotaru.hotaru.packages.PackageResolver
 import dev.hotaru.hotaru.showToast
 import com.google.gson.Gson
@@ -201,6 +202,15 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
             "openAppSettings" -> {
                 result.success(openAppSettings())
+            }
+
+            "networkSnapshot" -> reply(result) {
+                NetworkDiagnostics.snapshot(GlobalState.application)
+            }
+
+            "openNetworkSettings" -> {
+                val page = call.argument<String>("page")
+                result.success(if (page == "application") openAppSettings() else NetworkDiagnostics.openSettings(activity, page))
             }
 
             "getLastExitInfo" -> reply(result) {

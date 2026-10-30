@@ -346,11 +346,14 @@ void main() {
         of: find.byType(ThemeLivePreview),
         matching: find.byType(type),
       );
-      int selected() =>
-          tester.widget<MiniScreen>(inPreview(MiniScreen)).selected;
+      int selected() => tester
+          .widget<FloatingNavigationBar>(inPreview(FloatingNavigationBar))
+          .selectedIndex;
 
       for (final destination in [2, 1]) {
-        await tester.tap(inPreview(GestureDetector).at(destination));
+        tester
+            .widget<FloatingNavigationBar>(inPreview(FloatingNavigationBar))
+            .onSelected(destination);
         await tester.pumpAndSettle();
         expect(selected(), destination);
       }

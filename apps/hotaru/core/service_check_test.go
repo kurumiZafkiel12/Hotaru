@@ -1,8 +1,10 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -367,24 +369,6 @@ func TestHandleServiceCheckCancelsTheOlderCheckOfTheSameService(t *testing.T) {
 	}
 }
 
-func TestStatusFromCode(t *testing.T) {
-	cases := map[int]string{
-		http.StatusOK:                         serviceAvailable,
-		http.StatusNoContent:                  serviceAvailable,
-		http.StatusUnauthorized:               serviceRestricted,
-		http.StatusForbidden:                  serviceRestricted,
-		http.StatusTooManyRequests:            serviceRestricted,
-		http.StatusUnavailableForLegalReasons: serviceRestricted,
-		http.StatusNotFound:                   serviceUnavailable,
-		http.StatusInternalServerError:        serviceUnavailable,
-	}
-	for code, want := range cases {
-		if got := statusFromCode(code); got != want {
-			t.Errorf("statusFromCode(%d) = %q, want %q", code, got, want)
-		}
-	}
-}
-
 func TestItemFromMapsTransportErrors(t *testing.T) {
 	timedOut := itemFrom(&ProbeResult{Error: probeErrorTimeout, Delay: 900})
 	if timedOut.Status != serviceTimeout {
@@ -412,5 +396,29 @@ func TestTraceValue(t *testing.T) {
 	}
 	if got := traceValue(body, "colo"); got != "" {
 		t.Errorf("colo = %q, want empty", got)
+	}
+}
+
+func TestConnectivityDoesNotInterpretHTTPAsUnlock(t *testing.T) {
+	withProbeProxies(t, "DIRECT")
+	for _, code := range []int{204, 401, 403, 429, 503} {
+		t.Run(fmt.Sprint(code), func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(code) }))
+			defer server.Close()
+			item := checkConnectivity(server.URL)(serviceEnv{ctx: context.Background(), proxyName: "DIRECT", timeout: time.Second})
+			if item.Status != serviceReachable {
+				t.Fatalf("HTTP %d connectivity = %s", code, item.Status)
+			}
+		})
+	}
+}
+
+func TestConnectivityClaimsDoNotCancelUnlockChecks(t *testing.T) {
+	home, releaseHome := claimServices(context.Background(), connectivityCheckers([]string{"google"}))
+	defer releaseHome()
+	audit, releaseAudit := claimServices(context.Background(), []serviceChecker{{name: "google"}})
+	defer releaseAudit()
+	if home[0].Err() != nil || audit[0].Err() != nil {
+		t.Fatal("home and audit cancelled each other")
 	}
 }

@@ -1,11 +1,23 @@
 # Surfaces
 
-Hotaru 0.0.4 follows the user's 2026-10-27 redesign: cold slate surfaces and
-mint accents in `hotaruColorScheme`, with a neutral 6% one-dp outline on
-`CommonCard` and `DashboardCard`. This explicitly supersedes the upstream
-no-card-outline guidance below. Focus still takes its stronger two-dp ring;
-status color stays on text and small marks. Keep the shared surface levels,
-superellipse shapes, reduced-motion behavior and light-mode contrast.
+Hotaru 0.0.5 is being rebuilt from the maintained 0.0.4 baseline, as explicitly
+required on 2026-10-28. Do not use the rejected Muse 0.0.5 branch as the
+implementation baseline. Use the new deep-green palette, shared surface
+levels and superellipse shapes. Retain the neutral six-percent card outlines,
+superseding the upstream no-outline guidance below. Use 12-dp desktop gaps,
+insets and card radii. Windows card heights are strictly 122, 160
+or 198 logical pixels: text scaling may change the column layout but must
+not multiply these heights. Android uses its own content and touch metrics.
+Desktop uses compact typography (page title 20, body 15, secondary 13),
+a 56-dp page bar, and a 144-dp sidebar with 36-dp rows. Keep Android touch
+metrics and system text scaling independent. Cap the complete desktop dashboard,
+including its title bar and editor, at the column width budget: 200-dp columns,
+860-dp four-column page or 436-dp two-column page at normal text size. Permit
+width allowances to grow with accessibility text scaling, never card heights.
+Four columns start at 760 dp of available normal-text room. New desktop windows
+default to 1024 by 760; retain explicitly saved window geometry.
+Theme modes, pure black and configurable accents remain required; a fixed
+brand palette must not silently disable the appearance settings.
 
 FlClash draws structure with fills and keeps color for state. A surface stands out from what it sits on by a step in
 lightness, never by a border. Color appears where something is selected, on, failing, or the one action a screen is

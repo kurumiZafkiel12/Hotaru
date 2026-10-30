@@ -48,6 +48,7 @@ class NavigationSidebar extends StatefulWidget {
     this.onToggle,
     this.windowControls = Size.zero,
     this.brandTitle,
+    this.dense = false,
     this.footerDestination,
     this.footerSelected = false,
     this.onFooterTap,
@@ -60,6 +61,7 @@ class NavigationSidebar extends StatefulWidget {
   final VoidCallback? onToggle;
   final Size windowControls;
   final String? brandTitle;
+  final bool dense;
 
   /// Pinned below the scrolling destinations, outside their selection.
   final SidebarDestination? footerDestination;
@@ -123,65 +125,87 @@ class _NavigationSidebarState extends State<NavigationSidebar>
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.paddingOf(context);
-    return OverlayPortal.overlayChildLayoutBuilder(
-      controller: _overlayController,
-      overlayChildBuilder: (context, info) {
-        return _SidebarOverlay(
-          anchor: MatrixUtils.transformRect(
-            info.childPaintTransform,
-            Offset.zero & info.childSize,
-          ),
-          overlayWidth: info.overlaySize.width,
-          progress: _overlayProgress,
-          onDismiss: _closeOverlay,
-          builder: (progress) => Padding(
-            padding: safePadding,
-            child: _SidebarPane(
+    return _SidebarDensity(
+      dense: widget.dense,
+      child: OverlayPortal.overlayChildLayoutBuilder(
+        controller: _overlayController,
+        overlayChildBuilder: (context, info) {
+          return _SidebarOverlay(
+            anchor: MatrixUtils.transformRect(
+              info.childPaintTransform,
+              Offset.zero & info.childSize,
+            ),
+            overlayWidth: info.overlaySize.width,
+            progress: _overlayProgress,
+            onDismiss: _closeOverlay,
+            builder: (progress) => Padding(
+              padding: safePadding,
+              child: _SidebarPane(
+                progress: progress,
+                brandTitle: widget.brandTitle,
+                windowControls: widget.windowControls,
+                expanded: true,
+                destinations: widget.destinations,
+                selectedIndex: widget.selectedIndex,
+                onSelected: (index) {
+                  widget.onSelected(index);
+                  _closeOverlay();
+                },
+                onToggle: _closeOverlay,
+                footerDestination: widget.footerDestination,
+                footerSelected: widget.footerSelected,
+                onFooterTap: widget.onFooterTap == null
+                    ? null
+                    : () {
+                        widget.onFooterTap!();
+                        _closeOverlay();
+                      },
+              ),
+            ),
+          );
+        },
+        child: SafeArea(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: widget.expanded ? 1.0 : 0.0),
+            duration: _expandDuration,
+            curve: Easing.standard,
+            builder: (context, progress, _) => _SidebarPane(
               progress: progress,
               brandTitle: widget.brandTitle,
               windowControls: widget.windowControls,
-              expanded: true,
+              expanded: widget.expanded,
               destinations: widget.destinations,
               selectedIndex: widget.selectedIndex,
-              onSelected: (index) {
-                widget.onSelected(index);
-                _closeOverlay();
-              },
-              onToggle: _closeOverlay,
+              onSelected: widget.onSelected,
+              onToggle: _handleToggle,
               footerDestination: widget.footerDestination,
               footerSelected: widget.footerSelected,
-              onFooterTap: widget.onFooterTap == null
-                  ? null
-                  : () {
-                      widget.onFooterTap!();
-                      _closeOverlay();
-                    },
+              onFooterTap: widget.onFooterTap,
             ),
-          ),
-        );
-      },
-      child: SafeArea(
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(end: widget.expanded ? 1.0 : 0.0),
-          duration: _expandDuration,
-          curve: Easing.standard,
-          builder: (context, progress, _) => _SidebarPane(
-            progress: progress,
-            brandTitle: widget.brandTitle,
-            windowControls: widget.windowControls,
-            expanded: widget.expanded,
-            destinations: widget.destinations,
-            selectedIndex: widget.selectedIndex,
-            onSelected: widget.onSelected,
-            onToggle: _handleToggle,
-            footerDestination: widget.footerDestination,
-            footerSelected: widget.footerSelected,
-            onFooterTap: widget.onFooterTap,
           ),
         ),
       ),
     );
   }
+}
+
+class _SidebarDensity extends InheritedWidget {
+  const _SidebarDensity({required this.dense, required super.child});
+
+  final bool dense;
+
+  static _SidebarDensity of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_SidebarDensity>()!;
+
+  double get width => dense ? 144 : _expandedWidth;
+  double get item => dense ? 36 : _itemSize;
+  double get gap => dense ? 4 : _itemGap;
+  double get icon => dense ? 20 : _iconSize;
+  double get labelGap => dense ? 8 : _labelGap;
+
+  @override
+  bool updateShouldNotify(_SidebarDensity oldWidget) =>
+      dense != oldWidget.dense;
 }
 
 class _SidebarOverlay extends StatelessWidget {
@@ -301,20 +325,27 @@ class _SidebarPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final density = _SidebarDensity.of(context);
     final colors = _SidebarColors(context.colorScheme);
     final fontSize = AppTextStyle.subheadline.size;
     final labelOpacity = ((progress - 0.4) / 0.6).clamp(0.0, 1.0);
     final compactWidth = math.max(_compactWidth, windowControls.width);
-    final sideInset = math.min(_maxSideInset, (compactWidth - _itemSize) / 2);
+    final sideInset = math.min(
+      _maxSideInset,
+      (compactWidth - density.item) / 2,
+    );
     final itemWidth = compactWidth - sideInset * 2;
-    final iconInset = (itemWidth - _iconSize) / 2;
+    final iconInset = (itemWidth - density.icon) / 2;
     final itemHeight =
-        _itemSize + MediaQuery.textScalerOf(context).scale(fontSize) - fontSize;
-    final rowWidth = _expandedWidth - sideInset * 2;
+        density.item +
+        MediaQuery.textScalerOf(context).scale(fontSize) -
+        fontSize;
+    final rowWidth = density.width - sideInset * 2;
     final labelStyle = AppTextStyle.subheadline
         .of(context)
         .copyWith(color: colors.label);
-    final labelWidth = rowWidth - iconInset - _iconSize - _labelGap * 2;
+    final labelWidth =
+        rowWidth - iconInset - density.icon - density.labelGap * 2;
     String rowTooltip(String label) =>
         expanded &&
             progress == 1 &&
@@ -322,7 +353,7 @@ class _SidebarPane extends StatelessWidget {
         ? ''
         : label;
     return SizedBox(
-      width: lerpDouble(compactWidth, _expandedWidth, progress),
+      width: lerpDouble(compactWidth, density.width, progress),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -347,7 +378,12 @@ class _SidebarPane extends StatelessWidget {
           const SizedBox(height: _toggleGap),
           if (brandTitle case final title?)
             Padding(
-              padding: EdgeInsets.fromLTRB(sideInset, 8, sideInset, 14),
+              padding: EdgeInsets.fromLTRB(
+                sideInset,
+                density.dense ? 4 : 8,
+                sideInset,
+                density.dense ? 8 : 14,
+              ),
               child: SizedBox(
                 height: itemHeight,
                 child: ClipRect(
@@ -367,7 +403,7 @@ class _SidebarPane extends StatelessWidget {
                                 .copyWith(color: colors.indicator),
                           ),
                         ),
-                        const SizedBox(width: _labelGap),
+                        SizedBox(width: density.labelGap),
                         Opacity(
                           opacity: labelOpacity,
                           child: Text(
@@ -417,7 +453,7 @@ class _SidebarPane extends StatelessWidget {
                         color: colors.indicator,
                         index: selectedIndex,
                         start: sideInset,
-                        stride: itemHeight + _itemGap,
+                        stride: itemHeight + density.gap,
                       ),
                   ],
                 ),
@@ -476,7 +512,7 @@ class _SidebarButton extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: sideInset,
-        vertical: _itemGap / 2,
+        vertical: _SidebarDensity.of(context).gap / 2,
       ),
       child: Semantics(
         container: true,
@@ -498,7 +534,7 @@ class _SidebarButton extends StatelessWidget {
                 excludeFromSemantics: !tooltipIsLabel,
                 child: IconTheme.merge(
                   data: IconThemeData(
-                    size: _iconSize,
+                    size: _SidebarDensity.of(context).icon,
                     color: selected == true ? colors.indicator : colors.icon,
                   ),
                   child: SizedBox(height: height, child: child),
@@ -560,7 +596,7 @@ class _DestinationRow extends StatelessWidget {
           children: [
             SizedBox(width: iconInset),
             AnimatedGlyph(glyph: destination.glyph, filled: selected),
-            const SizedBox(width: _labelGap),
+            SizedBox(width: _SidebarDensity.of(context).labelGap),
             Expanded(
               child: Opacity(
                 opacity: labelOpacity,
@@ -576,7 +612,7 @@ class _DestinationRow extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: _labelGap),
+            SizedBox(width: _SidebarDensity.of(context).labelGap),
           ],
         ),
       ),

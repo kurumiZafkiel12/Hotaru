@@ -1,5 +1,6 @@
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/providers/app.dart';
+import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/views/dashboard/layout.dart';
 import 'package:hotaru/views/dashboard/style.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -38,7 +39,10 @@ class _ConnectionStatsCardState extends ConsumerState<ConnectionStatsCard>
     return DashboardCard(
       semanticLabel: context.appLocalizations.connectionStats,
       padding: const EdgeInsets.all(_inset),
-      child: Row(
+      child: Flex(
+        direction: DashboardDensityScope.of(context).isDesktop
+            ? Axis.vertical
+            : Axis.horizontal,
         children: [
           _Stat(
             feed: DashboardFeed.connections,
@@ -82,7 +86,9 @@ class _Count extends StatelessWidget {
       maxLines: 1,
       style: DashboardText.figure(
         context,
-        AppTextStyle.title2,
+        DashboardDensityScope.of(context).isDesktop
+            ? AppTextStyle.headline
+            : AppTextStyle.title2,
       ).copyWith(letterSpacing: 0),
     );
   }
@@ -97,6 +103,16 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final desktop = DashboardDensityScope.of(context).isDesktop;
+    final label = Tooltip(
+      message: feed.page.label,
+      child: Text(
+        feed.page.label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: DashboardText.label(context),
+      ),
+    );
     return Expanded(
       child: Semantics(
         button: true,
@@ -108,20 +124,28 @@ class _Stat extends StatelessWidget {
             hoverColor: DashboardColors.of(context).tone,
             onTap: () => openDashboardFeed(context, feed),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 2,
-                children: [
-                  count,
-                  Text(
-                    feed.page.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: DashboardText.label(context),
-                  ),
-                ],
+              padding: EdgeInsets.symmetric(
+                horizontal: desktop ? 4 : 0,
+                vertical: desktop ? 2 : 10,
               ),
+              child: desktop
+                  ? Row(
+                      spacing: 8,
+                      children: [
+                        Expanded(child: label),
+                        count,
+                        GlyphIcon(
+                          AppGlyphs.chevronForward,
+                          size: 14,
+                          color: context.colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 2,
+                      children: [count, label],
+                    ),
             ),
           ),
         ),

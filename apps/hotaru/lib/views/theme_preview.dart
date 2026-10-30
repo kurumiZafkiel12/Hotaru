@@ -2,9 +2,12 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:hotaru/enum/enum.dart';
+import 'package:hotaru/common/common.dart';
+import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/providers/config.dart';
 import 'package:hotaru/providers/state.dart';
 import 'package:hotaru/widgets/widgets.dart';
+import 'theme_dashboard_preview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -111,116 +114,76 @@ class ThemeLivePreview extends ConsumerStatefulWidget {
   ConsumerState<ThemeLivePreview> createState() => _ThemeLivePreviewState();
 }
 
-class _ThemeLivePreviewState extends ConsumerState<ThemeLivePreview>
-    with SingleTickerProviderStateMixin {
-  static const double _phoneWidth = 168;
-  static const _duration = Duration(milliseconds: 300);
-
-  late final AnimationController _slide = AnimationController(
-    vsync: this,
-    duration: kTabScrollDuration,
-  );
-  late final CurvedAnimation _slideCurve = CurvedAnimation(
-    parent: _slide,
-    curve: Curves.easeOut,
-  );
+class _ThemeLivePreviewState extends ConsumerState<ThemeLivePreview> {
   int _selected = 0;
-  int? _previous;
 
   @override
   void initState() {
     super.initState();
     ref.listenManual(
       appSettingProvider.select((state) => state.tabAnimation),
-      (_, _) => _select((_selected + 1) % MiniScreen.destinationCount),
+      (_, _) => setState(() => _selected = (_selected + 1) % 4),
     );
-  }
-
-  Future<void> _select(int index) async {
-    if (index == _selected) {
-      return;
-    }
-    final tabAnimation = ref.read(appSettingProvider).tabAnimation;
-    final fade = tabAnimation == TabAnimation.fade;
-    _slide.duration = fade ? fadeTabDuration : kTabScrollDuration;
-    _slideCurve.curve = fade ? fadeTabCurve : Curves.easeOut;
-    setState(() {
-      _previous = _selected;
-      _selected = index;
-    });
-    await _slide.forward(from: 0).orCancel.catchError((_) {});
-    if (mounted && _selected == index) {
-      setState(() => _previous = null);
-    }
-  }
-
-  @override
-  void dispose() {
-    _slideCurve.dispose();
-    _slide.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(
+    final mode = ref.watch(
       themeSettingProvider.select((state) => state.themeMode),
     );
-    final brightness = switch (themeMode) {
+    final brightness = switch (mode) {
       ThemeMode.light => Brightness.light,
       ThemeMode.dark => Brightness.dark,
       ThemeMode.system => MediaQuery.platformBrightnessOf(context),
     };
-    final colorScheme = ref.watch(genColorSchemeProvider(brightness));
-    final floatingBar = ref.watch(
+    final colors = ref.watch(genColorSchemeProvider(brightness));
+    final floating = ref.watch(
       appSettingProvider.select((state) => state.floatingNavigationBar),
     );
     final tabAnimation = ref.watch(
       appSettingProvider.select((state) => state.tabAnimation),
     );
-    final liquidGlass = ref.watch(
-      themeSettingProvider.select(
-        (state) => state.liquidGlass != LiquidGlassMode.none,
+    final l10n = context.appLocalizations;
+    final destinations = [
+      NavigationDockDestination(
+        glyph: AppGlyphs.dashboard,
+        label: l10n.dashboard,
       ),
-    );
-    final corner = AppCorner.fit(_phoneWidth);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      alignment: Alignment.center,
-      decoration: ShapeDecoration(
-        color: context.raisedSurfaceLevel.colorOf(context.colorScheme),
-        shape: AppShape.xxl,
+      NavigationDockDestination(glyph: AppGlyphs.proxies, label: l10n.proxies),
+      NavigationDockDestination(
+        glyph: AppGlyphs.profiles,
+        label: l10n.profiles,
       ),
-      child: SizedBox(
-        width: _phoneWidth,
-        child: AspectRatio(
-          aspectRatio: 9 / 17,
-          child: ClipRSuperellipse(
-            borderRadius: AppRadius.all(corner),
-            child: TweenAnimationBuilder<ColorScheme>(
-              tween: _ColorSchemeTween(end: colorScheme),
-              duration: _duration,
-              builder: (_, colorScheme, _) => AnimatedSwitcher(
-                duration: _duration,
-                child: AnimatedBuilder(
-                  key: ValueKey((floatingBar, liquidGlass)),
-                  animation: _slideCurve,
-                  builder: (_, _) => MiniScreen(
-                    colorScheme: colorScheme,
-                    floatingBar: floatingBar,
-                    liquidGlass: liquidGlass,
-                    selected: _selected,
-                    previous: _previous,
-                    progress: _previous == null ? 1 : _slideCurve.value,
-                    tabAnimation: tabAnimation,
-                    onSelect: _select,
-                  ),
+      NavigationDockDestination(glyph: AppGlyphs.tools, label: l10n.tools),
+    ];
+    void select(int index) => setState(() => _selected = index);
+    return TweenAnimationBuilder<ColorScheme>(
+      tween: _ColorSchemeTween(end: colors),
+      duration: context.motionDuration(const Duration(milliseconds: 250)),
+      builder: (_, colors, _) => ThemeDashboardPreview(
+        colors: colors,
+        selected: _selected,
+        tabAnimation: tabAnimation,
+        navigation: floating
+            ? SizedBox(
+                height: NavigationDock.heightOf(context),
+                child: FloatingNavigationBar(
+                  destinations: destinations,
+                  selectedIndex: _selected,
+                  onSelected: select,
                 ),
+              )
+            : NavigationBar(
+                selectedIndex: _selected,
+                onDestinationSelected: select,
+                destinations: [
+                  for (final destination in destinations)
+                    NavigationDestination(
+                      icon: GlyphIcon(destination.glyph),
+                      label: destination.label,
+                    ),
+                ],
               ),
-            ),
-          ),
-        ),
       ),
     );
   }

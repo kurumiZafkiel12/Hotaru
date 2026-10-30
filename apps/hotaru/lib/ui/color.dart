@@ -27,22 +27,70 @@ enum ColorStyle {
   };
 }
 
-ColorScheme hotaruColorScheme(Brightness brightness) {
+ColorScheme hotaruColorScheme(
+  Brightness brightness, {
+  Color? accent,
+  ColorStyle style = ColorStyle.vivid,
+  bool pureBlack = false,
+}) {
+  final base = _hotaruBase(brightness);
+  final colors = seededColorScheme(
+    seedColor: accent ?? base.primary,
+    brightness: brightness,
+    style: style,
+  );
+  return base
+      .copyWith(
+        primary: accent == null ? base.primary : colors.primary,
+        onPrimary: accent == null ? base.onPrimary : colors.onPrimary,
+        primaryContainer: accent == null
+            ? base.primaryContainer
+            : colors.primaryContainer,
+        onPrimaryContainer: accent == null
+            ? base.onPrimaryContainer
+            : colors.onPrimaryContainer,
+        surfaceTint: accent == null ? base.primary : colors.primary,
+        primaryFixed: colors.primaryFixed,
+        primaryFixedDim: colors.primaryFixedDim,
+        onPrimaryFixed: colors.onPrimaryFixed,
+        onPrimaryFixedVariant: colors.onPrimaryFixedVariant,
+        secondaryFixed: colors.secondaryFixed,
+        secondaryFixedDim: colors.secondaryFixedDim,
+        onSecondaryFixed: colors.onSecondaryFixed,
+        onSecondaryFixedVariant: colors.onSecondaryFixedVariant,
+        tertiaryFixed: colors.tertiaryFixed,
+        tertiaryFixedDim: colors.tertiaryFixedDim,
+        onTertiaryFixed: colors.onTertiaryFixed,
+        onTertiaryFixedVariant: colors.onTertiaryFixedVariant,
+        inversePrimary: colors.inversePrimary,
+        secondary: colors.secondary,
+        onSecondary: colors.onSecondary,
+        secondaryContainer: colors.secondaryContainer,
+        onSecondaryContainer: colors.onSecondaryContainer,
+        tertiary: colors.tertiary,
+        onTertiary: colors.onTertiary,
+        tertiaryContainer: colors.tertiaryContainer,
+        onTertiaryContainer: colors.onTertiaryContainer,
+      )
+      .toPureBlack(pureBlack);
+}
+
+ColorScheme _hotaruBase(Brightness brightness) {
   if (brightness == Brightness.dark) {
     return const ColorScheme.dark(
-      primary: Color(0xff34d399),
+      primary: Color(0xff75cba7),
       onPrimary: Color(0xff06251e),
-      surface: Color(0xff111317),
-      surfaceContainer: Color(0xff181b20),
-      surfaceContainerHighest: Color(0xff2b3039),
-      surfaceContainerLow: Color(0xff14171c),
-      surfaceContainerHigh: Color(0xff20242b),
-      surfaceBright: Color(0xff303640),
-      onSurface: Color(0xfff6f7fa),
-      onSurfaceVariant: Color(0xffa7afbd),
+      surface: Color(0xff0b1512),
+      surfaceContainer: Color(0xff13211c),
+      surfaceContainerHighest: Color(0xff294338),
+      surfaceContainerLow: Color(0xff101c17),
+      surfaceContainerHigh: Color(0xff1c3027),
+      surfaceBright: Color(0xff30493e),
+      onSurface: Color(0xffe8eee9),
+      onSurfaceVariant: Color(0xffa5b8ad),
       primaryContainer: Color(0xff123d32),
       onPrimaryContainer: Color(0xffb8f6df),
-      outline: Color(0xff657080),
+      outline: Color(0xff718d7e),
     );
   }
   return const ColorScheme.light(

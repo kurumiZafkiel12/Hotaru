@@ -2,12 +2,22 @@ name: Android APK compatibility
 
 on:
   push:
-    branches: ['codex/v004-android-install-investigation', 'codex/simplify-repo-layout']
+    branches: ['codex/v004-android-install-investigation', 'codex/simplify-repo-layout', 'codex/v005-from-v004']
     paths:
       - '.github/workflows/android-apk-compatibility.yaml'
       - 'apps/hotaru/tool/AndroidArchiveProbe.java'
       - 'apps/hotaru/tool/verify_android_install.sh'
+      - 'apps/hotaru/tool/verify_android_network_ui.py'
+      - 'apps/hotaru/tool/verify_android_native_ice.py'
+      - 'apps/hotaru/tool/native_ice_smoke.dart'
       - 'apps/hotaru/android/**'
+      - 'apps/hotaru/lib/**'
+      - 'apps/hotaru/core/**'
+      - 'apps/hotaru/assets/**'
+      - 'apps/hotaru/arb/**'
+      - 'apps/hotaru/plugins/**'
+      - 'apps/hotaru/pubspec.lock'
+      - 'apps/hotaru/setup.dart'
       - 'apps/hotaru/pubspec.yaml'
       - 'apps/hotaru/tool/verify_android_release.py'
   workflow_dispatch:
@@ -65,9 +75,25 @@ jobs:
       - name: Build Android only
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: dart setup.dart android --env stable -v
+        run: |
+          set -o pipefail
+          dart setup.dart android --env stable -v 2>&1 | tee "$RUNNER_TEMP/hotaru-android-package.log"
+      - name: Report Android packaging failure
+        if: failure()
+        run: python3 tool/summarize_native_failure.py "$RUNNER_TEMP/hotaru-android-package.log"
       - name: Verify package identity, signatures and alignment
         run: python3 tool/verify_android_release.py
+      - name: Build safe native ICE harness
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          flutter build apk --release --target-platform android-x64 --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+          mkdir -p ice-probe
+          cp build/app/outputs/flutter-apk/app-release.apk ice-probe/hotaru-native-ice.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-native-ice-harness
+          path: apps/hotaru/ice-probe/hotaru-native-ice.apk
       - uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
@@ -91,11 +117,16 @@ jobs:
         run: |
           gh release download v0.0.3 --pattern '*android-*.apk' --dir baseline
           gh release download v0.0.4 --pattern '*android-*.apk' --dir published
-          sha256sum baseline/*.apk published/*.apk
+          gh release download v0.0.5 --pattern '*android-*.apk' --dir previous
+          sha256sum baseline/*.apk published/*.apk previous/*.apk
       - uses: actions/download-artifact@v4
         with:
           name: android-compatibility-candidate
           path: apps/hotaru/candidate
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-native-ice-harness
+          path: apps/hotaru/ice-probe
       - name: Build framework archive probe
         run: |
           mkdir -p archive-probe/classes archive-probe/dex
@@ -118,7 +149,10 @@ jobs:
           target: google_apis
           profile: pixel_2
           disable-animations: true
-          script: bash tool/verify_android_install.sh
+          script: |
+            bash tool/verify_android_install.sh
+            python3 tool/verify_android_network_ui.py
+            python3 tool/verify_android_native_ice.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -129,3 +163,13 @@ jobs:
         with:
           name: android-install-api-${{ matrix.api }}-results
           path: apps/hotaru/archive-probe/*.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-network-ui-api-${{ matrix.api }}
+          path: apps/hotaru/archive-probe/network-ui/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-native-ice-api-${{ matrix.api }}
+          path: apps/hotaru/archive-probe/native-ice/

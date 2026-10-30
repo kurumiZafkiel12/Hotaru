@@ -105,6 +105,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.identMe,
         type: IpType.residential,
+        typeIsInferred: false,
         organization: 'Example Broadband',
         asn: 64500,
       ),
@@ -123,6 +124,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.ipApiCom,
         type: IpType.hosting,
+        typeIsInferred: false,
         organization: 'Example Cloud',
         asn: 64501,
         isProxy: true,
@@ -145,6 +147,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.ipQuery,
         type: IpType.mobile,
+        typeIsInferred: false,
         organization: 'Example Mobile',
         asn: 64502,
         isTor: true,
@@ -167,6 +170,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.ipLocate,
         type: IpType.hosting,
+        typeIsInferred: false,
         organization: 'Example Leasing',
         asn: 64503,
       ),
@@ -193,6 +197,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.proxyCheck,
         type: IpType.business,
+        typeIsInferred: false,
         organization: 'Example Business',
         asn: 64504,
         isVpn: true,
@@ -214,6 +219,7 @@ void main() {
         ip: _ip,
         source: IpQualitySource.ipApiIs,
         type: IpType.hosting,
+        typeIsInferred: false,
         organization: 'VPS ACE',
         asn: 36352,
         isTor: true,
@@ -343,6 +349,7 @@ void main() {
 
       expect(quality.source, IpQualitySource.ipApiCom);
       expect(quality.type, IpType.residential);
+      expect(quality.typeIsInferred, isTrue);
       expect(quality.organization, 'Example Broadband');
       expect(lookup.adapter.requested, hasLength(6));
     },

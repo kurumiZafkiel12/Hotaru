@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/ui/icons/icons.dart';
+import 'package:hotaru/ui/speed_dial.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -150,154 +151,168 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final gaugeBps = _gaugeBps;
+    final statistics = LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth < 600 ? 2 : 4;
+        final width = (constraints.maxWidth - (columns - 1) * 8) / columns;
+        final stats = [
+          (AppGlyphs.clock, appLocalizations.delay, _latencyText(_latencyMs)),
+          (
+            AppGlyphs.target,
+            appLocalizations.speedTestJitter,
+            _latencyText(_jitterMs),
+          ),
+          (
+            AppGlyphs.arrowDown,
+            appLocalizations.download,
+            _speedText(_downloadBps),
+          ),
+          (
+            AppGlyphs.arrowUp,
+            appLocalizations.upload,
+            _uploadUnsupported
+                ? appLocalizations.speedTestNotSupported
+                : _speedText(_uploadBps),
+          ),
+        ];
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (glyph, label, value) in stats)
+              SizedBox(
+                width: width,
+                child: _StatCard(glyph: glyph, label: label, value: value),
+              ),
+          ],
+        );
+      },
+    );
     return BaseScaffold(
       title: appLocalizations.speedTest,
-      body: ListView(
-        padding: EdgeInsets.only(
-          top: context.appBarInset,
-          bottom: 32 + context.bottomInset,
-          left: 16,
-          right: 16,
-        ),
-        children: [
-          generateSection(
-            items: [
-              ListItem<SpeedTestProvider>.options(
-                leading: const GlyphIcon(AppGlyphs.speed),
-                title: Text(appLocalizations.speedTestProvider),
-                subtitle: Text(_provider.endpointLabel),
-                options: SpeedTestProvider.values,
-                value: _provider,
-                textBuilder: (provider) => provider.label,
-                subtitleBuilder: (provider) => provider.endpointLabel,
-                onChanged: (provider) {
-                  if (!_running) {
-                    setState(() {
-                      _provider = provider;
-                    });
-                  }
-                },
-              ),
-              ListItem<int>.options(
-                leading: const GlyphIcon(AppGlyphs.clock),
-                title: Text(appLocalizations.duration),
-                options: _durations,
-                value: _duration,
-                textBuilder: (duration) =>
-                    '$duration ${appLocalizations.seconds}',
-                onChanged: (duration) {
-                  if (!_running) {
-                    setState(() {
-                      _duration = duration;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _SpeedGauge(
-            bps: gaugeBps,
-            phaseLabel: _phaseLabel(_phase),
-            active: _running,
-          ),
-          const SizedBox(height: 16),
-          if (_samples.length > 1) ...[
-            const SizedBox(height: 16),
-            _LiveTrace(samples: _samples, liveBps: _liveBps),
-          ],
-          const SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth < 600 ? 2 : 4;
-              final width =
-                  (constraints.maxWidth - (columns - 1) * 8) / columns;
-              final stats = [
-                (
-                  AppGlyphs.clock,
-                  appLocalizations.delay,
-                  _latencyText(_latencyMs),
-                ),
-                (
-                  AppGlyphs.target,
-                  appLocalizations.speedTestJitter,
-                  _latencyText(_jitterMs),
-                ),
-                (
-                  AppGlyphs.arrowDown,
-                  appLocalizations.download,
-                  _speedText(_downloadBps),
-                ),
-                (
-                  AppGlyphs.arrowUp,
-                  appLocalizations.upload,
-                  _uploadUnsupported
-                      ? appLocalizations.speedTestNotSupported
-                      : _speedText(_uploadBps),
-                ),
-              ];
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final (glyph, label, value) in stats)
-                    SizedBox(
-                      width: width,
-                      child: _StatCard(
-                        glyph: glyph,
-                        label: label,
-                        value: value,
-                      ),
-                    ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: ListView(
+            padding: EdgeInsets.only(
+              top: context.appBarInset,
+              bottom: 32 + context.bottomInset,
+              left: 16,
+              right: 16,
+            ),
+            children: [
+              generateSection(
+                items: [
+                  ListItem<SpeedTestProvider>.options(
+                    leading: const GlyphIcon(AppGlyphs.speed),
+                    title: Text(appLocalizations.speedTestProvider),
+                    subtitle: Text(_provider.endpointLabel),
+                    options: SpeedTestProvider.values,
+                    value: _provider,
+                    textBuilder: (provider) => provider.label,
+                    subtitleBuilder: (provider) => provider.endpointLabel,
+                    onChanged: (provider) {
+                      if (!_running) {
+                        setState(() {
+                          _provider = provider;
+                        });
+                      }
+                    },
+                  ),
+                  ListItem<int>.options(
+                    leading: const GlyphIcon(AppGlyphs.clock),
+                    title: Text(appLocalizations.duration),
+                    options: _durations,
+                    value: _duration,
+                    textBuilder: (duration) =>
+                        '$duration ${appLocalizations.seconds}',
+                    onChanged: (duration) {
+                      if (!_running) {
+                        setState(() {
+                          _duration = duration;
+                        });
+                      }
+                    },
+                  ),
                 ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          generateSection(
-            items: [
-              ListItem(
-                title: Text(appLocalizations.server),
-                trailing: Text(
-                  _serverLabel.isEmpty
-                      ? appLocalizations.unknown
-                      : _serverLabel,
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final gauge = _SpeedGauge(
+                    bps: gaugeBps,
+                    phaseLabel: _phaseLabel(_phase),
+                    active: _running,
+                  );
+                  final information = Column(
+                    spacing: 12,
+                    children: [
+                      statistics,
+                      if (_samples.length > 1)
+                        _LiveTrace(samples: _samples, liveBps: _liveBps),
+                    ],
+                  );
+                  return Theme.of(context).platform != TargetPlatform.android &&
+                          constraints.maxWidth >= 680
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 16,
+                          children: [
+                            gauge,
+                            Expanded(child: information),
+                          ],
+                        )
+                      : Column(spacing: 12, children: [gauge, information]);
+                },
+              ),
+              const SizedBox(height: 16),
+              generateSection(
+                items: [
+                  ListItem(
+                    title: Text(appLocalizations.server),
+                    trailing: Text(
+                      _serverLabel.isEmpty
+                          ? appLocalizations.unknown
+                          : _serverLabel,
+                    ),
+                  ),
+                  ListItem(
+                    title: Text(appLocalizations.speedTestExitNode),
+                    trailing: Text(appLocalizations.speedTestRouteEvidence),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _running ? _stop : _start,
+                child: Text(
+                  _running ? appLocalizations.stop : appLocalizations.start,
                 ),
               ),
-              ListItem(
-                title: Text(appLocalizations.speedTestExitNode),
-                trailing: Text(appLocalizations.speedTestRouteEvidence),
+              const SizedBox(height: 12),
+              Text(
+                _serverLabel.isEmpty && !_running
+                    ? appLocalizations.speedTestTrafficWarning
+                    : _routed
+                    ? appLocalizations.speedTestViaProxy
+                    : appLocalizations.speedTestDirect,
+                style: AppTextStyle.footnote.of(context),
+                textAlign: TextAlign.center,
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  '${appLocalizations.error}: $_error',
+                  style: AppTextStyle.footnote
+                      .of(context)
+                      .copyWith(color: Theme.of(context).colorScheme.error),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _running ? _stop : _start,
-            child: Text(
-              _running ? appLocalizations.stop : appLocalizations.start,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _serverLabel.isEmpty && !_running
-                ? appLocalizations.speedTestTrafficWarning
-                : _routed
-                ? appLocalizations.speedTestViaProxy
-                : appLocalizations.speedTestDirect,
-            style: AppTextStyle.footnote.of(context),
-            textAlign: TextAlign.center,
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              '${appLocalizations.error}: $_error',
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -494,11 +509,11 @@ class _SpeedGauge extends StatelessWidget {
               ),
               builder: (context, value, _) => CustomPaint(
                 size: const Size.square(_size),
-                painter: _GaugePainter(
+                painter: SpeedDialPainter(
                   fraction: value,
                   trackColor: context.raisedSurfaceLevel.colorOf(colorScheme),
                   valueColor: colorScheme.primary,
-                  glowColor: const Color(0xff76c8d5),
+                  glowColor: colorScheme.tertiary,
                 ),
               ),
             ),
@@ -525,139 +540,56 @@ class _SpeedGauge extends StatelessWidget {
                   ),
                 ),
               ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  formatSpeedValue(bps),
-                  style: AppTextStyle.largeTitle
-                      .of(context, emphasized: true)
-                      .toJetBrainsMono,
-                ),
-                Text(
-                  formatSpeedUnit(bps),
-                  style: AppTextStyle.subheadline
-                      .of(context)
-                      .copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 8),
-                DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: colorScheme.primary.withValues(
-                      alpha: active ? 0.16 : 0.08,
-                    ),
-                    shape: AppShape.full,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 40,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    formatSpeedValue(bps),
+                    style: AppTextStyle.largeTitle
+                        .of(context, emphasized: true)
+                        .toJetBrainsMono,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                  Text(
+                    formatSpeedUnit(bps),
+                    style: AppTextStyle.subheadline
+                        .of(context)
+                        .copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 8),
+                  DecoratedBox(
+                    decoration: ShapeDecoration(
+                      color: colorScheme.primary.withValues(
+                        alpha: active ? 0.16 : 0.08,
+                      ),
+                      shape: AppShape.full,
                     ),
-                    child: Text(
-                      phaseLabel,
-                      style: AppTextStyle.footnote
-                          .of(context)
-                          .copyWith(
-                            color: active
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        phaseLabel,
+                        style: AppTextStyle.footnote
+                            .of(context)
+                            .copyWith(
+                              color: active
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class _GaugePainter extends CustomPainter {
-  const _GaugePainter({
-    required this.fraction,
-    required this.trackColor,
-    required this.valueColor,
-    required this.glowColor,
-  });
-
-  final double fraction;
-  final Color trackColor;
-  final Color valueColor;
-  final Color glowColor;
-
-  static const _startAngle = math.pi * 0.75;
-  static const _sweepAngle = math.pi * 1.5;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 2.5;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 26;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    final ticks = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i <= 24; i++) {
-      final angle = _startAngle + _sweepAngle * i / 24;
-      final major = i % 6 == 0;
-      final outer = size.width / 2 - 2;
-      final inner = outer - (major ? 7 : 3);
-      canvas.drawLine(
-        center + Offset(math.cos(angle), math.sin(angle)) * inner,
-        center + Offset(math.cos(angle), math.sin(angle)) * outer,
-        ticks,
-      );
-    }
-    final track = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(rect, _startAngle, _sweepAngle, false, track);
-    canvas.drawArc(
-      rect.deflate(8),
-      _startAngle,
-      _sweepAngle,
-      false,
-      track..color = trackColor.withValues(alpha: 0.5),
-    );
-    if (fraction > 0) {
-      final glow = Paint()
-        ..color = valueColor.withValues(alpha: 0.15)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth + 3
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-      canvas.drawArc(rect, _startAngle, _sweepAngle * fraction, false, glow);
-      final value = Paint()
-        ..shader = SweepGradient(
-          startAngle: _startAngle,
-          endAngle: _startAngle + _sweepAngle,
-          colors: [valueColor.withValues(alpha: 0.45), valueColor, glowColor],
-          stops: const [0, 0.55, 1],
-        ).createShader(rect)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-      canvas.drawArc(rect, _startAngle, _sweepAngle * fraction, false, value);
-      final endAngle = _startAngle + _sweepAngle * fraction;
-      canvas.drawCircle(
-        center + Offset(math.cos(endAngle), math.sin(endAngle)) * radius,
-        3,
-        Paint()..color = glowColor,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GaugePainter oldDelegate) {
-    return fraction != oldDelegate.fraction ||
-        trackColor != oldDelegate.trackColor ||
-        valueColor != oldDelegate.valueColor ||
-        glowColor != oldDelegate.glowColor;
   }
 }

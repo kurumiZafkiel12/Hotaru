@@ -10,20 +10,8 @@ import 'package:flutter/rendering.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
 
-EdgeInsets dashboardCardPadding(DashboardDensity density) => switch (density) {
-  DashboardDensity.standard => const EdgeInsets.symmetric(
-    horizontal: 18,
-    vertical: 10,
-  ),
-  DashboardDensity.compact => const EdgeInsets.symmetric(
-    horizontal: 16,
-    vertical: 10,
-  ),
-  DashboardDensity.mobile => const EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 18,
-  ),
-};
+EdgeInsets dashboardCardPadding(DashboardDensity density) =>
+    const EdgeInsets.all(DashboardSizing.inset);
 
 double dashboardCardRadius(DashboardDensity density) => density.isDesktop
     ? DashboardCorner.desktopCard
@@ -649,20 +637,30 @@ class DashboardSwitch extends StatelessWidget {
   final String? semanticLabel;
 
   /// A switch lays out past its track, which would set every row's height.
-  static const trackWidth = CommonSwitch.trackWidth;
+  static double _scaleOf(BuildContext context) =>
+      DashboardDensityScope.of(context).isDesktop
+      ? DashboardSizing.desktopSwitchScale
+      : 1;
+
+  static double trackWidthOf(BuildContext context) =>
+      CommonSwitch.trackWidth * _scaleOf(context);
 
   @override
   Widget build(BuildContext context) {
+    final scale = _scaleOf(context);
     return SizedBox(
-      width: trackWidth,
-      height: CommonSwitch.trackHeight,
+      width: trackWidthOf(context),
+      height: CommonSwitch.trackHeight * scale,
       child: OverflowBox(
         maxWidth: double.infinity,
         maxHeight: double.infinity,
-        child: CommonSwitch(
-          value: value,
-          onChanged: onChanged,
-          semanticLabel: semanticLabel,
+        child: Transform.scale(
+          scale: scale,
+          child: CommonSwitch(
+            value: value,
+            onChanged: onChanged,
+            semanticLabel: semanticLabel,
+          ),
         ),
       ),
     );
@@ -716,7 +714,7 @@ class DashboardSwitchRow extends StatelessWidget {
         padding.horizontal -
         iconSize -
         _gap * 2 -
-        DashboardSwitch.trackWidth;
+        DashboardSwitch.trackWidthOf(context);
     return titles.every(
       (title) =>
           globalState.measure

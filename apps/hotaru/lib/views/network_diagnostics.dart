@@ -8,8 +8,8 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/ip_quality.dart';
 import 'package:hotaru/common/dns_leak.dart';
 import 'package:hotaru/common/network_diagnostics.dart';
+import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/service_probe.dart';
-import 'package:hotaru/features/ip_quality/ip_quality_sheet.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
@@ -17,7 +17,7 @@ import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-enum NetworkDiagnostic { dns, stun, ip, recovery }
+enum NetworkDiagnostic { dns, stun, recovery }
 
 class NetworkDiagnosticsView extends ConsumerStatefulWidget {
   const NetworkDiagnosticsView({super.key, required this.kind});
@@ -32,13 +32,17 @@ class NetworkDiagnosticsView extends ConsumerStatefulWidget {
 class _NetworkDiagnosticsViewState
     extends ConsumerState<NetworkDiagnosticsView> {
   bool _running = false;
+  DiagnosticVerdict _verdict = DiagnosticVerdict.notTested;
+  List<DnsResolverReceipt> _resolvers = const [];
+  int _dnsSamples = 16;
+  double _progress = 0;
   int _generation = 0;
   final _evidence = <String>[];
   String? _notice;
-  String? _ip;
   bool _risk = false;
   bool _recoverySuperseded = false;
-  StunProbe? _stun;
+  IceProbe? _ice;
+  IceProbeResult? _iceResult;
   CancelToken? _httpCancel;
   CancelToken? _qualityCancel;
 
@@ -72,7 +76,6 @@ class _NetworkDiagnosticsViewState
     return switch (widget.kind) {
       NetworkDiagnostic.dns => l10n.dnsLeakTitle,
       NetworkDiagnostic.stun => l10n.webrtcLeakTitle,
-      NetworkDiagnostic.ip => l10n.ipPortraitTitle,
       NetworkDiagnostic.recovery => l10n.networkRecoveryTitle,
     };
   }
@@ -82,7 +85,6 @@ class _NetworkDiagnosticsViewState
     return switch (widget.kind) {
       NetworkDiagnostic.dns => l10n.dnsLeakScope,
       NetworkDiagnostic.stun => l10n.webrtcLeakScope,
-      NetworkDiagnostic.ip => l10n.ipPortraitScope,
       NetworkDiagnostic.recovery => l10n.networkRecoveryScope,
     };
   }
@@ -90,7 +92,7 @@ class _NetworkDiagnosticsViewState
   @override
   void dispose() {
     _generation++;
-    _stun?.cancel();
+    unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
     super.dispose();
@@ -98,10 +100,13 @@ class _NetworkDiagnosticsViewState
 
   void _cancel() {
     _generation++;
-    _stun?.cancel();
+    unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
-    setState(() => _running = false);
+    setState(() {
+      _running = false;
+      _verdict = DiagnosticVerdict.inconclusive;
+    });
   }
 
   Future<void> _start() async {
@@ -121,10 +126,13 @@ class _NetworkDiagnosticsViewState
     _httpCancel = CancelToken();
     setState(() {
       _running = true;
+      _verdict = DiagnosticVerdict.running;
+      _progress = 0;
+      _resolvers = const [];
       _notice = null;
       _risk = false;
       _recoverySuperseded = false;
-      _ip = null;
+      _iceResult = null;
       _evidence.clear();
     });
     bool current() => mounted && generation == _generation;
@@ -134,8 +142,6 @@ class _NetworkDiagnosticsViewState
           await _dns(current);
         case NetworkDiagnostic.stun:
           await _checkStun(current);
-        case NetworkDiagnostic.ip:
-          await _portrait(current);
         case NetworkDiagnostic.recovery:
           await _recover(current);
       }
@@ -147,20 +153,40 @@ class _NetworkDiagnosticsViewState
     } catch (error) {
       if (current()) {
         setState(() {
+          _verdict = DiagnosticVerdict.failed;
           _notice = context.appLocalizations.diagnosticsFailed;
           _evidence.add(compactError(error));
         });
       }
     } finally {
-      if (current()) setState(() => _running = false);
+      if (current()) {
+        setState(() {
+          _running = false;
+          if (_verdict == DiagnosticVerdict.running) {
+            _verdict = _risk
+                ? DiagnosticVerdict.risk
+                : widget.kind == NetworkDiagnostic.recovery
+                ? DiagnosticVerdict.completed
+                : DiagnosticVerdict.inconclusive;
+          }
+        });
+      }
     }
   }
 
   Future<void> _dns(bool Function() current) async {
     try {
-      final receipts = await DnsLeakProbe(dio: request.dio).run(_httpCancel!);
+      final receipts = await DnsLeakProbe(dio: request.dio).run(
+        _httpCancel!,
+        samples: _dnsSamples,
+        onProgress: (done, total) {
+          if (current()) setState(() => _progress = done / total);
+        },
+      );
       if (!current()) return;
-      _evidence.add('bash.ws · 16 DNS · ${DateTime.now().toIso8601String()}');
+      _evidence.add(
+        'bash.ws · $_dnsSamples DNS · ${DateTime.now().toIso8601String()}',
+      );
       for (final receipt in receipts) {
         _evidence.add(
           '${receipt.ip} · ${receipt.country} · ${receipt.organization}',
@@ -168,10 +194,14 @@ class _NetworkDiagnosticsViewState
       }
       if (receipts.isNotEmpty) {
         setState(() {
+          _resolvers = receipts;
           _risk = receipts.any((receipt) => receipt.domesticIsp);
+          _verdict = _risk
+              ? DiagnosticVerdict.risk
+              : DiagnosticVerdict.inconclusive;
           _notice = _risk
               ? context.appLocalizations.dnsLeakRisk
-              : context.appLocalizations.dnsLeakScope;
+              : context.appLocalizations.dnsEvidenceLimits;
         });
         return;
       }
@@ -243,84 +273,32 @@ class _NetworkDiagnosticsViewState
   Future<void> _checkStun(bool Function() current) async {
     final outbound = await _outbound(current);
     if (!current()) return;
-    var answers = 0;
-    for (final (host, port) in const [
-      ('stun.l.google.com', 19302),
-      ('stun.cloudflare.com', 3478),
-    ]) {
-      final probe = StunProbe();
-      _stun = probe;
-      try {
-        final answer = await probe.run(host, port);
-        if (!current()) return;
-        _evidence.add('$host:$port ➜ $answer');
-        final exitAddress = InternetAddress.tryParse(outbound.ip);
-        if (isPublicProbeAddress(answer.address) &&
-            exitAddress != null &&
-            answer.address.type == exitAddress.type) {
-          answers++;
-          _risk |= answer.address.address != exitAddress.address;
-        }
-      } catch (error) {
-        if (!current()) return;
-        _evidence.add('$host:$port · ${compactError(error)}');
-      } finally {
-        probe.cancel();
-      }
-    }
+    final probe = _ice = IceProbe();
+    final result = await probe.run();
     if (!current()) return;
-    final interfaces = await NetworkInterface.list(includeLinkLocal: true);
-    if (!current()) return;
-    _evidence.addAll([
-      for (final interface in interfaces)
-        for (final address in interface.addresses)
-          '${interface.name}: ${address.address}',
-    ]);
-    setState(
-      () => _notice = answers == 0
-          ? context.appLocalizations.auditInconclusive
-          : _risk
-          ? context.appLocalizations.webrtcLeakRisk
-          : context.appLocalizations.webrtcLeakMatch,
-    );
-  }
-
-  Future<void> _portrait(bool Function() current) async {
-    final info = await _outbound(current);
-    if (!current()) return;
-    setState(() => _ip = info.ip);
-    final response = await ref
-        .read(coreHandlerProvider)
-        .probe(
-          const ProbeParams(
-            url: 'https://www.google.com/search?q=hotaru&num=1',
-            headers: {'User-Agent': browserUa},
-            timeout: 8000,
-            maxBody: 64 * 1024,
-          ),
-        );
-    if (!current() || !mounted) return;
-    if (response == null || response.error != null) {
-      _notice = context.appLocalizations.auditInconclusive;
-      return;
-    }
-    final challenge =
-        response.statusCode == 429 ||
-        RegExp(
-          r'g-recaptcha|/sorry/|unusual traffic',
-          caseSensitive: false,
-        ).hasMatch(response.body);
+    final verdict = result.verdict([outbound.ip]);
     setState(() {
-      _risk = challenge;
-      _notice = challenge
-          ? context.appLocalizations.auditChallenge
-          : response.statusCode == 200
-          ? context.appLocalizations.auditReachable
-          : context.appLocalizations.auditInconclusive;
-      _evidence.add('${response.url} · HTTP ${response.statusCode}');
+      _verdict = switch (verdict) {
+        IceVerdict.matching => DiagnosticVerdict.matching,
+        IceVerdict.risk => DiagnosticVerdict.risk,
+        IceVerdict.inconclusive => DiagnosticVerdict.inconclusive,
+      };
+      _iceResult = result;
+      _risk = verdict == IceVerdict.risk;
+      _notice = switch (verdict) {
+        IceVerdict.matching => context.appLocalizations.iceMatching,
+        IceVerdict.risk => context.appLocalizations.webrtcLeakRisk,
+        IceVerdict.inconclusive => context.appLocalizations.iceInconclusive,
+      };
       _evidence.add(
-        '${response.rule}, ${response.rulePayload} ➜ ${response.chains.reversed.join(" ➜ ")}',
+        'ICE · ${DateTime.now().toIso8601String()} · ${result.completed}',
       );
+      if (result.error != null) _evidence.add('ICE: ${result.error}');
+      for (final candidate in result.candidates) {
+        _evidence.add(
+          '${candidate.kind} · ${candidate.protocol} · ${candidate.address}:${candidate.port}',
+        );
+      }
     });
   }
 
@@ -376,6 +354,11 @@ class _NetworkDiagnosticsViewState
             : '${l10n.networkRecoveryTun}: ${recovered ? l10n.done : l10n.diagnosticsFailed}',
       );
       _risk = !reset || !dnsCleared || !recovered;
+      _verdict = _recoverySuperseded
+          ? DiagnosticVerdict.inconclusive
+          : _risk
+          ? DiagnosticVerdict.failed
+          : DiagnosticVerdict.completed;
       _notice = _recoverySuperseded
           ? l10n.networkRecoverySuperseded
           : _risk
@@ -458,11 +441,6 @@ class _NetworkDiagnosticsViewState
                   label: l10n.diagnosticsApplyDoh,
                   onPressed: _running ? null : _applyDoh,
                 ),
-              if (_ip != null)
-                TonalButton(
-                  label: l10n.ipPortraitTitle,
-                  onPressed: () => showIpQualitySheet(context, ip: _ip!),
-                ),
             ],
           ),
           if (widget.kind == NetworkDiagnostic.stun)
@@ -477,43 +455,122 @@ class _NetworkDiagnosticsViewState
               onChanged: _running ? null : _setStunBlock,
             ),
           if (_running)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: LinearProgressIndicator(),
-            ),
-          if (_notice != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                _notice!,
-                style: AppTextStyle.callout
-                    .of(context)
-                    .copyWith(
-                      color: _risk ? context.colorScheme.warning : null,
+              child: LinearProgressIndicator(
+                value: widget.kind == NetworkDiagnostic.dns && _progress > 0
+                    ? _progress
+                    : null,
+              ),
+            ),
+          const SizedBox(height: 12),
+          CommonCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                Text(
+                  l10n.diagnosticsConclusion,
+                  style: AppTextStyle.caption1.of(context),
+                ),
+                Text(
+                  _verdict.label,
+                  style: AppTextStyle.title3
+                      .of(context, emphasized: true)
+                      .copyWith(
+                        color: _risk ? context.colorScheme.warning : null,
+                      ),
+                ),
+                if (_notice != null)
+                  Text(_notice!, style: AppTextStyle.footnote.of(context)),
+              ],
+            ),
+          ),
+          if (widget.kind == NetworkDiagnostic.dns) ...[
+            const SizedBox(height: 12),
+            DropdownButton<int>(
+              value: _dnsSamples,
+              onChanged: _running
+                  ? null
+                  : (samples) => setState(() => _dnsSamples = samples!),
+              items: [
+                DropdownMenuItem(value: 4, child: Text(l10n.diagnosticsQuick)),
+                DropdownMenuItem(value: 16, child: Text(l10n.diagnosticsFull)),
+              ],
+            ),
+            for (final resolver in _resolvers)
+              CommonCard(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      resolver.ip,
+                      style: AppTextStyle.subheadline
+                          .of(context)
+                          .toJetBrainsMono,
                     ),
+                    Text(
+                      '${resolver.country} · ${resolver.organization}',
+                      style: AppTextStyle.footnote.of(context),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          if (_iceResult case final result?)
+            CommonCard(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Text(
+                    l10n.iceCandidates,
+                    style: AppTextStyle.subheadline.of(
+                      context,
+                      emphasized: true,
+                    ),
+                  ),
+                  Text(
+                    l10n.iceCandidateScope,
+                    style: AppTextStyle.footnote.of(context),
+                  ),
+                  for (final candidate in result.candidates)
+                    Text(
+                      '${candidate.kind} · ${candidate.protocol} · ${candidate.address}',
+                      style: AppTextStyle.footnote.of(context).toJetBrainsMono,
+                    ),
+                ],
               ),
             ),
           if (_evidence.isNotEmpty)
             CommonCard(
-              padding: const EdgeInsets.all(16),
-              child: SelectionArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 12,
-                  children: [
-                    Text(
-                      l10n.diagnosticsRawEvidence,
-                      style: AppTextStyle.headline.of(context),
+              padding: EdgeInsets.zero,
+              child: ExpansionTile(
+                title: Text(l10n.diagnosticsRawEvidence),
+                shape: AppShape.lg,
+                collapsedShape: AppShape.lg,
+                childrenPadding: const EdgeInsets.all(12),
+                children: [
+                  SelectionArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12,
+                      children: [
+                        for (final evidence in _evidence)
+                          Text(
+                            evidence,
+                            style: AppTextStyle.footnote
+                                .of(context)
+                                .toJetBrainsMono,
+                          ),
+                      ],
                     ),
-                    for (final evidence in _evidence)
-                      Text(
-                        evidence,
-                        style: AppTextStyle.footnote
-                            .of(context)
-                            .toJetBrainsMono,
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
         ],

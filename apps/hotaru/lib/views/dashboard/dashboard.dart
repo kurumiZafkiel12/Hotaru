@@ -66,15 +66,12 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   @override
   Widget build(BuildContext context) {
     final platform = widget.platform ?? SupportPlatform.currentPlatform;
-    final viewSize = ref.watch(viewSizeProvider);
-    final sideWidth = ref.watch(sideWidthProvider);
     final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
-    final size = Size(viewSize.width - sideWidth, viewSize.height) / scale;
-    final isDesktop = DashboardDensity.of(size).isDesktop;
+    final isDesktop = platform != SupportPlatform.Android;
     final editing = _editing;
-    final gap = cardSpacingOf(context, ref.watch(viewModeProvider));
+    const gap = DashboardSizing.gap;
     final appLocalizations = context.appLocalizations;
-    return CommonScaffold(
+    final page = CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
@@ -101,7 +98,12 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final room = constraints.biggest / scale;
-            final layout = DashboardDensity.of(room);
+            final windowDensity = DashboardDensity.of(room);
+            final layout = platform == SupportPlatform.Android
+                ? DashboardDensity.mobile
+                : windowDensity.isDesktop
+                ? windowDensity
+                : DashboardDensity.compact;
             // The bar floats over the body; the dashboard scrolls below it
             // instead of sliding under the title.
             final band = context.appBarInset;
@@ -116,7 +118,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                           ? DesktopDashboardEditor(
                               platform: platform,
                               columns: dashboardColumnsOf(room.width),
-                              gap: 12,
+                              gap: DashboardSizing.gap,
                               topPadding: topGap,
                               cardKeyOf: _cardKeyOf,
                               onDone: () => _setEditing(false),
@@ -125,7 +127,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                           : DesktopDashboardGrid(
                               platform: platform,
                               columns: dashboardColumnsOf(room.width),
-                              gap: 12,
+                              gap: DashboardSizing.gap,
                               topPadding: topGap,
                               cardKeyOf: _cardKeyOf,
                             )
@@ -142,6 +144,21 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           },
         ),
       ),
+    );
+    if (!isDesktop) return page;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = dashboardColumnsOf(constraints.maxWidth / scale);
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DashboardSizing.maxPageWidth(columns) * scale,
+            ),
+            child: page,
+          ),
+        );
+      },
     );
   }
 }
