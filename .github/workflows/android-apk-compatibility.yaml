@@ -87,9 +87,9 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
-          flutter build apk --release --target-platform android-x64 --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+          flutter build apk --release --split-per-abi --target-platform android-x64 --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
           mkdir -p ice-probe
-          cp build/app/outputs/flutter-apk/app-release.apk ice-probe/hotaru-native-ice.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk ice-probe/hotaru-native-ice.apk
       - uses: actions/upload-artifact@v4
         with:
           name: android-native-ice-harness
