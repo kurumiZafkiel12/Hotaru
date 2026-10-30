@@ -19,6 +19,7 @@ import (
 	"github.com/metacubex/mihomo/component/auth"
 	"github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/constant"
+	listenerFactory "github.com/metacubex/mihomo/listener"
 	authStore "github.com/metacubex/mihomo/listener/auth"
 	"github.com/metacubex/mihomo/listener/inbound"
 	"github.com/metacubex/mihomo/rules"
@@ -172,9 +173,18 @@ func TestNodeBandwidthListenerPinsActualTrafficInEveryMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	tunnel.UpdateRules([]constant.Rule{rule}, nil, nil)
-	listener, err := inbound.NewMixed(&inbound.MixedOption{Users: inbound.AuthUsers{}, BaseOption: inbound.BaseOption{
-		NameStr: "hotaru-speedtest", Listen: "127.0.0.1", Port: "0", SpecialProxy: "HOTARU-SPEEDTEST-2",
-	}})
+	raw, err := config.UnmarshalRawConfig([]byte(`listeners:
+  - name: hotaru-speedtest
+    type: mixed
+    listen: 127.0.0.1
+    port: 0
+    proxy: HOTARU-SPEEDTEST-2
+    users: []
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	listener, err := listenerFactory.ParseListener(raw.Listeners[0])
 	if err != nil {
 		t.Fatal(err)
 	}

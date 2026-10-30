@@ -198,7 +198,11 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          flutter build ${{ matrix.platform }} --debug 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+          if [ "${{ matrix.platform }}" = windows ]; then
+            flutter build windows --debug --dart-define=SAFE_MODE=true 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+          else
+            flutter build ${{ matrix.platform }} --debug 2>&1 | tee "$RUNNER_TEMP/hotaru-native-build.log"
+          fi
 
       - name: Report native compilation failure
         if: failure()
@@ -207,6 +211,42 @@ jobs:
       - name: Verify Windows recovery against the registry
         if: matrix.platform == 'windows'
         run: flutter test test/common/network_diagnostics_windows_test.dart
+
+      - name: Verify node bandwidth routing on Windows
+        if: matrix.platform == 'windows'
+        working-directory: apps/hotaru/core
+        shell: bash
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          set -o pipefail
+          go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
+
+      - name: Capture actual Windows UI in safe mode
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: ./tool/capture_windows_safe_ui.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'windows'
+        with:
+          name: windows-safe-ui
+          path: apps/hotaru/native-ui/windows/
+
+      - name: Build safe native ICE harness
+        if: matrix.platform == 'windows'
+        run: flutter build windows --debug --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+
+      - name: Verify native ICE on Windows
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: ./tool/verify_native_ice_windows.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'windows'
+        with:
+          name: windows-native-ice
+          path: apps/hotaru/native-ice/windows/
 
   go:
     name: Go core

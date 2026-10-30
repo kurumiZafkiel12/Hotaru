@@ -7,6 +7,9 @@ on:
       - '.github/workflows/android-apk-compatibility.yaml'
       - 'apps/hotaru/tool/AndroidArchiveProbe.java'
       - 'apps/hotaru/tool/verify_android_install.sh'
+      - 'apps/hotaru/tool/verify_android_network_ui.py'
+      - 'apps/hotaru/tool/verify_android_native_ice.py'
+      - 'apps/hotaru/tool/native_ice_smoke.dart'
       - 'apps/hotaru/android/**'
       - 'apps/hotaru/lib/**'
       - 'apps/hotaru/core/**'
@@ -80,6 +83,15 @@ jobs:
         run: python3 tool/summarize_native_failure.py "$RUNNER_TEMP/hotaru-android-package.log"
       - name: Verify package identity, signatures and alignment
         run: python3 tool/verify_android_release.py
+      - name: Build safe native ICE harness
+        run: |
+          flutter build apk --release --target-platform android-x64 --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+          mkdir -p ice-probe
+          cp build/app/outputs/flutter-apk/app-release.apk ice-probe/hotaru-native-ice.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-native-ice-harness
+          path: apps/hotaru/ice-probe/hotaru-native-ice.apk
       - uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
@@ -108,6 +120,10 @@ jobs:
         with:
           name: android-compatibility-candidate
           path: apps/hotaru/candidate
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-native-ice-harness
+          path: apps/hotaru/ice-probe
       - name: Build framework archive probe
         run: |
           mkdir -p archive-probe/classes archive-probe/dex
@@ -130,7 +146,10 @@ jobs:
           target: google_apis
           profile: pixel_2
           disable-animations: true
-          script: bash tool/verify_android_install.sh
+          script: |
+            bash tool/verify_android_install.sh
+            python3 tool/verify_android_network_ui.py
+            python3 tool/verify_android_native_ice.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -141,3 +160,13 @@ jobs:
         with:
           name: android-install-api-${{ matrix.api }}-results
           path: apps/hotaru/archive-probe/*.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-network-ui-api-${{ matrix.api }}
+          path: apps/hotaru/archive-probe/network-ui/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-native-ice-api-${{ matrix.api }}
+          path: apps/hotaru/archive-probe/native-ice/
