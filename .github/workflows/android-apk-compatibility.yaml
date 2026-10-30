@@ -24,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 defaults:
   run:
@@ -119,10 +120,20 @@ jobs:
           gh release download v0.0.4 --pattern '*android-*.apk' --dir published
           gh release download v0.0.5 --pattern '*android-*.apk' --dir previous
           sha256sum baseline/*.apk published/*.apk previous/*.apk
-      - uses: actions/download-artifact@v4
-        with:
-          name: android-compatibility-candidate
-          path: apps/hotaru/candidate
+      - name: Fetch exact staged Android release APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          release_run=41066576892
+          test "$(gh api repos/kurumiZafkiel12/Hotaru/actions/runs/$release_run --jq .head_sha)" = 93e8c03cb3df550685b8001b8682ae173905e417
+          for attempt in $(seq 1 100); do
+            count=$(gh api repos/kurumiZafkiel12/Hotaru/actions/runs/$release_run/artifacts --jq '[.artifacts[] | select(.name == "artifact-android" and .expired == false)] | length')
+            if [ "$count" = 1 ]; then break; fi
+            test "$attempt" -lt 100
+            sleep 10
+          done
+          gh run download "$release_run" --repo kurumiZafkiel12/Hotaru --name artifact-android --dir candidate
       - uses: actions/download-artifact@v4
         with:
           name: android-native-ice-harness
