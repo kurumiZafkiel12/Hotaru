@@ -84,6 +84,8 @@ jobs:
       - name: Verify package identity, signatures and alignment
         run: python3 tool/verify_android_release.py
       - name: Build safe native ICE harness
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
           flutter build apk --release --target-platform android-x64 --target tool/native_ice_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
           mkdir -p ice-probe
@@ -115,7 +117,8 @@ jobs:
         run: |
           gh release download v0.0.3 --pattern '*android-*.apk' --dir baseline
           gh release download v0.0.4 --pattern '*android-*.apk' --dir published
-          sha256sum baseline/*.apk published/*.apk
+          gh release download v0.0.5 --pattern '*android-*.apk' --dir previous
+          sha256sum baseline/*.apk published/*.apk previous/*.apk
       - uses: actions/download-artifact@v4
         with:
           name: android-compatibility-candidate
