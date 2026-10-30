@@ -27,6 +27,14 @@ on:
         type: string
   workflow_dispatch:
     inputs:
+      include_android:
+        description: 'Build Windows and Android together'
+        default: false
+        type: boolean
+      draft_release:
+        description: 'Stage packages privately until validation completes'
+        default: true
+        type: boolean
       release_version:
         description: 'Optional Windows x64 release version (for example 0.0.2); leave empty for checks'
         required: false
@@ -579,7 +587,8 @@ jobs:
           IS_STABLE: ${{ env.IS_STABLE }}
           TAG: ${{ env.RELEASE_TAG }}
         run: |
-          release_notes="docs/RELEASE-${TAG#v}.md"
+          public_version=$(printf '%s' "${TAG#v}" | sed -E 's/-pre\.[0-9]+$//')
+          release_notes="docs/RELEASE-${public_version}.md"
           if [[ -f "$release_notes" ]]; then
             cp "$release_notes" release.md
             exit 0
