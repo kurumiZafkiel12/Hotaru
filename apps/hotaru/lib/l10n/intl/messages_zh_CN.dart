@@ -272,6 +272,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("局域网代理"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("允许的 IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("应用设置"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage("网络需要网页登录"),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("系统 DNS 服务器"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("按流量计费的连接"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "读取当前默认网络及其系统 DNS。它可能与 Hotaru 内部 DNS 或其他应用不同；系统开关状态不能证明无泄漏。需要修改时，请在相应系统设置中自行操作。",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "查看 VPN、系统 DNS 与网络设置",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage("Android 网络维护"),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "无法读取网络状态，或系统限制了访问。请刷新，或打开系统设置查看。",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android 已验证此网络",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("系统私人 DNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "此设备无法打开该系统设置页面。",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage("默认网络的系统 VPN"),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi 设置"),
     "answers": MessageLookupByLibrary.simpleMessage("应答"),
     "app": MessageLookupByLibrary.simpleMessage("应用"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("应用访问控制"),

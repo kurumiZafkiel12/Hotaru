@@ -1097,5 +1097,18 @@
   "qualityThresholds": "At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.",
   "qualityMedian": "Median response time",
   "qualityFailureRate": "Failed requests",
-  "qualityExpiry": "Samples expire after five minutes. A route or network change clears the result."
+  "qualityExpiry": "Samples expire after five minutes. A route or network change clears the result.",
+  "androidNetworkTitle": "Android network tools",
+  "androidNetworkSubtitle": "Check VPN, system DNS and network settings",
+  "androidNetworkScope": "Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.",
+  "androidNetworkUnavailable": "Network status could not be read or is restricted by the system. Refresh or inspect the system settings.",
+  "androidSystemVpn": "System VPN on default network",
+  "androidNetworkValidated": "Android validated this network",
+  "androidCaptivePortal": "Network login required",
+  "androidMetered": "Metered connection",
+  "androidPrivateDns": "System Private DNS",
+  "androidDnsServers": "System DNS servers",
+  "androidWifiSettings": "Wi-Fi settings",
+  "androidAppSettings": "App settings",
+  "androidSettingsUnavailable": "This settings page is unavailable on this device."
 }

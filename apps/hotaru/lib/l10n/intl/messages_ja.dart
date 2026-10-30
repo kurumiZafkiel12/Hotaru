@@ -279,6 +279,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("LANプロキシ"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("許可する IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("アプリ設定"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "ネットワークへのログインが必要",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("システムDNSサーバー"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("従量制接続"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "既定ネットワークとシステムDNSを読み取ります。Hotaru内部や他のアプリと異なる場合があり、設定状態だけでは漏洩がない証明になりません。変更はシステム設定で行ってください。",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN、システムDNSとネットワーク設定",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Androidネットワークツール",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "ネットワーク状態を取得できないか、システムに制限されています。更新するかシステム設定を確認してください。",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Androidがネットワークを検証済み",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("システムのプライベートDNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "この端末では設定画面を開けません。",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "既定ネットワークのシステムVPN",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi設定"),
     "answers": MessageLookupByLibrary.simpleMessage("応答"),
     "app": MessageLookupByLibrary.simpleMessage("アプリ"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("アプリアクセス制御"),

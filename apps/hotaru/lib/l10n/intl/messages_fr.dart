@@ -337,6 +337,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("Autoriser le LAN"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("IP autorisées"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage(
+      "Paramètres de l’application",
+    ),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "Connexion au portail requise",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage(
+      "Serveurs DNS système",
+    ),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("Connexion limitée"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "Lit le réseau par défaut et son DNS système. Ils peuvent différer du DNS de Hotaru ou des autres applications. Un réglage ne prouve pas l’absence de fuite. Modifiez les paramètres système vous-même.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "État du VPN, DNS système et paramètres réseau",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Outils réseau Android",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "État réseau indisponible ou restreint par le système. Actualisez ou consultez les paramètres système.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Réseau validé par Android",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage(
+      "DNS privé du système",
+    ),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Cette page de paramètres est indisponible sur cet appareil.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "VPN système du réseau par défaut",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage(
+      "Paramètres Wi-Fi",
+    ),
     "answers": MessageLookupByLibrary.simpleMessage("Réponses"),
     "app": MessageLookupByLibrary.simpleMessage("App"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(

@@ -325,6 +325,45 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("Разрешить LAN"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("Разрешённые IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки приложения",
+    ),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "Требуется вход в сеть",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage(
+      "Системные DNS-серверы",
+    ),
+    "androidMetered": MessageLookupByLibrary.simpleMessage(
+      "Лимитное подключение",
+    ),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "Показывает сеть по умолчанию и её системный DNS. Они могут отличаться от DNS Hotaru и других приложений. Настройка не доказывает отсутствие утечек. Изменения выполняются в системных настройках.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN, системный DNS и настройки сети",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Сетевые инструменты Android",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Состояние сети недоступно или ограничено системой. Обновите данные или откройте настройки.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Сеть проверена Android",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage(
+      "Системный частный DNS",
+    ),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Эта страница настроек недоступна на устройстве.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "Системный VPN сети по умолчанию",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки Wi-Fi",
+    ),
     "answers": MessageLookupByLibrary.simpleMessage("Ответы"),
     "app": MessageLookupByLibrary.simpleMessage("Приложение"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(

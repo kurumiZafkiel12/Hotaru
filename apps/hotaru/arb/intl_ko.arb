@@ -1097,5 +1097,18 @@
   "qualityThresholds": "유효 응답 3회 이상과 동일한 노드 경로가 필요합니다. 우수: 6회 성공, 중앙값≤150ms, 변동≤30ms. 나쁨: 실패 2회 이상, 중앙값>400ms 또는 변동>80ms. 나머지 유효 표본은 양호입니다. 변동은 연속된 유효 응답 시간 차이의 절댓값 평균입니다.",
   "qualityMedian": "응답 시간 중앙값",
   "qualityFailureRate": "요청 실패율",
-  "qualityExpiry": "표본은 5분간 유효하며 경로나 네트워크가 바뀌면 삭제됩니다."
+  "qualityExpiry": "표본은 5분간 유효하며 경로나 네트워크가 바뀌면 삭제됩니다.",
+  "androidNetworkTitle": "Android 네트워크 도구",
+  "androidNetworkSubtitle": "VPN, 시스템 DNS 및 네트워크 설정",
+  "androidNetworkScope": "현재 기본 네트워크와 시스템 DNS를 읽습니다. Hotaru 내부 DNS나 다른 앱과 다를 수 있습니다. 설정 상태만으로 누출이 없다고 볼 수 없습니다. 변경은 시스템 설정에서 직접 진행하세요.",
+  "androidNetworkUnavailable": "네트워크 상태를 읽을 수 없거나 시스템에서 제한했습니다. 새로 고치거나 시스템 설정을 확인하세요.",
+  "androidSystemVpn": "기본 네트워크의 시스템 VPN",
+  "androidNetworkValidated": "Android 네트워크 검증",
+  "androidCaptivePortal": "네트워크 로그인 필요",
+  "androidMetered": "종량제 연결",
+  "androidPrivateDns": "시스템 프라이빗 DNS",
+  "androidDnsServers": "시스템 DNS 서버",
+  "androidWifiSettings": "Wi-Fi 설정",
+  "androidAppSettings": "앱 설정",
+  "androidSettingsUnavailable": "이 기기에서 해당 설정 화면을 열 수 없습니다."
 }

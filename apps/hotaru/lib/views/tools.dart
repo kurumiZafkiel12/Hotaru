@@ -12,6 +12,7 @@ import 'service_audit.dart';
 import 'network_diagnostics.dart';
 import 'node_geo.dart';
 import 'ip_portrait.dart';
+import 'android_network.dart';
 import 'dashboard/widgets/service_status.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
@@ -126,6 +127,14 @@ class _ToolMatrix extends StatelessWidget {
         AppGlyphs.proxies,
         const NodeGeoView(),
       ),
+      if (platform == SupportPlatform.Android)
+        (
+          l10n.toolsMaintenance,
+          l10n.androidNetworkTitle,
+          l10n.androidNetworkSubtitle,
+          AppGlyphs.settings,
+          const AndroidNetworkView(),
+        ),
       if (platform == SupportPlatform.Windows)
         (
           l10n.toolsMaintenance,

@@ -276,6 +276,33 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("LAN 허용"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("허용 IP"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("앱 설정"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage("네트워크 로그인 필요"),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage("시스템 DNS 서버"),
+    "androidMetered": MessageLookupByLibrary.simpleMessage("종량제 연결"),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "현재 기본 네트워크와 시스템 DNS를 읽습니다. Hotaru 내부 DNS나 다른 앱과 다를 수 있습니다. 설정 상태만으로 누출이 없다고 볼 수 없습니다. 변경은 시스템 설정에서 직접 진행하세요.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "VPN, 시스템 DNS 및 네트워크 설정",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Android 네트워크 도구",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "네트워크 상태를 읽을 수 없거나 시스템에서 제한했습니다. 새로 고치거나 시스템 설정을 확인하세요.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android 네트워크 검증",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage("시스템 프라이빗 DNS"),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "이 기기에서 해당 설정 화면을 열 수 없습니다.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "기본 네트워크의 시스템 VPN",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage("Wi-Fi 설정"),
     "answers": MessageLookupByLibrary.simpleMessage("응답"),
     "app": MessageLookupByLibrary.simpleMessage("앱"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage("앱 접근 제어"),

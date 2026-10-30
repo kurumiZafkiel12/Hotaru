@@ -1097,5 +1097,18 @@
   "qualityThresholds": "至少需要 3 次有效响应，且节点链路一致。优：6 次全成功、中位响应≤150 ms、波动≤30 ms。差：失败超过1次、中位响应>400 ms或波动>80 ms。其余有效样本为良。波动为相邻有效响应时间差绝对值的均值。",
   "qualityMedian": "中位响应时间",
   "qualityFailureRate": "请求失败率",
-  "qualityExpiry": "样本保留 5 分钟；分流或网络变化后立即失效。"
+  "qualityExpiry": "样本保留 5 分钟；分流或网络变化后立即失效。",
+  "androidNetworkTitle": "Android 网络维护",
+  "androidNetworkSubtitle": "查看 VPN、系统 DNS 与网络设置",
+  "androidNetworkScope": "读取当前默认网络及其系统 DNS。它可能与 Hotaru 内部 DNS 或其他应用不同；系统开关状态不能证明无泄漏。需要修改时，请在相应系统设置中自行操作。",
+  "androidNetworkUnavailable": "无法读取网络状态，或系统限制了访问。请刷新，或打开系统设置查看。",
+  "androidSystemVpn": "默认网络的系统 VPN",
+  "androidNetworkValidated": "Android 已验证此网络",
+  "androidCaptivePortal": "网络需要网页登录",
+  "androidMetered": "按流量计费的连接",
+  "androidPrivateDns": "系统私人 DNS",
+  "androidDnsServers": "系统 DNS 服务器",
+  "androidWifiSettings": "Wi-Fi 设置",
+  "androidAppSettings": "应用设置",
+  "androidSettingsUnavailable": "此设备无法打开该系统设置页面。"
 }

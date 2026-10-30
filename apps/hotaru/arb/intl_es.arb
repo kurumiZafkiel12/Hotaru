@@ -1097,5 +1097,18 @@
   "qualityThresholds": "Se requieren tres respuestas válidas y una cadena estable. Excelente: seis éxitos, mediana ≤150 ms y variación ≤30 ms. Mala: más de un fallo, mediana >400 ms o variación >80 ms. Las demás muestras válidas son buenas. La variación es la media de los cambios absolutos entre respuestas válidas consecutivas.",
   "qualityMedian": "Tiempo de respuesta mediano",
   "qualityFailureRate": "Solicitudes fallidas",
-  "qualityExpiry": "La muestra caduca a los cinco minutos o al cambiar la ruta o la red."
+  "qualityExpiry": "La muestra caduca a los cinco minutos o al cambiar la ruta o la red.",
+  "androidNetworkTitle": "Herramientas de red Android",
+  "androidNetworkSubtitle": "VPN, DNS del sistema y ajustes de red",
+  "androidNetworkScope": "Lee la red predeterminada y su DNS. Pueden diferir de Hotaru y otras aplicaciones. Un ajuste no demuestra ausencia de fugas. Realice los cambios en los ajustes del sistema.",
+  "androidNetworkUnavailable": "No se pudo leer la red o el sistema restringe el acceso. Actualice o consulte los ajustes.",
+  "androidSystemVpn": "VPN del sistema en la red predeterminada",
+  "androidNetworkValidated": "Red validada por Android",
+  "androidCaptivePortal": "La red requiere iniciar sesión",
+  "androidMetered": "Conexión de uso medido",
+  "androidPrivateDns": "DNS privado del sistema",
+  "androidDnsServers": "Servidores DNS del sistema",
+  "androidWifiSettings": "Ajustes de Wi-Fi",
+  "androidAppSettings": "Ajustes de la aplicación",
+  "androidSettingsUnavailable": "Esta página de ajustes no está disponible en este dispositivo."
 }

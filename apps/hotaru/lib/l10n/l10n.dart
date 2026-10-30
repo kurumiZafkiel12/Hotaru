@@ -9347,6 +9347,136 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Android network tools`
+  String get androidNetworkTitle {
+    return Intl.message(
+      'Android network tools',
+      name: 'androidNetworkTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check VPN, system DNS and network settings`
+  String get androidNetworkSubtitle {
+    return Intl.message(
+      'Check VPN, system DNS and network settings',
+      name: 'androidNetworkSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.`
+  String get androidNetworkScope {
+    return Intl.message(
+      'Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.',
+      name: 'androidNetworkScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network status could not be read or is restricted by the system. Refresh or inspect the system settings.`
+  String get androidNetworkUnavailable {
+    return Intl.message(
+      'Network status could not be read or is restricted by the system. Refresh or inspect the system settings.',
+      name: 'androidNetworkUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System VPN on default network`
+  String get androidSystemVpn {
+    return Intl.message(
+      'System VPN on default network',
+      name: 'androidSystemVpn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Android validated this network`
+  String get androidNetworkValidated {
+    return Intl.message(
+      'Android validated this network',
+      name: 'androidNetworkValidated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network login required`
+  String get androidCaptivePortal {
+    return Intl.message(
+      'Network login required',
+      name: 'androidCaptivePortal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Metered connection`
+  String get androidMetered {
+    return Intl.message(
+      'Metered connection',
+      name: 'androidMetered',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System Private DNS`
+  String get androidPrivateDns {
+    return Intl.message(
+      'System Private DNS',
+      name: 'androidPrivateDns',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System DNS servers`
+  String get androidDnsServers {
+    return Intl.message(
+      'System DNS servers',
+      name: 'androidDnsServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wi-Fi settings`
+  String get androidWifiSettings {
+    return Intl.message(
+      'Wi-Fi settings',
+      name: 'androidWifiSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `App settings`
+  String get androidAppSettings {
+    return Intl.message(
+      'App settings',
+      name: 'androidAppSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This settings page is unavailable on this device.`
+  String get androidSettingsUnavailable {
+    return Intl.message(
+      'This settings page is unavailable on this device.',
+      name: 'androidSettingsUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

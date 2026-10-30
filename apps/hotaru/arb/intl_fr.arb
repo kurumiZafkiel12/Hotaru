@@ -1097,5 +1097,18 @@
   "qualityThresholds": "Au moins trois réponses et une chaîne de nœuds stable sont requises. Excellent : six succès, médiane ≤150 ms et variation ≤30 ms. Faible : plus d’un échec, médiane >400 ms ou variation >80 ms. Sinon, bon. La variation est la moyenne des différences absolues entre réponses valides consécutives.",
   "qualityMedian": "Temps de réponse médian",
   "qualityFailureRate": "Requêtes échouées",
-  "qualityExpiry": "Le résultat expire après cinq minutes ou un changement de route ou de réseau."
+  "qualityExpiry": "Le résultat expire après cinq minutes ou un changement de route ou de réseau.",
+  "androidNetworkTitle": "Outils réseau Android",
+  "androidNetworkSubtitle": "État du VPN, DNS système et paramètres réseau",
+  "androidNetworkScope": "Lit le réseau par défaut et son DNS système. Ils peuvent différer du DNS de Hotaru ou des autres applications. Un réglage ne prouve pas l’absence de fuite. Modifiez les paramètres système vous-même.",
+  "androidNetworkUnavailable": "État réseau indisponible ou restreint par le système. Actualisez ou consultez les paramètres système.",
+  "androidSystemVpn": "VPN système du réseau par défaut",
+  "androidNetworkValidated": "Réseau validé par Android",
+  "androidCaptivePortal": "Connexion au portail requise",
+  "androidMetered": "Connexion limitée",
+  "androidPrivateDns": "DNS privé du système",
+  "androidDnsServers": "Serveurs DNS système",
+  "androidWifiSettings": "Paramètres Wi-Fi",
+  "androidAppSettings": "Paramètres de l’application",
+  "androidSettingsUnavailable": "Cette page de paramètres est indisponible sur cet appareil."
 }

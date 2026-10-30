@@ -1097,5 +1097,18 @@
   "qualityThresholds": "有効な応答3回以上と同じノード経路が必要です。優：6回成功、中央値≤150ms、変動≤30ms。不良：失敗2回以上、中央値>400msまたは変動>80ms。それ以外は良です。 変動は隣り合う有効な応答時間の差の絶対値の平均です。",
   "qualityMedian": "応答時間の中央値",
   "qualityFailureRate": "リクエスト失敗率",
-  "qualityExpiry": "有効期間は5分です。ルートやネットワークの変更で無効になります。"
+  "qualityExpiry": "有効期間は5分です。ルートやネットワークの変更で無効になります。",
+  "androidNetworkTitle": "Androidネットワークツール",
+  "androidNetworkSubtitle": "VPN、システムDNSとネットワーク設定",
+  "androidNetworkScope": "既定ネットワークとシステムDNSを読み取ります。Hotaru内部や他のアプリと異なる場合があり、設定状態だけでは漏洩がない証明になりません。変更はシステム設定で行ってください。",
+  "androidNetworkUnavailable": "ネットワーク状態を取得できないか、システムに制限されています。更新するかシステム設定を確認してください。",
+  "androidSystemVpn": "既定ネットワークのシステムVPN",
+  "androidNetworkValidated": "Androidがネットワークを検証済み",
+  "androidCaptivePortal": "ネットワークへのログインが必要",
+  "androidMetered": "従量制接続",
+  "androidPrivateDns": "システムのプライベートDNS",
+  "androidDnsServers": "システムDNSサーバー",
+  "androidWifiSettings": "Wi-Fi設定",
+  "androidAppSettings": "アプリ設定",
+  "androidSettingsUnavailable": "この端末では設定画面を開けません。"
 }

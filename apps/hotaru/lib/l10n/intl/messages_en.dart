@@ -321,6 +321,43 @@ class MessageLookup extends MessageLookupByLibrary {
     "allowLan": MessageLookupByLibrary.simpleMessage("Allow LAN"),
     "allowedIps": MessageLookupByLibrary.simpleMessage("Allowed IPs"),
     "alreadyInLocalProxies": m2,
+    "androidAppSettings": MessageLookupByLibrary.simpleMessage("App settings"),
+    "androidCaptivePortal": MessageLookupByLibrary.simpleMessage(
+      "Network login required",
+    ),
+    "androidDnsServers": MessageLookupByLibrary.simpleMessage(
+      "System DNS servers",
+    ),
+    "androidMetered": MessageLookupByLibrary.simpleMessage(
+      "Metered connection",
+    ),
+    "androidNetworkScope": MessageLookupByLibrary.simpleMessage(
+      "Reads the current default network and its system DNS. These values can differ from Hotaru’s internal DNS or other apps. A system setting does not prove there are no leaks. Open the relevant settings to make changes yourself.",
+    ),
+    "androidNetworkSubtitle": MessageLookupByLibrary.simpleMessage(
+      "Check VPN, system DNS and network settings",
+    ),
+    "androidNetworkTitle": MessageLookupByLibrary.simpleMessage(
+      "Android network tools",
+    ),
+    "androidNetworkUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Network status could not be read or is restricted by the system. Refresh or inspect the system settings.",
+    ),
+    "androidNetworkValidated": MessageLookupByLibrary.simpleMessage(
+      "Android validated this network",
+    ),
+    "androidPrivateDns": MessageLookupByLibrary.simpleMessage(
+      "System Private DNS",
+    ),
+    "androidSettingsUnavailable": MessageLookupByLibrary.simpleMessage(
+      "This settings page is unavailable on this device.",
+    ),
+    "androidSystemVpn": MessageLookupByLibrary.simpleMessage(
+      "System VPN on default network",
+    ),
+    "androidWifiSettings": MessageLookupByLibrary.simpleMessage(
+      "Wi-Fi settings",
+    ),
     "answers": MessageLookupByLibrary.simpleMessage("Answers"),
     "app": MessageLookupByLibrary.simpleMessage("App"),
     "appAccessControl": MessageLookupByLibrary.simpleMessage(
