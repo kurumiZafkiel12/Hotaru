@@ -1081,5 +1081,13 @@
   "auditRequestFailed": "Error / tiempo agotado",
   "auditUnknown": "Sin determinar",
   "auditResultFilter": "Resultados",
-  "auditCatalogPartialEvidence": "El título original de muestra expone metadatos de reproducción y la muestra con licencia no está disponible. Esto no confirma el catálogo completo ni los derechos reales de reproducción."
+  "auditCatalogPartialEvidence": "El título original de muestra expone metadatos de reproducción y la muestra con licencia no está disponible. Esto no confirma el catálogo completo ni los derechos reales de reproducción.",
+  "portraitDataScope": "Observa las salidas IPv4 e IPv6 por separado y solo envía esas IP públicas a GeoJS, IPQuery e ipapi.is. No recopila cuentas ni huellas del navegador.",
+  "portraitSourceConflict": "Las fuentes difieren. Compare el proveedor, la dirección y la hora.",
+  "portraitRiskNoted": "Un proveedor informa de riesgos. Su clasificación no demuestra un bloqueo universal ni mide la calidad de conexión.",
+  "portraitUnclear": "Faltan pruebas. Una IP accesible o la ausencia de una marca no demuestra una conexión limpia ni sin fugas.",
+  "portraitMetricsScope": "Las métricas originales conservan su fuente y hora. Sus escalas no son intercambiables ni se promedian.",
+  "portraitRoutingScope": "Las reglas y los nodos corresponden a solicitudes reales. La IP de salida de un sitio es desconocida si el sitio no la devuelve.",
+  "portraitOriginScope": "Una conexión residencial no demuestra un IP de origen nativo. Estas fuentes no verifican esa propiedad.",
+  "portraitDnsScope": "Prueba rápida: cuatro dominios aleatorios mediante el DNS del proceso y registros de bash.ws. Sin registro o resolutor esperado conocido, faltan pruebas. No cubre otras aplicaciones ni navegadores."
 }

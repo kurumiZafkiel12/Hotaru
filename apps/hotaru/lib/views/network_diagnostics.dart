@@ -10,7 +10,6 @@ import 'package:hotaru/common/dns_leak.dart';
 import 'package:hotaru/common/network_diagnostics.dart';
 import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/service_probe.dart';
-import 'package:hotaru/features/ip_quality/ip_quality_sheet.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
@@ -18,7 +17,7 @@ import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-enum NetworkDiagnostic { dns, stun, ip, recovery }
+enum NetworkDiagnostic { dns, stun, recovery }
 
 class NetworkDiagnosticsView extends ConsumerStatefulWidget {
   const NetworkDiagnosticsView({super.key, required this.kind});
@@ -40,7 +39,6 @@ class _NetworkDiagnosticsViewState
   int _generation = 0;
   final _evidence = <String>[];
   String? _notice;
-  String? _ip;
   bool _risk = false;
   bool _recoverySuperseded = false;
   IceProbe? _ice;
@@ -78,7 +76,6 @@ class _NetworkDiagnosticsViewState
     return switch (widget.kind) {
       NetworkDiagnostic.dns => l10n.dnsLeakTitle,
       NetworkDiagnostic.stun => l10n.webrtcLeakTitle,
-      NetworkDiagnostic.ip => l10n.ipPortraitTitle,
       NetworkDiagnostic.recovery => l10n.networkRecoveryTitle,
     };
   }
@@ -88,7 +85,6 @@ class _NetworkDiagnosticsViewState
     return switch (widget.kind) {
       NetworkDiagnostic.dns => l10n.dnsLeakScope,
       NetworkDiagnostic.stun => l10n.webrtcLeakScope,
-      NetworkDiagnostic.ip => l10n.ipPortraitScope,
       NetworkDiagnostic.recovery => l10n.networkRecoveryScope,
     };
   }
@@ -136,7 +132,6 @@ class _NetworkDiagnosticsViewState
       _notice = null;
       _risk = false;
       _recoverySuperseded = false;
-      _ip = null;
       _iceResult = null;
       _evidence.clear();
     });
@@ -147,8 +142,6 @@ class _NetworkDiagnosticsViewState
           await _dns(current);
         case NetworkDiagnostic.stun:
           await _checkStun(current);
-        case NetworkDiagnostic.ip:
-          await _portrait(current);
         case NetworkDiagnostic.recovery:
           await _recover(current);
       }
@@ -309,45 +302,6 @@ class _NetworkDiagnosticsViewState
     });
   }
 
-  Future<void> _portrait(bool Function() current) async {
-    final info = await _outbound(current);
-    if (!current()) return;
-    setState(() => _ip = info.ip);
-    final response = await ref
-        .read(coreHandlerProvider)
-        .probe(
-          const ProbeParams(
-            url: 'https://www.google.com/search?q=hotaru&num=1',
-            headers: {'User-Agent': browserUa},
-            timeout: 8000,
-            maxBody: 64 * 1024,
-          ),
-        );
-    if (!current() || !mounted) return;
-    if (response == null || response.error != null) {
-      _notice = context.appLocalizations.auditInconclusive;
-      return;
-    }
-    final challenge =
-        response.statusCode == 429 ||
-        RegExp(
-          r'g-recaptcha|/sorry/|unusual traffic',
-          caseSensitive: false,
-        ).hasMatch(response.body);
-    setState(() {
-      _risk = challenge;
-      _notice = challenge
-          ? context.appLocalizations.auditChallenge
-          : response.statusCode == 200
-          ? context.appLocalizations.auditReachable
-          : context.appLocalizations.auditInconclusive;
-      _evidence.add('${response.url} · HTTP ${response.statusCode}');
-      _evidence.add(
-        '${response.rule}, ${response.rulePayload} ➜ ${response.chains.reversed.join(" ➜ ")}',
-      );
-    });
-  }
-
   Future<void> _recover(bool Function() current) async {
     if (!system.isWindows || safeModeBuild) {
       throw UnsupportedError('Windows recovery unavailable');
@@ -486,11 +440,6 @@ class _NetworkDiagnosticsViewState
                 TonalButton(
                   label: l10n.diagnosticsApplyDoh,
                   onPressed: _running ? null : _applyDoh,
-                ),
-              if (_ip != null)
-                TonalButton(
-                  label: l10n.ipPortraitTitle,
-                  onPressed: () => showIpQualitySheet(context, ip: _ip!),
                 ),
             ],
           ),

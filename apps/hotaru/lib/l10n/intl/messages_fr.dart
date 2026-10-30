@@ -1650,6 +1650,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Saut de port"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Observe séparément les sorties IPv4 et IPv6, puis transmet uniquement ces IP publiques à GeoJS, IPQuery et ipapi.is. Aucun compte ni empreinte du navigateur n’est collecté.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Contrôle rapide : quatre domaines aléatoires via le DNS système du processus et reçus bash.ws. Sans reçu ou résolveur attendu connu, les preuves sont insuffisantes. Les autres applications ne sont pas testées.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Les indicateurs d’origine conservent leur source et leur date. Leurs échelles ne sont ni interchangeables ni moyennées.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Un accès résidentiel ne prouve pas l’origine native de l’IP. Ces sources ne déterminent pas cette propriété.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "Un fournisseur signale des risques. Cette classification ne prouve ni un blocage général ni la qualité de la connexion.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Les règles et les nœuds correspondent aux requêtes réelles. Sans réponse explicite du site, son IP de sortie reste inconnue.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Les sources divergent. Comparez le fournisseur, l’adresse et l’heure.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Preuves incomplètes. Une IP accessible ou un indicateur absent ne prouve pas une connexion sans risque ni fuite.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Ports"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Clé prépartagée"),
     "preferred": MessageLookupByLibrary.simpleMessage("Préféré"),

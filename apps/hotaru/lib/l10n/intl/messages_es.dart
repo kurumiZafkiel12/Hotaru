@@ -1649,6 +1649,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Salto de puertos"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Observa las salidas IPv4 e IPv6 por separado y solo envía esas IP públicas a GeoJS, IPQuery e ipapi.is. No recopila cuentas ni huellas del navegador.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Prueba rápida: cuatro dominios aleatorios mediante el DNS del proceso y registros de bash.ws. Sin registro o resolutor esperado conocido, faltan pruebas. No cubre otras aplicaciones ni navegadores.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Las métricas originales conservan su fuente y hora. Sus escalas no son intercambiables ni se promedian.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Una conexión residencial no demuestra un IP de origen nativo. Estas fuentes no verifican esa propiedad.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "Un proveedor informa de riesgos. Su clasificación no demuestra un bloqueo universal ni mide la calidad de conexión.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Las reglas y los nodos corresponden a solicitudes reales. La IP de salida de un sitio es desconocida si el sitio no la devuelve.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Las fuentes difieren. Compare el proveedor, la dirección y la hora.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Faltan pruebas. Una IP accesible o la ausencia de una marca no demuestra una conexión limpia ni sin fugas.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Puertos"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Clave precompartida"),
     "preferred": MessageLookupByLibrary.simpleMessage("Preferido"),

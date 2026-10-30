@@ -1295,6 +1295,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("ポートホッピング"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "IPv4とIPv6の出口を個別に観測し、その公開IPのみをGeoJS、IPQuery、ipapi.isへ送信します。アカウント情報やブラウザー指紋は収集しません。",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "簡易検査：このプロセスのシステムDNSで4つのランダムドメインを照会し、bash.wsの記録を取得します。記録や想定経路が不明なら証拠不十分です。他のアプリやブラウザーは未検査です。",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "提供元の元の指標と時刻を表示します。異なる尺度を混在させたり平均したりしません。",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "住宅回線はネイティブIPを証明しません。これらの情報源ではネイティブやブロードキャストの帰属を確認できません。",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "提供元がリスクを報告しました。第三者の分類であり、すべてのサイトの禁止や回線品質を意味しません。",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "ルールとノードは実際のリクエストの結果です。対象サイトが返さない出口IPは不明であり、別のIP照会で代用できません。",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "提供元の結果が異なります。提供元、IP、照会時刻を確認してください。",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "証拠が不十分です。IPへの到達やリスク項目の欠如だけでは安全性を証明できません。",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("ポート"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("事前共有鍵"),
     "preferred": MessageLookupByLibrary.simpleMessage("優先"),

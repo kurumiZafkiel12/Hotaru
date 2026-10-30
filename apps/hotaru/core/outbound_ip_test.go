@@ -1,7 +1,9 @@
 package core
 
 import (
+	"encoding/json"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -203,5 +205,22 @@ func TestHandleOutboundIpRejectsAnEmptySourceList(t *testing.T) {
 	result := handleOutboundIp(&OutboundIpParams{ProxyName: "node-a", Timeout: 1000})
 	if result.Error != probeErrorFailed {
 		t.Errorf("error = %q, want %q", result.Error, probeErrorFailed)
+	}
+}
+
+func TestOutboundIpPreservesProfileMetadataWithinABoundedBody(t *testing.T) {
+	withProbeProxies(t, "node-a")
+	body := `{"ip":"8.8.8.8","description":"` + strings.Repeat("x", 5000) + `","risk":{"is_vpn":true}}`
+	server := probeServer(t, func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(body)) })
+	got := handleOutboundIp(&OutboundIpParams{ProxyName: "node-a", Urls: []string{server.URL}, Timeout: 1000})
+	if got.Error != "" || got.Body != body || !json.Valid([]byte(got.Body)) {
+		t.Fatal("valid profile metadata was truncated")
+	}
+	oversized := probeServer(t, func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"ip":"8.8.8.8","description":"` + strings.Repeat("x", outboundIpMaxBody*2) + `"}`))
+	})
+	limited := handleOutboundIp(&OutboundIpParams{ProxyName: "node-a", Urls: []string{oversized.URL}, Timeout: 1000})
+	if len(limited.Body) > outboundIpMaxBody {
+		t.Fatal("profile body exceeded its budget")
 	}
 }

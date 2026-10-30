@@ -1081,5 +1081,13 @@
   "auditRequestFailed": "Échec / délai dépassé",
   "auditUnknown": "Indéterminé",
   "auditResultFilter": "Résultats",
-  "auditCatalogPartialEvidence": "Le titre original testé expose des métadonnées de lecture, mais le titre sous licence est indisponible. Cela ne prouve ni le catalogue complet ni les droits de lecture réels."
+  "auditCatalogPartialEvidence": "Le titre original testé expose des métadonnées de lecture, mais le titre sous licence est indisponible. Cela ne prouve ni le catalogue complet ni les droits de lecture réels.",
+  "portraitDataScope": "Observe séparément les sorties IPv4 et IPv6, puis transmet uniquement ces IP publiques à GeoJS, IPQuery et ipapi.is. Aucun compte ni empreinte du navigateur n’est collecté.",
+  "portraitSourceConflict": "Les sources divergent. Comparez le fournisseur, l’adresse et l’heure.",
+  "portraitRiskNoted": "Un fournisseur signale des risques. Cette classification ne prouve ni un blocage général ni la qualité de la connexion.",
+  "portraitUnclear": "Preuves incomplètes. Une IP accessible ou un indicateur absent ne prouve pas une connexion sans risque ni fuite.",
+  "portraitMetricsScope": "Les indicateurs d’origine conservent leur source et leur date. Leurs échelles ne sont ni interchangeables ni moyennées.",
+  "portraitRoutingScope": "Les règles et les nœuds correspondent aux requêtes réelles. Sans réponse explicite du site, son IP de sortie reste inconnue.",
+  "portraitOriginScope": "Un accès résidentiel ne prouve pas l’origine native de l’IP. Ces sources ne déterminent pas cette propriété.",
+  "portraitDnsScope": "Contrôle rapide : quatre domaines aléatoires via le DNS système du processus et reçus bash.ws. Sans reçu ou résolveur attendu connu, les preuves sont insuffisantes. Les autres applications ne sont pas testées."
 }

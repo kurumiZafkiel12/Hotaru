@@ -30,11 +30,21 @@ def geojs():
 
 
 def reputation(source, url):
-    data = json.loads(fetch(url))
+    body = fetch(url)
+    data = json.loads(body)
     if ipaddress.ip_address(data['ip']) != ipaddress.ip_address('8.8.8.8'):
         raise ValueError('queried IP mismatch')
     risk = data.get('risk', {}) if source == 'IPQuery' else data
-    return {'queried_ip_matches': True, 'boolean_risk_fields': sum(isinstance(value, bool) for key, value in risk.items() if key.startswith('is_'))}
+    return {'queried_ip_matches': True, 'body_bytes': len(body.encode('utf-8')), 'within_app_budget': len(body.encode('utf-8')) <= 16384, 'boolean_risk_fields': sum(isinstance(value, bool) for key, value in risk.items() if key.startswith('is_'))}
+
+
+def ipify(family):
+    url = 'https://api.ipify.org?format=json' if family == 4 else 'https://api6.ipify.org?format=json'
+    data = json.loads(fetch(url))
+    actual_family = ipaddress.ip_address(data['ip']).version
+    if actual_family != family:
+        raise ValueError('IP family mismatch')
+    return {'expected_family': family, 'response_family': actual_family}
 
 
 def dns_receipt():
@@ -80,6 +90,8 @@ def survey(name, probe):
 def main():
     probes = [
         ('GeoJS', geojs),
+        ('ipify IPv4', lambda: ipify(4)),
+        ('ipify IPv6', lambda: ipify(6)),
         ('IPQuery', lambda: reputation('IPQuery', 'https://api.ipquery.io/8.8.8.8?format=json')),
         ('ipapi.is', lambda: reputation('ipapi.is', 'https://api.ipapi.is/?q=8.8.8.8')),
         ('bash.ws', dns_receipt),

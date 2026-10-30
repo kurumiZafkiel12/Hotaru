@@ -1172,6 +1172,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("端口跳跃"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "分别观测 IPv4、IPv6 出口，仅将这些公网 IP 发送至 GeoJS、IPQuery 和 ipapi.is 查询。不收集账户资料或浏览器指纹。",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "快速检查：本进程经系统 DNS 查询 4 个随机域名，由 bash.ws 回执实际解析器。无回执或预期解析器未知时证据不足；不覆盖其他应用和浏览器。",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "保留提供方的原始指标及查询时间；不同指标量纲不通用，不混合取平均。",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "住宅接入不代表原生 IP。这些来源不能证明原生或广播归属。",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "提供方报告了风险信号。这是第三方分类，不代表所有网站封禁，也不是网络质量评分。",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "规则与节点链路来自这些实际请求。目标站点未回显时，其公网出口 IP 为未知，不能用另一查 IP 请求替代。",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "来源结论不一致，请结合提供方、地址与查询时间查看差异。",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "证据尚不完整。IP 可达或未返回风险标记，不能证明纯净、没有泄漏。",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("端口"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("预共享密钥"),
     "preferred": MessageLookupByLibrary.simpleMessage("首选"),

@@ -1278,6 +1278,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("포트 호핑"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "IPv4와 IPv6 출구를 각각 관측하고 해당 공인 IP만 GeoJS, IPQuery, ipapi.is에 전송합니다. 계정 정보나 브라우저 지문은 수집하지 않습니다.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "빠른 검사: 이 프로세스의 시스템 DNS로 임의 도메인 4개를 조회하고 bash.ws 기록을 확인합니다. 기록이나 예상 해석기가 없으면 증거가 부족합니다. 다른 앱과 브라우저는 검사하지 않습니다.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "원본 지표의 출처와 시간을 유지합니다. 서로 다른 척도를 혼합하거나 평균하지 않습니다.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "주거용 연결이 원생 IP를 증명하지는 않습니다. 이 출처들은 원생 또는 브로드캐스트 소유를 확인하지 못합니다.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "제공자가 위험 신호를 보고했습니다. 모든 사이트의 차단이나 연결 품질을 의미하지 않습니다.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "규칙과 노드 경로는 실제 요청 결과입니다. 대상 사이트가 반환하지 않은 공인 출구 IP는 알 수 없습니다.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "제공자 결과가 다릅니다. 출처, 주소, 조회 시간을 비교하세요.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "증거가 부족합니다. IP에 접속되거나 위험 표시가 없다고 안전하거나 누출이 없다고 볼 수 없습니다.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("포트"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("사전 공유 키"),
     "preferred": MessageLookupByLibrary.simpleMessage("우선"),

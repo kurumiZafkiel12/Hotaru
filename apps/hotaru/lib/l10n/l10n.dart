@@ -9197,6 +9197,86 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.`
+  String get portraitDataScope {
+    return Intl.message(
+      'Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.',
+      name: 'portraitDataScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Providers disagree. Review the source, address and time before drawing a conclusion.`
+  String get portraitSourceConflict {
+    return Intl.message(
+      'Providers disagree. Review the source, address and time before drawing a conclusion.',
+      name: 'portraitSourceConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.`
+  String get portraitRiskNoted {
+    return Intl.message(
+      'A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.',
+      name: 'portraitRiskNoted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.`
+  String get portraitUnclear {
+    return Intl.message(
+      'Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.',
+      name: 'portraitUnclear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.`
+  String get portraitMetricsScope {
+    return Intl.message(
+      'Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.',
+      name: 'portraitMetricsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.`
+  String get portraitRoutingScope {
+    return Intl.message(
+      'Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.',
+      name: 'portraitRoutingScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.`
+  String get portraitOriginScope {
+    return Intl.message(
+      'Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.',
+      name: 'portraitOriginScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.`
+  String get portraitDnsScope {
+    return Intl.message(
+      'Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.',
+      name: 'portraitDnsScope',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -11,6 +11,7 @@ import 'speed_test.dart';
 import 'service_audit.dart';
 import 'network_diagnostics.dart';
 import 'node_geo.dart';
+import 'ip_portrait.dart';
 import 'dashboard/widgets/service_status.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
@@ -116,7 +117,7 @@ class _ToolMatrix extends StatelessWidget {
         l10n.ipPortraitTitle,
         l10n.ipPortraitSubtitle,
         AppGlyphs.status,
-        const NetworkDiagnosticsView(kind: NetworkDiagnostic.ip),
+        const IpPortraitView(),
       ),
       (
         l10n.toolsIp,

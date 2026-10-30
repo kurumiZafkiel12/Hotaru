@@ -1528,6 +1528,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Port hopping"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "A provider reports risk signals. These are third-party classifications, not a universal ban or a connection-quality score.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Providers disagree. Review the source, address and time before drawing a conclusion.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Evidence is incomplete. A reachable IP or the absence of a risk flag does not establish a clean or leak-free connection.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Ports"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Pre-shared key"),
     "preferred": MessageLookupByLibrary.simpleMessage("Preferred"),

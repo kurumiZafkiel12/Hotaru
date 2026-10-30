@@ -1602,6 +1602,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "portHopping": MessageLookupByLibrary.simpleMessage("Перескок портов"),
     "portTip": m60,
     "portValue": m61,
+    "portraitDataScope": MessageLookupByLibrary.simpleMessage(
+      "Выходы IPv4 и IPv6 проверяются отдельно. Только эти публичные IP передаются GeoJS, IPQuery и ipapi.is. Данные аккаунтов и отпечатки браузера не собираются.",
+    ),
+    "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
+      "Быстрая проверка: четыре случайных домена через системный DNS процесса и записи bash.ws. Без записей или известного ожидаемого резолвера данных недостаточно. Другие приложения и браузеры не проверяются.",
+    ),
+    "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
+      "Исходные показатели сохраняют источник и время. Разные шкалы не смешиваются и не усредняются.",
+    ),
+    "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
+      "Домашний доступ не доказывает нативность IP. Эти источники не подтверждают такое происхождение.",
+    ),
+    "portraitRiskNoted": MessageLookupByLibrary.simpleMessage(
+      "Поставщик сообщает о рисках. Его классификация не означает повсеместную блокировку и не оценивает качество связи.",
+    ),
+    "portraitRoutingScope": MessageLookupByLibrary.simpleMessage(
+      "Правила и узлы относятся к реальным запросам. Внешний IP сайта неизвестен, если сам сайт его не сообщает.",
+    ),
+    "portraitSourceConflict": MessageLookupByLibrary.simpleMessage(
+      "Источники расходятся. Сравните поставщика, адрес и время проверки.",
+    ),
+    "portraitUnclear": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно данных. Доступность IP или отсутствие признака не доказывает отсутствие рисков и утечек.",
+    ),
     "ports": MessageLookupByLibrary.simpleMessage("Порты"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Общий ключ"),
     "preferred": MessageLookupByLibrary.simpleMessage("Предпочтительный"),
