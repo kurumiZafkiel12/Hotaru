@@ -1,0 +1,42 @@
+name: Verify staged Windows installer
+on:
+  push:
+    branches: ['codex/v005-release-verification']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  install:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/hotaru
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch previous installer
+        run: gh release download v0.0.5 --repo kurumiZafkiel12/Hotaru --pattern '*windows-amd64-setup.exe' --dir previous-windows
+      - name: Await exact staged Windows artifact
+        shell: pwsh
+        run: |
+          $run = '41066576892'
+          $sha = gh api repos/kurumiZafkiel12/Hotaru/actions/runs/$run --jq .head_sha
+          if ($sha -ne '93e8c03cb3df550685b8001b8682ae173905e417') { throw 'Staged source mismatch' }
+          for ($attempt = 0; $attempt -lt 100; $attempt++) {
+            $count = gh api repos/kurumiZafkiel12/Hotaru/actions/runs/$run/artifacts --jq '[.artifacts[] | select(.name == "artifact-windows-amd64" and .expired == false)] | length'
+            if ($count -eq '1') { break }
+            if ($attempt -eq 99) { throw 'Staged artifact unavailable' }
+            Start-Sleep -Seconds 20
+          }
+          gh run download $run --repo kurumiZafkiel12/Hotaru --name artifact-windows-amd64 --dir staged-windows
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download staged installer' }
+      - name: Install, upgrade, repeat install and uninstall
+        shell: pwsh
+        run: ./tool/verify_windows_installer.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-installer-verification
+          path: apps/hotaru/installer-probe/
