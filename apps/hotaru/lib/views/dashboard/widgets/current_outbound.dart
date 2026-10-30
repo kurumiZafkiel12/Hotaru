@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/country_names.dart';
+import 'package:hotaru/common/network_quality.dart';
+import 'package:hotaru/providers/network_quality.dart';
+import 'package:hotaru/views/network_quality.dart';
 import 'package:hotaru/common/service_probe.dart';
 import 'package:hotaru/features/features.dart';
 import 'package:hotaru/features/ip_quality/labels.dart';
@@ -409,14 +412,28 @@ class _IpDimensions extends StatelessWidget {
             loading: loading,
           ),
         ),
-        Expanded(
-          child: _IpDimension(
-            label: strings.statusNetworkQuality,
-            value: strings.unknown,
-            evidence: strings.statusQualityUnknownReason,
-          ),
-        ),
+        const Expanded(child: _NetworkQualityDimension()),
       ],
+    );
+  }
+}
+
+class _NetworkQualityDimension extends ConsumerWidget {
+  const _NetworkQualityDimension();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(networkQualityProvider);
+    final report = state.reportFor(ref.watch(routeTrackerProvider));
+    final l10n = context.appLocalizations;
+    return _IpDimension(
+      label: l10n.statusNetworkQuality,
+      value: (report?.grade ?? NetworkQualityGrade.unknown).label,
+      evidence: report == null
+          ? l10n.statusQualityUnknownReason
+          : '${l10n.qualityScope}\n$networkQualityUrl · ${report.completed}/$networkQualityRounds · ${report.medianMs?.toStringAsFixed(1) ?? "—"} ms',
+      loading: state.running,
+      onPressed: () => showNetworkQualitySheet(context),
     );
   }
 }
@@ -427,8 +444,10 @@ class _IpDimension extends StatelessWidget {
     required this.value,
     required this.evidence,
     this.loading = false,
+    this.onPressed,
   });
 
+  final VoidCallback? onPressed;
   final String label;
   final String value;
   final String evidence;
@@ -436,7 +455,7 @@ class _IpDimension extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    final dimension = Tooltip(
       message: '$label: $value\n$evidence',
       child: Semantics(
         label: '$label: $value. $evidence',
@@ -464,6 +483,16 @@ class _IpDimension extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+    if (onPressed == null) return dimension;
+    return FocusRing(
+      shape: AppShape.xs,
+      standsOff: true,
+      child: InkWell(
+        customBorder: AppShape.xs,
+        onTap: onPressed,
+        child: dimension,
       ),
     );
   }

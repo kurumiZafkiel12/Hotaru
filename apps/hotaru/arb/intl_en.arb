@@ -1089,5 +1089,13 @@
   "portraitMetricsScope": "Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.",
   "portraitRoutingScope": "Rules and node chains belong to these actual requests. A site’s public egress IP is unknown unless that site returns it; another IP lookup cannot establish it.",
   "portraitOriginScope": "Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.",
-  "portraitDnsScope": "Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested."
+  "portraitDnsScope": "Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.",
+  "qualityExcellent": "Excellent",
+  "qualityGood": "Good",
+  "qualityPoor": "Poor",
+  "qualityScope": "Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.",
+  "qualityThresholds": "At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.",
+  "qualityMedian": "Median response time",
+  "qualityFailureRate": "Failed requests",
+  "qualityExpiry": "Samples expire after five minutes. A route or network change clears the result."
 }

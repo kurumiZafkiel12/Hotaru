@@ -1371,6 +1371,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "이 링크는 너무 길어 QR 코드로 만들 수 없습니다. 링크 복사를 사용하세요.",
     ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("우수"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "표본은 5분간 유효하며 경로나 네트워크가 바뀌면 삭제됩니다.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("요청 실패율"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("양호"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("응답 시간 중앙값"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("나쁨"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "현재 규칙으로 같은 대상에 HTTPS 요청 6회를 수동 전송합니다. 이 대상과 경로만 평가하며 대역폭, 모든 사이트나 IP 평판을 측정하지 않습니다. 요청 실패율은 ICMP 손실률이 아닙니다.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "유효 응답 3회 이상과 동일한 노드 경로가 필요합니다. 우수: 6회 성공, 중앙값≤150ms, 변동≤30ms. 나쁨: 실패 2회 이상, 중앙값>400ms 또는 변동>80ms. 나머지 유효 표본은 양호입니다. 변동은 연속된 유효 응답 시간 차이의 절댓값 평균입니다.",
+    ),
     "quickActions": MessageLookupByLibrary.simpleMessage("빠른 작업"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("빠른 편집"),
     "recentRequests": MessageLookupByLibrary.simpleMessage("최근 요청"),

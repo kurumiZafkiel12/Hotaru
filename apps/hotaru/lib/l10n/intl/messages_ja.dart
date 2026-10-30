@@ -1390,6 +1390,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "このリンクは長すぎて QR コードにできません。「リンクをコピー」を使ってください。",
     ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("優"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "有効期間は5分です。ルートやネットワークの変更で無効になります。",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("リクエスト失敗率"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("良"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("応答時間の中央値"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("不良"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "現在のルールで同じ宛先にHTTPSを6回送信します。この宛先と経路のみを評価し、帯域、全サイトやIP評判は評価しません。失敗率はICMP損失率ではありません。",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "有効な応答3回以上と同じノード経路が必要です。優：6回成功、中央値≤150ms、変動≤30ms。不良：失敗2回以上、中央値>400msまたは変動>80ms。それ以外は良です。 変動は隣り合う有効な応答時間の差の絶対値の平均です。",
+    ),
     "quickActions": MessageLookupByLibrary.simpleMessage("クイック操作"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("クイック編集"),
     "recentRequests": MessageLookupByLibrary.simpleMessage("最近のリクエスト"),

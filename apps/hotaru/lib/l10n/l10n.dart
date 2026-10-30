@@ -9277,6 +9277,76 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Excellent`
+  String get qualityExcellent {
+    return Intl.message(
+      'Excellent',
+      name: 'qualityExcellent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good`
+  String get qualityGood {
+    return Intl.message('Good', name: 'qualityGood', desc: '', args: []);
+  }
+
+  /// `Poor`
+  String get qualityPoor {
+    return Intl.message('Poor', name: 'qualityPoor', desc: '', args: []);
+  }
+
+  /// `Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.`
+  String get qualityScope {
+    return Intl.message(
+      'Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.',
+      name: 'qualityScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.`
+  String get qualityThresholds {
+    return Intl.message(
+      'At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.',
+      name: 'qualityThresholds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Median response time`
+  String get qualityMedian {
+    return Intl.message(
+      'Median response time',
+      name: 'qualityMedian',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed requests`
+  String get qualityFailureRate {
+    return Intl.message(
+      'Failed requests',
+      name: 'qualityFailureRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Samples expire after five minutes. A route or network change clears the result.`
+  String get qualityExpiry {
+    return Intl.message(
+      'Samples expire after five minutes. A route or network change clears the result.',
+      name: 'qualityExpiry',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

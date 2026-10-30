@@ -1265,6 +1265,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "链接过长，无法生成二维码，请改用“复制链接”。",
     ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("优"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "样本保留 5 分钟；分流或网络变化后立即失效。",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage("请求失败率"),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("良"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage("中位响应时间"),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("差"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "手动对同一目标发送 6 次 HTTPS 请求，遵循当前规则。结论仅描述此目标和链路，不代表带宽、所有站点或 IP 纯净度。请求失败率不是 ICMP 丢包率。",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "至少需要 3 次有效响应，且节点链路一致。优：6 次全成功、中位响应≤150 ms、波动≤30 ms。差：失败超过1次、中位响应>400 ms或波动>80 ms。其余有效样本为良。波动为相邻有效响应时间差绝对值的均值。",
+    ),
     "quickActions": MessageLookupByLibrary.simpleMessage("快捷操作"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("快速编辑"),
     "recentRequests": MessageLookupByLibrary.simpleMessage("最近请求"),

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'app_localizations.dart';
 import 'network_diagnostics.dart';
+import 'network_quality.dart';
 import 'service_probe.dart';
 
 extension PageLabelL10n on PageLabel {
@@ -153,6 +154,18 @@ extension ServiceOutcomeL10n on ServiceOutcome {
       ServiceOutcome.verification => l10n.auditVerification,
       ServiceOutcome.failed => l10n.auditRequestFailed,
       ServiceOutcome.unknown => l10n.auditUnknown,
+    };
+  }
+}
+
+extension NetworkQualityGradeL10n on NetworkQualityGrade {
+  String get label {
+    final l10n = currentAppLocalizations;
+    return switch (this) {
+      NetworkQualityGrade.excellent => l10n.qualityExcellent,
+      NetworkQualityGrade.good => l10n.qualityGood,
+      NetworkQualityGrade.poor => l10n.qualityPoor,
+      NetworkQualityGrade.unknown => l10n.unknown,
     };
   }
 }

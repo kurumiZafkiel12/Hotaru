@@ -1089,5 +1089,13 @@
   "portraitMetricsScope": "Les indicateurs d’origine conservent leur source et leur date. Leurs échelles ne sont ni interchangeables ni moyennées.",
   "portraitRoutingScope": "Les règles et les nœuds correspondent aux requêtes réelles. Sans réponse explicite du site, son IP de sortie reste inconnue.",
   "portraitOriginScope": "Un accès résidentiel ne prouve pas l’origine native de l’IP. Ces sources ne déterminent pas cette propriété.",
-  "portraitDnsScope": "Contrôle rapide : quatre domaines aléatoires via le DNS système du processus et reçus bash.ws. Sans reçu ou résolveur attendu connu, les preuves sont insuffisantes. Les autres applications ne sont pas testées."
+  "portraitDnsScope": "Contrôle rapide : quatre domaines aléatoires via le DNS système du processus et reçus bash.ws. Sans reçu ou résolveur attendu connu, les preuves sont insuffisantes. Les autres applications ne sont pas testées.",
+  "qualityExcellent": "Excellent",
+  "qualityGood": "Bon",
+  "qualityPoor": "Faible",
+  "qualityScope": "Envoie manuellement six requêtes HTTPS vers une seule cible selon les règles actuelles. Cela ne mesure ni le débit ni la réputation IP ni tous les sites. Un échec HTTP n’est pas une perte ICMP.",
+  "qualityThresholds": "Au moins trois réponses et une chaîne de nœuds stable sont requises. Excellent : six succès, médiane ≤150 ms et variation ≤30 ms. Faible : plus d’un échec, médiane >400 ms ou variation >80 ms. Sinon, bon. La variation est la moyenne des différences absolues entre réponses valides consécutives.",
+  "qualityMedian": "Temps de réponse médian",
+  "qualityFailureRate": "Requêtes échouées",
+  "qualityExpiry": "Le résultat expire après cinq minutes ou un changement de route ou de réseau."
 }

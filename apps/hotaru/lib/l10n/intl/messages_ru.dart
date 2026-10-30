@@ -1709,6 +1709,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "Ссылка слишком длинная для QR-кода. Используйте «Копировать ссылку».",
     ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("Отличное"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "Результат действует пять минут и сбрасывается при изменении маршрута или сети.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage(
+      "Неудачные запросы",
+    ),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("Хорошее"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage(
+      "Медиана времени ответа",
+    ),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("Плохое"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "Вручную отправляет шесть HTTPS-запросов одной цели по текущим правилам. Не измеряет скорость, репутацию IP или все сайты. Сбой запроса не равен потере ICMP.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "Нужны три ответа и неизменная цепочка узлов. Отличное: шесть ответов, медиана ≤150 мс и колебания ≤30 мс. Плохое: более одного сбоя, медиана >400 мс или колебания >80 мс. Иначе хорошее. Колебание — среднее абсолютное изменение соседних корректных времен ответа.",
+    ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Быстрые действия"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Быстрое редактирование"),
     "recentRequests": MessageLookupByLibrary.simpleMessage("Последние запросы"),

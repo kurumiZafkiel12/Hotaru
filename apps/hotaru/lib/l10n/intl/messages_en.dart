@@ -1633,6 +1633,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "qrcodeTooLongTip": MessageLookupByLibrary.simpleMessage(
       "This link is too long for a QR code. Use Copy link instead.",
     ),
+    "qualityExcellent": MessageLookupByLibrary.simpleMessage("Excellent"),
+    "qualityExpiry": MessageLookupByLibrary.simpleMessage(
+      "Samples expire after five minutes. A route or network change clears the result.",
+    ),
+    "qualityFailureRate": MessageLookupByLibrary.simpleMessage(
+      "Failed requests",
+    ),
+    "qualityGood": MessageLookupByLibrary.simpleMessage("Good"),
+    "qualityMedian": MessageLookupByLibrary.simpleMessage(
+      "Median response time",
+    ),
+    "qualityPoor": MessageLookupByLibrary.simpleMessage("Poor"),
+    "qualityScope": MessageLookupByLibrary.simpleMessage(
+      "Manually sends six HTTPS requests to one target through the current rules. Results describe this target and path, not bandwidth, every site or IP reputation. Failed requests are not ICMP packet loss.",
+    ),
+    "qualityThresholds": MessageLookupByLibrary.simpleMessage(
+      "At least three valid responses and an unchanged node chain are required. Excellent: all six succeed, median ≤150 ms and variation ≤30 ms. Poor: more than one failure, median >400 ms or variation >80 ms. Other measured samples are good. Variation is the mean absolute change between consecutive valid response times.",
+    ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Quick actions"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Quick edit"),
     "recentRequests": MessageLookupByLibrary.simpleMessage("Recent requests"),

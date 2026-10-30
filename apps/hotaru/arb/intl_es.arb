@@ -1089,5 +1089,13 @@
   "portraitMetricsScope": "Las métricas originales conservan su fuente y hora. Sus escalas no son intercambiables ni se promedian.",
   "portraitRoutingScope": "Las reglas y los nodos corresponden a solicitudes reales. La IP de salida de un sitio es desconocida si el sitio no la devuelve.",
   "portraitOriginScope": "Una conexión residencial no demuestra un IP de origen nativo. Estas fuentes no verifican esa propiedad.",
-  "portraitDnsScope": "Prueba rápida: cuatro dominios aleatorios mediante el DNS del proceso y registros de bash.ws. Sin registro o resolutor esperado conocido, faltan pruebas. No cubre otras aplicaciones ni navegadores."
+  "portraitDnsScope": "Prueba rápida: cuatro dominios aleatorios mediante el DNS del proceso y registros de bash.ws. Sin registro o resolutor esperado conocido, faltan pruebas. No cubre otras aplicaciones ni navegadores.",
+  "qualityExcellent": "Excelente",
+  "qualityGood": "Buena",
+  "qualityPoor": "Mala",
+  "qualityScope": "Envía manualmente seis solicitudes HTTPS al mismo destino según las reglas actuales. No mide ancho de banda, reputación IP ni todos los sitios. Los fallos no son pérdida ICMP.",
+  "qualityThresholds": "Se requieren tres respuestas válidas y una cadena estable. Excelente: seis éxitos, mediana ≤150 ms y variación ≤30 ms. Mala: más de un fallo, mediana >400 ms o variación >80 ms. Las demás muestras válidas son buenas. La variación es la media de los cambios absolutos entre respuestas válidas consecutivas.",
+  "qualityMedian": "Tiempo de respuesta mediano",
+  "qualityFailureRate": "Solicitudes fallidas",
+  "qualityExpiry": "La muestra caduca a los cinco minutos o al cambiar la ruta o la red."
 }
