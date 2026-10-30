@@ -2122,7 +2122,7 @@ as String,
 /// @nodoc
 mixin _$ChangeProxyResult {
 
-@JsonKey(name: 'speed-test-proxy') String get speedTestProxy;@JsonKey(name: 'core-epoch') int get coreEpoch; String get message; bool get changed;
+@JsonKey(name: 'route-version') int get routeVersion;@JsonKey(name: 'speed-test-proxy') String get speedTestProxy;@JsonKey(name: 'core-epoch') int get coreEpoch; String get message; bool get changed;
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2136,20 +2136,20 @@ $ChangeProxyResultCopyWith<ChangeProxyResult> get copyWith => _$ChangeProxyResul
 @override
 bool operator ==(Object other) {
   final _this = this as ChangeProxyResult;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyResult&&(identical(other.speedTestProxy, _this.speedTestProxy) || other.speedTestProxy == _this.speedTestProxy)&&(identical(other.coreEpoch, _this.coreEpoch) || other.coreEpoch == _this.coreEpoch)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.changed, _this.changed) || other.changed == _this.changed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChangeProxyResult&&(identical(other.routeVersion, _this.routeVersion) || other.routeVersion == _this.routeVersion)&&(identical(other.speedTestProxy, _this.speedTestProxy) || other.speedTestProxy == _this.speedTestProxy)&&(identical(other.coreEpoch, _this.coreEpoch) || other.coreEpoch == _this.coreEpoch)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.changed, _this.changed) || other.changed == _this.changed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ChangeProxyResult;
-  return Object.hash(runtimeType,_this.speedTestProxy,_this.coreEpoch,_this.message,_this.changed);
+  return Object.hash(runtimeType,_this.routeVersion,_this.speedTestProxy,_this.coreEpoch,_this.message,_this.changed);
 }
 
 @override
 String toString() {
   final _this = this as ChangeProxyResult;
-  return 'ChangeProxyResult(speedTestProxy: ${_this.speedTestProxy}, coreEpoch: ${_this.coreEpoch}, message: ${_this.message}, changed: ${_this.changed})';
+  return 'ChangeProxyResult(routeVersion: ${_this.routeVersion}, speedTestProxy: ${_this.speedTestProxy}, coreEpoch: ${_this.coreEpoch}, message: ${_this.message}, changed: ${_this.changed})';
 }
 
 
@@ -2160,7 +2160,7 @@ abstract mixin class $ChangeProxyResultCopyWith<$Res>  {
   factory $ChangeProxyResultCopyWith(ChangeProxyResult value, $Res Function(ChangeProxyResult) _then) = _$ChangeProxyResultCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
+@JsonKey(name: 'route-version') int routeVersion,@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
 });
 
 
@@ -2177,9 +2177,10 @@ class _$ChangeProxyResultCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? routeVersion = null,Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
   return _then(ChangeProxyResult(
-speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
+routeVersion: null == routeVersion ? _self.routeVersion : routeVersion // ignore: cast_nullable_to_non_nullable
+as int,speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
 as String,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
 as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,changed: null == changed ? _self.changed : changed // ignore: cast_nullable_to_non_nullable
@@ -2268,10 +2269,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'route-version')  int routeVersion, @JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult() when $default != null:
-return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
+return $default(_that.routeVersion,_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   return orElse();
 
 }
@@ -2289,10 +2290,10 @@ return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'route-version')  int routeVersion, @JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult():
-return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
+return $default(_that.routeVersion,_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2309,10 +2310,10 @@ return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'route-version')  int routeVersion, @JsonKey(name: 'speed-test-proxy')  String speedTestProxy, @JsonKey(name: 'core-epoch')  int coreEpoch,  String message,  bool changed)?  $default,) {final _that = this;
 switch (_that) {
 case _ChangeProxyResult() when $default != null:
-return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
+return $default(_that.routeVersion,_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed);case _:
   return null;
 
 }
@@ -2324,9 +2325,10 @@ return $default(_that.speedTestProxy,_that.coreEpoch,_that.message,_that.changed
 @JsonSerializable()
 
 class _ChangeProxyResult implements ChangeProxyResult {
-  const _ChangeProxyResult({@JsonKey(name: 'speed-test-proxy') this.speedTestProxy = '', @JsonKey(name: 'core-epoch') this.coreEpoch = 0, this.message = '', this.changed = false});
+  const _ChangeProxyResult({@JsonKey(name: 'route-version') this.routeVersion = 0, @JsonKey(name: 'speed-test-proxy') this.speedTestProxy = '', @JsonKey(name: 'core-epoch') this.coreEpoch = 0, this.message = '', this.changed = false});
   factory _ChangeProxyResult.fromJson(Map<String, dynamic> json) => _$ChangeProxyResultFromJson(json);
 
+@override@JsonKey(name: 'route-version') final  int routeVersion;
 @override@JsonKey(name: 'speed-test-proxy') final  String speedTestProxy;
 @override@JsonKey(name: 'core-epoch') final  int coreEpoch;
 @override@JsonKey() final  String message;
@@ -2345,18 +2347,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyResult&&(identical(other.speedTestProxy, speedTestProxy) || other.speedTestProxy == speedTestProxy)&&(identical(other.coreEpoch, coreEpoch) || other.coreEpoch == coreEpoch)&&(identical(other.message, message) || other.message == message)&&(identical(other.changed, changed) || other.changed == changed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChangeProxyResult&&(identical(other.routeVersion, routeVersion) || other.routeVersion == routeVersion)&&(identical(other.speedTestProxy, speedTestProxy) || other.speedTestProxy == speedTestProxy)&&(identical(other.coreEpoch, coreEpoch) || other.coreEpoch == coreEpoch)&&(identical(other.message, message) || other.message == message)&&(identical(other.changed, changed) || other.changed == changed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,speedTestProxy,coreEpoch,message,changed);
+    return Object.hash(runtimeType,routeVersion,speedTestProxy,coreEpoch,message,changed);
 }
 
 @override
 String toString() {
-    return 'ChangeProxyResult(speedTestProxy: $speedTestProxy, coreEpoch: $coreEpoch, message: $message, changed: $changed)';
+    return 'ChangeProxyResult(routeVersion: $routeVersion, speedTestProxy: $speedTestProxy, coreEpoch: $coreEpoch, message: $message, changed: $changed)';
 }
 
 
@@ -2367,7 +2369,7 @@ abstract mixin class _$ChangeProxyResultCopyWith<$Res> implements $ChangeProxyRe
   factory _$ChangeProxyResultCopyWith(_ChangeProxyResult value, $Res Function(_ChangeProxyResult) _then) = __$ChangeProxyResultCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
+@JsonKey(name: 'route-version') int routeVersion,@JsonKey(name: 'speed-test-proxy') String speedTestProxy,@JsonKey(name: 'core-epoch') int coreEpoch, String message, bool changed
 });
 
 
@@ -2384,9 +2386,10 @@ class __$ChangeProxyResultCopyWithImpl<$Res>
 
 /// Create a copy of ChangeProxyResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? routeVersion = null,Object? speedTestProxy = null,Object? coreEpoch = null,Object? message = null,Object? changed = null,}) {
   return _then(_ChangeProxyResult(
-speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
+routeVersion: null == routeVersion ? _self.routeVersion : routeVersion // ignore: cast_nullable_to_non_nullable
+as int,speedTestProxy: null == speedTestProxy ? _self.speedTestProxy : speedTestProxy // ignore: cast_nullable_to_non_nullable
 as String,coreEpoch: null == coreEpoch ? _self.coreEpoch : coreEpoch // ignore: cast_nullable_to_non_nullable
 as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,changed: null == changed ? _self.changed : changed // ignore: cast_nullable_to_non_nullable

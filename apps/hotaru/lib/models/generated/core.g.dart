@@ -199,6 +199,7 @@ Map<String, dynamic> _$ChangeProxyParamsToJson(_ChangeProxyParams instance) =>
 
 _ChangeProxyResult _$ChangeProxyResultFromJson(Map<String, dynamic> json) =>
     _ChangeProxyResult(
+      routeVersion: (json['route-version'] as num?)?.toInt() ?? 0,
       speedTestProxy: json['speed-test-proxy'] as String? ?? '',
       coreEpoch: (json['core-epoch'] as num?)?.toInt() ?? 0,
       message: json['message'] as String? ?? '',
@@ -207,6 +208,7 @@ _ChangeProxyResult _$ChangeProxyResultFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ChangeProxyResultToJson(_ChangeProxyResult instance) =>
     <String, dynamic>{
+      'route-version': instance.routeVersion,
       'speed-test-proxy': instance.speedTestProxy,
       'core-epoch': instance.coreEpoch,
       'message': instance.message,

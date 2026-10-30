@@ -25,7 +25,13 @@ void main() {
   );
 
   for (final platform in [TargetPlatform.windows, TargetPlatform.android]) {
-    for (final scenario in ['legacy', 'cancel', 'route-change']) {
+    for (final scenario in [
+      'legacy',
+      'cancel',
+      'route-change',
+      'route-version',
+      'selected-group',
+    ]) {
       testWidgets('$platform node card uses a dedicated route: $scenario', (
         tester,
       ) async {
@@ -40,6 +46,7 @@ void main() {
             all: ['HOTARU-SPEEDTEST', 'HOTARU-SPEEDTEST-2'],
             proxies: {
               'node-B': {'type': 'Shadowsocks'},
+              'selected-group': {'type': 'Selector', 'now': 'node-B'},
             },
           ),
         );
@@ -66,13 +73,20 @@ void main() {
             child: TestApp(
               locale: const Locale('en'),
               theme: ThemeData(platform: platform),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 400,
                 height: 120,
                 child: ProxyCard(
                   groupName: 'daily',
                   testUrl: 'https://example.com/',
-                  proxy: Proxy(name: 'node-B', type: 'Shadowsocks'),
+                  proxy: Proxy(
+                    name: scenario == 'selected-group'
+                        ? 'selected-group'
+                        : 'node-B',
+                    type: scenario == 'selected-group'
+                        ? 'Selector'
+                        : 'Shadowsocks',
+                  ),
                   groupType: GroupType.Selector,
                   type: ProxyCardType.standard,
                 ),
@@ -91,9 +105,15 @@ void main() {
           await tester.tap(speedControl);
         } else if (scenario == 'route-change') {
           container.read(routeTrackerProvider.notifier).bumpHostEpoch();
+        } else if (scenario == 'route-version') {
+          container
+              .read(routeTrackerProvider.notifier)
+              .applySnapshot(
+                const RouteSnapshot(coreEpoch: 4, routeVersion: 1),
+              );
         }
         pending.complete(
-          scenario == 'legacy'
+          scenario == 'legacy' || scenario == 'selected-group'
               ? const ChangeProxyResult(changed: true)
               : const ChangeProxyResult(
                   changed: true,

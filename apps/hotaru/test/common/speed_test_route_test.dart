@@ -91,6 +91,30 @@ void main() {
       expect(reserved['proxies'], [speedTestGroupBaseName, 'DIRECT']);
     });
 
+    test(
+      'provider-only include-all profiles get a usable dedicated speed group',
+      () {
+        final config = <String, dynamic>{
+          'proxy-providers': {
+            'subscription': {
+              'type': 'http',
+              'url': 'https://example.test/nodes.yaml',
+            },
+          },
+          'proxy-groups': [
+            {'name': 'Select', 'type': 'select', 'include-all': true},
+          ],
+        };
+        expect(injectSpeedTestRoute(config), speedTestGroupBaseName);
+        final reserved = (config['proxy-groups'] as List).last as Map;
+        expect(reserved['use'], ['subscription']);
+        expect(
+          (config['listeners'] as List).single['proxy'],
+          speedTestGroupBaseName,
+        );
+      },
+    );
+
     test('skips injection when the profile has nothing testable', () {
       final config = <String, dynamic>{'proxies': [], 'proxy-groups': []};
       expect(injectSpeedTestRoute(config), '');

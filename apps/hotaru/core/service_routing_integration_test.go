@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"net/netip"
 	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -273,5 +275,92 @@ func TestNodeBandwidthListenerPinsActualTrafficInEveryMode(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestProviderOnlyNodeSpeedUsesParsedIncludeAllProvider(t *testing.T) {
+	recordRoutes(t)
+	observed := make(chan string, 4)
+	a := controlledHttpExit(t, "provider-A", observed)
+	b := controlledHttpExit(t, "provider-B", observed)
+	hostA, portA, _ := net.SplitHostPort(a.Addr())
+	hostB, portB, _ := net.SplitHostPort(b.Addr())
+	previousNames := config.GetProxyNameList()
+	t.Cleanup(func() { config.SetProxyNameList(previousNames) })
+	cfg, err := config.Parse([]byte(fmt.Sprintf(`proxy-providers:
+  subscription:
+    type: inline
+    payload:
+      - {name: provider-A, type: http, server: %s, port: %s}
+      - {name: provider-B, type: http, server: %s, port: %s}
+proxy-groups:
+  - {name: Select, type: select, include-all: true}
+  - name: HOTARU-SPEEDTEST
+    type: select
+    hidden: true
+    proxies: [Select, DIRECT]
+    use: [subscription]
+listeners:
+  - {name: hotaru-speedtest, type: mixed, listen: 127.0.0.1, port: 0, proxy: HOTARU-SPEEDTEST, users: []}
+rules: ['MATCH,DIRECT']
+`, hostA, portA, hostB, portB)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, provider := range cfg.Providers {
+		if closer, ok := provider.(io.Closer); ok {
+			t.Cleanup(func() { _ = closer.Close() })
+		}
+	}
+	previousMode := tunnel.Mode()
+	tunnel.UpdateProxies(cfg.Proxies, cfg.Providers)
+	tunnel.UpdateRules(cfg.Rules, nil, nil)
+	tunnel.SetMode(tunnel.Rule)
+	tunnel.OnRunning()
+	previousRunning := isRunning.Swap(true)
+	t.Cleanup(func() {
+		isRunning.Store(previousRunning)
+		tunnel.OnSuspend()
+		tunnel.SetMode(previousMode)
+		tunnel.UpdateProxies(nil, nil)
+		tunnel.UpdateRules(nil, nil, nil)
+	})
+	listener := cfg.Listeners[nodeSpeedListenerName]
+	if err := listener.Listen(tunnel.Tunnel); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	withCurrentConfig(t, cfg)
+	result := handleChangeProxy(&ChangeProxyParams{ForSpeedTest: true, ProxyName: "provider-B"})
+	if result.Message != "" || result.SpeedTestProxy == "" {
+		t.Fatalf("provider node unavailable: %+v", result)
+	}
+	address, err := url.Parse("http://" + strings.TrimPrefix(result.SpeedTestProxy, "PROXY "))
+	if err != nil {
+		t.Fatal(err)
+	}
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("provider-only-payload")) }))
+	defer origin.Close()
+	transport := &http.Transport{Proxy: http.ProxyURL(address), DisableKeepAlives: true}
+	defer transport.CloseIdleConnections()
+	response, err := (&http.Client{Transport: transport, Timeout: time.Second * 3}).Get(origin.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	body, _ := io.ReadAll(response.Body)
+	if string(body) != "provider-only-payload" {
+		t.Fatal("provider payload mismatch")
+	}
+	select {
+	case node := <-observed:
+		if node != "provider-B" {
+			t.Fatalf("provider traffic used %s", node)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("provider exit never saw the request")
+	}
+	if group, err := selectableGroup("Select"); err != nil || group.Now() != "provider-A" {
+		t.Fatal("user group selection changed")
 	}
 }

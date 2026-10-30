@@ -80,6 +80,10 @@ def open_system_settings(names):
 def main():
     api = int(adb('shell', 'getprop', 'ro.build.version.sdk').strip())
     time.sleep(2)
+    root = hierarchy('startup')
+    update_notice = bool(matching(root, ['New version found', '发现新版本']))
+    if update_notice:
+        tap(["Don't remind me again", '不再提示'])
     tap(['Tools', '工具'])
     tap(['Android network tools', 'Android 网络维护'], scrolls=12)
     find(['System DNS servers', '系统 DNS 服务器'], scrolls=8)
@@ -101,7 +105,7 @@ def main():
     open_system_settings(['VPN'])
     if api >= 28:
         open_system_settings(['System Private DNS', '系统私人 DNS'])
-    result = {'api': api, 'native_snapshot_rendered': True, 'dns_server_count': len(addresses), 'vpn_settings_opened': True, 'private_dns_settings_opened': api >= 28, 'scope': 'Disposable Android emulator; read-only system observations and opening settings only; no VPN toggles or leakage verdict'}
+    result = {'api': api, 'update_notice_dismissed': update_notice, 'native_snapshot_rendered': True, 'dns_server_count': len(addresses), 'vpn_settings_opened': True, 'private_dns_settings_opened': api >= 28, 'scope': 'Disposable Android emulator; read-only system observations and opening settings only; no VPN toggles or leakage verdict'}
     (OUTPUT / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
     print('::notice title=Native Android network tools::' + json.dumps(result))
 

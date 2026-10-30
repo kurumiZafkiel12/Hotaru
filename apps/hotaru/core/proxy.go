@@ -193,8 +193,8 @@ func handleChangeProxy(params *ChangeProxyParams) *ChangeProxyResult {
 	}
 	changed := selector.Now() != before
 	refreshRouteLocked(routeUnchanged)
-	epoch, _ := routeStamp()
-	return &ChangeProxyResult{Changed: changed, SpeedTestProxy: speedProxy, CoreEpoch: epoch}
+	epoch, version := routeStamp()
+	return &ChangeProxyResult{Changed: changed, SpeedTestProxy: speedProxy, CoreEpoch: epoch, RouteVersion: version}
 }
 
 func patchSelectGroup(mapping map[string]string) {

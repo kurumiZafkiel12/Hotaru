@@ -151,6 +151,7 @@ abstract class ChangeProxyParams with _$ChangeProxyParams {
 @freezed
 abstract class ChangeProxyResult with _$ChangeProxyResult {
   const factory ChangeProxyResult({
+    @JsonKey(name: 'route-version') @Default(0) int routeVersion,
     @JsonKey(name: 'speed-test-proxy') @Default('') String speedTestProxy,
     @JsonKey(name: 'core-epoch') @Default(0) int coreEpoch,
     @Default('') String message,

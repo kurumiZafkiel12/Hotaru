@@ -440,6 +440,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
   SpeedTestRunner? _runner;
   late final RouteTracker _routeTracker;
   int? _runEpoch;
+  int? _runVersion;
   bool _routeChanged = false;
   bool _watchingRoute = false;
   bool _cancelRequested = false;
@@ -454,6 +455,9 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
               (_runEpoch != null &&
                   after.synced &&
                   after.coreEpoch != _runEpoch) ||
+              (_runVersion != null &&
+                  after.synced &&
+                  after.routeVersion > _runVersion!) ||
               (before != null &&
                   before.synced &&
                   after.synced &&
@@ -521,7 +525,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       final result = await core.changeProxy(
         ChangeProxyParams(
           groupName: '',
-          proxyName: widget.proxyName,
+          proxyName: chain.last,
           forSpeedTest: true,
         ),
       );
@@ -543,7 +547,9 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       if (!currentRoute.proxied ||
           (startRoute.synced &&
               currentRoute.hostEpoch != startRoute.hostEpoch) ||
-          (currentRoute.synced && currentRoute.coreEpoch != result.coreEpoch)) {
+          (currentRoute.synced && currentRoute.coreEpoch != result.coreEpoch) ||
+          (currentRoute.synced &&
+              currentRoute.routeVersion > result.routeVersion)) {
         setState(() => _error = context.appLocalizations.auditStale);
         return;
       }
@@ -551,6 +557,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
         _chain = chain;
       });
       _runEpoch = result.coreEpoch;
+      _runVersion = result.routeVersion;
       final runner = SpeedTestRunner(findProxy: (_) => result.speedTestProxy);
       _runner = runner;
       final testResult = await runner.run(
@@ -590,6 +597,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       NodeSpeedTestGate.release(token);
       _runner = null;
       _runEpoch = null;
+      _runVersion = null;
       _releaseRoute();
       if (mounted) {
         setState(() {

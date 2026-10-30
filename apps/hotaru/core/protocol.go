@@ -177,6 +177,7 @@ type ChangeProxyParams struct {
 }
 
 type ChangeProxyResult struct {
+	RouteVersion   uint64 `json:"route-version"`
 	SpeedTestProxy string `json:"speed-test-proxy,omitempty"`
 	CoreEpoch      uint64 `json:"core-epoch"`
 	Message        string `json:"message"`

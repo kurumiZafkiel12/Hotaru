@@ -38,7 +38,11 @@ String injectSpeedTestRoute(Map<dynamic, dynamic> rawConfig) {
       for (final def in groupDefs)
         if (def is Map) Map<String, dynamic>.from(def),
   ];
+  final providerDefs = rawConfig['proxy-providers'];
   final providerNames = <String>{
+    if (providerDefs is Map)
+      for (final name in providerDefs.keys)
+        if (name is String) name,
     for (final group in groups)
       if (group['use'] is List)
         for (final use in group['use'] as List)

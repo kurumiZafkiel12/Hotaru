@@ -190,9 +190,11 @@ void main() {
         'changed': true,
         'speed-test-proxy': 'PROXY 127.0.0.1:12345',
         'core-epoch': 7,
+        'route-version': 8,
       });
       expect(reply.speedTestProxy, 'PROXY 127.0.0.1:12345');
       expect(reply.coreEpoch, 7);
+      expect(reply.routeVersion, 8);
       expect(
         ChangeProxyResult.fromJson({'changed': true}).speedTestProxy,
         isEmpty,

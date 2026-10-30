@@ -220,7 +220,7 @@ jobs:
           CGO_ENABLED: '0'
         run: |
           set -o pipefail
-          go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
+          go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed|TestProviderOnlyNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
 
       - name: Capture actual Windows UI in safe mode
         if: matrix.platform == 'windows'
