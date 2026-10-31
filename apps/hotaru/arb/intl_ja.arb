@@ -1084,6 +1084,8 @@
   "auditUnknown": "判定不能",
   "auditResultFilter": "結果",
   "auditCatalogPartialEvidence": "サンプルのオリジナル作品に再生メタデータがあり、ライセンス作品は利用できません。全カタログや実際の再生権限は保証しません。",
+  "portraitIsp": "インターネット接続事業者",
+  "portraitNoRiskSignals": "今回応答した情報源からプロキシ、VPN、Tor、不正利用のリスク報告はありません。すべてのサービスの利用を保証するものではありません。",
   "portraitDataScope": "IPv4とIPv6の出口を個別に観測し、その公開IPのみをGeoJS、IPQuery、ipapi.isへ送信します。アカウント情報やブラウザー指紋は収集しません。",
   "portraitSourceConflict": "提供元の結果が異なります。提供元、IP、照会時刻を確認してください。",
   "portraitRiskNoted": "提供元がリスクを報告しました。第三者の分類であり、すべてのサイトの禁止や回線品質を意味しません。",

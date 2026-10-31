@@ -1333,8 +1333,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "簡易検査：このプロセスのシステムDNSで4つのランダムドメインを照会し、bash.wsの記録を取得します。記録や想定経路が不明なら証拠不十分です。他のアプリやブラウザーは未検査です。",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage("インターネット接続事業者"),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "提供元の元の指標と時刻を表示します。異なる尺度を混在させたり平均したりしません。",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "今回応答した情報源からプロキシ、VPN、Tor、不正利用のリスク報告はありません。すべてのサービスの利用を保証するものではありません。",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "住宅回線はネイティブIPを証明しません。これらの情報源ではネイティブやブロードキャストの帰属を確認できません。",

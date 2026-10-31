@@ -1695,8 +1695,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "Contrôle rapide : quatre domaines aléatoires via le DNS système du processus et reçus bash.ws. Sans reçu ou résolveur attendu connu, les preuves sont insuffisantes. Les autres applications ne sont pas testées.",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage(
+      "Fournisseur d’accès Internet",
+    ),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "Les indicateurs d’origine conservent leur source et leur date. Leurs échelles ne sont ni interchangeables ni moyennées.",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "Les sources ayant répondu ne signalent ni proxy, VPN, Tor ni abus dans cet échantillon. Cela ne garantit pas l’accès à tous les services.",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "Un accès résidentiel ne prouve pas l’origine native de l’IP. Ces sources ne déterminent pas cette propriété.",

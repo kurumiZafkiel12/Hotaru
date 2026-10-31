@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/dns_leak.dart';
+import 'package:hotaru/common/country_names.dart';
 import 'package:hotaru/common/ip_portrait.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -147,65 +148,134 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
     'hosting' => context.appLocalizations.ipTypeHosting,
     'mobile' => context.appLocalizations.ipTypeMobile,
     'business' => context.appLocalizations.ipTypeBusiness,
-    'isp' => 'ISP',
+    'isp' => context.appLocalizations.portraitIsp,
     '' => context.appLocalizations.unknown,
     _ => value,
   };
 
   Widget _source(IpPortraitObservation source) {
     final l10n = context.appLocalizations;
-    return _panel('${source.source.label} · ${source.ip}', [
-      if (source.error != null)
-        _text(l10n.diagnosticsFailed)
-      else ...[
-        Row(
-          spacing: 8,
-          children: [
-            if (source.country.isNotEmpty)
-              Text(
-                source.country.countryFlagEmoji,
-                style: AppTextStyle.subheadline
-                    .of(context)
-                    .copyWith(fontFamily: FontFamily.twEmoji.value),
+    return CommonCard(
+      child: ExpansionTile(
+        title: Text(
+          '${source.source.label} · ${source.ip}',
+          style: AppTextStyle.footnote.of(context, emphasized: true),
+        ),
+        subtitle: Text(
+          source.error != null
+              ? l10n.diagnosticsFailed
+              : '${l10n.ipType}: ${_access(source.access)}',
+          style: AppTextStyle.caption1.of(context),
+        ),
+        shape: AppShape.md,
+        collapsedShape: AppShape.md,
+        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (source.error != null)
+            _text(l10n.diagnosticsFailed)
+          else ...[
+            Row(
+              spacing: 8,
+              children: [
+                if (source.country.isNotEmpty)
+                  Text(
+                    source.country.countryFlagEmoji,
+                    style: AppTextStyle.subheadline
+                        .of(context)
+                        .copyWith(fontFamily: FontFamily.twEmoji.value),
+                  ),
+                Expanded(
+                  child: _text(
+                    [
+                      source.country,
+                      source.city,
+                    ].where((value) => value.isNotEmpty).join(' · '),
+                  ),
+                ),
+              ],
+            ),
+            _text(
+              [
+                source.organization,
+                source.asn,
+              ].where((value) => value.isNotEmpty).join(' · '),
+            ),
+            _text('${l10n.ipType}: ${_access(source.access)}'),
+            if (source.reportsRisk) _text(l10n.portraitRiskNoted),
+            ExpansionTile(
+              title: Text(
+                l10n.diagnosticsRawEvidence,
+                style: AppTextStyle.footnote.of(context),
               ),
-            Expanded(
-              child: _text(
-                [
-                  source.country,
-                  source.city,
-                ].where((value) => value.isNotEmpty).join(' · '),
-              ),
+              shape: AppShape.md,
+              collapsedShape: AppShape.md,
+              children: [
+                _text(l10n.portraitMetricsScope),
+                if (source.flags.isEmpty && source.metrics.isEmpty)
+                  _text(l10n.diagnosticsInsufficient),
+                for (final entry in source.flags.entries)
+                  _text('${entry.key}: ${entry.value}', mono: true),
+                for (final entry in source.metrics.entries)
+                  _text('${entry.key}: ${entry.value}', mono: true),
+                _text(source.source.url(source.ip), mono: true),
+              ],
             ),
           ],
-        ),
-        _text(
-          [
-            source.organization,
-            source.asn,
-          ].where((value) => value.isNotEmpty).join(' · '),
-        ),
-        _text('${l10n.ipType}: ${_access(source.access)}'),
-        if (source.reportsRisk) _text(l10n.portraitRiskNoted),
+          _text(DateFormat.yMd().add_Hms().format(source.checkedAt.toLocal())),
+        ],
+      ),
+    );
+  }
+
+  Widget _exitSummary(IpPortraitReport report, IpExitObservation exit) {
+    final l10n = context.appLocalizations;
+    final sources = report.sources.where(
+      (source) => source.ip == exit.ip && source.error == null,
+    );
+    final locations = {
+      for (final source in sources)
+        [
+          if (source.country.isNotEmpty)
+            countryName(
+                  source.country,
+                  Localizations.localeOf(context).languageCode,
+                ) ??
+                source.country,
+          if (source.city.isNotEmpty) source.city,
+        ].join(' · '),
+    }..remove('');
+    final types = sources
+        .map((source) => source.access)
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final organizations = sources
+        .map((source) => source.organization)
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    return _panel('IPv${exit.family} · ${exit.ip ?? l10n.unknown}', [
+      _text(locations.isEmpty ? l10n.unknown : locations.join(' / ')),
+      _text(
+        '${l10n.statusAccessType}: ${types.isEmpty ? l10n.unknown : types.map(_access).join(" / ")}',
+      ),
+      if (organizations.isNotEmpty) _text(organizations.join(' / ')),
+      _text(
+        sources.any((source) => source.reportsRisk)
+            ? l10n.portraitRiskNoted
+            : sources.any((source) => source.flags.isNotEmpty)
+            ? l10n.portraitNoRiskSignals
+            : l10n.portraitUnclear,
+      ),
+      if (exit.route != null)
         ExpansionTile(
           title: Text(
-            l10n.diagnosticsRawEvidence,
+            l10n.toolsServices,
             style: AppTextStyle.footnote.of(context),
           ),
           shape: AppShape.md,
           collapsedShape: AppShape.md,
-          children: [
-            _text(l10n.portraitMetricsScope),
-            if (source.flags.isEmpty && source.metrics.isEmpty)
-              _text(l10n.diagnosticsInsufficient),
-            for (final entry in source.flags.entries)
-              _text('${entry.key}: ${entry.value}', mono: true),
-            for (final entry in source.metrics.entries)
-              _text('${entry.key}: ${entry.value}', mono: true),
-            _text(source.source.url(source.ip), mono: true),
-          ],
+          children: [_text(exit.route!.chains.reversed.join(' ➜ '))],
         ),
-      ],
-      _text(DateFormat.yMd().add_Hms().format(source.checkedAt.toLocal())),
     ]);
   }
 
@@ -294,6 +364,8 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
                       ? l10n.portraitSourceConflict
                       : report.hasRisk
                       ? l10n.portraitRiskNoted
+                      : report.sources.any((source) => source.flags.isNotEmpty)
+                      ? l10n.portraitNoRiskSignals
                       : l10n.portraitUnclear,
                 ),
                 if (dnsRisk) _text(l10n.dnsLeakRisk),
@@ -306,19 +378,10 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
               ]),
               if (report != null) ...[
                 const SizedBox(height: 12),
-                _panel(l10n.ipPortraitTitle, [
-                  for (final exit in report.exits) ...[
-                    _text(
-                      'IPv${exit.family} · ${exit.ip ?? l10n.unknown}',
-                      mono: exit.ip != null,
-                    ),
-                    if (exit.route != null)
-                      _text(exit.route!.chains.reversed.join(' ➜ ')),
-                  ],
-                  _text('${l10n.statusIpOrigin}: ${l10n.unknown}'),
-                  _text(l10n.portraitOriginScope),
-                ]),
-                const SizedBox(height: 12),
+                for (final exit in report.exits) ...[
+                  _exitSummary(report, exit),
+                  const SizedBox(height: 12),
+                ],
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final width = constraints.maxWidth >= 720

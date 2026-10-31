@@ -9217,6 +9217,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Internet service provider`
+  String get portraitIsp {
+    return Intl.message(
+      'Internet service provider',
+      name: 'portraitIsp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No proxy, VPN, Tor or abuse flag was reported by the responding sources in this sample. This does not guarantee access to every service.`
+  String get portraitNoRiskSignals {
+    return Intl.message(
+      'No proxy, VPN, Tor or abuse flag was reported by the responding sources in this sample. This does not guarantee access to every service.',
+      name: 'portraitNoRiskSignals',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Checks IPv4 and IPv6 egress separately, then sends only those public IPs to GeoJS, IPQuery and ipapi.is. No account data or browser fingerprint is collected.`
   String get portraitDataScope {
     return Intl.message(

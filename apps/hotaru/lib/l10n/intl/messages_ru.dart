@@ -1649,8 +1649,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "Быстрая проверка: четыре случайных домена через системный DNS процесса и записи bash.ws. Без записей или известного ожидаемого резолвера данных недостаточно. Другие приложения и браузеры не проверяются.",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage("Интернет-провайдер"),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "Исходные показатели сохраняют источник и время. Разные шкалы не смешиваются и не усредняются.",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "Ответившие источники не сообщили о прокси, VPN, Tor или злоупотреблениях в этой проверке. Это не гарантирует доступ ко всем сервисам.",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "Домашний доступ не доказывает нативность IP. Эти источники не подтверждают такое происхождение.",

@@ -1314,8 +1314,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "빠른 검사: 이 프로세스의 시스템 DNS로 임의 도메인 4개를 조회하고 bash.ws 기록을 확인합니다. 기록이나 예상 해석기가 없으면 증거가 부족합니다. 다른 앱과 브라우저는 검사하지 않습니다.",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage("인터넷 서비스 제공업체"),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "원본 지표의 출처와 시간을 유지합니다. 서로 다른 척도를 혼합하거나 평균하지 않습니다.",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "이번에 응답한 출처에서 프록시, VPN, Tor 또는 악용 위험 표시가 보고되지 않았습니다. 모든 서비스의 이용을 보장하지는 않습니다.",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "주거용 연결이 원생 IP를 증명하지는 않습니다. 이 출처들은 원생 또는 브로드캐스트 소유를 확인하지 못합니다.",

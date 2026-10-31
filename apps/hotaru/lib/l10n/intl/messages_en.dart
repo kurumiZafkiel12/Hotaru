@@ -1573,8 +1573,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "Quick check: four random domains through this process’s system DNS, with resolver receipts from bash.ws. No receipt or an unknown expected resolver means insufficient evidence; other apps and browsers are untested.",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage(
+      "Internet service provider",
+    ),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "Original provider metrics are shown with their source and time. Their scales are not interchangeable and are not averaged.",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "No proxy, VPN, Tor or abuse flag was reported by the responding sources in this sample. This does not guarantee access to every service.",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "Residential access does not prove native IP origin. These sources do not establish native or broadcast ownership.",

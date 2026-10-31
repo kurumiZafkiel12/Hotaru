@@ -1084,6 +1084,8 @@
   "auditUnknown": "판단 불가",
   "auditResultFilter": "결과",
   "auditCatalogPartialEvidence": "원본 콘텐츠 표본에는 재생 메타데이터가 있으나 라이선스 콘텐츠 표본은 사용할 수 없습니다. 전체 목록이나 실제 재생 권한을 증명하지 않습니다.",
+  "portraitIsp": "인터넷 서비스 제공업체",
+  "portraitNoRiskSignals": "이번에 응답한 출처에서 프록시, VPN, Tor 또는 악용 위험 표시가 보고되지 않았습니다. 모든 서비스의 이용을 보장하지는 않습니다.",
   "portraitDataScope": "IPv4와 IPv6 출구를 각각 관측하고 해당 공인 IP만 GeoJS, IPQuery, ipapi.is에 전송합니다. 계정 정보나 브라우저 지문은 수집하지 않습니다.",
   "portraitSourceConflict": "제공자 결과가 다릅니다. 출처, 주소, 조회 시간을 비교하세요.",
   "portraitRiskNoted": "제공자가 위험 신호를 보고했습니다. 모든 사이트의 차단이나 연결 품질을 의미하지 않습니다.",

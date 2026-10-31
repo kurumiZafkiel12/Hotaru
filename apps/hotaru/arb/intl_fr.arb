@@ -1084,6 +1084,8 @@
   "auditUnknown": "Indéterminé",
   "auditResultFilter": "Résultats",
   "auditCatalogPartialEvidence": "Le titre original testé expose des métadonnées de lecture, mais le titre sous licence est indisponible. Cela ne prouve ni le catalogue complet ni les droits de lecture réels.",
+  "portraitIsp": "Fournisseur d’accès Internet",
+  "portraitNoRiskSignals": "Les sources ayant répondu ne signalent ni proxy, VPN, Tor ni abus dans cet échantillon. Cela ne garantit pas l’accès à tous les services.",
   "portraitDataScope": "Observe séparément les sorties IPv4 et IPv6, puis transmet uniquement ces IP publiques à GeoJS, IPQuery et ipapi.is. Aucun compte ni empreinte du navigateur n’est collecté.",
   "portraitSourceConflict": "Les sources divergent. Comparez le fournisseur, l’adresse et l’heure.",
   "portraitRiskNoted": "Un fournisseur signale des risques. Cette classification ne prouve ni un blocage général ni la qualité de la connexion.",

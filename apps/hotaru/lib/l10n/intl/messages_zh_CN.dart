@@ -1204,8 +1204,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "portraitDnsScope": MessageLookupByLibrary.simpleMessage(
       "快速检查：本进程经系统 DNS 查询 4 个随机域名，由 bash.ws 回执实际解析器。无回执或预期解析器未知时证据不足；不覆盖其他应用和浏览器。",
     ),
+    "portraitIsp": MessageLookupByLibrary.simpleMessage("互联网接入服务商"),
     "portraitMetricsScope": MessageLookupByLibrary.simpleMessage(
       "保留提供方的原始指标及查询时间；不同指标量纲不通用，不混合取平均。",
+    ),
+    "portraitNoRiskSignals": MessageLookupByLibrary.simpleMessage(
+      "本次有回执的来源未报告代理、VPN、Tor 或滥用风险标记；这不保证所有服务均可使用。",
     ),
     "portraitOriginScope": MessageLookupByLibrary.simpleMessage(
       "住宅接入不代表原生 IP。这些来源不能证明原生或广播归属。",
