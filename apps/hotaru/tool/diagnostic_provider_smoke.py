@@ -96,10 +96,19 @@ def browser_reference(path):
             raise ValueError('reference page too large')
         text = body.decode('utf-8')
         scripts = re.findall(r'<script[^>]+src=["\']([^"\']+)', text)
+        script_strings = []
+        for script in scripts:
+            if not script.startswith(f'/js/{path}.js'):
+                continue
+            script_body = fetch('https://browserleaks.com' + script)
+            literals = re.findall(r'["\']([^"\'\r\n]{1,180})["\']', script_body)
+            script_strings.extend(value for value in literals if any(part in value.lower() for part in ['dns', 'rtc', 'stun', 'ip-', 'result', 'test', 'api', 'country']))
         return {
             'html_bytes': len(body),
             'page_title': re.findall(r'<title>([^<]+)', text)[:1],
             'script_sources': scripts,
+            'element_ids': re.findall(r'\bid=["\']([^"\']+)', text),
+            'network_and_result_strings': list(dict.fromkeys(script_strings)),
             'frame_options': response.headers.get('X-Frame-Options', ''),
             'content_security_policy': response.headers.get('Content-Security-Policy', ''),
             'scope': 'HTTP page observation only; JavaScript detection and WebView routing not executed',
