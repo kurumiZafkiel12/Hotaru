@@ -2,7 +2,7 @@ name: Diagnostic provider survey
 
 on:
   push:
-    branches: ['codex/v005-from-v004']
+    branches: ['codex/v005-from-v004', 'codex/v006-windows']
     paths:
       - '.github/workflows/diagnostic-provider-smoke.yaml'
       - 'apps/hotaru/tool/diagnostic_provider_smoke.py'

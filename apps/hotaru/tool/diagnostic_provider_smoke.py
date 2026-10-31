@@ -12,7 +12,7 @@ import urllib.request
 
 
 def fetch(url):
-    request = urllib.request.Request(url, headers={'User-Agent': 'Hotaru-Diagnostics-Provider-Survey/0.0.5'})
+    request = urllib.request.Request(url, headers={'User-Agent': 'Hotaru-Diagnostics-Provider-Survey/0.0.6'})
     with urllib.request.urlopen(request, timeout=10) as response:
         body = response.read(262145)
         if len(body) > 262144:
@@ -87,6 +87,34 @@ def survey(name, probe):
         return {'provider': name, 'status': 'unavailable', 'error_type': type(error).__name__}
 
 
+def browser_reference(path):
+    url = f'https://browserleaks.com/{path}'
+    request = urllib.request.Request(url, headers={'User-Agent': 'Hotaru-Diagnostics-Provider-Survey/0.0.6'})
+    with urllib.request.urlopen(request, timeout=15) as response:
+        body = response.read(262145)
+        if len(body) > 262144:
+            raise ValueError('reference page too large')
+        text = body.decode('utf-8')
+        scripts = re.findall(r'<script[^>]+src=["\']([^"\']+)', text)
+        return {
+            'html_bytes': len(body),
+            'page_title': re.findall(r'<title>([^<]+)', text)[:1],
+            'script_sources': scripts,
+            'frame_options': response.headers.get('X-Frame-Options', ''),
+            'content_security_policy': response.headers.get('Content-Security-Policy', ''),
+            'scope': 'HTTP page observation only; JavaScript detection and WebView routing not executed',
+        }
+
+
+def map_tile():
+    request = urllib.request.Request('https://tile.openstreetmap.org/0/0/0.png', headers={
+        'User-Agent': 'Hotaru (+https://github.com/kurumiZafkiel12/Hotaru)',
+    })
+    with urllib.request.urlopen(request, timeout=15) as response:
+        body = response.read(262144)
+        return {'png': body.startswith(b'\x89PNG\r\n\x1a\n'), 'bytes': len(body), 'cache_control': response.headers.get('Cache-Control', '')}
+
+
 def main():
     probes = [
         ('GeoJS', geojs),
@@ -95,6 +123,9 @@ def main():
         ('IPQuery', lambda: reputation('IPQuery', 'https://api.ipquery.io/8.8.8.8?format=json')),
         ('ipapi.is', lambda: reputation('ipapi.is', 'https://api.ipapi.is/?q=8.8.8.8')),
         ('bash.ws', dns_receipt),
+        ('BrowserLeaks DNS', lambda: browser_reference('dns')),
+        ('BrowserLeaks WebRTC', lambda: browser_reference('webrtc')),
+        ('OpenStreetMap tile', map_tile),
     ]
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(lambda item: survey(*item), probes))
