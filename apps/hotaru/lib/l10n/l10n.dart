@@ -280,6 +280,96 @@ class AppLocalizations {
     );
   }
 
+  /// `Routing configurations`
+  String get routingConfigs {
+    return Intl.message(
+      'Routing configurations',
+      name: 'routingConfigs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Config rules`
+  String get routingConfigMode {
+    return Intl.message(
+      'Config rules',
+      name: 'routingConfigMode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscription rules`
+  String get routingSubscriptionMode {
+    return Intl.message(
+      'Subscription rules',
+      name: 'routingSubscriptionMode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import configuration link`
+  String get routingConfigImport {
+    return Intl.message(
+      'Import configuration link',
+      name: 'routingConfigImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No routing configuration imported`
+  String get routingConfigEmpty {
+    return Intl.message(
+      'No routing configuration imported',
+      name: 'routingConfigEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import Mihomo YAML rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT keep their meaning.`
+  String get routingConfigHint {
+    return Intl.message(
+      'Import Mihomo YAML rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT keep their meaning.',
+      name: 'routingConfigHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not load or apply the configuration. Check the link, rules and selected node group.`
+  String get routingConfigFailed {
+    return Intl.message(
+      'Could not load or apply the configuration. Check the link, rules and selected node group.',
+      name: 'routingConfigFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Node selection`
+  String get nodeSelection {
+    return Intl.message(
+      'Node selection',
+      name: 'nodeSelection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscriptions`
+  String get subscriptions {
+    return Intl.message(
+      'Subscriptions',
+      name: 'subscriptions',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Connection & speed`
   String get toolsConnection {
     return Intl.message(

@@ -117,11 +117,17 @@ void main() {
     await pumpDashboard(tester);
     await focusNeighbor(tester, 'left');
 
-    final trail = await walk(tester, LogicalKeyboardKey.arrowRight, steps: 4);
+    final trail = await walk(tester, LogicalKeyboardKey.arrowRight, steps: 5);
 
     expect(
       trail,
-      <String>['Rule', 'Global', 'Direct', 'right'],
+      <String>[
+        'Subscription rules',
+        'Config rules',
+        'Global',
+        'Direct',
+        'right',
+      ],
       reason:
           'arrow right should step through the modes, the selected one '
           'included, without the card itself taking a turn, got $trail',
@@ -138,7 +144,7 @@ void main() {
 
     expect(
       trail.first,
-      anyOf('Rule', 'Global', 'Direct'),
+      anyOf('Subscription rules', 'Config rules', 'Global', 'Direct'),
       reason: 'arrow down should land on a mode button, got $trail',
     );
     expect(trail.last, 'below');

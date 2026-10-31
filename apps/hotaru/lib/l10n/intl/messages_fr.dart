@@ -1598,6 +1598,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Agrandir"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Réduire"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("Choix du nœud"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nœuds"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Cette ressource externe n’est pas un fichier texte",
@@ -1913,7 +1914,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Adresses de route exclues",
     ),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aucune configuration de routage importée",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible de charger ou d’appliquer la configuration. Vérifiez le lien, les règles et le groupe de nœuds sélectionné.",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Importez des règles Mihomo YAML en gardant le nœud sélectionné. Elles remplacent les règles de l’abonnement ; DIRECT et REJECT sont conservés.",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage(
+      "Importer un lien de configuration",
+    ),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage(
+      "Règles de config",
+    ),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage(
+      "Configurations de routage",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Marque de routage"),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage(
+      "Règles d’abonnement",
+    ),
     "ru": MessageLookupByLibrary.simpleMessage("Russe"),
     "rule": MessageLookupByLibrary.simpleMessage("Règle"),
     "ruleActionAndDesc": MessageLookupByLibrary.simpleMessage(
@@ -2299,6 +2321,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Infos d’abonnement",
     ),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("Abonnements"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Saisissez votre mot de passe pour sudo",
     ),

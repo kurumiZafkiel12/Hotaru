@@ -87,6 +87,15 @@ _AppSettingProps _$AppSettingPropsFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  routingConfigs:
+      (json['routingConfigs'] as List<dynamic>?)
+          ?.map((e) => RoutingConfig.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  activeRoutingConfigId: (json['activeRoutingConfigId'] as num?)?.toInt(),
+  routingRulesEnabled: json['routingRulesEnabled'] as bool? ?? false,
+  routingOutbound: json['routingOutbound'] as String? ?? '',
+  routingSubscriptionId: (json['routingSubscriptionId'] as num?)?.toInt(),
   tableColumnWidths:
       (json['tableColumnWidths'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -134,6 +143,11 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'serviceOrder': instance.serviceOrder,
       'disabledServices': instance.disabledServices,
       'extraConnectivityServices': instance.extraConnectivityServices,
+      'routingConfigs': instance.routingConfigs,
+      'activeRoutingConfigId': instance.activeRoutingConfigId,
+      'routingRulesEnabled': instance.routingRulesEnabled,
+      'routingOutbound': instance.routingOutbound,
+      'routingSubscriptionId': instance.routingSubscriptionId,
       'tableColumnWidths': instance.tableColumnWidths,
     };
 

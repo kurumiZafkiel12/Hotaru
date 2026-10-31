@@ -597,6 +597,44 @@ void main() {
       );
     });
 
+    test('independent routing files survive backup and restore', () async {
+      await seedDatabase();
+      final config = RoutingConfig(
+        id: 101,
+        name: 'Independent',
+        url: 'https://example.com/rules.yaml',
+        updatedAt: DateTime.utc(2026),
+        digest: 'test',
+        ruleCount: 1,
+      );
+      final entry = BackupEntries.routingConfig(config.id);
+      writeFile(
+        BackupEntries.resolve(home.path, entry),
+        'rules: [MATCH,Proxy]',
+      );
+      final archivePath = await backup(
+        configMap: {
+          'version': 1,
+          'appSettingProps': AppSettingProps(
+            routingConfigs: [config],
+            activeRoutingConfigId: config.id,
+          ).toJson(),
+        },
+        entries: BackupEntries.of(
+          profileIds: const [],
+          scriptIds: const [],
+          providers: const [],
+          routingConfigIds: [config.id],
+        ),
+      );
+      final data = await restore(archivePath);
+      expect(BackupEntries.ofData(data), contains(entry));
+      expect(
+        File(BackupEntries.resolve(staging.path, entry)).readAsStringSync(),
+        'rules: [MATCH,Proxy]',
+      );
+    });
+
     test('a version 0 archive goes through the legacy migration', () async {
       await seedDatabase();
       writeFile(join(home.path, 'profiles', 'legacy.yaml'), 'proxies: []');

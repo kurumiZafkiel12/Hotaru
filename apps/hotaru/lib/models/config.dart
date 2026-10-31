@@ -281,6 +281,11 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default([]) List<String> serviceOrder,
     @Default([]) List<String> disabledServices,
     @Default([]) List<String> extraConnectivityServices,
+    @Default([]) List<RoutingConfig> routingConfigs,
+    int? activeRoutingConfigId,
+    @Default(false) bool routingRulesEnabled,
+    @Default('') String routingOutbound,
+    int? routingSubscriptionId,
     @Default({}) Map<String, Map<String, double>> tableColumnWidths,
   }) = _AppSettingProps;
 

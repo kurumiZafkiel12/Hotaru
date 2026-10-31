@@ -1248,6 +1248,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("확대"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("축소"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("노드 선택"),
     "nodes": MessageLookupByLibrary.simpleMessage("노드"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "이 외부 리소스는 텍스트 파일이 아닙니다",
@@ -1481,7 +1482,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("다시 시도"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("라우팅 주소"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("라우팅 제외 주소"),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "가져온 라우팅 구성이 없습니다",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "구성을 불러오거나 적용할 수 없습니다. 링크, 규칙 및 선택한 노드 그룹을 확인하세요.",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Mihomo YAML 규칙을 가져오고 선택한 구독 노드를 유지합니다. 구성 규칙이 구독 규칙을 대체하며 DIRECT와 REJECT는 유지됩니다.",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage("구성 링크 가져오기"),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage("구성 규칙"),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage("라우팅 구성"),
     "routingMark": MessageLookupByLibrary.simpleMessage("라우팅 마크"),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage("구독 규칙"),
     "ru": MessageLookupByLibrary.simpleMessage("러시아어"),
     "rule": MessageLookupByLibrary.simpleMessage("규칙"),
     "ruleActionAndDesc": MessageLookupByLibrary.simpleMessage("논리 규칙 AND"),
@@ -1795,6 +1809,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "style": MessageLookupByLibrary.simpleMessage("스타일"),
     "submit": MessageLookupByLibrary.simpleMessage("제출"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage("구독 정보"),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("구독"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "sudo 비밀번호를 입력하세요",
     ),

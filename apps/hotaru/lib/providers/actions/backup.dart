@@ -81,6 +81,10 @@ class BackupAction extends _$BackupAction {
         profileIds: profileIds,
         scriptIds: scriptIds,
         providers: providers,
+        routingConfigIds: ref
+            .read(appSettingProvider)
+            .routingConfigs
+            .map((item) => item.id),
       ),
     ));
     return archivePath;

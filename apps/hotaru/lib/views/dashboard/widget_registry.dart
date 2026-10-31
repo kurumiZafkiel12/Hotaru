@@ -65,7 +65,7 @@ extension DashboardWidgetView on DashboardWidget {
       DashboardWidget.vpnButton => 'VPN',
       DashboardWidget.networkTakeover => appLocalizations.networkTakeover,
       DashboardWidget.serviceStatus => appLocalizations.serviceStatus,
-      DashboardWidget.profiles => appLocalizations.profile,
+      DashboardWidget.profiles => appLocalizations.subscriptions,
       DashboardWidget.proxyGroups => appLocalizations.proxyGroup,
       DashboardWidget.connectionStats => appLocalizations.connectionStats,
       DashboardWidget.intranetIp => appLocalizations.intranetIP,

@@ -46,6 +46,24 @@ Future<ClashConfig> clashConfig(Ref ref, int profileId) async {
 @riverpod
 Future<SetupState> setupState(Ref ref, int? profileId) async {
   final profile = ref.watch(profileProvider(profileId));
+  final routing = ref.watch(
+    appSettingProvider.select(
+      (state) => (
+        enabled: state.routingRulesEnabled,
+        id: state.activeRoutingConfigId,
+        configs: state.routingConfigs,
+        outbound: state.routingSubscriptionId == profileId
+            ? state.routingOutbound
+            : '',
+      ),
+    ),
+  );
+  final routingConfig = routing.enabled
+      ? routing.configs.where((config) => config.id == routing.id).firstOrNull
+      : null;
+  if (routing.enabled && routingConfig == null) {
+    throw const FormatException('routing configuration missing');
+  }
   final scriptId = profile?.scriptId;
   final profileLastUpdateDate = profile?.lastUpdateDate?.millisecondsSinceEpoch;
   final profileType = profile?.type ?? ProfileType.file;
@@ -99,6 +117,8 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     }
   }
   return SetupState(
+    routingConfig: routingConfig,
+    routingOutbound: routing.outbound,
     clashProviders: clashProviders,
     profileProviders: profileProviders,
     appProxies: appProxies,

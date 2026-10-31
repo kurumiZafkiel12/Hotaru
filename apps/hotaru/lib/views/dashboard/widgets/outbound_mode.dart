@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
+import '../../routing_configs.dart';
 
 Glyph _glyphOf(Mode mode) => switch (mode) {
   Mode.rule => AppGlyphs.rules,
@@ -33,6 +34,46 @@ class OutboundModeCard extends ConsumerWidget {
     final mode = ref.watch(
       patchClashConfigProvider.select((state) => state.mode),
     );
+    final routingEnabled = ref.watch(
+      appSettingProvider.select((state) => state.routingRulesEnabled),
+    );
+    final busy = ref.watch(routingConfigsActionProvider);
+    final strings = context.appLocalizations;
+    final options = [
+      (Mode.rule, false, strings.routingSubscriptionMode, AppGlyphs.rules),
+      (Mode.rule, true, strings.routingConfigMode, AppGlyphs.profiles),
+      (Mode.global, false, strings.global, AppGlyphs.proxies),
+      (Mode.direct, false, strings.direct, AppGlyphs.target),
+    ];
+    Future<void> choose(Mode next, bool configuration) async {
+      if (busy) return;
+      if (mode == next &&
+          (next != Mode.rule || configuration == routingEnabled)) {
+        return;
+      }
+      if (next != Mode.rule) {
+        _changeMode(ref, next);
+        return;
+      }
+      final settings = ref.read(appSettingProvider);
+      if (configuration && settings.activeRoutingConfigId == null) {
+        await BaseNavigator.push(context, const RoutingConfigsView());
+        return;
+      }
+      try {
+        await ref
+            .read(routingConfigsActionProvider.notifier)
+            .useSource(configuration);
+      } catch (_) {
+        if (context.mounted) {
+          dialogs.showNotifier(
+            strings.routingConfigFailed,
+            level: MessageLevel.error,
+          );
+        }
+      }
+    }
+
     final tone = DashboardColors.of(context).tone;
     final style = AppTextStyle.footnote.of(context, emphasized: true);
     return DashboardCard(
@@ -46,22 +87,26 @@ class OutboundModeCard extends ConsumerWidget {
             DashboardCardHeader(
               glyph: AppGlyphs.split,
               title: context.appLocalizations.outboundMode,
+              trailing: [if (busy) const CommonCircleLoading(size: 14)],
             ),
             SizedBox(height: desktop ? 2 : 6),
           ],
           DashboardConnectedGroup(
             children: [
-              for (final (index, item) in Mode.values.indexed)
+              for (final (index, (item, configuration, label, glyph))
+                  in options.indexed)
                 Expanded(
                   child: DashboardConnectedButton(
-                    selected: item == mode,
+                    selected:
+                        item == mode &&
+                        (item != Mode.rule || configuration == routingEnabled),
                     first: index == 0,
-                    last: index == Mode.values.length - 1,
+                    last: index == options.length - 1,
                     outer: _outer,
                     inner: 12,
                     background: tone,
-                    semanticLabel: item.label,
-                    onTap: () => _changeMode(ref, item),
+                    semanticLabel: label,
+                    onTap: () => choose(item, configuration),
                     builder: (foreground) => SizedBox(
                       height: desktop
                           ? showTitle
@@ -72,14 +117,10 @@ class OutboundModeCard extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         spacing: 6,
                         children: [
-                          GlyphIcon(
-                            _glyphOf(item),
-                            size: 16,
-                            color: foreground,
-                          ),
+                          GlyphIcon(glyph, size: 16, color: foreground),
                           Flexible(
                             child: Text(
-                              item.label,
+                              label,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: style.copyWith(color: foreground),

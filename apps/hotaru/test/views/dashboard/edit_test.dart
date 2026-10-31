@@ -136,7 +136,7 @@ void main() {
     );
     expect(removeBadges, findsNWidgets(2));
     expect(find.byTooltip('Remove Network speed'), findsOneWidget);
-    expect(find.byTooltip('Remove Profile'), findsOneWidget);
+    expect(find.byTooltip('Remove Subscriptions'), findsOneWidget);
 
     await teardown(tester);
   });

@@ -1560,6 +1560,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Увеличить"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Уменьшить"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("Выбор узла"),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Этот внешний ресурс не является текстовым файлом",
@@ -1857,7 +1858,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Исключённые адреса маршрутов",
     ),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "Конфигурации маршрутизации не импортированы",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить или применить конфигурацию. Проверьте ссылку, правила и выбранную группу узлов.",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Импорт правил Mihomo YAML с сохранением выбранного узла подписки. Правила конфигурации заменяют правила подписки; DIRECT и REJECT сохраняются.",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage(
+      "Импорт по ссылке",
+    ),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage(
+      "Правила конфига",
+    ),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage(
+      "Конфигурации маршрутизации",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Метка маршрутизации"),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage(
+      "Правила подписки",
+    ),
     "ru": MessageLookupByLibrary.simpleMessage("Русский"),
     "rule": MessageLookupByLibrary.simpleMessage("Правило"),
     "ruleActionAndDesc": MessageLookupByLibrary.simpleMessage(
@@ -2237,6 +2259,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Информация о подписке",
     ),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("Подписки"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Введите пароль для sudo",
     ),

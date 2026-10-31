@@ -491,12 +491,18 @@ class SetupAction extends _$SetupAction {
     );
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
+    final routing = setupState.routingConfig;
+    if (routing != null && isCustom) {
+      throw const FormatException(
+        'independent routing requires a node subscription',
+      );
+    }
     final scriptContent =
         !isCustom && setupState.extendType == ExtendType.script
         ? await setupState.script?.content
         : null;
     final hasScript = scriptContent?.isNotEmpty == true;
-    final profileBase = !isCustom && !hasScript
+    final profileBase = routing == null && !isCustom && !hasScript
         ? await _core.getProfileBase(profileId)
         : null;
     Map<String, dynamic> rawConfig = isCustom
@@ -512,6 +518,40 @@ class SetupAction extends _$SetupAction {
     final rules = isCustom ? setupState.rules : <Rule>[];
     if (hasScript) {
       rawConfig = await handleEvaluate(scriptContent!, rawConfig);
+    }
+    if (routing != null) {
+      final source = await (await _routingConfigFile(
+        routing.id,
+      )).readAsString();
+      final profile = ref.read(profileProvider(profileId));
+      final preferred = setupState.routingOutbound.isNotEmpty
+          ? setupState.routingOutbound
+          : profile?.currentGroupName;
+      final names = {
+        for (final section in ['proxies', 'proxy-groups'])
+          for (final item in rawConfig[section] as List? ?? const [])
+            if (item is Map && item['name'] is String) item['name'] as String,
+      };
+      String? target;
+      if (preferred == GroupName.GLOBAL.name) {
+        target = profile?.selectedMap[GroupName.GLOBAL.name];
+      } else if (preferred?.isNotEmpty == true) {
+        target = preferred;
+      } else {
+        target = lastMatchTarget(
+          List<String>.from(rawConfig['rules'] as List? ?? const []),
+        );
+      }
+      if (target == null || !names.contains(target)) {
+        throw const FormatException(
+          'choose a subscription node group before using independent rules',
+        );
+      }
+      rawConfig = await compute(composeRoutingRules, (
+        rawConfig,
+        source,
+        target,
+      ));
     }
     final directory = await appPath.profilesPath;
     final injected = await _resolveInjectedProviders(
@@ -533,7 +573,7 @@ class SetupAction extends _$SetupAction {
         bypassPrivateRoute: networkSetting.bypassPrivateRoute,
         keepEmptyDnsOverrides: setupState.profileType != ProfileType.custom,
         appendSystemDns: appendSystemDns,
-        addedRules: setupState.addedRules,
+        addedRules: routing == null ? setupState.addedRules : const [],
         defaultUA: defaultUA,
         authentication: networkSetting.authentication.credentials,
         matchTarget:

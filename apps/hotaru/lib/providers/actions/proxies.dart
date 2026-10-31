@@ -219,6 +219,9 @@ class ProxiesAction extends _$ProxiesAction {
       );
       return;
     }
+    ref
+        .read(routingConfigsActionProvider.notifier)
+        .followSelection(groupName, proxyName);
     if (!result.changed) {
       return;
     }

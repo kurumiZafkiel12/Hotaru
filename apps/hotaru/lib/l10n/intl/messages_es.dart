@@ -1605,6 +1605,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Ampliar"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Reducir"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("Selección de nodo"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodos"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Este recurso externo no es un archivo de texto",
@@ -1914,8 +1915,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Direcciones excluidas de la ruta",
     ),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "No hay configuraciones de rutas importadas",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo cargar o aplicar la configuración. Revisa el enlace, las reglas y el grupo de nodos seleccionado.",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Importa reglas Mihomo YAML y conserva el nodo seleccionado. Las reglas de configuración sustituyen a las de suscripción; DIRECT y REJECT se mantienen.",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage(
+      "Importar enlace de configuración",
+    ),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage(
+      "Reglas de config.",
+    ),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage(
+      "Configuraciones de rutas",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage(
       "Marca de enrutamiento",
+    ),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage(
+      "Reglas de suscripción",
     ),
     "ru": MessageLookupByLibrary.simpleMessage("Ruso"),
     "rule": MessageLookupByLibrary.simpleMessage("Regla"),
@@ -2302,6 +2324,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Información de la suscripción",
     ),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("Suscripciones"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Introduce tu contraseña para sudo",
     ),

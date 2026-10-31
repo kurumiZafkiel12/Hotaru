@@ -29,6 +29,9 @@ abstract final class BackupEntries {
 
   static String script(Object id) => 'scripts/$id.js';
 
+  static String routingConfig(int id) =>
+      '$profilesDirectoryName/routing-configs/$id.yaml';
+
   static String provider(ClashProvider provider) =>
       '$providersDirectoryName/$rulesProviderDirectoryName/${provider.fileName}';
 
@@ -37,11 +40,13 @@ abstract final class BackupEntries {
     required Iterable<int> profileIds,
     required Iterable<int> scriptIds,
     required Iterable<ClashProvider> providers,
+    Iterable<int> routingConfigIds = const [],
   }) {
     return [
       ...profileIds.map(profile),
       ...scriptIds.map(script),
       ...providers.where((item) => !item.isRemote).map(provider),
+      ...routingConfigIds.map(routingConfig),
     ];
   }
 
@@ -50,6 +55,9 @@ abstract final class BackupEntries {
       profileIds: data.profiles.map((item) => item.id),
       scriptIds: data.scripts.map((item) => item.id),
       providers: data.clashProviders,
+      routingConfigIds: Config.fromJson(
+        data.configMap ?? const {},
+      ).appSettingProps.routingConfigs.map((item) => item.id),
     );
   }
 

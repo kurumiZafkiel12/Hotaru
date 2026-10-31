@@ -91,7 +91,7 @@ final class SetupActionProvider extends $NotifierProvider<SetupAction, void> {
   }
 }
 
-String _$setupActionHash() => r'60f2e7b847e66636232a90c7bac583f560361a06';
+String _$setupActionHash() => r'dc6fcf5c2049a9a3803002626b04725b9ab6ffc7';
 
 abstract class _$SetupAction extends $Notifier<void> {
   void build();
@@ -398,7 +398,7 @@ final class ProxiesActionProvider
   }
 }
 
-String _$proxiesActionHash() => r'549a51e79e8b93d7411ec136ba767e0780c4fdc2';
+String _$proxiesActionHash() => r'ee98b1ff93daf7c01435d5164bcf77e5c97bbd2a';
 
 abstract class _$ProxiesAction extends $Notifier<void> {
   void build();
@@ -463,6 +463,59 @@ abstract class _$ProfilesAction extends $Notifier<void> {
             as $ClassProviderElement<
               AnyNotifier<void, void>,
               void,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(RoutingConfigsAction)
+final routingConfigsActionProvider = RoutingConfigsActionProvider._();
+
+final class RoutingConfigsActionProvider
+    extends $NotifierProvider<RoutingConfigsAction, bool> {
+  RoutingConfigsActionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'routingConfigsActionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$routingConfigsActionHash();
+
+  @$internal
+  @override
+  RoutingConfigsAction create() => RoutingConfigsAction();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$routingConfigsActionHash() =>
+    r'ca1d6c2291b7127b055b365d8cef62040e1908f3';
+
+abstract class _$RoutingConfigsAction extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
               Object?,
               Object?
             >;

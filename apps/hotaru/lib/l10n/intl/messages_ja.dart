@@ -1263,6 +1263,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("拡大"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("縮小"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("ノード選択"),
     "nodes": MessageLookupByLibrary.simpleMessage("ノード"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "この外部リソースはテキストファイルではありません",
@@ -1500,7 +1501,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("再試行"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("ルートアドレス"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("ルート除外アドレス"),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "ルーティング設定がありません",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "設定を読み込むか適用できません。リンク、ルール、選択中のノードグループを確認してください。",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Mihomo YAML ルールを読み込み、選択した購読ノードを使います。購読ルールは置き換えられ、DIRECT と REJECT は維持されます。",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage("設定リンクをインポート"),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage("設定ルール"),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage("ルーティング設定"),
     "routingMark": MessageLookupByLibrary.simpleMessage("ルーティングマーク"),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage("購読ルール"),
     "ru": MessageLookupByLibrary.simpleMessage("ロシア語"),
     "rule": MessageLookupByLibrary.simpleMessage("ルール"),
     "ruleActionAndDesc": MessageLookupByLibrary.simpleMessage("論理ルール AND"),
@@ -1822,6 +1836,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "style": MessageLookupByLibrary.simpleMessage("スタイル"),
     "submit": MessageLookupByLibrary.simpleMessage("送信"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage("サブスクリプション情報"),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("購読"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage("sudo のパスワードを入力"),
     "suspended": MessageLookupByLibrary.simpleMessage("一時停止中…"),
     "switchProfile": MessageLookupByLibrary.simpleMessage("プロファイルを切り替え"),

@@ -56,7 +56,15 @@ void main() {
   }
 
   Finder buttonOf(Mode mode) => find
-      .ancestor(of: find.text(mode.label), matching: find.byType(InkWell))
+      .ancestor(
+        of: find.text(
+          mode == Mode.rule &&
+                  find.text('Subscription rules').evaluate().isNotEmpty
+              ? 'Subscription rules'
+              : mode.label,
+        ),
+        matching: find.byType(InkWell),
+      )
       .first;
 
   ShapeDecoration decorationOf(WidgetTester tester, Mode mode) {
@@ -85,6 +93,20 @@ void main() {
       );
     }
   });
+
+  testWidgets(
+    'configuration mode opens its import page when no configuration is selected',
+    (tester) async {
+      await pump(tester, const OutboundModeCard());
+      expect(find.text('Subscription rules'), findsOneWidget);
+      expect(find.text('Config rules'), findsOneWidget);
+      await tester.tap(find.text('Config rules'));
+      await tester.pumpAndSettle();
+      expect(find.text('Routing configurations'), findsOneWidget);
+      expect(find.text('No routing configuration imported'), findsOneWidget);
+      expect(container.read(appSettingProvider).routingRulesEnabled, isFalse);
+    },
+  );
 
   testWidgets('tapping a mode selects it and turns it into the pill', (
     tester,
@@ -148,6 +170,7 @@ void main() {
     expect(
       tester.renderObject(row),
       paints
+        ..rsuperellipse()
         ..rsuperellipse()
         ..rsuperellipse()
         ..rsuperellipse(color: colorScheme.primary),

@@ -8,6 +8,7 @@ import 'clash_config.dart';
 import 'common.dart';
 import 'core.dart';
 import 'profile.dart';
+import 'routing_config.dart';
 
 part 'generated/state.freezed.dart';
 part 'generated/state.g.dart';
@@ -268,5 +269,7 @@ abstract class SetupState with _$SetupState {
     @Default([]) List<CustomProxy> appProxies,
     @Default({}) Map<int, String> proxyDialers,
     String? matchTarget,
+    RoutingConfig? routingConfig,
+    @Default('') String routingOutbound,
   }) = _SetupState;
 }

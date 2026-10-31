@@ -1490,6 +1490,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Zoom in"),
     "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Zoom out"),
+    "nodeSelection": MessageLookupByLibrary.simpleMessage("Node selection"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",
@@ -1775,7 +1776,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Route exclude addresses",
     ),
+    "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
+      "No routing configuration imported",
+    ),
+    "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not load or apply the configuration. Check the link, rules and selected node group.",
+    ),
+    "routingConfigHint": MessageLookupByLibrary.simpleMessage(
+      "Import Mihomo YAML rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT keep their meaning.",
+    ),
+    "routingConfigImport": MessageLookupByLibrary.simpleMessage(
+      "Import configuration link",
+    ),
+    "routingConfigMode": MessageLookupByLibrary.simpleMessage("Config rules"),
+    "routingConfigs": MessageLookupByLibrary.simpleMessage(
+      "Routing configurations",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Routing mark"),
+    "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage(
+      "Subscription rules",
+    ),
     "ru": MessageLookupByLibrary.simpleMessage("Russian"),
     "rule": MessageLookupByLibrary.simpleMessage("Rule"),
     "ruleActionAndDesc": MessageLookupByLibrary.simpleMessage(
@@ -2137,6 +2157,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Subscription info",
     ),
+    "subscriptions": MessageLookupByLibrary.simpleMessage("Subscriptions"),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Enter your password for sudo",
     ),

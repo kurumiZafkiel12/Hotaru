@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'add.dart';
 import 'edit.dart';
 import 'preview.dart';
+import '../routing_configs.dart';
 
 const _infoGap = 4.0;
 
@@ -103,8 +104,18 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
         final picker = widget.picker;
         return CommonScaffold(
           isLoading: isLoading,
-          title: appLocalizations.profiles,
-          iconActions: picker ? const [] : _buildActions(state.profiles),
+          title: appLocalizations.subscriptions,
+          iconActions: picker
+              ? const []
+              : [
+                  IconButtonData(
+                    glyph: AppGlyphs.rules,
+                    tooltip: appLocalizations.routingConfigs,
+                    onPressed: () =>
+                        BaseNavigator.push(context, const RoutingConfigsView()),
+                  ),
+                  ..._buildActions(state.profiles),
+                ],
           actions: state.profiles.isEmpty || picker
               ? null
               : [
