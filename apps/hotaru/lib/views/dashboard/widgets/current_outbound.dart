@@ -42,16 +42,19 @@ class CurrentOutboundCard extends ConsumerStatefulWidget {
 class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     with ProbeStartHold<CurrentOutboundCard> {
   late final OutboundIpProbe _probe;
+  late final NetworkQuality _networkQuality;
 
   @override
   void initState() {
     super.initState();
     _probe = ref.read(outboundIpProbeProvider.notifier)..watch(routedOutbound);
+    _networkQuality = ref.read(networkQualityProvider.notifier)..watch();
   }
 
   @override
   void dispose() {
     _probe.unwatch(routedOutbound);
+    _networkQuality.unwatch();
     super.dispose();
   }
 

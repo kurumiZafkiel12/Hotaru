@@ -56,6 +56,106 @@ void main() {
     ),
   );
 
+  testWidgets(
+    'dashboard sampling is shared, cached and refreshed after a real route change',
+    (tester) async {
+      final core = _Core();
+      var calls = 0;
+      when(() => core.probe(any())).thenAnswer((_) async {
+        calls++;
+        return const ProbeResult(
+          url: networkQualityUrl,
+          delay: 80,
+          statusCode: 204,
+          chains: ['node-A'],
+        );
+      });
+      final container = ProviderContainer(
+        overrides: [
+          routeTrackerProvider.overrideWithBuild(
+            (_, _) => const RouteState(
+              proxied: true,
+              live: true,
+              synced: true,
+              coreEpoch: 7,
+              routeVersion: 2,
+            ),
+          ),
+          coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+        ],
+      );
+      addTearDown(container.dispose);
+      final quality = container.read(networkQualityProvider.notifier);
+      quality.watch();
+      quality.watch();
+      expect(calls, 0);
+      for (var index = 0; index < 9; index++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(calls, 6);
+      expect(
+        container.read(networkQualityProvider).report?.grade,
+        NetworkQualityGrade.excellent,
+      );
+      container.read(routeTrackerProvider.notifier).markResumed();
+      await tester.pump(const Duration(seconds: 1));
+      expect(calls, 6);
+      expect(container.read(networkQualityProvider).report, isNotNull);
+      quality.unwatch();
+      container.read(routeTrackerProvider.notifier).bumpHostEpoch();
+      await tester.pump();
+      for (var index = 0; index < 9; index++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(calls, 12);
+      quality.unwatch();
+      container.read(routeTrackerProvider.notifier).bumpHostEpoch();
+      await tester.pump(const Duration(seconds: 2));
+      expect(calls, 12);
+    },
+  );
+
+  testWidgets(
+    'leaving the dashboard cancels an automatic sample and ignores late replies',
+    (tester) async {
+      final core = _Core();
+      final reply = Completer<ProbeResult?>();
+      when(() => core.probe(any())).thenAnswer((_) => reply.future);
+      final container = ProviderContainer(
+        overrides: [
+          routeTrackerProvider.overrideWithBuild(
+            (_, _) => const RouteState(
+              proxied: true,
+              live: true,
+              synced: true,
+              coreEpoch: 7,
+              routeVersion: 2,
+            ),
+          ),
+          coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+        ],
+      );
+      addTearDown(container.dispose);
+      final quality = container.read(networkQualityProvider.notifier);
+      quality.watch();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(container.read(networkQualityProvider).running, isTrue);
+      quality.unwatch();
+      reply.complete(
+        const ProbeResult(
+          url: networkQualityUrl,
+          delay: 80,
+          statusCode: 204,
+          chains: ['node-A'],
+        ),
+      );
+      await tester.pump();
+      expect(container.read(networkQualityProvider).running, isFalse);
+      expect(container.read(networkQualityProvider).report, isNull);
+      verify(() => core.probe(any())).called(1);
+    },
+  );
+
   test(
     'idle provider does no network work, successful report is invalidated by network change',
     () async {

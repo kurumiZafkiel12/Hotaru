@@ -43,34 +43,66 @@ class NetworkQuality extends Notifier<NetworkQualityState> {
   int _generation = 0;
   NetworkQualityRunner? _runner;
   Timer? _expiry;
+  Timer? _automatic;
+  int _watchers = 0;
+  bool _automaticRun = false;
 
   @override
   NetworkQualityState build() {
     ref.listen(routeTrackerProvider, (before, after) {
-      if (before != null &&
-          (before.coreEpoch != after.coreEpoch ||
-              before.routeVersion != after.routeVersion ||
-              before.hostEpoch != after.hostEpoch ||
-              before.proxied != after.proxied ||
-              (before.synced && !after.synced))) {
-        cancel();
+      if (before != null && after.invalidatesDiagnostics(before)) {
+        cancel(refresh: true);
+      } else {
+        _queueAutomatic();
       }
     });
     ref.onDispose(() {
       _generation++;
       _runner?.cancel();
       _expiry?.cancel();
+      _automatic?.cancel();
     });
     return const NetworkQualityState();
   }
 
-  void cancel() {
+  void watch() {
+    _watchers++;
+    if (_watchers == 1) _queueAutomatic();
+  }
+
+  void unwatch() {
+    if (_watchers == 0) return;
+    _watchers--;
+    if (_watchers == 0) {
+      _automatic?.cancel();
+      if (_automaticRun && state.running) cancel();
+    }
+  }
+
+  void _queueAutomatic() {
+    _automatic?.cancel();
+    if (_watchers == 0 || state.running) return;
+    final route = ref.read(routeTrackerProvider);
+    if (!route.proxied ||
+        !route.live ||
+        !route.synced ||
+        state.reportFor(route) != null) {
+      return;
+    }
+    _automatic = Timer(const Duration(milliseconds: 500), () {
+      if (ref.mounted && _watchers > 0) unawaited(_measure(automatic: true));
+    });
+  }
+
+  void cancel({bool refresh = false}) {
     final generation = ++_generation;
     _runner?.cancel();
     _expiry?.cancel();
+    _automatic?.cancel();
     scheduleMicrotask(() {
       if (ref.mounted && generation == _generation) {
         state = const NetworkQualityState();
+        if (refresh) _queueAutomatic();
       }
     });
   }
@@ -79,10 +111,14 @@ class NetworkQuality extends Notifier<NetworkQualityState> {
     if (ref.mounted && state.running) cancel();
   }
 
-  Future<void> measure() async {
+  Future<void> measure() => _measure(automatic: false);
+
+  Future<void> _measure({required bool automatic}) async {
     final route = ref.read(routeTrackerProvider);
     if (state.running || !route.proxied || !route.synced || !route.live) return;
     final generation = ++_generation;
+    _automatic?.cancel();
+    _automaticRun = automatic;
     _expiry?.cancel();
     final runner = _runner = NetworkQualityRunner(
       probe: ref.read(coreHandlerProvider).probe,
@@ -98,7 +134,7 @@ class NetworkQuality extends Notifier<NetworkQualityState> {
       );
       if (!ref.mounted || generation != _generation) return;
       state = NetworkQualityState(report: report, route: route);
-      _expiry = Timer(networkQualityMaxAge, cancel);
+      _expiry = Timer(networkQualityMaxAge, () => cancel(refresh: true));
     } finally {
       if (generation == _generation) {
         _runner = null;
