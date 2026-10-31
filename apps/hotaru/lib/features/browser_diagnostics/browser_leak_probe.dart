@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_platform_interface.dart';
 import 'package:hotaru/common/browser_leak_result.dart';
 
+import 'webview_environment.dart';
+
 class BrowserLeakProbe {
   bool _cancelled = false;
   final _cancelledSignal = Completer<void>();
@@ -37,13 +39,9 @@ class BrowserLeakProbe {
       }
       _check();
       directory = await Directory(temporaryPath).createTemp('browser-leak-');
-      environment = await PlatformWebViewEnvironment.static()
-          .create(
-            settings: WebViewEnvironmentSettings(
-              userDataFolder: directory.path,
-            ),
-          )
-          .timeout(const Duration(seconds: 15));
+      environment = await createLeakWebViewEnvironment(
+        directory.path,
+      ).timeout(const Duration(seconds: 15));
       _check();
       final loaded = Completer<PlatformInAppWebViewController>();
       final path = kind.name;
