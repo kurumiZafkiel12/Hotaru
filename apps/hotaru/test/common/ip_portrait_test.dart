@@ -185,6 +185,42 @@ void main() {
   });
 
   test(
+    'a newer global version retains measured IPs for actual exit revalidation',
+    () async {
+      final runner = IpPortraitRunner(
+        coreEpoch: 7,
+        routeVersion: 2,
+        request: (params) async {
+          final url = params.urls.single;
+          if (url.contains('api6.ipify')) return null;
+          final source = IpPortraitSource.values
+              .where((source) => source.url('8.8.8.8') == url)
+              .firstOrNull;
+          return OutboundIpResult(
+            url: url,
+            body: source == null
+                ? '{"ip":"8.8.8.8"}'
+                : jsonEncode(profileJson(source)),
+            coreEpoch: 7,
+            routeVersion: 3,
+            hits: [RouteHit(host: Uri.parse(url).host, exit: 'node-A')],
+          );
+        },
+      );
+      final report = await runner.run();
+      expect(report.addresses, ['8.8.8.8']);
+      expect(report.needsRouteValidation, isTrue);
+      expect(report.receipts, hasLength(4));
+      expect(
+        report.receipts.every(
+          (receipt) => receipt.hits.single.exit == 'node-A',
+        ),
+        isTrue,
+      );
+    },
+  );
+
+  test(
     'cancellation suppresses late replies and further source requests',
     () async {
       final pending = <Completer<OutboundIpResult?>>[];

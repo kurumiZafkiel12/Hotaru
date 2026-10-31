@@ -23,6 +23,7 @@ class _Core extends Mock implements CoreHandlerInterface {}
 void main() {
   setUpAll(() {
     registerFallbackValue(const OutboundIpParams(timeout: 8000));
+    registerFallbackValue(const CheckRoutesParams());
     registerFallbackValue(
       const ProbeParams(url: 'https://example.com/', timeout: 8000),
     );
@@ -32,11 +33,33 @@ void main() {
     (const Size(1024, 760), TargetPlatform.windows),
     (const Size(360, 740), TargetPlatform.android),
   ]) {
-    for (final scenario in ['report', 'large-text', 'cancel', 'route-change']) {
+    for (final scenario in [
+      'report',
+      'large-text',
+      'cancel',
+      'route-change',
+      'unrelated-group',
+      'changed-exit',
+      'missing-route-receipt',
+    ]) {
       testWidgets(
         '$platform IP portrait $scenario keeps sourced conclusions honest',
         (tester) async {
           final core = _Core();
+          final hasReport = !const {
+            'cancel',
+            'route-change',
+          }.contains(scenario);
+          when(() => core.checkRoutes(any())).thenAnswer((invocation) async {
+            if (scenario == 'missing-route-receipt') return null;
+            final params =
+                invocation.positionalArguments.single as CheckRoutesParams;
+            return RouteCheck(
+              coreEpoch: 7,
+              routeVersion: 3,
+              held: [for (final _ in params.routes) scenario != 'changed-exit'],
+            );
+          });
           final pending = <Completer<OutboundIpResult?>>[];
           when(() => core.watchRoute(any())).thenAnswer(
             (_) async => const RouteSnapshot(coreEpoch: 7, routeVersion: 2),
@@ -44,7 +67,7 @@ void main() {
           when(() => core.outboundIp(any())).thenAnswer((invocation) async {
             final params =
                 invocation.positionalArguments.single as OutboundIpParams;
-            if (scenario != 'report' && scenario != 'large-text') {
+            if (!hasReport) {
               final completer = Completer<OutboundIpResult?>();
               pending.add(completer);
               return completer.future;
@@ -57,6 +80,7 @@ void main() {
                 body: '{"ip":"8.8.8.8"}',
                 coreEpoch: 7,
                 routeVersion: 2,
+                hits: const [RouteHit(host: 'api.ipify.org', exit: 'node-A')],
                 chains: ['node-A', 'daily'],
               );
             }
@@ -68,6 +92,7 @@ void main() {
               body: jsonEncode(profileJson(source)),
               coreEpoch: 7,
               routeVersion: 2,
+              hits: [RouteHit(host: Uri.parse(url).host, exit: 'node-A')],
             );
           });
           when(() => core.probe(any())).thenAnswer(
@@ -141,7 +166,23 @@ void main() {
             reply.complete(null);
           }
           await tester.pumpAndSettle();
-          if (scenario == 'report' || scenario == 'large-text') {
+          if (const {
+            'unrelated-group',
+            'changed-exit',
+            'missing-route-receipt',
+          }.contains(scenario)) {
+            container
+                .read(routeTrackerProvider.notifier)
+                .applySnapshot(
+                  const RouteSnapshot(coreEpoch: 7, routeVersion: 3),
+                );
+            await tester.pumpAndSettle();
+            expect(
+              find.text('Route changed · run again'),
+              scenario == 'changed-exit' ? findsOneWidget : findsNothing,
+            );
+          }
+          if (hasReport && scenario != 'changed-exit') {
             final conclusion = find.text('Conclusion');
             final card = find
                 .ancestor(of: conclusion, matching: find.byType(CommonCard))

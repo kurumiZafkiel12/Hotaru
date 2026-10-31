@@ -8,6 +8,7 @@ import 'package:hotaru/common/dns_leak.dart';
 import 'package:hotaru/common/country_names.dart';
 import 'package:hotaru/common/ip_portrait.dart';
 import 'package:hotaru/providers/providers.dart';
+import 'package:hotaru/models/models.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -32,6 +33,7 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
   List<DnsResolverReceipt>? _dns;
   bool _running = false;
   int _generation = 0;
+  int _validation = 0;
   String? _notice;
 
   @override
@@ -42,6 +44,12 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
       if (before != null &&
           after.invalidatesDiagnostics(before) &&
           (_running || _report != null)) {
+        if (before.coreEpoch == after.coreEpoch &&
+            before.hostEpoch == after.hostEpoch &&
+            before.proxied == after.proxied) {
+          if (!_running) unawaited(_validateReport());
+          return;
+        }
         _cancel();
         setState(() => _notice = context.appLocalizations.auditStale);
       }
@@ -50,8 +58,46 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
 
   void _release() {
     _generation++;
+    _validation++;
     _runner?.cancel();
     _dnsToken?.cancel();
+  }
+
+  Future<void> _validateReport() async {
+    final report = _report;
+    if (report == null) return;
+    final validation = ++_validation;
+    if (report.receipts.isEmpty ||
+        report.receipts.any((receipt) => receipt.hits.isEmpty)) {
+      setState(() => _notice = context.appLocalizations.portraitUnclear);
+      return;
+    }
+    RouteCheck? checked;
+    try {
+      checked = await ref
+          .read(coreHandlerProvider)
+          .checkRoutes(
+            CheckRoutesParams(
+              routes: [for (final receipt in report.receipts) receipt.hits],
+            ),
+          );
+    } catch (_) {
+      checked = null;
+    }
+    if (!mounted || validation != _validation || !identical(report, _report)) {
+      return;
+    }
+    if (checked == null || checked.held.length != report.receipts.length) {
+      setState(() => _notice = context.appLocalizations.portraitUnclear);
+    } else if (report.receipts.any(
+          (receipt) => receipt.coreEpoch != checked!.coreEpoch,
+        ) ||
+        checked.held.any((held) => !held)) {
+      _cancel();
+      setState(() => _notice = context.appLocalizations.auditStale);
+    } else {
+      setState(() => _notice = null);
+    }
   }
 
   void _cancel() {
@@ -108,6 +154,10 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
         _report = report;
         _dns = dns;
       });
+      if (report.needsRouteValidation ||
+          ref.read(routeTrackerProvider).routeVersion != route.routeVersion) {
+        await _validateReport();
+      }
     } catch (_) {
       if (mounted && generation == _generation) {
         setState(() => _notice = context.appLocalizations.portraitUnclear);

@@ -176,11 +176,15 @@ class IpPortraitReport {
     required this.exits,
     required this.sources,
     this.routes = const [],
+    this.receipts = const [],
+    this.needsRouteValidation = false,
   });
   final DateTime checkedAt;
   final List<IpExitObservation> exits;
   final List<IpPortraitObservation> sources;
   final List<IpPortraitRoute> routes;
+  final List<OutboundIpResult> receipts;
+  final bool needsRouteValidation;
   Iterable<String> get addresses => exits.map((exit) => exit.ip).nonNulls;
   bool get hasRisk => sources.any((source) => source.reportsRisk);
   bool get hasDisagreement {
@@ -234,6 +238,7 @@ class IpPortraitRunner {
   final int routeVersion;
   final Future<ProbeResult?> Function(ProbeParams)? probeRoute;
   bool _cancelled = false;
+  final _receipts = <OutboundIpResult>[];
   void cancel() => _cancelled = true;
 
   Future<OutboundIpResult> _query(String url) async {
@@ -243,10 +248,10 @@ class IpPortraitRunner {
         reply == null ||
         reply.error != null ||
         reply.url != url ||
-        reply.coreEpoch != coreEpoch ||
-        reply.routeVersion != routeVersion) {
+        reply.coreEpoch != coreEpoch) {
       throw const FormatException('IP profile route unavailable or changed');
     }
+    _receipts.add(reply);
     return reply;
   }
 
@@ -344,6 +349,10 @@ class IpPortraitRunner {
       routes: _cancelled ? const [] : List.unmodifiable(routes),
       exits: List.unmodifiable(exits),
       sources: List.unmodifiable(observations),
+      receipts: List.unmodifiable(_receipts),
+      needsRouteValidation: _receipts.any(
+        (reply) => reply.routeVersion != routeVersion,
+      ),
     );
   }
 }
