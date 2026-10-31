@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_platform_interface.dart';
 import 'package:hotaru/common/browser_leak_result.dart';
 
 class BrowserLeakProbe {
@@ -25,65 +25,72 @@ class BrowserLeakProbe {
       throw UnsupportedError('WebView2 requires Windows');
     }
     Directory? directory;
-    WebViewEnvironment? environment;
-    HeadlessInAppWebView? webview;
+    PlatformWebViewEnvironment? environment;
+    PlatformHeadlessInAppWebView? webview;
     try {
       _check();
-      if (await WebViewEnvironment.getAvailableVersion().timeout(
-            const Duration(seconds: 10),
-          ) ==
+      if (await PlatformWebViewEnvironment.static()
+              .getAvailableVersion()
+              .timeout(const Duration(seconds: 10)) ==
           null) {
         throw UnsupportedError('WebView2 runtime unavailable');
       }
       _check();
       directory = await Directory(temporaryPath).createTemp('browser-leak-');
-      environment = await WebViewEnvironment.create(
-        settings: WebViewEnvironmentSettings(userDataFolder: directory.path),
-      ).timeout(const Duration(seconds: 15));
-      _check();
-      final loaded = Completer<InAppWebViewController>();
-      final path = kind.name;
-      webview = HeadlessInAppWebView(
-        webViewEnvironment: environment,
-        initialUrlRequest: URLRequest(
-          url: WebUri('https://browserleaks.com/$path'),
-        ),
-        initialSettings: InAppWebViewSettings(
-          javaScriptEnabled: true,
-          useShouldOverrideUrlLoading: true,
-          mediaPlaybackRequiresUserGesture: true,
-          javaScriptCanOpenWindowsAutomatically: false,
-        ),
-        onPermissionRequest: (_, request) async => PermissionResponse(
-          resources: request.resources,
-          action: PermissionResponseAction.DENY,
-        ),
-        onGeolocationPermissionsShowPrompt: (_, origin) async =>
-            GeolocationPermissionShowPromptResponse(
-              origin: origin,
-              allow: false,
-              retain: false,
+      environment = await PlatformWebViewEnvironment.static()
+          .create(
+            settings: WebViewEnvironmentSettings(
+              userDataFolder: directory.path,
             ),
-        onCreateWindow: (_, _) async => false,
-        shouldOverrideUrlLoading: (_, action) async {
-          final uri = action.request.url;
-          return uri?.scheme == 'https' && uri?.host == 'browserleaks.com'
-              ? NavigationActionPolicy.ALLOW
-              : NavigationActionPolicy.CANCEL;
-        },
-        onLoadStop: (controller, url) {
-          if (!loaded.isCompleted &&
-              url?.host == 'browserleaks.com' &&
-              url?.path == '/$path') {
-            loaded.complete(controller);
-          }
-        },
+          )
+          .timeout(const Duration(seconds: 15));
+      _check();
+      final loaded = Completer<PlatformInAppWebViewController>();
+      final path = kind.name;
+      webview = PlatformHeadlessInAppWebView(
+        PlatformHeadlessInAppWebViewCreationParams(
+          controllerFromPlatform: (controller) => controller,
+          webViewEnvironment: environment,
+          initialUrlRequest: URLRequest(
+            url: WebUri('https://browserleaks.com/$path'),
+          ),
+          initialSettings: InAppWebViewSettings(
+            javaScriptEnabled: true,
+            useShouldOverrideUrlLoading: true,
+            mediaPlaybackRequiresUserGesture: true,
+            javaScriptCanOpenWindowsAutomatically: false,
+          ),
+          onPermissionRequest: (_, request) async => PermissionResponse(
+            resources: request.resources,
+            action: PermissionResponseAction.DENY,
+          ),
+          onGeolocationPermissionsShowPrompt: (_, origin) async =>
+              GeolocationPermissionShowPromptResponse(
+                origin: origin,
+                allow: false,
+                retain: false,
+              ),
+          onCreateWindow: (_, _) async => false,
+          shouldOverrideUrlLoading: (_, action) async {
+            final uri = action.request.url;
+            return uri?.scheme == 'https' && uri?.host == 'browserleaks.com'
+                ? NavigationActionPolicy.ALLOW
+                : NavigationActionPolicy.CANCEL;
+          },
+          onLoadStop: (controller, url) {
+            if (!loaded.isCompleted &&
+                url?.host == 'browserleaks.com' &&
+                url?.path == '/$path') {
+              loaded.complete(controller);
+            }
+          },
+        ),
       );
       await webview.run().timeout(const Duration(seconds: 15));
       _check();
       final controller = await Future.any([
         loaded.future,
-        _cancelledSignal.future.then<InAppWebViewController>(
+        _cancelledSignal.future.then<PlatformInAppWebViewController>(
           (_) => throw const FormatException('diagnostic cancelled'),
         ),
       ]).timeout(const Duration(seconds: 25));
