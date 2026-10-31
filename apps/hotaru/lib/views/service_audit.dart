@@ -57,7 +57,9 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
     _routeTracker = ref.read(routeTrackerProvider.notifier);
     _routeTracker.attach();
     ref.listenManual(routeTrackerProvider, (previous, next) {
-      if (previous != null && previous != next && mounted) {
+      if (previous != null &&
+          next.invalidatesDiagnostics(previous) &&
+          mounted) {
         _cancel();
         setState(() => _stale.addAll(_results.keys));
       }

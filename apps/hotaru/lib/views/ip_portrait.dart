@@ -42,7 +42,9 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
     super.initState();
     _tracker = ref.read(routeTrackerProvider.notifier)..attach();
     ref.listenManual(routeTrackerProvider, (before, after) {
-      if (before != null && before != after && (_running || _report != null)) {
+      if (before != null &&
+          after.invalidatesDiagnostics(before) &&
+          (_running || _report != null)) {
         _cancel();
         setState(() => _notice = context.appLocalizations.auditStale);
       }

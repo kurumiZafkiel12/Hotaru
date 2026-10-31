@@ -56,6 +56,14 @@ class RouteState {
     );
   }
 
+  bool invalidatesDiagnostics(RouteState previous) =>
+      proxied != previous.proxied ||
+      hostEpoch != previous.hostEpoch ||
+      (synced &&
+          previous.coreEpoch != 0 &&
+          (coreEpoch != previous.coreEpoch ||
+              routeVersion != previous.routeVersion));
+
   bool isFresh(RouteStamp stamp) =>
       synced && !hasMovedSince(stamp) && stamp.routeVersion == routeVersion;
 

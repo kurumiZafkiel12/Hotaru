@@ -57,6 +57,39 @@ RouteStamp _stamp({
 );
 
 void main() {
+  group('diagnostic invalidation', () {
+    test('focus and subscription bookkeeping keep current results', () {
+      expect(
+        _state.copyWith(resumes: 1).invalidatesDiagnostics(_state),
+        isFalse,
+      );
+      expect(
+        _state.copyWith(live: true).invalidatesDiagnostics(_state),
+        isFalse,
+      );
+      expect(
+        _state.copyWith(synced: false).invalidatesDiagnostics(_state),
+        isFalse,
+      );
+      expect(
+        _state
+            .copyWith(hostEpoch: 3)
+            .invalidatesDiagnostics(_state.copyWith(synced: false)),
+        isTrue,
+      );
+    });
+    test('real route changes still invalidate current results', () {
+      for (final next in [
+        _state.copyWith(coreEpoch: 4),
+        _state.copyWith(routeVersion: 6),
+        _state.copyWith(hostEpoch: 3),
+        _state.copyWith(proxied: false),
+      ]) {
+        expect(next.invalidatesDiagnostics(_state), isTrue);
+      }
+    });
+  });
+
   group('isFresh', () {
     test('holds under the route version it was made or checked at', () {
       expect(_state.isFresh(_stamp()), isTrue);

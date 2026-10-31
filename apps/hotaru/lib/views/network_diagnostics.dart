@@ -59,7 +59,7 @@ class _NetworkDiagnosticsViewState
     ref.listenManual(routeTrackerProvider, (previous, next) {
       if (mounted &&
           previous != null &&
-          previous != next &&
+          next.invalidatesDiagnostics(previous) &&
           widget.kind != NetworkDiagnostic.recovery &&
           (_running || _evidence.isNotEmpty)) {
         _cancel();

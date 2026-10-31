@@ -114,6 +114,31 @@ void main() {
     await tester.pump();
   }
 
+  for (final resumeOnly in [true, false]) {
+    testWidgets(
+      resumeOnly
+          ? 'returning to the foreground preserves measured routes'
+          : 'a real host route change invalidates measured routes',
+      (tester) async {
+        await pump(tester);
+        await tester.tap(find.widgetWithText(ChoiceChip, 'AI & models'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Start'));
+        await frames(tester);
+        final tracker = container.read(routeTrackerProvider.notifier);
+        if (resumeOnly) {
+          tracker.markResumed();
+        } else {
+          tracker.bumpHostEpoch();
+        }
+        await frames(tester);
+        final stale = find.text('Route changed · run again');
+        expect(stale, resumeOnly ? findsNothing : findsWidgets);
+        await close(tester);
+      },
+    );
+  }
+
   test('catalog covers the requested categories without duplicates', () {
     expect(ServiceTarget.values, hasLength(63));
     final counts = <String, int>{};
