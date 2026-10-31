@@ -364,3 +364,58 @@ rules: ['MATCH,DIRECT']
 		t.Fatal("user group selection changed")
 	}
 }
+
+func TestUnrelatedGroupMovesDoNotInvalidateActualRequestExits(t *testing.T) {
+	recordRoutes(t)
+	observed := make(chan string, 4)
+	a := controlledHttpExit(t, "stable-A", observed)
+	b := controlledHttpExit(t, "other-B", observed)
+	active := selectorOver(t, "Active", a, b)
+	unused := selectorOver(t, "Unused", a, b)
+	tunnel.UpdateProxies(map[string]constant.Proxy{
+		"stable-A": a, "other-B": b, "Active": active, "Unused": unused,
+	}, nil)
+	rule, err := rules.ParseRule("MATCH", "", "Active", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tunnel.UpdateRules([]constant.Rule{rule}, nil, nil)
+	previousMode := tunnel.Mode()
+	tunnel.SetMode(tunnel.Rule)
+	tunnel.OnRunning()
+	t.Cleanup(func() {
+		tunnel.OnSuspend()
+		tunnel.SetMode(previousMode)
+		tunnel.UpdateRules(nil, nil, nil)
+		tunnel.UpdateProxies(nil, nil)
+	})
+	handleWatchRoute(true, 0)
+	origin := probeServer(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, "stable request")
+	})
+	item := runServiceCheck(context.Background(), endpointChecker("controlled", origin.URL), "", time.Second)
+	select {
+	case exit := <-observed:
+		if exit != "stable-A" {
+			t.Fatalf("request used %s", exit)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("no actual request reached the controlled exit")
+	}
+	if item.Status != serviceReachable || len(item.Hits) == 0 {
+		t.Fatalf("missing actual evidence: %+v", item)
+	}
+	handleChangeProxy(&ChangeProxyParams{GroupName: "Unused", ProxyName: "other-B"})
+	if routeState().RouteVersion <= item.RouteVersion {
+		t.Fatal("unrelated selection did not bump the global version")
+	}
+	check := handleCheckRoutes(&CheckRoutesParams{Routes: [][]RouteHit{item.Hits}})
+	if len(check.Held) != 1 || !check.Held[0] {
+		t.Fatalf("stable request rejected after unrelated change: %+v", check)
+	}
+	handleChangeProxy(&ChangeProxyParams{GroupName: "Active", ProxyName: "other-B"})
+	check = handleCheckRoutes(&CheckRoutesParams{Routes: [][]RouteHit{item.Hits}})
+	if len(check.Held) != 1 || check.Held[0] {
+		t.Fatalf("actual exit change was not detected: %+v", check)
+	}
+}

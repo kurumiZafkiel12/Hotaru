@@ -187,6 +187,71 @@ void main() {
   );
 
   testWidgets(
+    'unrelated group version changes preserve results whose actual exits still match',
+    (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'AI & models'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Start'));
+      await frames(tester);
+      expect(find.text('Unlocked 13'), findsOneWidget);
+      when(() => core.checkRoutes(any())).thenAnswer((invocation) async {
+        final routes =
+            (invocation.positionalArguments.single as CheckRoutesParams).routes;
+        return RouteCheck(
+          coreEpoch: 1,
+          routeVersion: 2,
+          held: [for (final _ in routes) true],
+        );
+      });
+      container
+          .read(routeTrackerProvider.notifier)
+          .applySnapshot(const RouteSnapshot(coreEpoch: 1, routeVersion: 2));
+      await frames(tester);
+      expect(find.text('Unlocked 13'), findsOneWidget);
+      expect(find.text('Route changed · run again'), findsNothing);
+      await close(tester);
+    },
+  );
+
+  for (final failedVerification in [false, true]) {
+    testWidgets(
+      'route revalidation distinguishes changed exits from unavailable evidence: $failedVerification',
+      (tester) async {
+        await pump(tester);
+        await tester.tap(find.widgetWithText(ChoiceChip, 'AI & models'));
+        await tester.tap(find.widgetWithText(FilledButton, 'Start'));
+        await frames(tester);
+        when(() => core.checkRoutes(any())).thenAnswer((invocation) async {
+          if (failedVerification) return null;
+          final routes =
+              (invocation.positionalArguments.single as CheckRoutesParams)
+                  .routes;
+          return RouteCheck(
+            coreEpoch: 1,
+            routeVersion: 2,
+            held: [for (var i = 0; i < routes.length; i++) i != 0],
+          );
+        });
+        container
+            .read(routeTrackerProvider.notifier)
+            .applySnapshot(const RouteSnapshot(coreEpoch: 1, routeVersion: 2));
+        await frames(tester);
+        expect(
+          find.text(
+            failedVerification ? 'Unable to determine 13' : 'Unlocked 12',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Route changed · run again'),
+          failedVerification ? findsNothing : findsOneWidget,
+        );
+        await close(tester);
+      },
+    );
+  }
+
+  testWidgets(
     'single retry preserves observed HTTP, rule, group and exit evidence',
     (tester) async {
       await pump(tester);

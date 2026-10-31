@@ -40,6 +40,8 @@ class ServiceAuditView extends ConsumerStatefulWidget {
 class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
   final _results = <ServiceTarget, ServiceCheck>{};
   final _stale = <ServiceTarget>{};
+  final _unverified = <ServiceTarget>{};
+  int _validation = 0;
   final _pending = <ServiceTarget>{};
   int _generation = 0;
   String? _runId;
@@ -60,14 +62,60 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
       if (previous != null &&
           next.invalidatesDiagnostics(previous) &&
           mounted) {
-        _cancel();
-        setState(() => _stale.addAll(_results.keys));
+        if (previous.coreEpoch == next.coreEpoch &&
+            previous.hostEpoch == next.hostEpoch &&
+            previous.proxied == next.proxied) {
+          unawaited(_validateExits());
+        } else {
+          _cancel();
+          setState(() => _stale.addAll(_results.keys));
+        }
+      }
+    });
+  }
+
+  Future<void> _validateExits() async {
+    final validation = ++_validation;
+    final entries = _results.entries
+        .where((entry) => entry.value.hits.isNotEmpty)
+        .toList();
+    if (entries.isEmpty) return;
+    setState(() => _unverified.addAll(entries.map((entry) => entry.key)));
+    RouteCheck? checked;
+    try {
+      checked = await ref
+          .read(coreHandlerProvider)
+          .checkRoutes(
+            CheckRoutesParams(
+              routes: [for (final entry in entries) entry.value.hits],
+            ),
+          );
+    } catch (_) {
+      return;
+    }
+    if (!mounted ||
+        validation != _validation ||
+        checked == null ||
+        checked.held.length != entries.length) {
+      return;
+    }
+    setState(() {
+      for (final (index, entry) in entries.indexed) {
+        if (!identical(_results[entry.key], entry.value)) continue;
+        _unverified.remove(entry.key);
+        if (checked!.coreEpoch != entry.value.coreEpoch ||
+            !checked.held[index]) {
+          _stale.add(entry.key);
+        } else {
+          _stale.remove(entry.key);
+        }
       }
     });
   }
 
   void _cancel({bool notify = true}) {
     _generation++;
+    _validation++;
     final id = _runId;
     _runId = null;
     if (id != null) {
@@ -121,6 +169,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
       for (final target in targets) {
         _results.remove(target);
         _stale.remove(target);
+        _unverified.remove(target);
       }
     });
     Future<void> worker() async {
@@ -205,7 +254,8 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
     );
     final counts = <ServiceOutcome, int>{};
     for (final entry in results) {
-      final outcome = _stale.contains(entry.key)
+      final outcome =
+          _stale.contains(entry.key) || _unverified.contains(entry.key)
           ? ServiceOutcome.unknown
           : entry.value.status.outcome;
       counts.update(outcome, (count) => count + 1, ifAbsent: () => 1);
@@ -215,7 +265,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
       if (_outcome == null) return true;
       final result = _results[target];
       if (result == null) return false;
-      return (_stale.contains(target)
+      return (_stale.contains(target) || _unverified.contains(target)
               ? ServiceOutcome.unknown
               : result.status.outcome) ==
           _outcome;
@@ -245,6 +295,7 @@ class _ServiceAuditViewState extends ConsumerState<ServiceAuditView> {
                     check: _results[target],
                     pending: _pending.contains(target),
                     stale: _stale.contains(target),
+                    unverified: _unverified.contains(target),
                     onRetry: _running ? null : () => _start(only: target),
                   ),
                 );
@@ -361,6 +412,7 @@ class _ServiceResult extends StatelessWidget {
     this.check,
     required this.pending,
     required this.stale,
+    required this.unverified,
     required this.onRetry,
   });
 
@@ -368,6 +420,7 @@ class _ServiceResult extends StatelessWidget {
   final ServiceCheck? check;
   final bool pending;
   final bool stale;
+  final bool unverified;
   final VoidCallback? onRetry;
 
   @override
@@ -382,6 +435,8 @@ class _ServiceResult extends StatelessWidget {
         ? l10n.loading
         : stale
         ? l10n.auditStale
+        : unverified
+        ? l10n.diagnosticsInsufficient
         : check == null
         ? '—'
         : check.status.outcome.label;
@@ -428,7 +483,7 @@ class _ServiceResult extends StatelessWidget {
               style: AppTextStyle.subheadline
                   .of(context, emphasized: true)
                   .copyWith(
-                    color: stale
+                    color: stale || unverified
                         ? context.colorScheme.warning
                         : check == null
                         ? context.colorScheme.onSurface
