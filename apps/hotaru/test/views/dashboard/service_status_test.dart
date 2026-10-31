@@ -959,6 +959,34 @@ void main() {
     expect(find.byType(ServiceStatusCard), findsOneWidget);
   });
 
+  testWidgets('manage enables an extra target without adding unlock checks', (
+    tester,
+  ) async {
+    final asked = <ServiceCheckParams>[];
+    answer((params) {
+      asked.add(params);
+      return [
+        for (final name in params.names)
+          _item(name, ServiceProbeStatus.reachable, delay: 60),
+      ];
+    });
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await openManage(tester);
+    await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -160));
+    await tester.pumpAndSettle();
+    await tester.tap(switchOf(ServiceTarget.claude));
+    await tester.pumpAndSettle();
+    expect(settingsOf(tester).extraConnectivityServices, ['claude']);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Check all'));
+    await tester.pumpAndSettle();
+    expect(asked.any((params) => params.names.contains('claude')), isTrue);
+    expect(asked.every((params) => params.connectivity), isTrue);
+    expect(find.text('60 ms'), findsWidgets);
+  });
+
   testWidgets('the manage page marks the services the card shows', (
     tester,
   ) async {

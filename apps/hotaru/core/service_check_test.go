@@ -422,3 +422,42 @@ func TestConnectivityClaimsDoNotCancelUnlockChecks(t *testing.T) {
 		t.Fatal("home and audit cancelled each other")
 	}
 }
+
+func TestEveryServiceCanBeSelectedForConnectivity(t *testing.T) {
+	var names []string
+	for _, checker := range serviceCheckers {
+		if checker.connectivityURL == "" {
+			t.Fatalf("%s has no connectivity endpoint", checker.name)
+		}
+		names = append(names, checker.name)
+	}
+	if got := connectivityCheckers(names); len(got) != len(serviceCheckers) {
+		t.Fatalf("connectivity has %d entries, want %d", len(got), len(serviceCheckers))
+	}
+	if got := connectivityCheckers(nil); len(got) != 4 {
+		t.Fatalf("default connectivity has %d entries, want four", len(got))
+	}
+}
+
+func TestAdditionalConnectivityTargetDoesNotRunUnlockChecker(t *testing.T) {
+	withProbeProxies(t, "DIRECT")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer server.Close()
+	withServiceCheckers(t, serviceChecker{
+		name: "claude", connectivityURL: server.URL,
+		check: func(serviceEnv) ServiceCheckItem {
+			t.Fatal("connectivity ran an unlock checker")
+			return ServiceCheckItem{}
+		},
+	})
+	checks := connectivityCheckers([]string{"claude", "nonexistent"})
+	if len(checks) != 1 {
+		t.Fatalf("selected %d checks, want one", len(checks))
+	}
+	item := checks[0].check(serviceEnv{ctx: context.Background(), proxyName: "DIRECT", timeout: time.Second})
+	if item.Status != serviceReachable {
+		t.Fatalf("HTTP response should establish connectivity, got %s", item.Status)
+	}
+}

@@ -184,25 +184,26 @@ func (e serviceEnv) send(req probeRequest) *ProbeResult {
 }
 
 type serviceChecker struct {
-	name     string
-	claimKey string
-	check    func(serviceEnv) ServiceCheckItem
+	connectivityURL string
+	name            string
+	claimKey        string
+	check           func(serviceEnv) ServiceCheckItem
 }
 
 var serviceCheckers = []serviceChecker{
-	{name: "google", check: checkServiceEndpoint("https://workspace.google.com/")},
-	{name: "github", check: checkGitHub},
-	{name: "youtube", check: checkYouTubePremium},
-	{name: "chatgpt", check: checkChatGpt},
-	{name: "claude", check: checkClaude},
-	{name: "gemini", check: checkGemini},
-	{name: "netflix", check: checkNetflix},
-	{name: "disney-plus", check: checkDisneyPlus},
-	{name: "prime-video", check: checkPrimeVideo},
-	{name: "spotify", check: checkSpotify},
-	{name: "tiktok", check: checkTikTok},
-	{name: "discord", check: checkDiscord},
-	{name: "bilibili", check: checkBilibili},
+	{name: "google", connectivityURL: "https://www.google.com/generate_204", check: checkServiceEndpoint("https://workspace.google.com/")},
+	{name: "github", connectivityURL: "https://github.com/", check: checkGitHub},
+	{name: "youtube", connectivityURL: "https://www.youtube.com/generate_204", check: checkYouTubePremium},
+	{name: "chatgpt", connectivityURL: "https://chatgpt.com/", check: checkChatGpt},
+	{name: "claude", connectivityURL: "https://claude.ai/", check: checkClaude},
+	{name: "gemini", connectivityURL: "https://gemini.google.com/", check: checkGemini},
+	{name: "netflix", connectivityURL: "https://www.netflix.com/", check: checkNetflix},
+	{name: "disney-plus", connectivityURL: "https://www.disneyplus.com/", check: checkDisneyPlus},
+	{name: "prime-video", connectivityURL: "https://www.primevideo.com/", check: checkPrimeVideo},
+	{name: "spotify", connectivityURL: "https://open.spotify.com/", check: checkSpotify},
+	{name: "tiktok", connectivityURL: "https://www.tiktok.com/", check: checkTikTok},
+	{name: "discord", connectivityURL: "https://discord.com/", check: checkDiscord},
+	{name: "bilibili", connectivityURL: "https://www.bilibili.com/", check: checkBilibili},
 }
 
 func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
@@ -325,19 +326,16 @@ func hasBudget(ctx context.Context, timeout time.Duration) bool {
 }
 
 func connectivityCheckers(names []string) []serviceChecker {
-	endpoints := map[string]string{
-		"google":  "https://www.google.com/generate_204",
-		"github":  "https://github.com/",
-		"youtube": "https://www.youtube.com/generate_204",
-		"chatgpt": "https://chatgpt.com/",
-	}
 	if len(names) == 0 {
 		names = []string{"google", "github", "youtube", "chatgpt"}
 	}
 	result := make([]serviceChecker, 0, len(names))
 	for _, name := range names {
-		if url, ok := endpoints[name]; ok {
-			result = append(result, serviceChecker{name: name, claimKey: "connectivity/" + name, check: checkConnectivity(url)})
+		for _, checker := range serviceCheckers {
+			if checker.name == name && checker.connectivityURL != "" {
+				result = append(result, serviceChecker{name: name, claimKey: "connectivity/" + name, check: checkConnectivity(checker.connectivityURL)})
+				break
+			}
 		}
 	}
 	return result

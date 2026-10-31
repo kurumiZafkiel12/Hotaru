@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:hotaru/common/constant.dart';
 import 'package:hotaru/common/service_probe.dart';
@@ -108,12 +109,14 @@ void main() {
     });
 
     notifierOf(scope).refresh(
-      ServiceTarget.values.where((target) => target.isConnectivityTarget),
+      ServiceTarget.values.where(
+        (target) => target.isDefaultConnectivityTarget,
+      ),
     );
     await pumpEventQueue();
     expect(gates.keys, [
       for (final target in ServiceTarget.values.where(
-        (target) => target.isConnectivityTarget,
+        (target) => target.isDefaultConnectivityTarget,
       ))
         target.id,
     ]);
@@ -136,14 +139,14 @@ void main() {
       });
       final notifier = notifierOf(scope);
       ServiceTarget.values
-          .where((target) => target.isConnectivityTarget)
+          .where((target) => target.isDefaultConnectivityTarget)
           .forEach(notifier.watch);
       await tester.pump();
       expect(
         sweeps,
         hasLength(
           ServiceTarget.values
-              .where((target) => target.isConnectivityTarget)
+              .where((target) => target.isDefaultConnectivityTarget)
               .length,
         ),
       );
@@ -155,13 +158,13 @@ void main() {
         sweeps
             .skip(
               ServiceTarget.values
-                  .where((target) => target.isConnectivityTarget)
+                  .where((target) => target.isDefaultConnectivityTarget)
                   .length,
             )
             .map((s) => s.names),
         [
           for (final target in ServiceTarget.values.where(
-            (target) => target.isConnectivityTarget,
+            (target) => target.isDefaultConnectivityTarget,
           ))
             [target.id],
         ],
@@ -333,11 +336,42 @@ void main() {
       expect(scope.read(enabledServiceTargetsProvider).map((t) => t.id), [
         'google',
         for (final target in ServiceTarget.values.where(
-          (target) => target.isConnectivityTarget,
+          (target) => target.isDefaultConnectivityTarget,
         ))
           if (!['claude', 'google', 'github', 'bilibili'].contains(target.id))
             target.id,
       ]);
+    },
+  );
+
+  test(
+    'all targets are configurable while only four are enabled by default',
+    () {
+      final scope = container();
+      expect(
+        scope.read(serviceTargetsProvider),
+        hasLength(ServiceTarget.values.length),
+      );
+      expect(scope.read(enabledServiceTargetsProvider), hasLength(4));
+      const settings = AppSettingProps(
+        serviceOrder: ['claude', 'google'],
+        extraConnectivityServices: ['claude'],
+      );
+      scope.read(appSettingProvider.notifier).value = AppSettingProps.fromJson(
+        jsonDecode(jsonEncode(settings)) as Map<String, dynamic>,
+      );
+      expect(
+        scope.read(enabledServiceTargetsProvider).first,
+        ServiceTarget.claude,
+      );
+      expect(scope.read(enabledServiceTargetsProvider), hasLength(5));
+      scope.read(appSettingProvider.notifier).value = settings.copyWith(
+        disabledServices: ['claude'],
+      );
+      expect(
+        scope.read(enabledServiceTargetsProvider),
+        isNot(contains(ServiceTarget.claude)),
+      );
     },
   );
 
@@ -346,7 +380,7 @@ void main() {
     scope.read(appSettingProvider.notifier).value = AppSettingProps(
       disabledServices: [
         for (final target in ServiceTarget.values.where(
-          (target) => target.isConnectivityTarget,
+          (target) => target.isDefaultConnectivityTarget,
         ))
           target.id,
       ],
@@ -354,7 +388,9 @@ void main() {
 
     expect(
       scope.read(enabledServiceTargetsProvider),
-      ServiceTarget.values.where((target) => target.isConnectivityTarget),
+      ServiceTarget.values.where(
+        (target) => target.isDefaultConnectivityTarget,
+      ),
     );
   });
 }

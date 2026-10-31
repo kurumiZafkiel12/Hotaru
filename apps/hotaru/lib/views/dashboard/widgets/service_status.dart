@@ -791,12 +791,18 @@ class ServiceManageView extends ConsumerWidget {
     void toggle(ServiceTarget target, bool value) {
       settings.update((state) {
         final disabled = {...state.disabledServices};
+        final extras = {...state.extraConnectivityServices};
         if (value) {
           disabled.remove(target.id);
+          if (!target.isDefaultConnectivityTarget) extras.add(target.id);
         } else {
           disabled.add(target.id);
+          extras.remove(target.id);
         }
-        return state.copyWith(disabledServices: disabled.toList());
+        return state.copyWith(
+          disabledServices: disabled.toList(),
+          extraConnectivityServices: extras.toList(),
+        );
       });
     }
 

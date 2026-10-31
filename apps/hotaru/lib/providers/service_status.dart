@@ -60,9 +60,7 @@ List<ServiceTarget> serviceTargets(Ref ref) {
   final order = ref.watch(
     appSettingProvider.select((state) => SelectValue(state.serviceOrder)),
   );
-  return orderServiceTargets(
-    order.value,
-  ).where((target) => target.isConnectivityTarget).toList();
+  return orderServiceTargets(order.value);
 }
 
 @riverpod
@@ -71,9 +69,19 @@ List<ServiceTarget> enabledServiceTargets(Ref ref) {
   final disabled = ref.watch(
     appSettingProvider.select((state) => SelectValue(state.disabledServices)),
   );
+  final extras = ref.watch(
+    appSettingProvider.select(
+      (state) => SelectValue(state.extraConnectivityServices),
+    ),
+  );
   final enabled = [
     for (final target in targets)
-      if (!disabled.value.contains(target.id)) target,
+      if (!disabled.value.contains(target.id) &&
+          (target.isDefaultConnectivityTarget ||
+              extras.value.contains(target.id)))
+        target,
   ];
-  return enabled.isEmpty ? targets : enabled;
+  return enabled.isEmpty
+      ? targets.where((target) => target.isDefaultConnectivityTarget).toList()
+      : enabled;
 }

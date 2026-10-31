@@ -136,7 +136,7 @@ enum ServiceTarget {
     _ => label,
   };
 
-  bool get isConnectivityTarget =>
+  bool get isDefaultConnectivityTarget =>
       const {google, github, youtube, chatgpt}.contains(this);
 
   bool get expectsDirect => const {

@@ -280,6 +280,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(EditorFontSize.standard) EditorFontSize editorFontSize,
     @Default([]) List<String> serviceOrder,
     @Default([]) List<String> disabledServices,
+    @Default([]) List<String> extraConnectivityServices,
     @Default({}) Map<String, Map<String, double>> tableColumnWidths,
   }) = _AppSettingProps;
 

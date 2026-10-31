@@ -82,6 +82,11 @@ _AppSettingProps _$AppSettingPropsFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  extraConnectivityServices:
+      (json['extraConnectivityServices'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   tableColumnWidths:
       (json['tableColumnWidths'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -128,6 +133,7 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'editorFontSize': _$EditorFontSizeEnumMap[instance.editorFontSize]!,
       'serviceOrder': instance.serviceOrder,
       'disabledServices': instance.disabledServices,
+      'extraConnectivityServices': instance.extraConnectivityServices,
       'tableColumnWidths': instance.tableColumnWidths,
     };
 
