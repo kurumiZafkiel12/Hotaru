@@ -152,7 +152,9 @@ class NodeGlobe extends StatefulWidget {
     required this.label,
     this.focus,
     this.flat = false,
+    this.onDetailRequested,
   });
+  final ValueChanged<GlobeFocus>? onDetailRequested;
   final List<GlobeMarker> markers;
   final void Function(List<String> ids) onSelected;
   final String label;
@@ -242,6 +244,11 @@ class _NodeGlobeState extends State<NodeGlobe>
                       .clamp(1, 4),
                 ),
               );
+              if (_camera.zoom >= 2.8) {
+                widget.onDetailRequested?.call(
+                  GlobeFocus(_camera.latitude, _camera.longitude),
+                );
+              }
             }
           },
           child: GestureDetector(
@@ -249,19 +256,26 @@ class _NodeGlobeState extends State<NodeGlobe>
               _flight.stop();
               _startZoom = _camera.zoom;
             },
-            onScaleUpdate: (details) => setState(
-              () => _camera = GlobeCamera(
-                latitude:
-                    (_camera.latitude +
-                            details.focalPointDelta.dy / size.height * 150)
-                        .clamp(-85, 85),
-                longitude:
-                    (_camera.longitude -
-                        details.focalPointDelta.dx / size.width * 180) %
-                    360,
-                zoom: (_startZoom * details.scale).clamp(1, 4),
-              ),
-            ),
+            onScaleUpdate: (details) {
+              setState(
+                () => _camera = GlobeCamera(
+                  latitude:
+                      (_camera.latitude +
+                              details.focalPointDelta.dy / size.height * 150)
+                          .clamp(-85, 85),
+                  longitude:
+                      (_camera.longitude -
+                          details.focalPointDelta.dx / size.width * 180) %
+                      360,
+                  zoom: (_startZoom * details.scale).clamp(1, 4),
+                ),
+              );
+              if (_camera.zoom >= 2.8) {
+                widget.onDetailRequested?.call(
+                  GlobeFocus(_camera.latitude, _camera.longitude),
+                );
+              }
+            },
             onTapUp: (details) {
               GlobeCluster? nearest;
               var distance = 24.0;

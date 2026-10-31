@@ -1552,6 +1552,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
       "Положение узлов · глобус",
     ),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "Карта: © OpenStreetMap contributors. Координаты GeoIP — оценка базы данных, а не подтверждённый физический адрес.",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить карту. Координаты узлов по-прежнему доступны.",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Увеличить"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Уменьшить"),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Этот внешний ресурс не является текстовым файлом",

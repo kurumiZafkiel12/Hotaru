@@ -1136,6 +1136,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("搜索节点、IP 或地点"),
     "nodeGeoSource": MessageLookupByLibrary.simpleMessage("位置来源"),
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("节点位置 · 地球"),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "底图：© OpenStreetMap 贡献者。GeoIP 坐标是数据库估计位置，不是真实门牌地址。",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "地图瓦片暂时无法加载，节点坐标仍可查看。",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("放大地图"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("缩小地图"),
     "nodes": MessageLookupByLibrary.simpleMessage("节点"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage("该外部资源不是文本文件"),
     "none": MessageLookupByLibrary.simpleMessage("无"),

@@ -76,6 +76,8 @@ dependencies:
     path: plugins/setup
   qr: ^4.0.0
   flutter_webrtc: 1.6.3
+  flutter_map: ^8.3.2
+  latlong2: ^0.9.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

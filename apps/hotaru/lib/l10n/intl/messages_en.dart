@@ -1482,6 +1482,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
       "Node locations · globe",
     ),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "Map: © OpenStreetMap contributors. GeoIP coordinates are database estimates, not a verified physical address.",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Map tiles could not load. Node coordinates are still available.",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Zoom in"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Zoom out"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",

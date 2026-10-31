@@ -1240,6 +1240,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("노드, IP 또는 장소 검색"),
     "nodeGeoSource": MessageLookupByLibrary.simpleMessage("출처"),
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("노드 위치 · 지구본"),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "지도: © OpenStreetMap contributors. GeoIP 좌표는 데이터베이스의 추정 위치이며 확인된 실제 주소가 아닙니다.",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "지도 타일을 불러올 수 없습니다. 노드 좌표는 계속 확인할 수 있습니다.",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("확대"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("축소"),
     "nodes": MessageLookupByLibrary.simpleMessage("노드"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "이 외부 리소스는 텍스트 파일이 아닙니다",

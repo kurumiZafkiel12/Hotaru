@@ -1255,6 +1255,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGeoSearch": MessageLookupByLibrary.simpleMessage("ノード・IP・場所を検索"),
     "nodeGeoSource": MessageLookupByLibrary.simpleMessage("情報源"),
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage("ノードの位置・地球"),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "地図：© OpenStreetMap contributors。GeoIP 座標はデータベースによる推定で、確認済みの住所ではありません。",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "地図タイルを読み込めません。ノードの座標は引き続き表示できます。",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("拡大"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("縮小"),
     "nodes": MessageLookupByLibrary.simpleMessage("ノード"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "この外部リソースはテキストファイルではありません",

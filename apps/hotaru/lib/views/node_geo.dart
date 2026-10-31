@@ -8,13 +8,16 @@ import 'package:hotaru/providers/node_geo.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/ui/node_globe.dart';
+import 'package:hotaru/ui/node_map.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NodeGeoView extends ConsumerStatefulWidget {
-  const NodeGeoView({super.key});
+  const NodeGeoView({super.key, this.mapTileProvider});
+  final TileProvider? mapTileProvider;
   @override
   ConsumerState<NodeGeoView> createState() => _NodeGeoViewState();
 }
@@ -292,20 +295,55 @@ class _NodeGeoViewState extends ConsumerState<NodeGeoView> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  void selectMarkers(List<String> ids) {
+                    setState(() {
+                      _cluster = ids.toSet();
+                      _flat = true;
+                      _focus = null;
+                    });
+                    if (ids.length == 1) {
+                      final item = _observations[ids.single];
+                      if (item != null) _select(item);
+                    }
+                  }
+
                   final globe = ClipRSuperellipse(
                     borderRadius: AppRadius.lg,
-                    child: NodeGlobe(
-                      markers: markers,
-                      focus: _focus,
-                      flat: _flat,
-                      label: l10n.nodeGlobeTitle,
-                      onSelected: (ids) {
-                        setState(() => _cluster = ids.toSet());
-                        if (ids.length == 1) {
-                          final item = _observations[ids.single];
-                          if (item != null) _select(item);
-                        }
-                      },
+                    child: AnimatedSwitcher(
+                      duration: context.motionDuration(
+                        const Duration(milliseconds: 220),
+                      ),
+                      child: _flat
+                          ? NodeMap(
+                              key: const ValueKey('detailed-map'),
+                              tileProvider: widget.mapTileProvider,
+                              markers: markers,
+                              labels: {
+                                for (final marker in markers)
+                                  marker.id:
+                                      _observations[marker.id]!.location!.ip,
+                              },
+                              focus: _focus,
+                              onSelected: selectMarkers,
+                              unavailableLabel: l10n.nodeMapUnavailable,
+                              retryLabel: l10n.retry,
+                              zoomInLabel: l10n.nodeMapZoomIn,
+                              zoomOutLabel: l10n.nodeMapZoomOut,
+                              onAttribution: () => dialogs.openUrl(
+                                'https://www.openstreetmap.org/copyright',
+                              ),
+                            )
+                          : NodeGlobe(
+                              key: const ValueKey('overview-globe'),
+                              markers: markers,
+                              focus: _focus,
+                              label: l10n.nodeGlobeTitle,
+                              onSelected: selectMarkers,
+                              onDetailRequested: (focus) => setState(() {
+                                _focus = focus;
+                                _flat = true;
+                              }),
+                            ),
                     ),
                   );
                   final list = shown.isEmpty
@@ -348,7 +386,7 @@ class _NodeGeoViewState extends ConsumerState<NodeGeoView> {
               ),
             ),
             Text(
-              l10n.nodeGeoEstimate,
+              _flat ? l10n.nodeMapEstimate : l10n.nodeGeoEstimate,
               style: AppTextStyle.caption2.of(context),
             ),
           ],

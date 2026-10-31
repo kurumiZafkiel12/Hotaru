@@ -1597,6 +1597,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
       "Ubicación de nodos · globo",
     ),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "Mapa: © OpenStreetMap contributors. Las coordenadas GeoIP son estimaciones de una base de datos, no una dirección física verificada.",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron cargar los mapas. Las coordenadas de los nodos siguen disponibles.",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Ampliar"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Reducir"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodos"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Este recurso externo no es un archivo de texto",

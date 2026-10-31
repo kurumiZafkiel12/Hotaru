@@ -8,6 +8,7 @@ import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/state.dart';
 import 'package:hotaru/ui/node_globe.dart';
+import 'package:hotaru/ui/node_map.dart';
 import 'package:hotaru/views/node_geo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/test_app.dart';
+import '../helpers/map_tiles.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
 
@@ -77,7 +79,7 @@ void main() {
         child: TestApp(
           theme: ThemeData(platform: platform),
           locale: const Locale('en'),
-          child: const NodeGeoView(),
+          child: NodeGeoView(mapTileProvider: FixtureMapTiles()),
         ),
       ),
     );
@@ -106,7 +108,7 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.text('2D'));
         await tester.pump();
-        expect(tester.widget<NodeGlobe>(find.byType(NodeGlobe)).flat, isTrue);
+        expect(find.byType(NodeMap), findsOneWidget);
         await tester.enterText(find.byType(TextField), 'missing');
         await tester.pump();
         expect(

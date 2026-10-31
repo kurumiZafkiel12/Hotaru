@@ -1,5 +1,6 @@
 import 'package:hotaru/ui/node_globe.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
@@ -21,6 +22,37 @@ void main() {
       expect(focused.dy, closeTo(200, 1e-6));
     },
   );
+
+  testWidgets('zooming into the globe requests detailed map coordinates', (
+    tester,
+  ) async {
+    GlobeFocus? requested;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: NodeGlobe(
+            markers: const [],
+            label: 'Globe',
+            onSelected: (_) {},
+            onDetailRequested: (focus) => requested = focus,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.sendEventToBinding(
+      const PointerScrollEvent(
+        position: Offset(400, 300),
+        scrollDelta: Offset(0, -1000),
+      ),
+    );
+    await tester.pump();
+    expect(requested, isNotNull);
+    expect(requested!.latitude, 15);
+    expect(requested!.longitude, 100);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   test('hundreds of co-located nodes cluster without inventing positions', () {
     final markers = [

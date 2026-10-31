@@ -105,6 +105,36 @@ class AppLocalizations {
     );
   }
 
+  /// `Map tiles could not load. Node coordinates are still available.`
+  String get nodeMapUnavailable {
+    return Intl.message(
+      'Map tiles could not load. Node coordinates are still available.',
+      name: 'nodeMapUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Zoom in`
+  String get nodeMapZoomIn {
+    return Intl.message('Zoom in', name: 'nodeMapZoomIn', desc: '', args: []);
+  }
+
+  /// `Zoom out`
+  String get nodeMapZoomOut {
+    return Intl.message('Zoom out', name: 'nodeMapZoomOut', desc: '', args: []);
+  }
+
+  /// `Map: © OpenStreetMap contributors. GeoIP coordinates are database estimates, not a verified physical address.`
+  String get nodeMapEstimate {
+    return Intl.message(
+      'Map: © OpenStreetMap contributors. GeoIP coordinates are database estimates, not a verified physical address.',
+      name: 'nodeMapEstimate',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `GeoIP estimates from GeoJS; not street addresses. Map: Natural Earth, public domain.`
   String get nodeGeoEstimate {
     return Intl.message(

@@ -1590,6 +1590,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodeGlobeTitle": MessageLookupByLibrary.simpleMessage(
       "Position des nœuds · globe",
     ),
+    "nodeMapEstimate": MessageLookupByLibrary.simpleMessage(
+      "Carte : © OpenStreetMap contributors. Les coordonnées GeoIP sont des estimations, et non une adresse physique vérifiée.",
+    ),
+    "nodeMapUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Les tuiles de carte ne sont pas disponibles. Les coordonnées des nœuds restent consultables.",
+    ),
+    "nodeMapZoomIn": MessageLookupByLibrary.simpleMessage("Agrandir"),
+    "nodeMapZoomOut": MessageLookupByLibrary.simpleMessage("Réduire"),
     "nodes": MessageLookupByLibrary.simpleMessage("Nœuds"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Cette ressource externe n’est pas un fichier texte",
