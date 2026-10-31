@@ -403,6 +403,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("黑名单模式"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("阻止连接"),
     "brightness": MessageLookupByLibrary.simpleMessage("亮度"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "已获取 DNS 解析器，本次未发现国内运营商解析器。请对照预期 DNS；这不代表所有应用均无泄漏。",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "本次检测未完整结束，已有数据仅供参考，请重新检测。",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "通过内置 WebView2 运行 BrowserLeaks 检测，遵循此 WebView 的系统代理与网络路径，不请求相机、麦克风或定位权限。结果仅覆盖本次样本，不代表其他浏览器或应用。",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "无法运行网页检测。请检查网络能否访问 BrowserLeaks，以及 Microsoft Edge WebView2 运行时是否已安装。",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("本地 IP"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "未暴露可识别的本地地址",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("网页出口 IP"),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "本次 WebRTC 公网地址与网页出口一致，未发现地址不一致；不代表其他浏览器也使用相同路径。",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "WebRTC 暴露的公网地址与同地址族的网页出口不同，可能存在泄漏，请检查 UDP 与代理设置。",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 公网 IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("排除域名"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "排除域名仅在系统代理启用时生效。",

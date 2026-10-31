@@ -534,6 +534,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Заблокировать соединение",
     ),
     "brightness": MessageLookupByLibrary.simpleMessage("Яркость"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "Получены DNS-резолверы; провайдеры материкового Китая в этой выборке не обнаружены. Сравните с ожидаемым DNS. Другие приложения не проверены.",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "Проверка не завершена. Данные частичные; запустите её повторно.",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "BrowserLeaks запускается во встроенном WebView2 с его системным прокси и сетевым маршрутом. Камера, микрофон и геолокация запрещены. Другие браузеры и приложения не проверяются.",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Не удалось запустить веб-проверку. Проверьте доступ к BrowserLeaks и установку Microsoft Edge WebView2.",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("Локальный IP"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "Определяемый локальный адрес не раскрыт",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage(
+      "Выходной IP страницы",
+    ),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "Публичный адрес WebRTC совпадает с выходом этой страницы. Другие браузеры могут использовать иной маршрут.",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "Публичный адрес WebRTC отличается от выхода страницы в том же семействе IP. Проверьте UDP и настройки прокси.",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
+      "Публичный IP WebRTC",
+    ),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Исключённые домены"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Исключённые домены действуют только при включённом системном прокси.",

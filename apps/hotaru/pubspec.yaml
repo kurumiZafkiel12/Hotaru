@@ -78,6 +78,7 @@ dependencies:
   flutter_webrtc: 1.6.3
   flutter_map: ^8.3.2
   latlong2: ^0.9.1
+  flutter_inappwebview: ^6.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

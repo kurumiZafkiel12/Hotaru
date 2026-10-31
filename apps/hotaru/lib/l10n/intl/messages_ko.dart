@@ -421,6 +421,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("블랙리스트 모드"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("연결 차단"),
     "brightness": MessageLookupByLibrary.simpleMessage("밝기"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "DNS 리졸버를 확인했으며 이번 표본에서 중국 본토 ISP는 발견되지 않았습니다. 예상 DNS와 비교하세요. 다른 앱의 경로는 검사하지 않았습니다.",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "검사가 완료되지 않았습니다. 일부 데이터만 표시됩니다. 다시 검사하세요.",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "내장 WebView2에서 BrowserLeaks를 실행하며 해당 WebView의 시스템 프록시와 네트워크 경로를 사용합니다. 카메라, 마이크, 위치 권한은 거부합니다. 다른 브라우저나 앱은 검사하지 않습니다.",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "웹 검사를 실행할 수 없습니다. BrowserLeaks 연결과 Microsoft Edge WebView2 런타임 설치를 확인하세요.",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("로컬 IP"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "식별 가능한 로컬 주소가 노출되지 않음",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("페이지 출구 IP"),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "이번 WebRTC 공개 주소는 페이지 출구와 같습니다. 다른 브라우저의 경로는 검사하지 않았습니다.",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "WebRTC 공개 주소가 같은 주소 체계의 페이지 출구와 다릅니다. UDP 및 프록시 설정을 확인하세요.",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 공개 IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("우회 도메인"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "우회 도메인은 시스템 프록시가 켜져 있을 때만 적용됩니다.",

@@ -551,6 +551,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Bloquear conexión",
     ),
     "brightness": MessageLookupByLibrary.simpleMessage("Brillo"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "Se observaron resolutores DNS sin identificar un ISP de China continental en esta muestra. Compara con el DNS previsto; otras aplicaciones no se probaron.",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "La prueba no terminó. Los datos son parciales; repítela.",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Ejecuta BrowserLeaks en WebView2 con su proxy del sistema y ruta de red. Se deniegan cámara, micrófono y ubicación. No prueba otros navegadores ni aplicaciones.",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "No se pudo ejecutar la prueba web. Revisa la conexión con BrowserLeaks y la instalación de Microsoft Edge WebView2.",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("IP local"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "No se expuso una dirección local identificable",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage(
+      "IP de salida de la página",
+    ),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "La IP pública WebRTC coincide con la salida de esta página. Otros navegadores pueden usar otra ruta.",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "La IP pública WebRTC difiere de la salida de la página en la misma familia IP. Revisa UDP y el proxy.",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
+      "IP pública WebRTC",
+    ),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Dominios excluidos"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Los dominios excluidos solo se aplican mientras el proxy del sistema esté activado.",

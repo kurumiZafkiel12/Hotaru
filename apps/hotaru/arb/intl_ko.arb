@@ -1138,5 +1138,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "browserLeakScope": "내장 WebView2에서 BrowserLeaks를 실행하며 해당 WebView의 시스템 프록시와 네트워크 경로를 사용합니다. 카메라, 마이크, 위치 권한은 거부합니다. 다른 브라우저나 앱은 검사하지 않습니다.",
+  "browserLeakIncomplete": "검사가 완료되지 않았습니다. 일부 데이터만 표시됩니다. 다시 검사하세요.",
+  "browserDnsObserved": "DNS 리졸버를 확인했으며 이번 표본에서 중국 본토 ISP는 발견되지 않았습니다. 예상 DNS와 비교하세요. 다른 앱의 경로는 검사하지 않았습니다.",
+  "browserRtcMismatch": "WebRTC 공개 주소가 같은 주소 체계의 페이지 출구와 다릅니다. UDP 및 프록시 설정을 확인하세요.",
+  "browserRtcMatch": "이번 WebRTC 공개 주소는 페이지 출구와 같습니다. 다른 브라우저의 경로는 검사하지 않았습니다.",
+  "browserLeakUnavailable": "웹 검사를 실행할 수 없습니다. BrowserLeaks 연결과 Microsoft Edge WebView2 런타임 설치를 확인하세요.",
+  "browserRemoteIp": "페이지 출구 IP",
+  "browserRtcPublicIp": "WebRTC 공개 IP",
+  "browserLocalIp": "로컬 IP",
+  "browserLocalNotExposed": "식별 가능한 로컬 주소가 노출되지 않음"
 }

@@ -1138,5 +1138,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "browserLeakScope": "Runs BrowserLeaks in the built-in WebView2 using its system proxy and network path. Camera, microphone and location permissions are denied. Results cover this sample, not other browsers or apps.",
+  "browserLeakIncomplete": "The test did not finish. Available data is partial; run it again.",
+  "browserDnsObserved": "DNS resolvers were observed. No mainland Chinese ISP resolver was identified in this sample. Compare with your expected DNS; other apps remain untested.",
+  "browserRtcMismatch": "WebRTC exposed a public address different from the page egress in the same address family. Review UDP and proxy settings.",
+  "browserRtcMatch": "This WebRTC public address matches the page egress. Other browsers may use different network paths.",
+  "browserLeakUnavailable": "Could not run the browser test. Check BrowserLeaks connectivity and the Microsoft Edge WebView2 runtime installation.",
+  "browserRemoteIp": "Page egress IP",
+  "browserRtcPublicIp": "WebRTC public IP",
+  "browserLocalIp": "Local IP",
+  "browserLocalNotExposed": "No identifiable local address exposed"
 }

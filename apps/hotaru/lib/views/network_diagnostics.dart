@@ -5,12 +5,15 @@ import 'package:dio/dio.dart';
 import 'package:hotaru/enum/enum.dart';
 
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/common/browser_leak_result.dart';
+import 'package:hotaru/common/country_names.dart';
 import 'package:hotaru/common/ip_quality.dart';
 import 'package:hotaru/common/dns_leak.dart';
 import 'package:hotaru/common/network_diagnostics.dart';
 import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/service_probe.dart';
 import 'package:hotaru/models/models.dart';
+import 'package:hotaru/features/browser_diagnostics/browser_leak_probe.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -20,9 +23,14 @@ import 'package:material_ui/material_ui.dart';
 enum NetworkDiagnostic { dns, stun, recovery }
 
 class NetworkDiagnosticsView extends ConsumerStatefulWidget {
-  const NetworkDiagnosticsView({super.key, required this.kind});
+  const NetworkDiagnosticsView({
+    super.key,
+    required this.kind,
+    this.browserProbeFactory,
+  });
 
   final NetworkDiagnostic kind;
+  final BrowserLeakProbe Function()? browserProbeFactory;
 
   @override
   ConsumerState<NetworkDiagnosticsView> createState() =>
@@ -43,8 +51,14 @@ class _NetworkDiagnosticsViewState
   bool _recoverySuperseded = false;
   IceProbe? _ice;
   IceProbeResult? _iceResult;
+  BrowserLeakProbe? _browserProbe;
+  BrowserLeakResult? _browserResult;
+  bool _browserFailed = false;
   CancelToken? _httpCancel;
   CancelToken? _qualityCancel;
+
+  bool get _usesBrowser =>
+      system.isWindows || widget.browserProbeFactory != null;
 
   @override
   void initState() {
@@ -62,6 +76,12 @@ class _NetworkDiagnosticsViewState
           next.invalidatesDiagnostics(previous) &&
           widget.kind != NetworkDiagnostic.recovery &&
           (_running || _evidence.isNotEmpty)) {
+        if (previous.hostEpoch == next.hostEpoch &&
+            previous.coreEpoch == next.coreEpoch &&
+            previous.proxied == next.proxied &&
+            (_usesBrowser || widget.kind == NetworkDiagnostic.dns)) {
+          return;
+        }
         _cancel();
         setState(() {
           _notice = context.appLocalizations.auditStale;
@@ -82,6 +102,9 @@ class _NetworkDiagnosticsViewState
 
   String get _scope {
     final l10n = context.appLocalizations;
+    if (_usesBrowser && widget.kind != NetworkDiagnostic.recovery) {
+      return l10n.browserLeakScope;
+    }
     return switch (widget.kind) {
       NetworkDiagnostic.dns => l10n.dnsLeakScope,
       NetworkDiagnostic.stun => l10n.webrtcLeakScope,
@@ -92,6 +115,7 @@ class _NetworkDiagnosticsViewState
   @override
   void dispose() {
     _generation++;
+    _browserProbe?.cancel();
     unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
@@ -100,12 +124,14 @@ class _NetworkDiagnosticsViewState
 
   void _cancel() {
     _generation++;
+    _browserProbe?.cancel();
     unawaited(_ice?.cancel());
     _httpCancel?.cancel();
     _qualityCancel?.cancel();
     setState(() {
       _running = false;
       _verdict = DiagnosticVerdict.inconclusive;
+      _notice = context.appLocalizations.cancel;
     });
   }
 
@@ -117,7 +143,8 @@ class _NetworkDiagnosticsViewState
         message: TextSpan(text: _scope),
       );
       if (agreed != true || !mounted || _running) return;
-    } else if (widget.kind != NetworkDiagnostic.dns &&
+    } else if (!_usesBrowser &&
+        widget.kind != NetworkDiagnostic.dns &&
         !ref.read(isStartProvider)) {
       setState(() => _notice = context.appLocalizations.diagnosticsNeedCore);
       return;
@@ -133,19 +160,25 @@ class _NetworkDiagnosticsViewState
       _risk = false;
       _recoverySuperseded = false;
       _iceResult = null;
+      _browserResult = null;
+      _browserFailed = false;
       _evidence.clear();
     });
     bool current() => mounted && generation == _generation;
     try {
-      switch (widget.kind) {
-        case NetworkDiagnostic.dns:
-          await _dns(current);
-        case NetworkDiagnostic.stun:
-          await _checkStun(current);
-        case NetworkDiagnostic.recovery:
-          await _recover(current);
+      if (_usesBrowser && widget.kind != NetworkDiagnostic.recovery) {
+        await _browser(current);
+      } else {
+        switch (widget.kind) {
+          case NetworkDiagnostic.dns:
+            await _dns(current);
+          case NetworkDiagnostic.stun:
+            await _checkStun(current);
+          case NetworkDiagnostic.recovery:
+            await _recover(current);
+        }
       }
-      if (current()) {
+      if (current() && !_usesBrowser) {
         setState(
           () => _notice ??= context.appLocalizations.diagnosticsCompleted,
         );
@@ -172,6 +205,62 @@ class _NetworkDiagnosticsViewState
         });
       }
     }
+  }
+
+  Future<void> _browser(bool Function() current) async {
+    final probe = _browserProbe =
+        widget.browserProbeFactory?.call() ?? BrowserLeakProbe();
+    try {
+      final result = await probe.run(
+        widget.kind == NetworkDiagnostic.dns
+            ? BrowserLeakKind.dns
+            : BrowserLeakKind.webrtc,
+        await appPath.tempPath,
+      );
+      if (!current()) return;
+      setState(() {
+        _browserResult = result;
+        _resolvers = result.resolvers;
+        _risk = result.kind == BrowserLeakKind.dns
+            ? result.hasDnsRisk
+            : result.hasRtcMismatch;
+        _verdict = _risk
+            ? DiagnosticVerdict.risk
+            : result.completed &&
+                  result.kind == BrowserLeakKind.dns &&
+                  result.resolvers.isNotEmpty
+            ? DiagnosticVerdict.completed
+            : result.rtcMatches
+            ? DiagnosticVerdict.matching
+            : DiagnosticVerdict.inconclusive;
+        _evidence.add(
+          'BrowserLeaks · WebView2 · ${DateTime.now().toIso8601String()}',
+        );
+      });
+    } catch (_) {
+      if (current()) {
+        setState(() {
+          _verdict = DiagnosticVerdict.failed;
+          _browserFailed = true;
+        });
+      }
+    }
+  }
+
+  String? get _browserNotice {
+    final l10n = context.appLocalizations;
+    if (_browserFailed) return l10n.browserLeakUnavailable;
+    final result = _browserResult;
+    if (result == null) return null;
+    if (!result.completed) return l10n.browserLeakIncomplete;
+    if (result.kind == BrowserLeakKind.dns) {
+      return result.hasDnsRisk ? l10n.dnsLeakRisk : l10n.browserDnsObserved;
+    }
+    return result.hasRtcMismatch
+        ? l10n.browserRtcMismatch
+        : result.rtcMatches
+        ? l10n.browserRtcMatch
+        : l10n.iceInconclusive;
   }
 
   Future<void> _dns(bool Function() current) async {
@@ -407,6 +496,7 @@ class _NetworkDiagnosticsViewState
   @override
   Widget build(BuildContext context) {
     final l10n = context.appLocalizations;
+    final notice = _notice ?? _browserNotice;
     final recovery = widget.kind == NetworkDiagnostic.recovery;
     return BaseScaffold(
       title: _title,
@@ -482,23 +572,30 @@ class _NetworkDiagnosticsViewState
                         color: _risk ? context.colorScheme.warning : null,
                       ),
                 ),
-                if (_notice != null)
-                  Text(_notice!, style: AppTextStyle.footnote.of(context)),
+                if (notice != null)
+                  Text(notice, style: AppTextStyle.footnote.of(context)),
               ],
             ),
           ),
           if (widget.kind == NetworkDiagnostic.dns) ...[
             const SizedBox(height: 12),
-            DropdownButton<int>(
-              value: _dnsSamples,
-              onChanged: _running
-                  ? null
-                  : (samples) => setState(() => _dnsSamples = samples!),
-              items: [
-                DropdownMenuItem(value: 4, child: Text(l10n.diagnosticsQuick)),
-                DropdownMenuItem(value: 16, child: Text(l10n.diagnosticsFull)),
-              ],
-            ),
+            if (!_usesBrowser)
+              DropdownButton<int>(
+                value: _dnsSamples,
+                onChanged: _running
+                    ? null
+                    : (samples) => setState(() => _dnsSamples = samples!),
+                items: [
+                  DropdownMenuItem(
+                    value: 4,
+                    child: Text(l10n.diagnosticsQuick),
+                  ),
+                  DropdownMenuItem(
+                    value: 16,
+                    child: Text(l10n.diagnosticsFull),
+                  ),
+                ],
+              ),
             for (final resolver in _resolvers)
               CommonCard(
                 padding: const EdgeInsets.all(12),
@@ -513,13 +610,33 @@ class _NetworkDiagnosticsViewState
                           .toJetBrainsMono,
                     ),
                     Text(
-                      '${resolver.country} · ${resolver.organization}',
+                      '${countryName(resolver.country, Localizations.localeOf(context).languageCode) ?? l10n.unknown} · ${resolver.organization}',
                       style: AppTextStyle.footnote.of(context),
                     ),
                   ],
                 ),
               ),
           ],
+          if (_browserResult case final result?)
+            if (result.kind == BrowserLeakKind.webrtc)
+              CommonCard(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    Text(
+                      '${l10n.browserRemoteIp}: ${result.remote.isEmpty ? l10n.unknown : result.remote.join(', ')}',
+                    ),
+                    Text(
+                      '${l10n.browserRtcPublicIp}: ${result.public.isEmpty ? l10n.unknown : result.public.join(', ')}',
+                    ),
+                    Text(
+                      '${l10n.browserLocalIp}: ${result.local.isEmpty ? l10n.browserLocalNotExposed : result.local.join(', ')}',
+                    ),
+                  ],
+                ),
+              ),
           if (_iceResult case final result?)
             CommonCard(
               padding: const EdgeInsets.all(12),

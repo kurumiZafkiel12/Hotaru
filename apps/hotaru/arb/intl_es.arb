@@ -1138,5 +1138,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "browserLeakScope": "Ejecuta BrowserLeaks en WebView2 con su proxy del sistema y ruta de red. Se deniegan cámara, micrófono y ubicación. No prueba otros navegadores ni aplicaciones.",
+  "browserLeakIncomplete": "La prueba no terminó. Los datos son parciales; repítela.",
+  "browserDnsObserved": "Se observaron resolutores DNS sin identificar un ISP de China continental en esta muestra. Compara con el DNS previsto; otras aplicaciones no se probaron.",
+  "browserRtcMismatch": "La IP pública WebRTC difiere de la salida de la página en la misma familia IP. Revisa UDP y el proxy.",
+  "browserRtcMatch": "La IP pública WebRTC coincide con la salida de esta página. Otros navegadores pueden usar otra ruta.",
+  "browserLeakUnavailable": "No se pudo ejecutar la prueba web. Revisa la conexión con BrowserLeaks y la instalación de Microsoft Edge WebView2.",
+  "browserRemoteIp": "IP de salida de la página",
+  "browserRtcPublicIp": "IP pública WebRTC",
+  "browserLocalIp": "IP local",
+  "browserLocalNotExposed": "No se expuso una dirección local identificable"
 }

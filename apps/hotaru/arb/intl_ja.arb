@@ -1138,5 +1138,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "browserLeakScope": "内蔵 WebView2 で BrowserLeaks を実行し、この WebView のシステムプロキシと通信経路を使用します。カメラ・マイク・位置情報の権限は拒否します。他のブラウザーやアプリは対象外です。",
+  "browserLeakIncomplete": "検査が完了していません。表示データは一部のみです。再検査してください。",
+  "browserDnsObserved": "DNS リゾルバーを取得しました。今回、中国本土の ISP は検出されませんでした。想定する DNS と比較してください。他のアプリの安全性は保証しません。",
+  "browserRtcMismatch": "WebRTC の公開アドレスが同じアドレス形式のページ出口と異なります。UDP とプロキシ設定を確認してください。",
+  "browserRtcMatch": "今回の WebRTC 公開アドレスはページ出口と一致しています。他のブラウザーの経路は未検査です。",
+  "browserLeakUnavailable": "ウェブ検査を実行できません。BrowserLeaks への接続と Microsoft Edge WebView2 ランタイムを確認してください。",
+  "browserRemoteIp": "ページ出口 IP",
+  "browserRtcPublicIp": "WebRTC 公開 IP",
+  "browserLocalIp": "ローカル IP",
+  "browserLocalNotExposed": "識別可能なローカルアドレスは非公開"
 }

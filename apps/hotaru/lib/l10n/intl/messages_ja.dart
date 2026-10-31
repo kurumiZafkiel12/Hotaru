@@ -428,6 +428,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("ブラックリストモード"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("接続をブロック"),
     "brightness": MessageLookupByLibrary.simpleMessage("明度"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "DNS リゾルバーを取得しました。今回、中国本土の ISP は検出されませんでした。想定する DNS と比較してください。他のアプリの安全性は保証しません。",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "検査が完了していません。表示データは一部のみです。再検査してください。",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "内蔵 WebView2 で BrowserLeaks を実行し、この WebView のシステムプロキシと通信経路を使用します。カメラ・マイク・位置情報の権限は拒否します。他のブラウザーやアプリは対象外です。",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "ウェブ検査を実行できません。BrowserLeaks への接続と Microsoft Edge WebView2 ランタイムを確認してください。",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("ローカル IP"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "識別可能なローカルアドレスは非公開",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("ページ出口 IP"),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "今回の WebRTC 公開アドレスはページ出口と一致しています。他のブラウザーの経路は未検査です。",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "WebRTC の公開アドレスが同じアドレス形式のページ出口と異なります。UDP とプロキシ設定を確認してください。",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 公開 IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("除外ドメイン"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "除外ドメインはシステムプロキシが有効な場合のみ適用されます。",

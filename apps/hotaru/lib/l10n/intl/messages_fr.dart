@@ -546,6 +546,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Bloquer la connexion",
     ),
     "brightness": MessageLookupByLibrary.simpleMessage("Luminosité"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "Des résolveurs DNS ont été observés, sans FAI de Chine continentale identifié dans cet échantillon. Comparez avec votre DNS attendu ; les autres applications restent non testées.",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "Le test est incomplet. Les données sont partielles ; relancez le test.",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Exécute BrowserLeaks dans WebView2 avec son proxy système et son chemin réseau. Caméra, microphone et localisation sont refusés. Les autres navigateurs et applications ne sont pas testés.",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Impossible de lancer le test web. Vérifiez l’accès à BrowserLeaks et l’installation de Microsoft Edge WebView2.",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("IP locale"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "Aucune adresse locale identifiable exposée",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage(
+      "IP de sortie de la page",
+    ),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "L’adresse publique WebRTC correspond à la sortie de cette page. Les autres navigateurs peuvent utiliser un autre chemin.",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "L’adresse publique WebRTC diffère de la sortie de la page pour la même famille IP. Vérifiez UDP et le proxy.",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
+      "IP publique WebRTC",
+    ),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Domaines contournés"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Les domaines contournés ne s’appliquent que si le proxy système est activé.",

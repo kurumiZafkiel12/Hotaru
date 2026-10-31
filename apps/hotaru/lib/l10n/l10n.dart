@@ -9647,6 +9647,101 @@ class AppLocalizations {
       args: [line, type],
     );
   }
+
+  /// `Runs BrowserLeaks in the built-in WebView2 using its system proxy and network path. Camera, microphone and location permissions are denied. Results cover this sample, not other browsers or apps.`
+  String get browserLeakScope {
+    return Intl.message(
+      'Runs BrowserLeaks in the built-in WebView2 using its system proxy and network path. Camera, microphone and location permissions are denied. Results cover this sample, not other browsers or apps.',
+      name: 'browserLeakScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The test did not finish. Available data is partial; run it again.`
+  String get browserLeakIncomplete {
+    return Intl.message(
+      'The test did not finish. Available data is partial; run it again.',
+      name: 'browserLeakIncomplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS resolvers were observed. No mainland Chinese ISP resolver was identified in this sample. Compare with your expected DNS; other apps remain untested.`
+  String get browserDnsObserved {
+    return Intl.message(
+      'DNS resolvers were observed. No mainland Chinese ISP resolver was identified in this sample. Compare with your expected DNS; other apps remain untested.',
+      name: 'browserDnsObserved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebRTC exposed a public address different from the page egress in the same address family. Review UDP and proxy settings.`
+  String get browserRtcMismatch {
+    return Intl.message(
+      'WebRTC exposed a public address different from the page egress in the same address family. Review UDP and proxy settings.',
+      name: 'browserRtcMismatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This WebRTC public address matches the page egress. Other browsers may use different network paths.`
+  String get browserRtcMatch {
+    return Intl.message(
+      'This WebRTC public address matches the page egress. Other browsers may use different network paths.',
+      name: 'browserRtcMatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not run the browser test. Check BrowserLeaks connectivity and the Microsoft Edge WebView2 runtime installation.`
+  String get browserLeakUnavailable {
+    return Intl.message(
+      'Could not run the browser test. Check BrowserLeaks connectivity and the Microsoft Edge WebView2 runtime installation.',
+      name: 'browserLeakUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Page egress IP`
+  String get browserRemoteIp {
+    return Intl.message(
+      'Page egress IP',
+      name: 'browserRemoteIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebRTC public IP`
+  String get browserRtcPublicIp {
+    return Intl.message(
+      'WebRTC public IP',
+      name: 'browserRtcPublicIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local IP`
+  String get browserLocalIp {
+    return Intl.message('Local IP', name: 'browserLocalIp', desc: '', args: []);
+  }
+
+  /// `No identifiable local address exposed`
+  String get browserLocalNotExposed {
+    return Intl.message(
+      'No identifiable local address exposed',
+      name: 'browserLocalNotExposed',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

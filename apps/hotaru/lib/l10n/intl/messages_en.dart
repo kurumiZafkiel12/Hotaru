@@ -512,6 +512,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("Blacklist mode"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("Block connection"),
     "brightness": MessageLookupByLibrary.simpleMessage("Brightness"),
+    "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
+      "DNS resolvers were observed. No mainland Chinese ISP resolver was identified in this sample. Compare with your expected DNS; other apps remain untested.",
+    ),
+    "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
+      "The test did not finish. Available data is partial; run it again.",
+    ),
+    "browserLeakScope": MessageLookupByLibrary.simpleMessage(
+      "Runs BrowserLeaks in the built-in WebView2 using its system proxy and network path. Camera, microphone and location permissions are denied. Results cover this sample, not other browsers or apps.",
+    ),
+    "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Could not run the browser test. Check BrowserLeaks connectivity and the Microsoft Edge WebView2 runtime installation.",
+    ),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("Local IP"),
+    "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
+      "No identifiable local address exposed",
+    ),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("Page egress IP"),
+    "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
+      "This WebRTC public address matches the page egress. Other browsers may use different network paths.",
+    ),
+    "browserRtcMismatch": MessageLookupByLibrary.simpleMessage(
+      "WebRTC exposed a public address different from the page egress in the same address family. Review UDP and proxy settings.",
+    ),
+    "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
+      "WebRTC public IP",
+    ),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Bypass domains"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Bypass domains apply only while the system proxy is on.",

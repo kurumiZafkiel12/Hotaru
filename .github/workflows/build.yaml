@@ -197,6 +197,10 @@ jobs:
         if: matrix.platform == 'windows'
         run: git config --global core.longpaths true
 
+      - name: Setup NuGet for WebView2 (Windows)
+        if: matrix.platform == 'windows'
+        uses: NuGet/setup-nuget@v2
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -255,6 +259,21 @@ jobs:
         with:
           name: windows-native-ice
           path: apps/hotaru/native-ice/windows/
+
+      - name: Build safe BrowserLeaks harness
+        if: matrix.platform == 'windows'
+        run: flutter build windows --debug --target tool/native_browser_leak_smoke.dart --dart-define=SAFE_MODE=true --dart-define=NATIVE_SMOKE_SOURCE=${{ github.sha }}
+
+      - name: Verify BrowserLeaks in actual Windows WebView2
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: ./tool/verify_native_browser_windows.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.platform == 'windows'
+        with:
+          name: windows-native-browser
+          path: apps/hotaru/native-browser/windows/
 
   go:
     name: Go core
