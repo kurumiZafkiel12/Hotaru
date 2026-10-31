@@ -28,7 +28,7 @@
   "routingSubscriptionMode": "Правила подписки",
   "routingConfigImport": "Импорт по ссылке",
   "routingConfigEmpty": "Конфигурации маршрутизации не импортированы",
-  "routingConfigHint": "Импорт правил Mihomo YAML с сохранением выбранного узла подписки. Правила конфигурации заменяют правила подписки; DIRECT и REJECT сохраняются.",
+  "routingConfigHint": "Импорт правил Mihomo YAML или Shadowrocket .conf с выбранным узлом. Правила подписки заменяются, DIRECT и REJECT сохраняются. DNS, перезаписи и скрипты .conf не импортируются.",
   "routingConfigFailed": "Не удалось загрузить или применить конфигурацию. Проверьте ссылку, правила и выбранную группу узлов.",
   "nodeSelection": "Выбор узла",
   "subscriptions": "Подписки",
@@ -1127,5 +1127,16 @@
   "androidDnsServers": "Системные DNS-серверы",
   "androidWifiSettings": "Настройки Wi-Fi",
   "androidAppSettings": "Настройки приложения",
-  "androidSettingsUnavailable": "Эта страница настроек недоступна на устройстве."
+  "androidSettingsUnavailable": "Эта страница настроек недоступна на устройстве.",
+  "routingRuleUnsupported": "Правило {type} в строке {line} не поддерживается Mihomo. Существующая конфигурация сохранена.",
+  "@routingRuleUnsupported": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

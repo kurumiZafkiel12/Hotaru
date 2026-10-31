@@ -142,6 +142,18 @@ void main() {
         imported,
       );
       expect(container.read(routingConfigsActionProvider), isFalse);
+      source =
+          '[General]\ndns-server = system\n[Rule]\n'
+          'DOMAIN-SUFFIX,example.cn,Direct\nFINAL,Proxy';
+      final shadowrocket = await action.importLink(
+        'http://127.0.0.1:${server.port}/rules.conf',
+        name: 'Shadowrocket',
+      );
+      expect(shadowrocket.ruleCount, 2);
+      expect(checkedRules.last, [
+        'DOMAIN-SUFFIX,example.cn,DIRECT',
+        'MATCH,HOTARU-VALIDATE',
+      ]);
     },
   );
 

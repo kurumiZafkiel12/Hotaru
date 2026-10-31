@@ -28,7 +28,7 @@
   "routingSubscriptionMode": "購読ルール",
   "routingConfigImport": "設定リンクをインポート",
   "routingConfigEmpty": "ルーティング設定がありません",
-  "routingConfigHint": "Mihomo YAML ルールを読み込み、選択した購読ノードを使います。購読ルールは置き換えられ、DIRECT と REJECT は維持されます。",
+  "routingConfigHint": "Mihomo YAML または Shadowrocket .conf の振り分けルールを読み込み、選択中のノードを使用します。購読のルールを置き換え、DIRECT と REJECT は保持します。.conf の DNS・書き換え・スクリプトは読み込みません。",
   "routingConfigFailed": "設定を読み込むか適用できません。リンク、ルール、選択中のノードグループを確認してください。",
   "nodeSelection": "ノード選択",
   "subscriptions": "購読",
@@ -1127,5 +1127,16 @@
   "androidDnsServers": "システムDNSサーバー",
   "androidWifiSettings": "Wi-Fi設定",
   "androidAppSettings": "アプリ設定",
-  "androidSettingsUnavailable": "この端末では設定画面を開けません。"
+  "androidSettingsUnavailable": "この端末では設定画面を開けません。",
+  "routingRuleUnsupported": "{line} 行目の {type} ルールは Mihomo に対応していません。既存の設定を保持しました。",
+  "@routingRuleUnsupported": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

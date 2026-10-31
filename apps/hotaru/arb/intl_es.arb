@@ -28,7 +28,7 @@
   "routingSubscriptionMode": "Reglas de suscripción",
   "routingConfigImport": "Importar enlace de configuración",
   "routingConfigEmpty": "No hay configuraciones de rutas importadas",
-  "routingConfigHint": "Importa reglas Mihomo YAML y conserva el nodo seleccionado. Las reglas de configuración sustituyen a las de suscripción; DIRECT y REJECT se mantienen.",
+  "routingConfigHint": "Importa reglas Mihomo YAML o Shadowrocket .conf con el nodo seleccionado. Sustituyen las reglas de la suscripción; DIRECT y REJECT se conservan. No se importan DNS, reescrituras ni scripts de .conf.",
   "routingConfigFailed": "No se pudo cargar o aplicar la configuración. Revisa el enlace, las reglas y el grupo de nodos seleccionado.",
   "nodeSelection": "Selección de nodo",
   "subscriptions": "Suscripciones",
@@ -1127,5 +1127,16 @@
   "androidDnsServers": "Servidores DNS del sistema",
   "androidWifiSettings": "Ajustes de Wi-Fi",
   "androidAppSettings": "Ajustes de la aplicación",
-  "androidSettingsUnavailable": "Esta página de ajustes no está disponible en este dispositivo."
+  "androidSettingsUnavailable": "Esta página de ajustes no está disponible en este dispositivo.",
+  "routingRuleUnsupported": "La regla {type} de la línea {line} no es compatible con Mihomo. Se conservó la configuración existente.",
+  "@routingRuleUnsupported": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

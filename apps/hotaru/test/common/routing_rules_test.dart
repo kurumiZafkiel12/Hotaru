@@ -97,4 +97,65 @@ rules:
       expect(subscription['rules'], ['MATCH,OldRule']);
     },
   );
+
+  test(
+    'Shadowrocket sections and remote lists become independent Mihomo rules',
+    () {
+      final result = RoutingRules.parse('''
+# Example configuration
+[General]
+dns-server = system
+[Rule] # routing only
+DOMAIN-SUFFIX,example.cn,Direct
+DOMAIN,blocked.test,Reject
+IP6-CIDR,2001:db8::/32,Proxy,no-resolve
+DEST-PORT,443,Proxy
+RULE-SET,https://example.com/domestic.list,DIRECT,no-resolve
+FINAL,Proxy
+[URL Rewrite]
+^https://example.com https://example.org 302
+''').apply(subscription, 'Selected');
+      expect(result['rules'], [
+        'DOMAIN-SUFFIX,example.cn,DIRECT',
+        'DOMAIN,blocked.test,REJECT',
+        'IP-CIDR6,2001:db8::/32,Selected,no-resolve',
+        'DST-PORT,443,Selected',
+        'RULE-SET,hotaru-conf-1,DIRECT,no-resolve',
+        'MATCH,Selected',
+      ]);
+      expect((result['rule-providers'] as Map)['hotaru-conf-1'], {
+        'type': 'http',
+        'behavior': 'classical',
+        'format': 'text',
+        'url': 'https://example.com/domestic.list',
+        'interval': 86400,
+      });
+      expect(result['dns'], subscription['dns']);
+      expect(result, isNot(contains('URL Rewrite')));
+    },
+  );
+
+  test(
+    'unsupported Shadowrocket rules fail with a source line instead of being skipped',
+    () {
+      for (final rule in [
+        'USER-AGENT,Example*,Proxy',
+        'URL-REGEX,^https://example.com,REJECT',
+        'DOMAIN,example.com,REJECT-TINYGIF',
+        'FINAL,Proxy,dns-failed',
+        'RULE-SET,file:///private.list,Proxy',
+      ]) {
+        expect(
+          () => RoutingRules.parse('[Rule]\n$rule\nFINAL,Proxy'),
+          throwsA(
+            isA<UnsupportedRoutingRule>().having(
+              (error) => error.line,
+              'line',
+              2,
+            ),
+          ),
+        );
+      }
+    },
+  );
 }

@@ -4,6 +4,14 @@ import 'package:yaml/yaml.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/clash_config.dart';
 
+class UnsupportedRoutingRule extends FormatException {
+  const UnsupportedRoutingRule(this.line, this.type)
+    : super('unsupported routing rule');
+
+  final int line;
+  final String type;
+}
+
 class RoutingRules {
   const RoutingRules({
     required this.rules,
@@ -19,7 +27,15 @@ class RoutingRules {
     if (source.length > 2 * 1024 * 1024) {
       throw const FormatException('routing configuration too large');
     }
-    final parsed = loadYaml(source);
+    final document = source.replaceFirst('\uFEFF', '');
+    final parsed =
+        RegExp(
+          r'^\s*\[Rule\]\s*(?:#.*)?$',
+          multiLine: true,
+          caseSensitive: false,
+        ).hasMatch(document)
+        ? _shadowrocket(document)
+        : loadYaml(document);
     if (parsed is! Map) {
       throw const FormatException('expected a Mihomo YAML document');
     }
@@ -86,6 +102,86 @@ class RoutingRules {
       }
     }
     return RoutingRules(rules: rules, providers: providers, subRules: subRules);
+  }
+
+  static Map<String, dynamic> _shadowrocket(String source) {
+    final rules = <String>[];
+    final providers = <String, dynamic>{};
+    var section = '';
+    for (final (index, original)
+        in const LineSplitter().convert(source).indexed) {
+      final line = original.trim();
+      if (line.isEmpty ||
+          line.startsWith('#') ||
+          line.startsWith(';') ||
+          line.startsWith('//')) {
+        continue;
+      }
+      final header = RegExp(r'^\[([^\]]+)\]\s*(?:#.*)?$').firstMatch(line);
+      if (header != null) {
+        section = header.group(1)!.toLowerCase();
+        continue;
+      }
+      if (section != 'rule') continue;
+      final parts = line
+          .replaceFirst(RegExp(r'\s+#.*$'), '')
+          .split(',')
+          .map((item) => item.trim())
+          .toList();
+      final type = switch (parts.first.toUpperCase()) {
+        'FINAL' => 'MATCH',
+        'IP6-CIDR' => 'IP-CIDR6',
+        'DEST-PORT' => 'DST-PORT',
+        final type => type,
+      };
+      if (!RuleAction.values.any((action) => action.value == type) ||
+          type == 'SUB-RULE' ||
+          parts.any(
+            (part) =>
+                part.toUpperCase().startsWith('REJECT-') &&
+                part.toUpperCase() != 'REJECT-DROP',
+          )) {
+        throw UnsupportedRoutingRule(index + 1, parts.first);
+      }
+      parts[0] = type;
+      if (type == 'RULE-SET') {
+        if (parts.length < 3 ||
+            parts.length > 4 ||
+            (parts.length == 4 && parts.last != 'no-resolve')) {
+          throw UnsupportedRoutingRule(index + 1, type);
+        }
+        final uri = Uri.tryParse(parts[1]);
+        if (uri == null ||
+            !const ['http', 'https'].contains(uri.scheme) ||
+            uri.host.isEmpty) {
+          throw UnsupportedRoutingRule(index + 1, type);
+        }
+        final name = 'hotaru-conf-${providers.length + 1}';
+        providers[name] = {
+          'type': 'http',
+          'behavior': 'classical',
+          'format': 'text',
+          'url': uri.toString(),
+          'interval': 86400,
+        };
+        parts[1] = name;
+      }
+      if ((type == 'MATCH' && parts.length != 2) ||
+          (type != 'MATCH' && parts.length < 3)) {
+        throw UnsupportedRoutingRule(index + 1, type);
+      }
+      final rule = Rule.parse(parts.join(','), id: 0);
+      final policy = rule.ruleTarget?.toUpperCase();
+      if (policy == null || policy.isEmpty) {
+        throw UnsupportedRoutingRule(index + 1, type);
+      }
+      rules.add(
+        const {'DIRECT', 'REJECT', 'REJECT-DROP', 'PASS'}.contains(policy)
+            ? rule.copyWith(ruleTarget: policy).rawValue
+            : rule.rawValue,
+      );
+    }
+    return {'rules': rules, 'rule-providers': providers};
   }
 
   Map<String, dynamic> apply(

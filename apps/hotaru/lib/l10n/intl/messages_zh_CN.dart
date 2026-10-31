@@ -175,36 +175,39 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m71(count, label) =>
       "${Intl.plural(count, other: '${label} 个策略组')}";
 
-  static String m72(count, label) =>
+  static String m72(line, type) =>
+      "第 ${line} 行的 ${type} 规则不受 Mihomo 支持，已保留原配置。";
+
+  static String m73(count, label) =>
       "${Intl.plural(count, other: '${label} 条规则')}";
 
-  static String m73(appName) => "${appName}（安全模式）";
+  static String m74(appName) => "${appName}（安全模式）";
 
-  static String m74(count) => "${count} 秒";
+  static String m75(count) => "${count} 秒";
 
-  static String m75(count) => "${count} 项生效";
+  static String m76(count) => "${count} 项生效";
 
-  static String m76(count) => "${count} 项异常";
+  static String m77(count) => "${count} 项异常";
 
-  static String m77(count) => "${count} 项设置";
+  static String m78(count) => "${count} 项设置";
 
-  static String m78(link) => "无法从 ${link} 中读取代理";
+  static String m79(link) => "无法从 ${link} 中读取代理";
 
-  static String m79(label) => "${label}只能是一项";
+  static String m80(label) => "${label}只能是一项";
 
-  static String m80(source) => "接入类型来源：${source}。";
+  static String m81(source) => "接入类型来源：${source}。";
 
-  static String m81(value) => "峰值 ${value}";
+  static String m82(value) => "峰值 ${value}";
 
-  static String m82(value) => "累计 ${value}";
+  static String m83(value) => "累计 ${value}";
 
-  static String m83(transport) => "${transport} 请求头";
+  static String m84(transport) => "${transport} 请求头";
 
-  static String m84(label) => "${label}必须为URL";
-
-  static String m85(count) => "${count} 年前";
+  static String m85(label) => "${label}必须为URL";
 
   static String m86(count) => "${count} 年前";
+
+  static String m87(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1373,12 +1376,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "无法载入或应用配置，请检查链接、规则及所选节点组。",
     ),
     "routingConfigHint": MessageLookupByLibrary.simpleMessage(
-      "导入 Mihomo YAML 分流规则，沿用已选订阅节点。配置规则替换订阅规则，直连与拒绝规则保持不变。",
+      "支持 Mihomo YAML 和 Shadowrocket .conf 分流规则，沿用已选订阅节点并替换订阅规则，直连与拒绝保持不变。.conf 中的 DNS、重写和脚本不导入。",
     ),
     "routingConfigImport": MessageLookupByLibrary.simpleMessage("导入配置链接"),
     "routingConfigMode": MessageLookupByLibrary.simpleMessage("配置规则"),
     "routingConfigs": MessageLookupByLibrary.simpleMessage("分流配置"),
     "routingMark": MessageLookupByLibrary.simpleMessage("路由标记"),
+    "routingRuleUnsupported": m72,
     "routingSubscriptionMode": MessageLookupByLibrary.simpleMessage("订阅规则"),
     "ru": MessageLookupByLibrary.simpleMessage("俄语"),
     "rule": MessageLookupByLibrary.simpleMessage("规则"),
@@ -1494,12 +1498,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "规则必须以受支持的类型开头，例如 DOMAIN,example.com,DIRECT",
     ),
     "rules": MessageLookupByLibrary.simpleMessage("规则"),
-    "rulesCount": m72,
+    "rulesCount": m73,
     "runTime": MessageLookupByLibrary.simpleMessage("运行时长"),
     "running": MessageLookupByLibrary.simpleMessage("运行中"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage("运行时配置"),
     "safeMode": MessageLookupByLibrary.simpleMessage("安全模式"),
-    "safeModeAppTitle": m73,
+    "safeModeAppTitle": m74,
     "saturation": MessageLookupByLibrary.simpleMessage("饱和度"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("是否保存更改？"),
@@ -1508,9 +1512,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "scrollToSelected": MessageLookupByLibrary.simpleMessage("滚动到已选"),
     "search": MessageLookupByLibrary.simpleMessage("搜索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
-    "secondsCount": m74,
+    "secondsCount": m75,
     "secretKey": MessageLookupByLibrary.simpleMessage("密钥"),
-    "sectionsInEffect": m75,
+    "sectionsInEffect": m76,
     "select": MessageLookupByLibrary.simpleMessage("选中"),
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selectRuleSet": MessageLookupByLibrary.simpleMessage("请选择规则集"),
@@ -1539,7 +1543,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "用手机相机扫描二维码，在打开的页面里粘贴链接。两台设备需要连在同一个网络。",
     ),
     "server": MessageLookupByLibrary.simpleMessage("服务器"),
-    "serviceAbnormalCount": m76,
+    "serviceAbnormalCount": m77,
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage("全部可用"),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("可用"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("已被封禁"),
@@ -1557,8 +1561,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "serviceUnsupportedRegion": MessageLookupByLibrary.simpleMessage("地区不支持"),
     "settingEntries": MessageLookupByLibrary.simpleMessage("设置项"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
-    "settingsCount": m77,
-    "shareLinkUnreadable": m78,
+    "settingsCount": m78,
+    "shareLinkUnreadable": m79,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage("无法从链接中读取代理"),
     "shareQrcodeTip": MessageLookupByLibrary.simpleMessage(
       "在另一台设备上用 Hotaru 扫码即可导入此配置。",
@@ -1581,7 +1585,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(
       "这里只能填写一条链接，多条请在列表的快速编辑中填写",
     ),
-    "singleValueTip": m79,
+    "singleValueTip": m80,
     "size": MessageLookupByLibrary.simpleMessage("尺寸"),
     "skipCertVerify": MessageLookupByLibrary.simpleMessage("跳过证书验证"),
     "skipDomain": MessageLookupByLibrary.simpleMessage("跳过域名"),
@@ -1637,7 +1641,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "startVpn": MessageLookupByLibrary.simpleMessage("正在启动VPN…"),
     "startupAndBackground": MessageLookupByLibrary.simpleMessage("启动与后台"),
     "status": MessageLookupByLibrary.simpleMessage("状态"),
-    "statusAccessSource": m80,
+    "statusAccessSource": m81,
     "statusAccessType": MessageLookupByLibrary.simpleMessage("接入类型"),
     "statusAccessUnverified": MessageLookupByLibrary.simpleMessage(
       "接入类型尚未核实。未标记机房或移动网络，并不能证明是住宅宽带。",
@@ -1704,11 +1708,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("上传总量"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy端口"),
     "traffic": MessageLookupByLibrary.simpleMessage("流量"),
-    "trafficPeak": m81,
-    "trafficTotal": m82,
+    "trafficPeak": m82,
+    "trafficTotal": m83,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
     "transport": MessageLookupByLibrary.simpleMessage("传输协议"),
-    "transportHeaders": m83,
+    "transportHeaders": m84,
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "虚拟网卡授权失败，已关闭。",
@@ -1736,7 +1740,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("上行带宽"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m84,
+    "urlTip": m85,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "usedShort": MessageLookupByLibrary.simpleMessage("已用"),
@@ -1778,8 +1782,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "写入系统会同时设置系统时钟，Android 上不生效。",
     ),
-    "yearsAgo": m85,
-    "yearsAgoShort": m86,
+    "yearsAgo": m86,
+    "yearsAgoShort": m87,
     "yes": MessageLookupByLibrary.simpleMessage("是"),
     "zhCN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

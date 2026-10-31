@@ -28,7 +28,7 @@
   "routingSubscriptionMode": "订阅规则",
   "routingConfigImport": "导入配置链接",
   "routingConfigEmpty": "尚未导入分流配置",
-  "routingConfigHint": "导入 Mihomo YAML 分流规则，沿用已选订阅节点。配置规则替换订阅规则，直连与拒绝规则保持不变。",
+  "routingConfigHint": "支持 Mihomo YAML 和 Shadowrocket .conf 分流规则，沿用已选订阅节点并替换订阅规则，直连与拒绝保持不变。.conf 中的 DNS、重写和脚本不导入。",
   "routingConfigFailed": "无法载入或应用配置，请检查链接、规则及所选节点组。",
   "nodeSelection": "节点选择",
   "subscriptions": "订阅",
@@ -1127,5 +1127,16 @@
   "androidDnsServers": "系统 DNS 服务器",
   "androidWifiSettings": "Wi-Fi 设置",
   "androidAppSettings": "应用设置",
-  "androidSettingsUnavailable": "此设备无法打开该系统设置页面。"
+  "androidSettingsUnavailable": "此设备无法打开该系统设置页面。",
+  "routingRuleUnsupported": "第 {line} 行的 {type} 规则不受 Mihomo 支持，已保留原配置。",
+  "@routingRuleUnsupported": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

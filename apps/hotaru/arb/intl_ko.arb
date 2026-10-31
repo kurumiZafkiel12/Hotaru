@@ -28,7 +28,7 @@
   "routingSubscriptionMode": "구독 규칙",
   "routingConfigImport": "구성 링크 가져오기",
   "routingConfigEmpty": "가져온 라우팅 구성이 없습니다",
-  "routingConfigHint": "Mihomo YAML 규칙을 가져오고 선택한 구독 노드를 유지합니다. 구성 규칙이 구독 규칙을 대체하며 DIRECT와 REJECT는 유지됩니다.",
+  "routingConfigHint": "Mihomo YAML 또는 Shadowrocket .conf 라우팅 규칙을 가져와 선택한 노드를 사용합니다. 구독 규칙을 대체하며 DIRECT와 REJECT는 유지합니다. .conf의 DNS, 재작성 및 스크립트는 가져오지 않습니다.",
   "routingConfigFailed": "구성을 불러오거나 적용할 수 없습니다. 링크, 규칙 및 선택한 노드 그룹을 확인하세요.",
   "nodeSelection": "노드 선택",
   "subscriptions": "구독",
@@ -1127,5 +1127,16 @@
   "androidDnsServers": "시스템 DNS 서버",
   "androidWifiSettings": "Wi-Fi 설정",
   "androidAppSettings": "앱 설정",
-  "androidSettingsUnavailable": "이 기기에서 해당 설정 화면을 열 수 없습니다."
+  "androidSettingsUnavailable": "이 기기에서 해당 설정 화면을 열 수 없습니다.",
+  "routingRuleUnsupported": "{line}행의 {type} 규칙은 Mihomo에서 지원하지 않습니다. 기존 설정을 유지했습니다.",
+  "@routingRuleUnsupported": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  }
 }

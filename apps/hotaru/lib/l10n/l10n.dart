@@ -330,10 +330,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Import Mihomo YAML rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT keep their meaning.`
+  /// `Import Mihomo YAML or Shadowrocket .conf routing rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT retain their meaning. DNS, rewrites and scripts in .conf are not imported.`
   String get routingConfigHint {
     return Intl.message(
-      'Import Mihomo YAML rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT keep their meaning.',
+      'Import Mihomo YAML or Shadowrocket .conf routing rules and keep the selected subscription node. Configuration rules replace subscription rules; DIRECT and REJECT retain their meaning. DNS, rewrites and scripts in .conf are not imported.',
       name: 'routingConfigHint',
       desc: '',
       args: [],
@@ -9635,6 +9635,16 @@ class AppLocalizations {
       name: 'androidSettingsUnavailable',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Rule {type} on line {line} is not supported by Mihomo. The existing configuration was kept.`
+  String routingRuleUnsupported(int line, String type) {
+    return Intl.message(
+      'Rule $type on line $line is not supported by Mihomo. The existing configuration was kept.',
+      name: 'routingRuleUnsupported',
+      desc: '',
+      args: [line, type],
     );
   }
 }

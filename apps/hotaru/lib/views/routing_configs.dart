@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/common/routing_rules.dart';
 import 'package:hotaru/features/form/form.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/providers/providers.dart';
@@ -17,10 +18,15 @@ class RoutingConfigsView extends ConsumerWidget {
   ) async {
     try {
       await operation();
-    } catch (_) {
+    } catch (error) {
       if (context.mounted) {
         dialogs.showNotifier(
-          context.appLocalizations.routingConfigFailed,
+          error is UnsupportedRoutingRule
+              ? context.appLocalizations.routingRuleUnsupported(
+                  error.line,
+                  error.type,
+                )
+              : context.appLocalizations.routingConfigFailed,
           level: MessageLevel.error,
         );
       }
