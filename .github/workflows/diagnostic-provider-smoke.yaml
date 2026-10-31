@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/diagnostic-provider-smoke.yaml'
       - 'apps/hotaru/tool/diagnostic_provider_smoke.py'
+      - 'apps/hotaru/tool/browser_diagnostic_smoke.py'
       - 'apps/hotaru/lib/common/dns_leak.dart'
       - 'apps/hotaru/lib/common/ip_portrait.dart'
   workflow_dispatch:
@@ -28,4 +29,15 @@ jobs:
         with:
           name: diagnostic-provider-observations
           path: ${{ runner.temp }}/providers.json
+          retention-days: 14
+      - name: Install isolated browser reference runner
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Observe live reference page detection
+        run: python apps/hotaru/tool/browser_diagnostic_smoke.py "$RUNNER_TEMP/browser-reference.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-reference-observations
+          path: ${{ runner.temp }}/browser-reference.json
           retention-days: 14
