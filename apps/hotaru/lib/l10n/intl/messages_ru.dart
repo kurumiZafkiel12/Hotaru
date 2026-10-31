@@ -403,6 +403,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ожидался DIRECT, обнаружен прокси",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("Местные медиа"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "Сервис ответил нормально, региональных ограничений не обнаружено. Доступ к учётной записи, подписке и воспроизведению определяется сервисом.",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("Игры и магазины"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Недостаточно данных",
@@ -415,9 +418,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditPartial": MessageLookupByLibrary.simpleMessage(
       "Частично разблокировано",
     ),
-    "auditReachable": MessageLookupByLibrary.simpleMessage(
-      "Доступен · снятие ограничений не подтверждено",
-    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("Подключено"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Подключены"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
       "Регион не поддерживается",

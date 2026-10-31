@@ -25,6 +25,26 @@ void main() {
   });
 
   group('ServiceProbeStatus', () {
+    test(
+      'passed endpoints are unlocked while restrictions keep their meaning',
+      () {
+        expect(ServiceProbeStatus.reachable.outcome, ServiceOutcome.unlocked);
+        expect(
+          ServiceProbeStatus.challenge.outcome,
+          ServiceOutcome.verification,
+        );
+        expect(
+          ServiceProbeStatus.unsupportedRegion.outcome,
+          ServiceOutcome.unsupported,
+        );
+        expect(
+          ServiceProbeStatus.originalsOnly.outcome,
+          ServiceOutcome.partial,
+        );
+        expect(ServiceProbeStatus.inconclusive.outcome, ServiceOutcome.unknown);
+      },
+    );
+
     test('maps every status the Core can report', () {
       for (final status in ServiceProbeStatus.values) {
         expect(ServiceProbeStatus.byId(status.id), status);

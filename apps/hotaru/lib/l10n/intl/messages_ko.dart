@@ -328,6 +328,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "DIRECT를 예상했으나 프록시 경로 관측",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("국내 미디어"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "서비스가 정상 응답했으며 지역 제한이 감지되지 않았습니다. 계정, 구독 및 재생 권한은 해당 서비스에서 확인해야 합니다.",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("게임 및 스토어"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("판단할 증거 부족"),
     "auditLocked": MessageLookupByLibrary.simpleMessage("해제되지 않음"),
@@ -336,7 +339,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "웹 페이지 또는 지역 API 결과입니다. 저작권 재생, 주거용 회선 자격, 구독은 웹 응답만으로 확인할 수 없습니다.",
     ),
     "auditPartial": MessageLookupByLibrary.simpleMessage("부분 해제"),
-    "auditReachable": MessageLookupByLibrary.simpleMessage("연결 가능 · 제한 해제 미확인"),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("연결됨"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("연결 가능"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
       "지원하지 않는 지역",

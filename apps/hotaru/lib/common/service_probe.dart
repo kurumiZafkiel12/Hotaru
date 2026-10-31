@@ -199,7 +199,8 @@ enum ServiceOutcome {
 
 extension ServiceProbeOutcome on ServiceProbeStatus {
   ServiceOutcome get outcome => switch (this) {
-    ServiceProbeStatus.available => ServiceOutcome.unlocked,
+    ServiceProbeStatus.available ||
+    ServiceProbeStatus.reachable => ServiceOutcome.unlocked,
     ServiceProbeStatus.originalsOnly => ServiceOutcome.partial,
     ServiceProbeStatus.blocked ||
     ServiceProbeStatus.disallowedIsp => ServiceOutcome.locked,
@@ -211,7 +212,6 @@ extension ServiceProbeOutcome on ServiceProbeStatus {
     ServiceProbeStatus.failed ||
     ServiceProbeStatus.timeout ||
     ServiceProbeStatus.unavailable => ServiceOutcome.failed,
-    ServiceProbeStatus.reachable ||
     ServiceProbeStatus.inconclusive => ServiceOutcome.unknown,
   };
 }

@@ -320,6 +320,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "预期直连，实际观测到代理路线",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内影音与版权分流"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "服务入口响应正常，未发现地区限制。账号、订阅及实际播放资格以服务自身验证为准。",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("游戏与应用商店"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("证据不足，无法判定"),
     "auditLocked": MessageLookupByLibrary.simpleMessage("未解锁"),
@@ -328,7 +331,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "网页或地区接口结果不能证明版权播放、家宽资格或订阅权益。",
     ),
     "auditPartial": MessageLookupByLibrary.simpleMessage("部分解锁"),
-    "auditReachable": MessageLookupByLibrary.simpleMessage("可连接 · 解锁未确认"),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("已连接"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("已连通"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地区不支持"),
     "auditRequestFailed": MessageLookupByLibrary.simpleMessage("请求失败或超时"),

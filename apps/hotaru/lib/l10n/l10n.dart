@@ -8592,11 +8592,21 @@ class AppLocalizations {
     );
   }
 
-  /// `Reachable · unlock unconfirmed`
+  /// `Connected`
   String get auditReachable {
     return Intl.message(
-      'Reachable · unlock unconfirmed',
+      'Connected',
       name: 'auditReachable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The service endpoint responded normally and no regional restriction was detected. Account, subscription and playback eligibility depend on the service.`
+  String get auditEndpointPassScope {
+    return Intl.message(
+      'The service endpoint responded normally and no regional restriction was detected. Account, subscription and playback eligibility depend on the service.',
+      name: 'auditEndpointPassScope',
       desc: '',
       args: [],
     );

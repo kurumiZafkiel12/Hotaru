@@ -333,6 +333,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "DIRECT を期待しましたがプロキシを観測しました",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("国内メディア"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "サービスの入口は正常に応答し、地域制限は検出されませんでした。アカウント、契約、再生の利用資格はサービス側で確認してください。",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("ゲーム・ストア"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage("判定できません"),
     "auditLocked": MessageLookupByLibrary.simpleMessage("未解除"),
@@ -341,7 +344,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "ページ・地域 API の結果です。作品の再生、住宅回線の資格、契約の有無は Web 応答だけでは確定しません。",
     ),
     "auditPartial": MessageLookupByLibrary.simpleMessage("一部解除"),
-    "auditReachable": MessageLookupByLibrary.simpleMessage("接続可能・解放は未確認"),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("接続済み"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("接続可能"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage("地域対象外"),
     "auditRequestFailed": MessageLookupByLibrary.simpleMessage("失敗・タイムアウト"),

@@ -176,17 +176,11 @@ void main() {
             .toSet(),
       );
       expect(checked, hasLength(13));
-      expect(find.text('Unable to determine 13'), findsOneWidget);
+      expect(find.text('Unlocked 13'), findsOneWidget);
       expect(find.text('13 / 13'), findsOneWidget);
       expect(find.text('Available'), findsNothing);
       expect(calls.every((call) => call.runId.isNotEmpty), isTrue);
-      expect(
-        find.textContaining(
-          'Reachable · unlock unconfirmed',
-          findRichText: true,
-        ),
-        findsWidgets,
-      );
+      expect(find.textContaining('Unlocked', findRichText: true), findsWidgets);
       expect(tester.takeException(), isNull);
       await close(tester);
     },
@@ -252,7 +246,7 @@ void main() {
     await close(tester);
   });
   testWidgets(
-    'seven result filters keep successful HTTP separate from unlock evidence',
+    'result filters classify passed endpoints while preserving actual restrictions',
     (tester) async {
       const states = {
         'google': 'available',
@@ -261,6 +255,7 @@ void main() {
         'chatgpt': 'blocked',
         'claude': 'challenge',
         'gemini': 'timeout',
+        'docker': 'inconclusive',
       };
       answer = (params) async => [
         ServiceCheckItem(
@@ -273,13 +268,13 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Start'));
       await frames(tester);
       for (final text in [
-        'Unlocked 1',
+        'Unlocked 57',
         'Partially unlocked 1',
         'Not unlocked 1',
         'Unsupported region 1',
         'Verification / login required 1',
         'Failed / timed out 1',
-        'Unable to determine 57',
+        'Unable to determine 1',
       ]) {
         expect(find.text(text), findsOneWidget);
       }
@@ -324,7 +319,7 @@ void main() {
       await tester.drag(strip, const Offset(-650, 0));
       await frames(tester);
       expect(position.pixels, greaterThan(before));
-      final unknown = find.widgetWithText(ChoiceChip, 'Unable to determine 63');
+      final unknown = find.widgetWithText(ChoiceChip, 'Unable to determine 0');
       position.jumpTo(position.maxScrollExtent);
       await frames(tester);
       final center = tester.getCenter(unknown);
@@ -333,7 +328,7 @@ void main() {
       await tester.tap(unknown);
       await frames(tester);
       expect(tester.widget<ChoiceChip>(unknown).selected, isTrue);
-      expect(find.text('Google Workspace'), findsOneWidget);
+      expect(find.text('Google Workspace'), findsNothing);
       expect(tester.takeException(), isNull);
       await close(tester);
     },

@@ -210,7 +210,7 @@ func classifyNetflixTitles(original, licensed *ProbeResult) ServiceCheckItem {
 	licenseItem := classifyServiceEndpoint(licensed)
 	switch {
 	case !netflixPlayablePattern.MatchString(original.Body):
-		item.Status = serviceReachable
+		item.Status = serviceInconclusive
 	case licensed != nil && licensed.Error == "" && licensed.StatusCode == http.StatusNotFound:
 		item.Status = serviceOriginalsOnly
 	case licenseItem.Status == serviceReachable && netflixPlayablePattern.MatchString(licensed.Body):

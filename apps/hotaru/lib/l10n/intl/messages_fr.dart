@@ -413,6 +413,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "DIRECT attendu, route proxy observée",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("Médias nationaux"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "Le service a répondu normalement, sans restriction régionale détectée. Les droits de compte, d’abonnement et de lecture dépendent du service.",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("Jeux et boutiques"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Résultat indéterminé",
@@ -425,9 +428,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "auditPartial": MessageLookupByLibrary.simpleMessage(
       "Partiellement débloqué",
     ),
-    "auditReachable": MessageLookupByLibrary.simpleMessage(
-      "Accessible · déblocage non confirmé",
-    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("Connecté"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Connectés"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
       "Région non prise en charge",

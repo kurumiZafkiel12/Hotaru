@@ -57,7 +57,7 @@ func TestNetflixCatalogDoesNotTrustOnlyA200OrASpeedCdn(t *testing.T) {
 		original, licensed *ProbeResult
 		want               string
 	}{
-		{"generic landing pages", landing, landing, serviceReachable},
+		{"generic landing pages", landing, landing, serviceInconclusive},
 		{"original catalog only", playable, &ProbeResult{StatusCode: 404}, serviceOriginalsOnly},
 		{"both catalogs expose playback metadata", playable, playable, serviceAvailable},
 		{"license request challenged", playable, &ProbeResult{StatusCode: 403, Body: "Just a moment..."}, serviceInconclusive},

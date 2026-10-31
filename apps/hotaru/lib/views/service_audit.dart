@@ -13,7 +13,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 String serviceAuditStatus(BuildContext context, ServiceProbeStatus status) {
   final l10n = context.appLocalizations;
   return switch (status) {
-    ServiceProbeStatus.available => l10n.serviceAvailable,
+    ServiceProbeStatus.available => l10n.auditUnlocked,
     ServiceProbeStatus.originalsOnly => l10n.serviceOriginalsOnly,
     ServiceProbeStatus.unsupportedRegion => l10n.serviceUnsupportedRegion,
     ServiceProbeStatus.disallowedIsp => l10n.serviceDisallowedIsp,
@@ -23,7 +23,7 @@ String serviceAuditStatus(BuildContext context, ServiceProbeStatus status) {
     ServiceProbeStatus.comingSoon => l10n.serviceComingSoon,
     ServiceProbeStatus.timeout => l10n.timeout,
     ServiceProbeStatus.failed => l10n.serviceFailed,
-    ServiceProbeStatus.reachable => l10n.auditReachable,
+    ServiceProbeStatus.reachable => l10n.auditUnlocked,
     ServiceProbeStatus.authenticationRequired => l10n.auditAuthentication,
     ServiceProbeStatus.challenge => l10n.auditChallenge,
     ServiceProbeStatus.inconclusive => l10n.auditInconclusive,
@@ -456,15 +456,6 @@ class _ServiceResult extends StatelessWidget {
                   .of(context)
                   .copyWith(color: context.colorScheme.onSurfaceVariant),
             ),
-            if (!pending &&
-                !stale &&
-                check?.status == ServiceProbeStatus.reachable)
-              Text(
-                l10n.auditReachable,
-                style: AppTextStyle.caption2
-                    .of(context)
-                    .copyWith(color: context.colorScheme.onSurfaceVariant),
-              ),
           ],
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -473,6 +464,8 @@ class _ServiceResult extends StatelessWidget {
         children: [
           if (check != null)
             Text(serviceAuditStatus(context, check.status), style: hintStyle),
+          if (check?.status == ServiceProbeStatus.reachable)
+            Text(l10n.auditEndpointPassScope, style: hintStyle),
           if (check?.status == ServiceProbeStatus.originalsOnly)
             Text(l10n.auditCatalogPartialEvidence, style: hintStyle),
           if (target.expectsDirect)

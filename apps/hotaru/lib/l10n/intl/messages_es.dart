@@ -414,6 +414,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Se esperaba DIRECT, pero se observó un proxy",
     ),
     "auditDomestic": MessageLookupByLibrary.simpleMessage("Medios nacionales"),
+    "auditEndpointPassScope": MessageLookupByLibrary.simpleMessage(
+      "El servicio respondió normalmente y no se detectaron restricciones regionales. Los permisos de cuenta, suscripción y reproducción dependen del servicio.",
+    ),
     "auditGames": MessageLookupByLibrary.simpleMessage("Juegos y tiendas"),
     "auditInconclusive": MessageLookupByLibrary.simpleMessage(
       "Sin pruebas concluyentes",
@@ -426,9 +429,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Resultado de página o API regional. Una respuesta web no confirma reproducción con licencia, requisitos residenciales ni suscripción.",
     ),
     "auditPartial": MessageLookupByLibrary.simpleMessage("Desbloqueo parcial"),
-    "auditReachable": MessageLookupByLibrary.simpleMessage(
-      "Accesible · desbloqueo sin confirmar",
-    ),
+    "auditReachable": MessageLookupByLibrary.simpleMessage("Conectado"),
     "auditReachableSummary": MessageLookupByLibrary.simpleMessage("Conectados"),
     "auditRegionUnsupported": MessageLookupByLibrary.simpleMessage(
       "Región no admitida",
