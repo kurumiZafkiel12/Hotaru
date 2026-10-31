@@ -973,7 +973,10 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
     await openManage(tester);
-    await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -160));
+    await tester.drag(
+      find.byType(CustomScrollView).last,
+      const Offset(0, -160),
+    );
     await tester.pumpAndSettle();
     await tester.tap(switchOf(ServiceTarget.claude));
     await tester.pumpAndSettle();
