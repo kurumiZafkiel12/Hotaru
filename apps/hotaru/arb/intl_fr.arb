@@ -24,6 +24,7 @@
   "toolsPrivacy": "Confidentialité",
   "toolsIp": "Diagnostic IP",
   "toolsMaintenance": "Maintenance système",
+  "toolsRecords": "Activité et ressources",
   "connectivityUnreachable": "Injoignable",
   "connectivityResponded": "Réponse reçue",
   "connectivityScope": "Réponse HTTP reçue. Test de connexion uniquement, sans confirmer le déblocage.",

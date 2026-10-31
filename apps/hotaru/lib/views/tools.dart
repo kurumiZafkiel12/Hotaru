@@ -13,7 +13,6 @@ import 'network_diagnostics.dart';
 import 'node_geo.dart';
 import 'ip_portrait.dart';
 import 'android_network.dart';
-import 'dashboard/widgets/service_status.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
   const ToolsView({super.key, this.platform});
@@ -25,29 +24,15 @@ class ToolsView extends ConsumerStatefulWidget {
 }
 
 class _ToolViewState extends ConsumerState<ToolsView> {
-  Widget _buildNavigationMenuItem(NavigationItem navigationItem) {
-    return ListItem.open(
-      leading: GlyphIcon(navigationItem.glyph),
-      title: Text(navigationItem.label.label),
-      widget: navigationItem.builder(context),
-      forceFull: navigationItem.modes.contains(NavigationItemMode.moreFull),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final navigation = ref
+        .watch(moreToolsSelectorStateProvider)
+        .navigationItems;
     final items = [
-      _ToolMatrix(platform: widget.platform ?? SupportPlatform.currentPlatform),
-      Consumer(
-        builder: (_, ref, _) {
-          final state = ref.watch(moreToolsSelectorStateProvider);
-          if (state.navigationItems.isEmpty) {
-            return Container();
-          }
-          return generateSection(
-            items: state.navigationItems.map(_buildNavigationMenuItem),
-          );
-        },
+      _ToolMatrix(
+        platform: widget.platform ?? SupportPlatform.currentPlatform,
+        navigation: navigation,
       ),
     ];
     return CommonScaffold(
@@ -70,62 +55,62 @@ class _ToolViewState extends ConsumerState<ToolsView> {
 }
 
 class _ToolMatrix extends StatelessWidget {
-  const _ToolMatrix({required this.platform});
+  const _ToolMatrix({required this.platform, required this.navigation});
 
   final SupportPlatform platform;
+  final List<NavigationItem> navigation;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.appLocalizations;
-    final tools = <(String, String, String, Glyph, Widget)>[
-      (
-        l10n.toolsConnection,
-        l10n.serviceStatus,
-        l10n.connectivityScope,
-        AppGlyphs.verified,
-        const ServiceStatusSheet(),
-      ),
+    final tools = <(String, String, String?, Glyph, VoidCallback)>[
       (
         l10n.toolsServices,
         l10n.auditTitle,
         l10n.auditSubtitle,
         AppGlyphs.verified,
-        const ServiceAuditView(),
+        () => BaseNavigator.push(context, const ServiceAuditView()),
       ),
       (
         l10n.toolsConnection,
         l10n.speedTest,
         l10n.networkSpeed,
         AppGlyphs.speed,
-        const SpeedTestView(),
+        () => BaseNavigator.push(context, const SpeedTestView()),
       ),
       (
         l10n.toolsPrivacy,
         l10n.dnsLeakTitle,
         l10n.dnsLeakSubtitle,
         AppGlyphs.devices,
-        const NetworkDiagnosticsView(kind: NetworkDiagnostic.dns),
+        () => BaseNavigator.push(
+          context,
+          const NetworkDiagnosticsView(kind: NetworkDiagnostic.dns),
+        ),
       ),
       (
         l10n.toolsPrivacy,
         l10n.webrtcLeakTitle,
         l10n.webrtcLeakSubtitle,
         AppGlyphs.vpn,
-        const NetworkDiagnosticsView(kind: NetworkDiagnostic.stun),
+        () => BaseNavigator.push(
+          context,
+          const NetworkDiagnosticsView(kind: NetworkDiagnostic.stun),
+        ),
       ),
       (
         l10n.toolsIp,
         l10n.ipPortraitTitle,
         l10n.ipPortraitSubtitle,
         AppGlyphs.status,
-        const IpPortraitView(),
+        () => BaseNavigator.push(context, const IpPortraitView()),
       ),
       (
         l10n.toolsIp,
         l10n.nodeGlobeTitle,
         l10n.nodeGeoEstimate,
         AppGlyphs.proxies,
-        const NodeGeoView(),
+        () => BaseNavigator.push(context, const NodeGeoView()),
       ),
       if (platform == SupportPlatform.Android)
         (
@@ -133,7 +118,7 @@ class _ToolMatrix extends StatelessWidget {
           l10n.androidNetworkTitle,
           l10n.androidNetworkSubtitle,
           AppGlyphs.settings,
-          const AndroidNetworkView(),
+          () => BaseNavigator.push(context, const AndroidNetworkView()),
         ),
       if (platform == SupportPlatform.Windows)
         (
@@ -141,7 +126,24 @@ class _ToolMatrix extends StatelessWidget {
           l10n.networkRecoveryTitle,
           l10n.networkRecoverySubtitle,
           AppGlyphs.settings,
-          const NetworkDiagnosticsView(kind: NetworkDiagnostic.recovery),
+          () => BaseNavigator.push(
+            context,
+            const NetworkDiagnosticsView(kind: NetworkDiagnostic.recovery),
+          ),
+        ),
+      for (final item in navigation)
+        (
+          l10n.toolsRecords,
+          item.label.label,
+          null,
+          item.glyph,
+          () => showExtend<dynamic>(
+            context,
+            props: ExtendProps(
+              forceFull: item.modes.contains(NavigationItemMode.moreFull),
+            ),
+            builder: item.builder,
+          ),
         ),
     ];
     return LayoutBuilder(
@@ -168,13 +170,13 @@ class _ToolMatrix extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 10,
                 children: [
-                  for (final (category, title, subtitle, glyph, page) in tools)
+                  for (final (category, title, subtitle, glyph, open) in tools)
                     if (category == group)
                       SizedBox(
                         width: width,
                         child: CommonCard(
                           padding: const EdgeInsets.all(12),
-                          onPressed: () => BaseNavigator.push(context, page),
+                          onPressed: open,
                           child: Row(
                             spacing: 12,
                             children: [
@@ -195,16 +197,17 @@ class _ToolMatrix extends StatelessWidget {
                                         emphasized: true,
                                       ),
                                     ),
-                                    Text(
-                                      subtitle,
-                                      style: AppTextStyle.caption1
-                                          .of(context)
-                                          .copyWith(
-                                            color: context
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
+                                    if (subtitle != null)
+                                      Text(
+                                        subtitle,
+                                        style: AppTextStyle.caption1
+                                            .of(context)
+                                            .copyWith(
+                                              color: context
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
                                   ],
                                 ),
                               ),

@@ -24,6 +24,7 @@
   "toolsPrivacy": "プライバシー",
   "toolsIp": "IP 診断",
   "toolsMaintenance": "システム保守",
+  "toolsRecords": "通信記録とリソース",
   "connectivityUnreachable": "到達不可",
   "connectivityResponded": "応答あり",
   "connectivityScope": "HTTP 応答あり。接続確認のみで、地域制限の解除を示しません。",

@@ -129,7 +129,7 @@ class SpeedCard extends ConsumerWidget {
             left: -_chartBleed,
             right: -_chartBleed,
             bottom: -_chartBleed,
-            height: compact ? 62 : 88,
+            height: 28,
             child: RepaintBoundary(
               child: _SpeedChart(direction: direction, traffics: traffics),
             ),
@@ -168,7 +168,7 @@ class SpeedCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: compact ? 6 : 10),
+                SizedBox(height: compact ? 4 : 8),
                 _Figure(
                   show: speed,
                   unit: _speedUnit(speed),

@@ -1842,6 +1842,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "toolsIp": MessageLookupByLibrary.simpleMessage("IP 診断"),
     "toolsMaintenance": MessageLookupByLibrary.simpleMessage("システム保守"),
     "toolsPrivacy": MessageLookupByLibrary.simpleMessage("プライバシー"),
+    "toolsRecords": MessageLookupByLibrary.simpleMessage("通信記録とリソース"),
     "toolsServices": MessageLookupByLibrary.simpleMessage("サービスとルーティング"),
     "torch": MessageLookupByLibrary.simpleMessage("ライト"),
     "total": MessageLookupByLibrary.simpleMessage("合計"),

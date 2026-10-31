@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/common/dns_leak.dart';
-import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/ip_portrait.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/interface.dart';
@@ -20,25 +19,6 @@ import '../helpers/test_app.dart';
 import '../fixtures/ip_portrait.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
-
-class _Ice extends IceProbe {
-  @override
-  Future<IceProbeResult> run({
-    Duration timeout = const Duration(seconds: 12),
-  }) async => const IceProbeResult(
-    candidates: [
-      IceAddress(
-        address: '8.8.8.8',
-        port: 3478,
-        kind: 'srflx',
-        protocol: 'udp',
-      ),
-    ],
-    completed: true,
-  );
-  @override
-  Future<void> cancel() async {}
-}
 
 void main() {
   setUpAll(() {
@@ -138,7 +118,6 @@ void main() {
                 ),
                 locale: const Locale('en'),
                 child: IpPortraitView(
-                  iceProbe: _Ice.new,
                   dnsProbe: (_) async => const [
                     DnsResolverReceipt(
                       ip: '8.8.4.4',
@@ -184,6 +163,8 @@ void main() {
             expect(find.text('IPQuery · 8.8.8.8'), findsOneWidget);
             await tester.scrollUntilVisible(find.text('DNS leak test'), 150);
             expect(find.text('No mismatch in this sample'), findsNothing);
+            expect(find.text('WebRTC / STUN leak test'), findsNothing);
+            expect(find.text('ICE candidates'), findsNothing);
             expect(find.text('Insufficient evidence'), findsWidgets);
           } else {
             expect(find.text('IPQuery · 8.8.8.8'), findsNothing);

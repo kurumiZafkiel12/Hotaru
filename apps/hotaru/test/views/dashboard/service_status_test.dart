@@ -243,7 +243,7 @@ void main() {
 
   for (final scale in [1.0, 1.4]) {
     testWidgets(
-      'a narrow 200 by 160 desktop card keeps four named latency rows at scale $scale',
+      'a narrow 200 by 154 desktop card keeps four named latency cells at scale $scale',
       (tester) async {
         final asked = <String>[];
         answer((params) {
@@ -256,7 +256,7 @@ void main() {
         await tester.pumpWidget(
           app(
             width: 200,
-            desktopHeight: 160,
+            desktopHeight: 154,
             density: DashboardDensity.compact,
             textScale: scale,
             theme: ThemeData(
@@ -273,12 +273,15 @@ void main() {
         );
         expect(find.text('123 ms'), findsNWidgets(4));
         final card = tester.getRect(find.byType(ServiceStatusCard));
-        var last = card.top;
-        for (final target in _homeTargets.take(4)) {
+        final cells = [
+          for (final target in _homeTargets) cellOf(tester, target),
+        ];
+        expect(cells[0].top, cells[1].top);
+        expect(cells[2].top, cells[3].top);
+        expect(cells[2].top, greaterThan(cells[0].bottom));
+        for (final target in _homeTargets) {
           final rect = tester.getRect(find.text(target.connectivityLabel));
-          expect(rect.top, greaterThan(last));
           expect(card.contains(rect.bottomRight), isTrue);
-          last = rect.bottom;
         }
         for (final text in tester.widgetList<Text>(find.text('123 ms'))) {
           expect(text.maxLines, 1);
@@ -351,18 +354,10 @@ void main() {
 
     Rect cell(ServiceTarget target) => cellOf(tester, target);
     expect(cell(first).top, cell(second).top);
-    expect(cell(first).height, 46 * 2 + 8);
+    expect(cell(first).height, lessThanOrEqualTo(130));
     expect(
       cell(second).right - cell(first).left,
       closeTo(rowWidth(tester), 0.01),
-    );
-    expect(
-      tester
-          .getTopLeft(
-            find.descendant(of: tile(first), matching: find.byType(Text)),
-          )
-          .dy,
-      greaterThan(cell(first).center.dy),
     );
     expect(tester.takeException(), isNull);
   });

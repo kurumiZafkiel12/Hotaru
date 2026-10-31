@@ -127,8 +127,12 @@ class IntranetIpCard extends ConsumerWidget {
               );
               return DashboardSwitchRow(
                 glyph: AppGlyphs.wifi,
-                title: title,
-                subtitle: allowLan
+                title: !mobile && scale > 1
+                    ? '$title · ${allowLan ? appLocalizations.portValue(port) : appLocalizations.disabled}'
+                    : title,
+                subtitle: !mobile && scale > 1
+                    ? null
+                    : allowLan
                     ? appLocalizations.portValue(port)
                     : appLocalizations.disabled,
                 value: allowLan,

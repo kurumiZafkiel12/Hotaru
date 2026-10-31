@@ -92,31 +92,63 @@ void main() {
       .position
       .maxScrollExtent;
 
-  testWidgets('the saved widgets share one fixed-tier cell grid', (
-    tester,
-  ) async {
-    await pumpDashboard(tester, const Size(1220, 1100));
+  for (final (size, scale) in [
+    (const Size(1024, 768), 1.0),
+    (const Size(740, 900), 1.0),
+    (const Size(460, 900), 1.0),
+    (const Size(1536, 960), 1.5),
+  ]) {
+    testWidgets('modular grid fits $size at text scale $scale', (tester) async {
+      await pumpDashboard(
+        tester,
+        size,
+        platform: SupportPlatform.Windows,
+        textScale: scale,
+      );
+      expect(rectOf(tester, CurrentOutboundCard).height, 154);
+      expect(tester.takeException(), isNull);
+      await teardown(tester);
+    });
+  }
+
+  testWidgets('modular desktop default aligns all four rows', (tester) async {
+    await pumpDashboard(tester, const Size(1536, 960));
     final hero = rectOf(tester, CurrentOutboundCard);
-    final speed = rectOf(tester, NetworkSpeedCard);
+    final speeds = find.byType(SpeedCard);
+    expect(speeds, findsNWidgets(2));
+    final upload = tester.getRect(speeds.at(0));
+    final download = tester.getRect(speeds.at(1));
     final mode = rectOf(tester, OutboundModeCard);
-    expect(hero.left, (1220 - 860) / 2 + 12);
-    expect(hero.width, 412);
-    expect(hero.height, 160);
-    expect(speed.left, hero.right + 12);
-    expect(speed.top, hero.top);
-    expect(speed.height, 160);
-    expect(mode.left, hero.left);
-    expect(mode.top, hero.bottom + 12);
+    final takeover = find.byType(NetworkTakeoverTile);
+    expect(takeover, findsNWidgets(2));
+    expect(hero.left, 14);
+    expect(hero.height, 154);
+    expect(upload.height, hero.height);
+    expect(upload.top, hero.top);
+    expect(download.top, hero.top);
+    expect(upload.left, hero.right + 10);
+    expect(download.left, upload.right + 10);
+    expect(download.right, 1536 - 14);
+    expect(mode.top, hero.bottom + 10);
+    expect(mode.height, 72);
     expect(mode.width, hero.width);
-    expect(find.byType(ProfilesCard), findsNothing);
-    expect(find.byType(IntranetIpCard), findsNothing);
-    expect(find.byType(ServiceStatusCard), findsNothing);
-    expect(find.byType(NetworkTakeoverCard), findsOneWidget);
-    expect(find.byType(ConnectionStatsCard), findsNothing);
-    expect(find.byType(ProxyGroupsCard), findsNothing);
-    // Not in the default layout; they stay one edit away.
-    expect(find.byType(MemoryInfo), findsNothing);
-    expect(find.byType(ConnectionsTableCard), findsNothing);
+    expect(tester.getRect(takeover.first).left, upload.left);
+    final service = rectOf(tester, ServiceStatusCard);
+    final profile = rectOf(tester, ProfilesCard);
+    final intranet = rectOf(tester, IntranetIpCard);
+    final memory = rectOf(tester, MemoryInfo);
+    expect(service.top, mode.bottom + 10);
+    expect(profile.top, service.top);
+    expect(intranet.top, service.top);
+    expect(memory.top, service.top);
+    final connections = rectOf(tester, ConnectionsTableCard);
+    final groups = rectOf(tester, ProxyGroupsCard);
+    expect(connections.height, 236);
+    expect(groups.height, 236);
+    expect(connections.top, service.bottom + 10);
+    expect(groups.top, connections.top);
+    expect(groups.left, upload.left);
+    expect(groups.bottom, lessThanOrEqualTo(960));
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
@@ -131,9 +163,9 @@ void main() {
           platform: SupportPlatform.Windows,
           devicePixelRatio: dpr,
         );
-        expect(rectOf(tester, CurrentOutboundCard).height, 160);
-        expect(rectOf(tester, NetworkSpeedCard).height, 160);
-        expect(rectOf(tester, OutboundModeCard).height, 122);
+        expect(rectOf(tester, CurrentOutboundCard).height, 154);
+        expect(rectOf(tester, SpeedCard).height, 154);
+        expect(rectOf(tester, OutboundModeCard).height, 72);
         expect(tester.takeException(), isNull);
       }
       await teardown(tester);
@@ -167,21 +199,21 @@ void main() {
       }
 
       await editWidth('4×');
-      expect(rectOf(tester, CurrentOutboundCard).width, 836);
-      expect(rectOf(tester, CurrentOutboundCard).height, 160);
+      expect(rectOf(tester, CurrentOutboundCard).width, 1412);
+      expect(rectOf(tester, CurrentOutboundCard).height, 154);
       await tester.tap(find.text('Done').last);
       for (var frame = 0; frame < 6; frame++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
       expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
-      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      expect(rectOf(tester, CurrentOutboundCard).width, 1412);
       await pumpDashboard(
         tester,
         const Size(740, 900),
         platform: SupportPlatform.Windows,
       );
       await tester.pump(const Duration(milliseconds: 400));
-      expect(rectOf(tester, CurrentOutboundCard).width, 412);
+      expect(rectOf(tester, CurrentOutboundCard).width, 712);
       expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
       await pumpDashboard(
         tester,
@@ -189,13 +221,13 @@ void main() {
         platform: SupportPlatform.Windows,
       );
       await tester.pump(const Duration(milliseconds: 400));
-      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      expect(rectOf(tester, CurrentOutboundCard).width, 1412);
       await editWidth('2×');
       await tester.tap(find.text('Cancel').last);
       for (var frame = 0; frame < 6; frame++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(rectOf(tester, CurrentOutboundCard).width, 836);
+      expect(rectOf(tester, CurrentOutboundCard).width, 1412);
       expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 4);
       await tester.tap(find.byTooltip('Edit dashboard'));
       for (var frame = 0; frame < 6; frame++) {
@@ -209,7 +241,7 @@ void main() {
       for (var frame = 0; frame < 6; frame++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(rectOf(tester, CurrentOutboundCard).width, 412);
+      expect(rectOf(tester, CurrentOutboundCard).width, 701);
       expect(container.read(appSettingProvider).dashboardWidgetSpans[key], 2);
       expect(tester.takeException(), isNull);
       await teardown(tester);
@@ -226,9 +258,9 @@ void main() {
     );
     final before = rectOf(tester, CurrentOutboundCard);
     final bar = tester.getRect(find.byType(AppBar));
-    expect(bar.width, 860);
-    expect(before.width, 412);
-    expect(before.left - bar.left, 12);
+    expect(bar.width, 1440);
+    expect(before.width, 701);
+    expect(before.left - bar.left, 14);
     await tester.tap(find.byTooltip('Edit dashboard'));
     for (var frame = 0; frame < 6; frame++) {
       await tester.pump(const Duration(milliseconds: 50));
@@ -250,10 +282,10 @@ void main() {
         platform: SupportPlatform.Windows,
       );
       final hero = rectOf(tester, CurrentOutboundCard);
-      final speed = rectOf(tester, NetworkSpeedCard);
+      final speed = rectOf(tester, SpeedCard);
       expect(hero.width, lessThanOrEqualTo(412));
       expect(speed.top, hero.top);
-      expect(hero.right + 12, speed.left);
+      expect(hero.right + 10, speed.left);
       expect(tester.takeException(), isNull);
       await teardown(tester);
     },
@@ -270,9 +302,9 @@ void main() {
       );
       final hero = rectOf(tester, CurrentOutboundCard);
       expect(hero.width, greaterThan(412));
-      expect(hero.width, lessThanOrEqualTo(572.1));
-      expect(hero.height, 160);
-      expect(rectOf(tester, OutboundModeCard).height, 122);
+      expect(hero.width, lessThanOrEqualTo(781));
+      expect(hero.height, 154);
+      expect(rectOf(tester, OutboundModeCard).height, 72);
       expect(tester.takeException(), isNull);
       await teardown(tester);
     },
@@ -297,13 +329,11 @@ void main() {
     await teardown(tester);
   });
 
-  testWidgets('wide screens center the desktop instead of stretching cards', (
-    tester,
-  ) async {
+  testWidgets('maximized workspace uses the available width', (tester) async {
     await pumpDashboard(tester, const Size(2560, 1440));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.left, (2560 - 836) / 2);
-    expect(hero.width, 412);
+    expect(hero.left, 14);
+    expect(hero.width, 1261);
     expect(scrollExtentOf(tester), 0);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -315,17 +345,17 @@ void main() {
     await pumpDashboard(tester, const Size(740, 900));
     final hero = rectOf(tester, CurrentOutboundCard);
     expect(hero.center.dx, 370);
-    expect(hero.width, 412);
+    expect(hero.width, 712);
     expect(rectOf(tester, OutboundModeCard).width, hero.width);
-    expect(find.byType(NetworkSpeedCard), findsOneWidget);
-    expect(find.byType(NetworkTakeoverCard), findsOneWidget);
-    expect(find.byType(IntranetIpCard), findsNothing);
-    expect(find.byType(ProfilesCard), findsNothing);
-    expect(find.byType(ServiceStatusCard), findsNothing);
+    expect(find.byType(SpeedCard), findsNWidgets(2));
+    expect(find.byType(NetworkTakeoverTile), findsNWidgets(2));
+    expect(find.byType(IntranetIpCard), findsOneWidget);
+    expect(find.byType(ProfilesCard), findsOneWidget);
+    expect(find.byType(ServiceStatusCard), findsOneWidget);
     expect(find.byType(ConnectionStatsCard), findsNothing);
-    expect(find.byType(ProxyGroupsCard), findsNothing);
-    expect(find.byType(MemoryInfo), findsNothing);
-    expect(find.byType(Scrollable), findsOneWidget);
+    expect(find.byType(ProxyGroupsCard), findsOneWidget);
+    expect(find.byType(MemoryInfo), findsOneWidget);
+    expect(find.byType(Scrollable), findsWidgets);
     expect(tester.takeException(), isNull);
     await teardown(tester);
   });
@@ -369,9 +399,9 @@ void main() {
               paragraph.text.toPlainText(),
         ];
         if (platform != SupportPlatform.Android) {
-          expect(rectOf(tester, CurrentOutboundCard).height, 160);
-          expect(rectOf(tester, NetworkSpeedCard).height, 160);
-          expect(rectOf(tester, OutboundModeCard).height, 122);
+          expect(rectOf(tester, CurrentOutboundCard).height, 154);
+          expect(rectOf(tester, SpeedCard).height, 154);
+          expect(rectOf(tester, OutboundModeCard).height, 72);
         }
         expect(clipped, isEmpty, reason: '$size x$scale');
         expect(tester.takeException(), isNull);
@@ -404,9 +434,9 @@ void main() {
   ) async {
     await pumpDashboard(tester, const Size(620, 700));
     final hero = rectOf(tester, CurrentOutboundCard);
-    expect(hero.width, 412);
+    expect(hero.width, 592);
     expect(hero.center.dx, 310);
-    expect(find.byType(NetworkTakeoverCard), findsOneWidget);
+    expect(find.byType(NetworkTakeoverTile), findsNWidgets(2));
     expect(find.byType(VpnCard), findsNothing);
     expect(tester.takeException(), isNull);
     await teardown(tester);

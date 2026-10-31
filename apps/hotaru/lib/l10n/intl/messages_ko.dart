@@ -1817,6 +1817,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "toolsIp": MessageLookupByLibrary.simpleMessage("IP 진단"),
     "toolsMaintenance": MessageLookupByLibrary.simpleMessage("시스템 유지관리"),
     "toolsPrivacy": MessageLookupByLibrary.simpleMessage("개인정보 보호"),
+    "toolsRecords": MessageLookupByLibrary.simpleMessage("활동 및 리소스"),
     "toolsServices": MessageLookupByLibrary.simpleMessage("서비스 및 라우팅"),
     "torch": MessageLookupByLibrary.simpleMessage("손전등"),
     "total": MessageLookupByLibrary.simpleMessage("합계"),

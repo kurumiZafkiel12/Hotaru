@@ -1667,6 +1667,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "toolsIp": MessageLookupByLibrary.simpleMessage("IP 诊断"),
     "toolsMaintenance": MessageLookupByLibrary.simpleMessage("系统维护"),
     "toolsPrivacy": MessageLookupByLibrary.simpleMessage("隐私安全"),
+    "toolsRecords": MessageLookupByLibrary.simpleMessage("网络记录与资源"),
     "toolsServices": MessageLookupByLibrary.simpleMessage("服务与路由"),
     "torch": MessageLookupByLibrary.simpleMessage("手电筒"),
     "total": MessageLookupByLibrary.simpleMessage("总计"),

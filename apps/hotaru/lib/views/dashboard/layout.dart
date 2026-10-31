@@ -9,15 +9,19 @@ const _minStandardFourColumnWidth = 840.0;
 const _minStandardHeight = 824.0;
 const _mobileMaxWidth = 560.0;
 
-int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
+int dashboardColumnsOf(double width) => width < 480
+    ? 1
+    : width < _minFourColumnWidth
+    ? 2
+    : 4;
 
 abstract final class DashboardSizing {
-  static const gap = 12.0;
-  static const inset = 12.0;
-  static const low = 122.0;
-  static const step = 38.0;
-  static const maxColumn = 200.0;
-  static const desktopControlHeight = 32.0;
+  static const gap = 10.0;
+  static const inset = 14.0;
+  static const low = 72.0;
+  static const step = 82.0;
+  static const maxColumn = double.infinity;
+  static const desktopControlHeight = 28.0;
   static const desktopStartButton = 56.0;
   static const desktopSwitchScale = 0.875;
 

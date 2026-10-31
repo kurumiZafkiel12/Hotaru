@@ -216,12 +216,11 @@ class ProxyGroupsCard extends ConsumerWidget {
     if (!density.isDesktop) {
       return const ProxyGroupsSummaryCard();
     }
-    final compact = density.isCompact;
     final scale = DashboardDensityScope.scaleOf(context);
     final groups = ref.watch(visibleGroupsStateProvider).value;
     final padding = dashboardCardPadding(density);
-    final tileHeight = (compact ? 52 : 60) * scale;
-    final tileGap = compact ? 6.0 : 8.0;
+    final tileHeight = 48 * scale;
+    const tileGap = 6.0;
     return DashboardCard(
       semanticLabel: context.appLocalizations.proxyGroup,
       padding: padding.copyWith(bottom: 0),

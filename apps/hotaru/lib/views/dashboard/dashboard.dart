@@ -69,7 +69,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
     final isDesktop = platform != SupportPlatform.Android;
     final editing = _editing;
-    const gap = DashboardSizing.gap;
+    const gap = 12.0;
     final appLocalizations = context.appLocalizations;
     final page = CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,

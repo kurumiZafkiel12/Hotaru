@@ -28,20 +28,27 @@ class OutboundModeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final desktop = DashboardDensityScope.of(context).isDesktop;
+    final showTitle = !desktop || DashboardDensityScope.scaleOf(context) <= 1;
     final mode = ref.watch(
       patchClashConfigProvider.select((state) => state.mode),
     );
     final tone = DashboardColors.of(context).tone;
     final style = AppTextStyle.footnote.of(context, emphasized: true);
     return DashboardCard(
+      padding: DashboardDensityScope.of(context).isDesktop
+          ? const EdgeInsets.all(10)
+          : null,
       semanticLabel: context.appLocalizations.outboundMode,
       child: Column(
         children: [
-          DashboardCardHeader(
-            glyph: AppGlyphs.split,
-            title: context.appLocalizations.outboundMode,
-          ),
-          const SizedBox(height: 6),
+          if (showTitle) ...[
+            DashboardCardHeader(
+              glyph: AppGlyphs.split,
+              title: context.appLocalizations.outboundMode,
+            ),
+            SizedBox(height: desktop ? 2 : 6),
+          ],
           DashboardConnectedGroup(
             children: [
               for (final (index, item) in Mode.values.indexed)
@@ -56,8 +63,10 @@ class OutboundModeCard extends ConsumerWidget {
                     semanticLabel: item.label,
                     onTap: () => _changeMode(ref, item),
                     builder: (foreground) => SizedBox(
-                      height: DashboardDensityScope.of(context).isDesktop
-                          ? DashboardSizing.desktopControlHeight
+                      height: desktop
+                          ? showTitle
+                                ? DashboardSizing.desktopControlHeight
+                                : 48
                           : 40,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

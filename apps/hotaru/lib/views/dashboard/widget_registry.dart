@@ -9,6 +9,16 @@ extension DashboardWidgetView on DashboardWidget {
   Widget get card => switch (this) {
     DashboardWidget.currentOutbound => const CurrentOutboundCard(),
     DashboardWidget.networkSpeed => const NetworkSpeedCard(),
+    DashboardWidget.uploadSpeed => const SpeedCard(
+      direction: TrafficDirection.upload,
+    ),
+    DashboardWidget.downloadSpeed => const SpeedCard(
+      direction: TrafficDirection.download,
+    ),
+    DashboardWidget.systemProxy => const NetworkTakeoverTile(
+      TakeoverSwitch.systemProxy,
+    ),
+    DashboardWidget.tun => const NetworkTakeoverTile(TakeoverSwitch.tun),
     DashboardWidget.outboundMode => const OutboundModeCard(),
     DashboardWidget.vpnButton => const VpnCard(),
     DashboardWidget.networkTakeover => const NetworkTakeoverCard(),
@@ -25,6 +35,10 @@ extension DashboardWidgetView on DashboardWidget {
   Glyph get glyph => switch (this) {
     DashboardWidget.currentOutbound => AppGlyphs.status,
     DashboardWidget.networkSpeed => AppGlyphs.speed,
+    DashboardWidget.uploadSpeed => AppGlyphs.arrowUp,
+    DashboardWidget.downloadSpeed => AppGlyphs.arrowDown,
+    DashboardWidget.systemProxy => AppGlyphs.shuffle,
+    DashboardWidget.tun => AppGlyphs.vpn,
     DashboardWidget.outboundMode => AppGlyphs.split,
     DashboardWidget.vpnButton => AppGlyphs.vpn,
     DashboardWidget.networkTakeover => AppGlyphs.shuffle,
@@ -43,6 +57,10 @@ extension DashboardWidgetView on DashboardWidget {
     return switch (this) {
       DashboardWidget.currentOutbound => appLocalizations.status,
       DashboardWidget.networkSpeed => appLocalizations.networkSpeed,
+      DashboardWidget.uploadSpeed => appLocalizations.upload,
+      DashboardWidget.downloadSpeed => appLocalizations.download,
+      DashboardWidget.systemProxy => appLocalizations.systemProxy,
+      DashboardWidget.tun => appLocalizations.tun,
       DashboardWidget.outboundMode => appLocalizations.outboundMode,
       DashboardWidget.vpnButton => 'VPN',
       DashboardWidget.networkTakeover => appLocalizations.networkTakeover,
@@ -61,13 +79,17 @@ extension DashboardWidgetView on DashboardWidget {
   DashboardTier get tier => switch (this) {
     DashboardWidget.currentOutbound => DashboardTier.mid,
     DashboardWidget.networkSpeed => DashboardTier.mid,
+    DashboardWidget.uploadSpeed => DashboardTier.narrow,
+    DashboardWidget.downloadSpeed => DashboardTier.narrow,
+    DashboardWidget.systemProxy => DashboardTier.small,
+    DashboardWidget.tun => DashboardTier.small,
     DashboardWidget.outboundMode => DashboardTier.short,
     DashboardWidget.vpnButton => DashboardTier.short,
-    DashboardWidget.networkTakeover => DashboardTier.short,
+    DashboardWidget.networkTakeover => DashboardTier.mid,
     DashboardWidget.serviceStatus => DashboardTier.narrow,
     DashboardWidget.profiles => DashboardTier.narrow,
     DashboardWidget.proxyGroups => DashboardTier.tall,
-    DashboardWidget.connectionStats => DashboardTier.small,
+    DashboardWidget.connectionStats => DashboardTier.narrow,
     DashboardWidget.intranetIp => DashboardTier.narrow,
     DashboardWidget.memoryInfo => DashboardTier.narrow,
     DashboardWidget.speedTest => DashboardTier.mid,

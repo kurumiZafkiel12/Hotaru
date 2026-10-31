@@ -6,11 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('desktop cards use only the three fixed logical heights', () {
-    expect(DashboardTier.short.height, 122);
-    expect(DashboardTier.mid.height, 160);
-    expect(DashboardTier.tall.height, 198);
+    expect(DashboardTier.short.height, 72);
+    expect(DashboardTier.mid.height, 154);
+    expect(DashboardTier.tall.height, 236);
     for (final tier in DashboardTier.values) {
-      expect(tier.height, anyOf(122, 160, 198));
+      expect(tier.height, anyOf(72, 154, 236));
     }
   });
 
@@ -34,8 +34,8 @@ void main() {
         ).single;
         expect(wide.columns, width.span);
         expect(narrow.columns, width.span.clamp(1, 2));
-        expect(wide.height, 122);
-        expect(narrow.height, 122);
+        expect(wide.height, 154);
+        expect(narrow.height, 154);
         expect(DashboardWidth.of(card, card.tier, saved), width);
       }
     },
@@ -62,7 +62,7 @@ void main() {
         for (final item in result) {
           expect(item.column, greaterThanOrEqualTo(0));
           expect(item.column + item.columns, lessThanOrEqualTo(columns));
-          expect(item.height, anyOf(122, 160, 198));
+          expect(item.height, anyOf(72, 154, 236));
           for (final other in result) {
             if (identical(item, other)) continue;
             final sameColumns =
@@ -70,7 +70,7 @@ void main() {
                 other.column < item.column + item.columns;
             if (sameColumns) {
               expect(
-                item.top >= other.bottom + 12 || other.top >= item.bottom + 12,
+                item.top >= other.bottom + 10 || other.top >= item.bottom + 10,
                 isTrue,
               );
             }
@@ -88,12 +88,12 @@ void main() {
     final tiers = {for (final item in order) item: item.tier};
     final result = placeDashboardWidgets(order, tiers, 4);
     expect(result.first.columns, 2);
-    expect(result.first.height, 160);
+    expect(result.first.height, 154);
     expect(result.last.top, 0);
     expect(result.last.column, 2);
   });
 
-  test('the statistics summary uses one column at the fixed low height', () {
+  test('the statistics summary uses one column at the fixed middle height', () {
     final order = [
       DashboardWidget.currentOutbound,
       DashboardWidget.networkSpeed,
@@ -109,8 +109,8 @@ void main() {
     expect(result[0].column, result[2].column);
     expect(result[1].column, result[3].column);
     expect(result.last.columns, 1);
-    expect(result.last.height, 122);
-    expect(result.last.top, 306);
+    expect(result.last.height, 154);
+    expect(result.last.top, 246);
   });
 
   test('summary and optional table leave room for neighboring cards', () {
@@ -122,7 +122,7 @@ void main() {
     final result = placeDashboardWidgets(order, {
       for (final item in order) item: item.tier,
     }, 4);
-    expect(result[0].height, 122);
+    expect(result[0].height, 154);
     expect(result[0].columns, 1);
     expect(result[1].columns, 2);
     expect(result[1].top, 0);
@@ -139,8 +139,8 @@ void main() {
       for (final item in order) item: item.tier,
     }, 2);
     expect(result.first.columns, 2);
-    expect(result.first.height, 198);
-    expect(result.last.top, 210);
+    expect(result.first.height, 236);
+    expect(result.last.top, 246);
   });
 
   test(

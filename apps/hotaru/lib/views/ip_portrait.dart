@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/dns_leak.dart';
-import 'package:hotaru/common/ice_probe.dart';
 import 'package:hotaru/common/ip_portrait.dart';
 import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -17,9 +16,8 @@ typedef PortraitDnsProbe =
     Future<List<DnsResolverReceipt>> Function(CancelToken token);
 
 class IpPortraitView extends ConsumerStatefulWidget {
-  const IpPortraitView({super.key, this.dnsProbe, this.iceProbe});
+  const IpPortraitView({super.key, this.dnsProbe});
   final PortraitDnsProbe? dnsProbe;
-  final IceProbe Function()? iceProbe;
 
   @override
   ConsumerState<IpPortraitView> createState() => _IpPortraitViewState();
@@ -29,10 +27,8 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
   late final RouteTracker _tracker;
   IpPortraitRunner? _runner;
   CancelToken? _dnsToken;
-  IceProbe? _ice;
   IpPortraitReport? _report;
   List<DnsResolverReceipt>? _dns;
-  IceProbeResult? _iceResult;
   bool _running = false;
   int _generation = 0;
   String? _notice;
@@ -55,7 +51,6 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
     _generation++;
     _runner?.cancel();
     _dnsToken?.cancel();
-    unawaited(_ice?.cancel());
   }
 
   void _cancel() {
@@ -64,7 +59,6 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
       _running = false;
       _report = null;
       _dns = null;
-      _iceResult = null;
     });
   }
 
@@ -90,13 +84,11 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
       routeVersion: route.routeVersion,
     );
     final token = _dnsToken = CancelToken();
-    final ice = _ice = widget.iceProbe?.call() ?? IceProbe();
     setState(() {
       _running = true;
       _notice = null;
       _report = null;
       _dns = null;
-      _iceResult = null;
     });
     final dnsFuture =
         Future.sync(
@@ -107,19 +99,13 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
           (receipts) => receipts,
           onError: (Object _) => null,
         );
-    final iceFuture = ice.run().then<IceProbeResult?>(
-      (result) => result,
-      onError: (Object _) => null,
-    );
     try {
       final report = await runner.run();
       final dns = await dnsFuture;
-      final iceResult = await iceFuture;
       if (!mounted || generation != _generation) return;
       setState(() {
         _report = report;
         _dns = dns;
-        _iceResult = iceResult;
       });
     } catch (_) {
       if (mounted && generation == _generation) {
@@ -223,10 +209,8 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
     ]);
   }
 
-  Widget _leaks(IpPortraitReport report) {
+  Widget _leaks() {
     final l10n = context.appLocalizations;
-    final iceVerdict =
-        _iceResult?.verdict(report.addresses) ?? IceVerdict.inconclusive;
     final dnsRisk = _dns?.any((resolver) => resolver.domesticIsp) ?? false;
     return _panel(l10n.toolsPrivacy, [
       ListTile(
@@ -258,35 +242,6 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
             ),
         ],
       ),
-      ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(l10n.webrtcLeakTitle, style: AppTextStyle.body.of(context)),
-        subtitle: Text(switch (iceVerdict) {
-          IceVerdict.matching => l10n.webrtcLeakMatch,
-          IceVerdict.risk => l10n.webrtcLeakRisk,
-          IceVerdict.inconclusive => l10n.diagnosticsInsufficient,
-        }, style: AppTextStyle.footnote.of(context)),
-        onTap: () => BaseNavigator.push(
-          context,
-          const NetworkDiagnosticsView(kind: NetworkDiagnostic.stun),
-        ),
-      ),
-      ExpansionTile(
-        title: Text(
-          l10n.iceCandidates,
-          style: AppTextStyle.footnote.of(context),
-        ),
-        shape: AppShape.md,
-        collapsedShape: AppShape.md,
-        children: [
-          _text(l10n.webrtcLeakScope),
-          for (final candidate in _iceResult?.candidates ?? <IceAddress>[])
-            _text(
-              '${candidate.kind} · ${candidate.protocol} · ${candidate.address}',
-              mono: true,
-            ),
-        ],
-      ),
     ]);
   }
 
@@ -295,9 +250,6 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
     final l10n = context.appLocalizations;
     final report = _report;
     final dnsRisk = _dns?.any((resolver) => resolver.domesticIsp) ?? false;
-    final iceRisk =
-        report != null &&
-        _iceResult?.verdict(report.addresses) == IceVerdict.risk;
     return BaseScaffold(
       title: l10n.ipPortraitTitle,
       body: Align(
@@ -336,7 +288,7 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
                 _text(
                   report == null
                       ? l10n.diagnosticsInsufficient
-                      : dnsRisk || iceRisk
+                      : dnsRisk
                       ? l10n.diagnosticsRisk
                       : report.hasDisagreement
                       ? l10n.portraitSourceConflict
@@ -345,7 +297,6 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
                       : l10n.portraitUnclear,
                 ),
                 if (dnsRisk) _text(l10n.dnsLeakRisk),
-                if (iceRisk) _text(l10n.webrtcLeakRisk),
                 if (report != null)
                   _text(
                     DateFormat.yMd().add_Hms().format(
@@ -384,7 +335,7 @@ class _IpPortraitViewState extends ConsumerState<IpPortraitView> {
                   },
                 ),
                 const SizedBox(height: 12),
-                _leaks(report),
+                _leaks(),
                 const SizedBox(height: 12),
                 _panel(l10n.toolsServices, [
                   _text(l10n.portraitRoutingScope),

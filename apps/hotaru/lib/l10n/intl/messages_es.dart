@@ -1227,9 +1227,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -2336,6 +2337,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Mantenimiento del sistema",
     ),
     "toolsPrivacy": MessageLookupByLibrary.simpleMessage("Privacidad"),
+    "toolsRecords": MessageLookupByLibrary.simpleMessage(
+      "Actividad y recursos",
+    ),
     "toolsServices": MessageLookupByLibrary.simpleMessage("Servicios y rutas"),
     "torch": MessageLookupByLibrary.simpleMessage("Linterna"),
     "total": MessageLookupByLibrary.simpleMessage("Total"),

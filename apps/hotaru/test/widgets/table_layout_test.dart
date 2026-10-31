@@ -11,6 +11,19 @@ const _columns = [
 double _sum(List<double> widths) => widths.fold(0, (sum, w) => sum + w);
 
 void main() {
+  test('fixed columns leave room for content in a narrow dashboard card', () {
+    const columns = [
+      TableColumn('target', 'Target', flex: 1),
+      TableColumn('exit', 'Exit', width: 180),
+      TableColumn('download', 'Download', width: 100),
+      TableColumn('upload', 'Upload', width: 100),
+    ];
+    final widths = tableColumnWidths(columns, 371);
+
+    expect(_sum(widths), closeTo(371, 0.001));
+    expect(widths.every((width) => width > 0), isTrue);
+  });
+
   test('flexible columns share what the fixed ones leave', () {
     expect(tableColumnWidths(_columns, 500), [80, 200, 100, 120]);
   });

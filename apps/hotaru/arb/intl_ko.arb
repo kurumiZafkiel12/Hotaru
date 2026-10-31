@@ -24,6 +24,7 @@
   "toolsPrivacy": "개인정보 보호",
   "toolsIp": "IP 진단",
   "toolsMaintenance": "시스템 유지관리",
+  "toolsRecords": "활동 및 리소스",
   "connectivityUnreachable": "연결 불가",
   "connectivityResponded": "응답 수신",
   "connectivityScope": "HTTP 응답을 받았습니다. 연결만 확인하며 서비스 잠금 해제를 의미하지 않습니다.",

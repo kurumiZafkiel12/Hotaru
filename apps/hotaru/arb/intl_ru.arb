@@ -24,6 +24,7 @@
   "toolsPrivacy": "Конфиденциальность",
   "toolsIp": "Диагностика IP",
   "toolsMaintenance": "Обслуживание системы",
+  "toolsRecords": "Активность и ресурсы",
   "connectivityUnreachable": "Недоступен",
   "connectivityResponded": "Ответ получен",
   "connectivityScope": "Получен HTTP-ответ. Проверяется соединение, а не разблокировка сервиса.",

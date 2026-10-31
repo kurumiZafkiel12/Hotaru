@@ -194,38 +194,37 @@ class _ServiceStatusCardState extends ConsumerState<ServiceStatusCard>
         : null;
     Future<void> openSheet() => showServiceStatusSheet(context);
     final scale = DashboardDensityScope.scaleOf(context);
-    final grid = _ServiceGrid(
-      services: services,
-      columns: widget.columns,
-      fill: !mobile,
-      cellHeight:
-          (mobile
-              ? 44
-              : density.isCompact
-              ? 40
-              : 46) *
-          scale,
-      gap: density.isCompact ? 6 : 8,
-    );
     return DashboardCard(
       semanticLabel: appLocalizations.serviceStatus,
       onTap: mobile ? openSheet : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compactList =
-              !mobile &&
-              widget.columns > 1 &&
-              constraints.maxWidth < 260 * scale;
+          final compactHeader = !mobile && constraints.maxWidth < 300;
+          final grid = _ServiceGrid(
+            services: services,
+            columns: widget.columns,
+            fill: !mobile,
+            cellHeight: mobile
+                ? 44 * scale
+                : max(
+                    0,
+                    (constraints.maxHeight -
+                            DashboardCardHeader.height * scale -
+                            6) /
+                        2,
+                  ),
+            gap: mobile ? 8 : 6,
+          );
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
             children: [
               DashboardCardHeader(
-                glyph: compactList ? null : AppGlyphs.verified,
+                glyph: compactHeader ? null : AppGlyphs.verified,
                 title: appLocalizations.serviceStatus,
                 chevron: mobile,
                 trailing: [
-                  if (!stacked && !compactList) ?verdict,
+                  if (!stacked && !compactHeader) ?verdict,
                   if (!mobile)
                     Transform.translate(
                       offset: const Offset(8, 0),
@@ -247,87 +246,11 @@ class _ServiceStatusCardState extends ConsumerState<ServiceStatusCard>
                     ),
                 ],
               ),
-              if (compactList)
-                const SizedBox(height: 6)
-              else if (mobile)
-                const SizedBox(height: 12)
-              else
-                const Spacer(),
-              if (compactList)
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemExtent: max(
-                      24.0,
-                      AppTextStyle.caption1.leading * scale,
-                    ),
-                    itemCount: services.length,
-                    itemBuilder: (context, index) =>
-                        _CompactServiceRow(service: services[index]),
-                  ),
-                )
-              else
-                grid,
+              if (mobile) const SizedBox(height: 12) else const Spacer(),
+              grid,
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _CompactServiceRow extends StatelessWidget {
-  const _CompactServiceRow({required this.service});
-
-  final _ServiceView service;
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color) = service.statusOf(context);
-    final style = AppTextStyle.caption1
-        .of(context)
-        .toTabular
-        .copyWith(color: color);
-    return Semantics(
-      label: service.target.connectivityLabel,
-      value: label,
-      liveRegion: true,
-      child: Tooltip(
-        message: '${service.target.connectivityLabel}\n$label',
-        excludeFromSemantics: true,
-        child: ExcludeSemantics(
-          child: Row(
-            spacing: 6,
-            children: [
-              _ServiceBadge(
-                target: service.target,
-                size: 20,
-                dot: service.dotOf(context),
-              ),
-              Expanded(
-                child: Text(
-                  service.target.connectivityLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: DashboardText.label(context),
-                ),
-              ),
-              Flexible(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: service.loading
-                      ? SkeletonText(width: 44, style: style)
-                      : Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: style,
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -414,6 +337,59 @@ class _ServiceCell extends StatelessWidget {
         .of(context, emphasized: true)
         .toTabular
         .copyWith(color: color);
+    if (DashboardDensityScope.of(context).isDesktop) {
+      return Semantics(
+        label: service.target.connectivityLabel,
+        value: label,
+        child: SizedBox(
+          height: tile ? null : height,
+          child: DashboardBlock(
+            radius: DashboardCorner.tab,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: [
+                Row(
+                  spacing: 4,
+                  children: [
+                    SizedBox.square(
+                      dimension: 6,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color:
+                              service.dotOf(context) ??
+                              context.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        service.target.connectivityLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.caption2.of(context),
+                      ),
+                    ),
+                  ],
+                ),
+                if (service.loading)
+                  SkeletonText(width: 44, style: status)
+                else
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: status,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     final badge = _ServiceBadge(
       target: service.target,
       size: height - _inset * 2,

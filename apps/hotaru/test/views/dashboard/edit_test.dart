@@ -440,10 +440,10 @@ void main() {
     );
     expect(find.byType(DesktopDashboardEditor), findsOneWidget);
     expect(find.byType(DashboardEditor), findsNothing);
-    expect(tester.getSize(find.byType(CurrentOutboundCard)).height, 160);
+    expect(tester.getSize(find.byType(CurrentOutboundCard)).height, 154);
     final source = tester.getCenter(find.byType(ProfilesCard));
     final target =
-        tester.getCenter(find.byType(NetworkTakeoverCard)) -
+        tester.getCenter(find.byType(NetworkTakeoverTile).first) -
         const Offset(40, 0);
     final gesture = await tester.startGesture(
       source,
@@ -460,7 +460,8 @@ void main() {
     expect(saved(), const [
       DashboardWidget.currentOutbound,
       DashboardWidget.profiles,
-      DashboardWidget.networkTakeover,
+      DashboardWidget.systemProxy,
+      DashboardWidget.tun,
     ]);
     expect(tester.takeException(), isNull);
     await teardown(tester);
@@ -495,7 +496,7 @@ void main() {
 
     expect(find.byTooltip('Edit dashboard'), findsOneWidget);
     expect(find.byType(DesktopDashboardGrid), findsOneWidget);
-    expect(find.byType(NetworkSpeedCard), findsOneWidget);
+    expect(find.byType(SpeedCard), findsNWidgets(2));
 
     await edit(tester);
     expect(find.byType(DesktopDashboardEditor), findsOneWidget);
@@ -515,7 +516,7 @@ void main() {
     );
     expect(find.byKey(const ValueKey('resize-currentOutbound')), findsNothing);
     final before = tester.getRect(find.byType(CurrentOutboundCard));
-    expect(before.height, 160);
+    expect(before.height, 154);
     await tester.tap(find.text('Done'));
     await settle(tester);
     expect(

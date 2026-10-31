@@ -24,6 +24,7 @@
   "toolsPrivacy": "隐私安全",
   "toolsIp": "IP 诊断",
   "toolsMaintenance": "系统维护",
+  "toolsRecords": "网络记录与资源",
   "connectivityUnreachable": "不可达",
   "connectivityResponded": "已响应",
   "connectivityScope": "已收到 HTTP 响应；仅测试连通性，不代表服务解锁。",

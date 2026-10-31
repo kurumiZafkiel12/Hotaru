@@ -43,7 +43,7 @@ List<double> tableColumnWidths(
     }
   }
   final free = width - fixed;
-  if (overrides.isEmpty ||
+  if ((overrides.isEmpty && fixed <= width) ||
       (flexCount > 0 && free >= flexCount * tableColumnMinWidth)) {
     final share = free.clamp(0.0, double.infinity);
     return [

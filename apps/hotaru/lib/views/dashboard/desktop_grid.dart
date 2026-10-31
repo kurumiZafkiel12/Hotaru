@@ -17,6 +17,39 @@ import 'widget_registry.dart';
 const _maxColumnWidth = DashboardSizing.maxColumn;
 const _sidePadding = DashboardSizing.inset;
 
+const _desktopDefault = [
+  DashboardWidget.currentOutbound,
+  DashboardWidget.uploadSpeed,
+  DashboardWidget.downloadSpeed,
+  DashboardWidget.outboundMode,
+  DashboardWidget.systemProxy,
+  DashboardWidget.tun,
+  DashboardWidget.serviceStatus,
+  DashboardWidget.profiles,
+  DashboardWidget.intranetIp,
+  DashboardWidget.memoryInfo,
+  DashboardWidget.connectionsTable,
+  DashboardWidget.proxyGroups,
+];
+
+List<DashboardWidget> _desktopOrder(List<DashboardWidget> saved) {
+  if (listEquals(saved, defaultDashboardWidgets)) return [..._desktopDefault];
+  return {
+    for (final item in saved)
+      ...switch (item) {
+        DashboardWidget.networkSpeed => [
+          DashboardWidget.uploadSpeed,
+          DashboardWidget.downloadSpeed,
+        ],
+        DashboardWidget.networkTakeover => [
+          DashboardWidget.systemProxy,
+          DashboardWidget.tun,
+        ],
+        _ => [item],
+      },
+  }.toList();
+}
+
 Map<DashboardWidget, DashboardTier> _tiersOf(List<DashboardWidget> order) => {
   for (final widget in order) widget: widget.tier,
 };
@@ -90,7 +123,7 @@ class DesktopDashboardGrid extends ConsumerWidget {
       dashboardStateProvider.select((state) => state.dashboardWidgets),
     );
     final order = [
-      for (final widget in saved)
+      for (final widget in _desktopOrder(saved))
         if (widget.platforms.contains(platform)) widget,
     ];
     final widths = ref.watch(
@@ -266,7 +299,7 @@ class _DesktopDashboardEditorState extends ConsumerState<DesktopDashboardEditor>
     final setting = ref.read(appSettingProvider);
     _widths = Map.of(setting.dashboardWidgetSpans);
     _order = [
-      for (final item in setting.dashboardWidgets)
+      for (final item in _desktopOrder(setting.dashboardWidgets))
         if (item.platforms.contains(widget.platform)) item,
     ];
   }
@@ -335,7 +368,7 @@ class _DesktopDashboardEditorState extends ConsumerState<DesktopDashboardEditor>
         }
       }
       _order = [
-        for (final item in platformDefaultDashboardWidgets)
+        for (final item in _desktopDefault)
           if (item.platforms.contains(widget.platform)) item,
       ];
       _dragging = null;

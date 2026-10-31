@@ -150,6 +150,10 @@ const _$EditorFontSizeEnumMap = {
 const _$DashboardWidgetEnumMap = {
   DashboardWidget.currentOutbound: 'currentOutbound',
   DashboardWidget.networkSpeed: 'networkSpeed',
+  DashboardWidget.uploadSpeed: 'uploadSpeed',
+  DashboardWidget.downloadSpeed: 'downloadSpeed',
+  DashboardWidget.systemProxy: 'systemProxy',
+  DashboardWidget.tun: 'tun',
   DashboardWidget.outboundMode: 'outboundMode',
   DashboardWidget.vpnButton: 'vpnButton',
   DashboardWidget.networkTakeover: 'networkTakeover',

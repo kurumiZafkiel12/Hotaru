@@ -11,7 +11,7 @@ import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
 
 EdgeInsets dashboardCardPadding(DashboardDensity density) =>
-    const EdgeInsets.all(DashboardSizing.inset);
+    const EdgeInsets.all(12);
 
 double dashboardCardRadius(DashboardDensity density) => density.isDesktop
     ? DashboardCorner.desktopCard

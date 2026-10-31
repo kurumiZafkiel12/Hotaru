@@ -245,32 +245,53 @@ class _MemorySummary extends StatelessWidget {
           ],
         ),
         SizedBox(height: compact ? 8 : 10),
-        Wrap(
-          spacing: 16,
-          runSpacing: 4,
-          children: [
-            for (final part in parts)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 6,
-                children: [
-                  DecoratedBox(
-                    decoration: ShapeDecoration(
-                      color: part.color,
-                      shape: AppShape.circle,
+        LayoutBuilder(
+          builder: (context, constraints) => Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final part in parts)
+                SizedBox(
+                  width: mobile ? null : (constraints.maxWidth - 8) / 2,
+                  child: Tooltip(
+                    message:
+                        '${part.label} ${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 6,
+                      children: [
+                        DecoratedBox(
+                          decoration: ShapeDecoration(
+                            color: part.color,
+                            shape: AppShape.circle,
+                          ),
+                          child: const SizedBox.square(dimension: 8),
+                        ),
+                        Flexible(
+                          child: Text(
+                            part.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: DashboardText.label(context),
+                          ),
+                        ),
+                        Flexible(
+                          flex: 2,
+                          child: Text(
+                            '${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.footnote
+                                .of(context, emphasized: true)
+                                .toTabular,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const SizedBox.square(dimension: 8),
                   ),
-                  Text(part.label, style: DashboardText.label(context)),
-                  Text(
-                    '${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
-                    style: AppTextStyle.footnote
-                        .of(context, emphasized: true)
-                        .toTabular,
-                  ),
-                ],
-              ),
-          ],
+                ),
+            ],
+          ),
         ),
       ],
     );

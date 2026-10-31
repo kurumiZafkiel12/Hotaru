@@ -24,6 +24,7 @@
   "toolsPrivacy": "Privacy",
   "toolsIp": "IP diagnostics",
   "toolsMaintenance": "System maintenance",
+  "toolsRecords": "Activity & resources",
   "connectivityUnreachable": "Unreachable",
   "connectivityResponded": "Responded",
   "connectivityScope": "HTTP response received; connectivity only, not service unlock.",

@@ -138,7 +138,19 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 2,
-                    children: [status, address, dimensions, metadata],
+                    children: DashboardDensityScope.scaleOf(context) > 1
+                        ? [
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Expanded(flex: 3, child: address),
+                                Flexible(child: status),
+                              ],
+                            ),
+                            dimensions,
+                            metadata,
+                          ]
+                        : [status, address, dimensions, metadata],
                   ),
                 ),
                 toggle,
