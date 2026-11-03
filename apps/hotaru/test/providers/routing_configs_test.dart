@@ -214,7 +214,7 @@ void main() {
               'proxies': ['Node'],
             },
           ],
-          'rules': ['DOMAIN,old-subscription.test,REJECT', 'MATCH,Selected'],
+          'rules': ['IP-CIDR,127.0.0.0/8,REJECT', 'MATCH,Selected'],
         },
       );
       final built = await container
@@ -244,6 +244,10 @@ void main() {
       expect((result['proxy-groups'] as YamlList).first['name'], 'Selected');
       expect(built.base, isNull);
       expect(built.counts.rules, 2);
+      final destination = Platform.environment['HOTARU_ROUTING_FIXTURE'];
+      if (destination != null) {
+        await File(destination).writeAsString(built.yaml);
+      }
       verifyNever(() => core.getProfileBase(any()));
     },
   );

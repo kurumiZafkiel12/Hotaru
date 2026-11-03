@@ -234,6 +234,15 @@ jobs:
           set -o pipefail
           go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed|TestProviderOnlyNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
 
+      - name: Verify Flutter-generated independent rules through actual Mihomo traffic
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          export HOTARU_ROUTING_FIXTURE="$RUNNER_TEMP/hotaru-independent-routing.yaml"
+          flutter test test/providers/routing_configs_test.dart
+          cd core
+          CGO_ENABLED=0 go test . -run TestGeneratedIndependentRulesUseActualSelectedExit -v
+
       - name: Capture actual Windows UI in safe mode
         if: matrix.platform == 'windows'
         shell: pwsh
