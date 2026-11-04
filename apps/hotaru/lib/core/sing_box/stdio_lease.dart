@@ -100,9 +100,9 @@ final class StdioCoreLease implements CoreProcessReadySource {
   }
 
   Future<CoreProcessStopResult> _stop(Duration timeout) async {
-    final deadline = DateTime.now().add(timeout);
+    final elapsed = Stopwatch()..start();
     Duration remaining() {
-      final duration = deadline.difference(DateTime.now());
+      final duration = timeout - elapsed.elapsed;
       return duration.isNegative ? Duration.zero : duration;
     }
 
