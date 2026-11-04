@@ -18,11 +18,14 @@ Future<void> main() async {
   final configPath = environment['HOTARU_PROBE_CONFIG']!;
   final endpoint = Uri.parse(environment['HOTARU_PROBE_API']!);
   final secret = environment['HOTARU_PROBE_SECRET']!;
+  final stdioControl = environment['HOTARU_PROBE_STDIO'] == 'true';
   final core = SingBoxDesktopCore(
     executable: executable,
     configPath: configPath,
     endpoint: endpoint,
     secret: secret,
+    stdioControl: stdioControl,
+    onStderr: stderr.write,
   );
   try {
     final started = await Future.wait([core.start(), core.start()]);
@@ -101,6 +104,7 @@ Future<void> main() async {
         configPath: file.path,
         endpoint: endpoint,
         secret: secret,
+        stdioControl: stdioControl,
       );
       try {
         var rejected = false;

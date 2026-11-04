@@ -147,6 +147,22 @@ void main() {
   });
 
   test(
+    'the owned host must finish startup before the controller is queried',
+    () async {
+      final starting = _StartingProcess();
+      process = starting;
+      final current = create();
+      await current.open();
+      current.observeProcess(starting);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(requests, 0);
+      final connected = current.waitUntilConnected(const Duration(seconds: 2));
+      starting.initialized.complete();
+      expect((await connected).pid, starting.pid);
+    },
+  );
+
+  test(
     'persistent controller failure ends the connection rather than claiming running',
     () async {
       final current = create();
@@ -181,4 +197,11 @@ final class _OwnedProcess implements CoreProcessExitSource {
     if (!exited.isCompleted) exited.complete(1);
     return const CoreProcessStopResult(stopped: true, exitConfirmed: true);
   }
+}
+
+final class _StartingProcess extends _OwnedProcess
+    implements CoreProcessReadySource {
+  final Completer<void> initialized = Completer<void>();
+  @override
+  Future<void> get ready => initialized.future;
 }

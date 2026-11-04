@@ -33,6 +33,8 @@ class Origin(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == '/release':
+            self.server.release.set()
         body = b'hotaru-sing-box-probe'
         self.send_response(200)
         self.send_header('Content-Length', str(len(body)))
@@ -50,10 +52,11 @@ class Origin(http.server.BaseHTTPRequestHandler):
 class Proxy(Origin):
     def do_CONNECT(self):
         host, destination_port = self.path.rsplit(':', 1)
-        if host != '127.0.0.1' or int(destination_port) != self.server.origin_port:
+        allowed = ['127.0.0.1'] + (['198.18.7.2'] if getattr(self.server, 'tun_target', False) else [])
+        if host not in allowed or int(destination_port) != self.server.origin_port:
             self.send_error(403)
             return
-        with socket.create_connection((host, int(destination_port)), timeout=3) as upstream:
+        with socket.create_connection(('127.0.0.1', int(destination_port)), timeout=3) as upstream:
             self.server.receipts.append(self.path)
             self.send_response(200)
             self.end_headers()
@@ -135,7 +138,34 @@ def fixture_trust(certificate):
                        check=True, stdout=subprocess.DEVNULL, timeout=15)
 
 
-def run(binary, dart=None):
+def windows_snapshot(name):
+    if len(name) != 17 or not name.startswith('HotaruP0-') or any(
+            character not in '0123456789abcdef' for character in name[9:]):
+        raise RuntimeError('Unexpected fixture interface name')
+    script = r"""
+$ErrorActionPreference = 'Stop'
+$proxy = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+$routes = @(Get-NetRoute)
+$adapters = @(Get-NetAdapter -IncludeHidden)
+$addresses = @(Get-NetIPAddress)
+$defaults = @(($routes | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' -or $_.DestinationPrefix -eq '::/0' }) |
+    ForEach-Object { "$($_.DestinationPrefix)|$($_.InterfaceIndex)|$($_.NextHop)|$($_.RouteMetric)" } | Sort-Object)
+@{
+    adapterCount = @($adapters | Where-Object { $_.Name -eq 'INTERFACE_NAME' }).Count
+    addressCount = @($addresses | Where-Object { $_.InterfaceAlias -eq 'INTERFACE_NAME' }).Count
+    routeCount = @($routes | Where-Object { $_.DestinationPrefix -eq '198.18.7.0/30' }).Count
+    defaultRoutes = $defaults
+    proxy = @{ enabled = $proxy.ProxyEnable; server = $proxy.ProxyServer; pac = $proxy.AutoConfigURL }
+} | ConvertTo-Json -Depth 4 -Compress
+""".replace('INTERFACE_NAME', name)
+    result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+                            capture_output=True, text=True, timeout=20, check=True)
+    return json.loads(result.stdout)
+
+
+def run(binary, dart=None, stdio_host=False, tun=False):
+    if tun and (os.name != 'nt' or os.environ.get('CI') != 'true' or not stdio_host or dart is None):
+        raise RuntimeError('TUN probe requires the stdio host and disposable Windows CI')
     progress('Verify pinned binary version')
     version = subprocess.check_output([binary, 'version'], text=True, timeout=10)
     if version.splitlines()[0] != 'sing-box version 1.14.4':
@@ -154,7 +184,7 @@ def run(binary, dart=None):
             openssl, 'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
             '-keyout', str(key), '-out', str(certificate), '-days', '1',
             '-subj', '/CN=Hotaru P0 local fixture',
-            '-addext', 'subjectAltName=IP:127.0.0.1',
+            '-addext', 'subjectAltName=IP:127.0.0.1,IP:198.18.7.2',
         ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=15)
         tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         tls.load_cert_chain(certificate, key)
@@ -219,9 +249,11 @@ def run(binary, dart=None):
 
             with fixture_trust(certificate) as environment, \
                     (pathlib.Path(directory) / 'core.log').open('w+') as log:
-                process = subprocess.Popen([binary, 'run', '-c', str(path)],
+                process = subprocess.Popen([binary, 'run', '-c', str(path)] +
+                                           (['--stdio-control'] if stdio_host else []),
                                            stdout=log, stderr=log, cwd=directory,
-                                           env=environment)
+                                           env=environment,
+                                           stdin=subprocess.PIPE if stdio_host else None)
                 try:
                     progress('Start isolated core and wait for controller')
                     deadline = time.monotonic() + 10
@@ -326,12 +358,18 @@ def run(binary, dart=None):
                                    'Only final-route chains verified; no multi-hop acceptance'],
                     }
                 finally:
-                    process.terminate()
                     try:
-                        process.wait(timeout=5)
+                        if stdio_host:
+                            process.communicate(b'stop\n', timeout=8)
+                            if process.returncode != 0:
+                                raise RuntimeError('Desktop host failed to close cleanly')
+                        else:
+                            process.terminate()
+                            process.wait(timeout=5)
                     except subprocess.TimeoutExpired:
                         process.kill()
                         process.wait(timeout=5)
+                        raise
                 if dart is not None:
                     progress('Verify production desktop lifecycle with owned core processes')
                     before = len(second.receipts)
@@ -342,12 +380,63 @@ def run(binary, dart=None):
                         HOTARU_PROBE_API=f'http://127.0.0.1:{api_port}',
                         HOTARU_PROBE_SECRET=secret,
                         HOTARU_PROBE_TARGET=target,
+                        HOTARU_PROBE_STDIO='true' if stdio_host else 'false',
                     )
                     subprocess.run([
                         dart, str(pathlib.Path(__file__).with_name('sing_box_lifecycle_smoke.dart')),
                     ], check=True, timeout=90, env=lifecycle_environment)
                     assert len(second.receipts) == before + 1
                     report['desktop_lifecycle_verified'] = True
+                    report['stdio_cleanup_acknowledgements_verified'] = stdio_host
+                if tun:
+                    progress('Verify real Windows TUN packets and cleanup')
+                    name = 'HotaruP0-' + uuid.uuid4().hex[:8]
+                    before = windows_snapshot(name)
+                    if before['adapterCount'] or before['addressCount'] or before['routeCount']:
+                        raise RuntimeError('Fixture interface or benchmark route is already in use')
+                    compiled = subprocess.run([
+                        dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
+                        '--build-config',
+                    ], input=json.dumps({
+                        'nodes': [{'tag': 'node-a', 'port': first.server_port},
+                                  {'tag': 'node-b', 'port': second.server_port}],
+                        'mixedPort': mixed_port, 'controllerPort': api_port,
+                        'secret': secret, 'tunName': name,
+                    }), text=True, capture_output=True, check=True, timeout=20)
+                    tun_config = json.loads(compiled.stdout)
+                    tun_config['certificate'] = config['certificate']
+                    tun_config['log'] = {'level': 'error'}
+                    tun_config['route']['find_process'] = True
+                    tun_path = pathlib.Path(directory) / 'tun.json'
+                    tun_path.write_text(json.dumps(tun_config), encoding='utf-8')
+                    subprocess.run([binary, 'check', '-c', str(tun_path)], check=True, timeout=10)
+                    first.tun_target = second.tun_target = True
+                    origin.release.clear()
+                    first_before, second_before = len(first.receipts), len(second.receipts)
+                    tun_environment = dict(lifecycle_environment,
+                        HOTARU_PROBE_CONFIG=str(tun_path), HOTARU_PROBE_CA=str(certificate),
+                        HOTARU_PROBE_TUN_TARGET=f'https://198.18.7.2:{origin.server_port}')
+                    subprocess.run([
+                        dart, str(pathlib.Path(__file__).with_name('sing_box_tun_smoke.dart')),
+                    ], check=True, timeout=90, env=tun_environment)
+                    expected = f'198.18.7.2:{origin.server_port}'
+                    assert first.receipts[first_before:] == [expected]
+                    assert second.receipts[second_before:] == [expected]
+                    deadline = time.monotonic() + 20
+                    while True:
+                        after = windows_snapshot(name)
+                        if not after['adapterCount'] and not after['addressCount'] and not after['routeCount']:
+                            break
+                        if time.monotonic() >= deadline:
+                            raise RuntimeError('TUN interface, addresses or routes survived stop')
+                        time.sleep(0.5)
+                    assert after['proxy'] == before['proxy'], 'System proxy changed'
+                    assert after['defaultRoutes'] == before['defaultRoutes'], 'Default routes changed'
+                    report['windows_tun_verified'] = True
+                    report['tun_cleanup_verified'] = True
+                    report['limits'] = ['Controlled HTTPS only; no remote protocol acceptance',
+                                        'Production UI and privileged helper integration remain unverified',
+                                        'Only final-route chains verified; no multi-hop acceptance']
                 return report
 
 
@@ -355,5 +444,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', required=True)
     parser.add_argument('--dart')
+    parser.add_argument('--stdio-host', action='store_true')
+    parser.add_argument('--tun', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(run(str(pathlib.Path(args.binary).resolve()), args.dart), indent=2))
+    print(json.dumps(run(str(pathlib.Path(args.binary).resolve()), args.dart, args.stdio_host, args.tun), indent=2))

@@ -76,6 +76,11 @@ abstract interface class CoreProcessExitSource implements CoreProcessLease {
   Future<int> get exitCode;
 }
 
+abstract interface class CoreProcessReadySource
+    implements CoreProcessExitSource {
+  Future<void> get ready;
+}
+
 final class DesktopCoreSession {
   final String sessionId;
   final CoreProcessLease lease;

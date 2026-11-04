@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:io';
 
 import '../config/profile.dart';
 
@@ -255,6 +256,30 @@ final class SingBoxConfigBuilder {
         const CoreConfigIssue('invalid_controller_secret', 'listeners'),
       );
     }
+    final tun = listeners.tun;
+    if (tun != null) {
+      if (tun.interfaceName.trim().isEmpty ||
+          tun.interfaceName.contains(RegExp(r'[\r\n]')) ||
+          tun.addresses.isEmpty) {
+        issues.add(const CoreConfigIssue('invalid_tun', 'listeners.tun'));
+      }
+      for (final address in tun.addresses) {
+        final parts = address.split('/');
+        final ip = InternetAddress.tryParse(parts.first);
+        final prefix = parts.length == 2 ? int.tryParse(parts.last) : null;
+        if (ip == null ||
+            prefix == null ||
+            prefix < 1 ||
+            prefix > ip.rawAddress.length * 8) {
+          issues.add(
+            const CoreConfigIssue(
+              'invalid_tun_address',
+              'listeners.tun.addresses',
+            ),
+          );
+        }
+      }
+    }
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     return CoreConfigBuildResult(
       json: jsonEncode({
@@ -265,6 +290,15 @@ final class SingBoxConfigBuilder {
             'listen': '127.0.0.1',
             'listen_port': listeners.mixedPort,
           },
+          if (tun != null)
+            {
+              'type': 'tun',
+              'tag': 'tun',
+              'interface_name': tun.interfaceName,
+              'address': tun.addresses,
+              'auto_route': tun.autoRoute,
+              'stack': 'system',
+            },
         ],
         'outbounds': [
           for (final node in profile.nodes) _node(node),
@@ -283,6 +317,7 @@ final class SingBoxConfigBuilder {
         ],
         'route': {
           'final': profile.finalOutbound,
+          if (tun?.autoRoute == true) 'auto_detect_interface': true,
           if (profile.rules.isNotEmpty)
             'rules': [
               for (final rule in profile.rules)

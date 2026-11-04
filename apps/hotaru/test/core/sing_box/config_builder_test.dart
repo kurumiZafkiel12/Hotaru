@@ -14,6 +14,72 @@ void main() {
   const direct = CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct);
 
   test(
+    'TUN is explicit and scoped routing does not enable a default route',
+    () async {
+      final profile = CoreProfileSpec(
+        nodes: [direct],
+        selectors: [],
+        finalOutbound: 'direct',
+      );
+      for (final autoRoute in [false, true]) {
+        final result = await builder.build(
+          profile,
+          CoreListenerSpec(
+            mixedPort: 17890,
+            controllerPort: 19090,
+            secret: 'fixture-secret',
+            tun: CoreTunSpec(
+              interfaceName: 'HotaruP0-fixture',
+              addresses: ['198.18.7.1/30', 'fd00::1/126'],
+              autoRoute: autoRoute,
+            ),
+          ),
+        );
+        expect(result.issues, isEmpty);
+        final config = jsonDecode(result.json!) as Map<String, dynamic>;
+        expect(config['inbounds'].last['type'], 'tun');
+        expect(config['inbounds'].last['auto_route'], autoRoute);
+        expect(
+          config['route']['auto_detect_interface'],
+          autoRoute ? isTrue : isNull,
+        );
+      }
+    },
+  );
+
+  test(
+    'invalid TUN address prefixes prevent configuration generation',
+    () async {
+      for (final address in [
+        '198.18.7.1/0',
+        '198.18.7.1/33',
+        'fd00::1/129',
+        'invalid/30',
+      ]) {
+        final result = await builder.build(
+          CoreProfileSpec(
+            nodes: [direct],
+            selectors: [],
+            finalOutbound: 'direct',
+          ),
+          CoreListenerSpec(
+            mixedPort: 17890,
+            controllerPort: 19090,
+            secret: 'fixture-secret',
+            tun: CoreTunSpec(
+              interfaceName: 'fixture',
+              addresses: [address],
+              autoRoute: false,
+            ),
+          ),
+        );
+        expect(result.json, isNull);
+        expect(result.issues.single.code, 'invalid_tun_address');
+      }
+    },
+  );
+
+  test(
     'compiles owned profile IR without exposing listeners on the LAN',
     () async {
       final result = await builder.build(

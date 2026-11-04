@@ -142,15 +142,29 @@ final class CoreProfileSpec {
        rules = List.unmodifiable(rules);
 }
 
+final class CoreTunSpec {
+  final String interfaceName;
+  final List<String> addresses;
+  final bool autoRoute;
+
+  CoreTunSpec({
+    required this.interfaceName,
+    required List<String> addresses,
+    required this.autoRoute,
+  }) : addresses = List.unmodifiable(addresses);
+}
+
 final class CoreListenerSpec {
   final int mixedPort;
   final int controllerPort;
   final String secret;
+  final CoreTunSpec? tun;
 
   const CoreListenerSpec({
     required this.mixedPort,
     required this.controllerPort,
     required this.secret,
+    this.tun,
   });
 }
 

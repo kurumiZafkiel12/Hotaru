@@ -7,6 +7,8 @@ on:
       - apps/hotaru/tool/sing_box_probe.py
       - apps/hotaru/tool/sing_box_adapter_smoke.dart
       - apps/hotaru/tool/sing_box_lifecycle_smoke.dart
+      - apps/hotaru/tool/sing_box_tun_smoke.dart
+      - apps/hotaru/core/sing_box_host/**
       - apps/hotaru/lib/core/adapter.dart
       - apps/hotaru/lib/core/config/**
       - apps/hotaru/lib/core/sing_box/**
@@ -48,4 +50,35 @@ jobs:
         run: |
           $binary = Join-Path $env:RUNNER_TEMP 'sing-box/sing-box-1.14.4-windows-amd64/sing-box.exe'
           python tool/sing_box_probe.py --binary $binary --dart (Get-Command dart).Source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+  desktop-host-tun:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: apps/hotaru/core/sing_box_host/go.sum
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.13.5'
+      - name: Verify and build pinned desktop host
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          go -C core/sing_box_host mod verify
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go -C core/sing_box_host test -mod=readonly -tags with_clash_api,with_quic,with_utls ./...
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go -C core/sing_box_host build -mod=readonly -tags with_clash_api,with_quic,with_utls -o "$env:RUNNER_TEMP/hotaru-box-host.exe" .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify real TUN packet routes and graceful resource cleanup
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          python tool/sing_box_probe.py --binary "$env:RUNNER_TEMP/hotaru-box-host.exe" --dart (Get-Command dart).Source --stdio-host --tun
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

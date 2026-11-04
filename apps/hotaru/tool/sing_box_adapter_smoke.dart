@@ -139,6 +139,13 @@ Future<void> main(List<String> arguments) async {
         mixedPort: input['mixedPort'] as int,
         controllerPort: input['controllerPort'] as int,
         secret: input['secret'] as String,
+        tun: input['tunName'] == null
+            ? null
+            : CoreTunSpec(
+                interfaceName: input['tunName'] as String,
+                addresses: ['198.18.7.1/30'],
+                autoRoute: false,
+              ),
       ),
     );
     if (result.json == null) {

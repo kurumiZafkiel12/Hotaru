@@ -20,6 +20,8 @@ final class SingBoxDesktopCore {
     required String configPath,
     required Uri endpoint,
     required String secret,
+    bool stdioControl = false,
+    void Function(String)? onStderr,
     DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(
       connection: Duration(seconds: 20),
     ),
@@ -33,6 +35,8 @@ final class SingBoxDesktopCore {
           configPath: configPath,
           endpoint: endpoint,
           secret: secret,
+          stdioControl: stdioControl,
+          onStderr: onStderr,
         ),
       ),
       verifyPeerPid: Platform.isWindows,

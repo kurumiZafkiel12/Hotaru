@@ -4,6 +4,7 @@ import 'dart:io';
 
 import '../desktop/model.dart';
 import '../desktop/process_lease.dart';
+import 'stdio_lease.dart';
 
 final class SingBoxLauncher implements CoreProcessLauncher {
   final String executable;
@@ -11,6 +12,8 @@ final class SingBoxLauncher implements CoreProcessLauncher {
   final Uri endpoint;
   final String _secret;
   final CoreProcessStarter _start;
+  final bool stdioControl;
+  final void Function(String)? onStderr;
 
   SingBoxLauncher({
     required this.executable,
@@ -18,6 +21,8 @@ final class SingBoxLauncher implements CoreProcessLauncher {
     required this.endpoint,
     required String secret,
     CoreProcessStarter? startProcess,
+    this.stdioControl = false,
+    this.onStderr,
   }) : _secret = secret,
        _start = startProcess ?? Process.start;
 
@@ -50,7 +55,26 @@ final class SingBoxLauncher implements CoreProcessLauncher {
         'Compiled controller does not match session credentials',
       );
     }
-    final process = await _start(executable, ['run', '-c', configPath]);
+    final inbounds = config['inbounds'];
+    if (Platform.isWindows &&
+        !stdioControl &&
+        inbounds is List &&
+        inbounds.any((entry) => entry is Map && entry['type'] == 'tun')) {
+      throw StateError('Windows TUN requires the graceful desktop host');
+    }
+    final process = await _start(executable, [
+      'run',
+      '-c',
+      configPath,
+      if (stdioControl) '--stdio-control',
+    ]);
+    if (stdioControl) {
+      return StdioCoreLease(
+        sessionId: sessionId,
+        process: process,
+        onStderr: onStderr,
+      );
+    }
     unawaited(process.stdout.drain<void>().catchError((Object _) {}));
     unawaited(process.stderr.drain<void>().catchError((Object _) {}));
     return DirectCoreLease(sessionId: sessionId, process: process);

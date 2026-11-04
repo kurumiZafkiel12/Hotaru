@@ -23,6 +23,7 @@ final class SingBoxControllerConnection
   TransportFailed? _failure;
   int _generation = 0;
   int _failures = 0;
+  bool _hostReady = false;
 
   @override
   final String address;
@@ -77,11 +78,29 @@ final class SingBoxControllerConnection
         },
       ),
     );
-    _tick();
+    if (process is CoreProcessReadySource) {
+      unawaited(
+        process.ready.then<void>(
+          (_) {
+            if (_terminal) return;
+            _hostReady = true;
+            _tick();
+          },
+          onError: (Object error, StackTrace trace) {
+            if (!_terminal) _fail(error, trace);
+          },
+        ),
+      );
+    } else {
+      _hostReady = true;
+      _tick();
+    }
   }
 
   void _tick() {
-    if (_terminal || _process == null || _polling != null) return;
+    if (_terminal || _process == null || !_hostReady || _polling != null) {
+      return;
+    }
     _polling = _poll().whenComplete(() => _polling = null);
   }
 

@@ -53,6 +53,13 @@ HTTP readiness requires an owned process, pinned version, and on Windows an OS l
 it does not use HTTP status alone as process identity. The standalone `tool/sing_box_lifecycle_smoke.dart` exercises
 the same lifecycle with real processes without enabling TUN or changing the system proxy.
 
+`core/sing_box_host/` embeds the pinned upstream Go module and provides the client-side `hotaru-stdio-v1`
+lifecycle channel. Its ready event follows engine startup; its stopped acknowledgement follows engine cleanup.
+`StdioCoreLease` requires both confirmed process exit and clean acknowledgement, and retains ownership on timeout.
+Windows TUN startup through the new launcher requires this graceful host. The disposable Windows TUN probe uses a
+scoped benchmark subnet with auto-route disabled and checks real packet chains plus OS adapter/route cleanup;
+privileged helper packaging and the normal GUI backend have not yet switched.
+
 Key Go core files:
 
 - `core/protocol.go`: method names, event types, and the parameter and result shapes shared with Dart.
