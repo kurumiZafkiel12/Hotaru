@@ -36,7 +36,7 @@ class Origin(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body[:1])
         self.wfile.flush()
         if self.path == '/hold':
-            self.server.release.wait(timeout=5)
+            self.server.release.wait(timeout=30)
         self.wfile.write(body[1:])
 
     def log_message(self, *_):
@@ -55,7 +55,7 @@ class Proxy(Origin):
             self.end_headers()
             sockets = [self.connection, upstream]
             while True:
-                readable, _, _ = select.select(sockets, [], [], 3)
+                readable, _, _ = select.select(sockets, [], [], 30)
                 if not readable:
                     return
                 for source in readable:
