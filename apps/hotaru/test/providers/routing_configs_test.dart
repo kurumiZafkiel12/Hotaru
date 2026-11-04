@@ -251,4 +251,40 @@ void main() {
       verifyNever(() => core.getProfileBase(any()));
     },
   );
+
+  test(
+    'failed node binding restores the previous independent route through setup',
+    () async {
+      final scoped = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => 1),
+          setupActionProvider.overrideWith(_Setup.new),
+        ],
+      );
+      addTearDown(scoped.dispose);
+      scoped.listen(appSettingProvider, (_, _) {});
+      scoped.read(appSettingProvider.notifier).value = AppSettingProps(
+        routingConfigs: [metadata],
+        activeRoutingConfigId: metadata.id,
+        routingRulesEnabled: true,
+        routingSubscriptionId: 1,
+        routingOutbound: 'Previous',
+      );
+      await expectLater(
+        scoped
+            .read(routingConfigsActionProvider.notifier)
+            .followSelection('NewGroup', 'Node'),
+        throwsFormatException,
+      );
+      final restored = scoped.read(appSettingProvider);
+      expect(restored.routingRulesEnabled, isTrue);
+      expect(restored.routingOutbound, 'Previous');
+      expect(restored.routingSubscriptionId, 1);
+      expect((scoped.read(setupActionProvider.notifier) as _Setup).applied, [
+        true,
+        true,
+      ]);
+      expect(scoped.read(routingConfigsActionProvider), isFalse);
+    },
+  );
 }

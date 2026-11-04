@@ -107,7 +107,7 @@ class RoutingConfigsAction extends _$RoutingConfigsAction {
     }
   });
 
-  void followSelection(String groupName, String proxyName) {
+  Future<void> followSelection(String groupName, String proxyName) async {
     final settings = ref.read(appSettingProvider);
     final target = groupName == GroupName.GLOBAL.name ? proxyName : groupName;
     final profileId = ref.read(currentProfileIdProvider);
@@ -116,17 +116,50 @@ class RoutingConfigsAction extends _$RoutingConfigsAction {
             settings.routingOutbound == target)) {
       return;
     }
+    await _run(() async {
+      ref
+          .read(appSettingProvider.notifier)
+          .update(
+            (settings) => settings.copyWith(
+              routingSubscriptionId: profileId,
+              routingOutbound: target,
+            ),
+          );
+      final setup = ref.read(setupActionProvider.notifier);
+      try {
+        if (await setup.applyProfile(silence: true, force: true)) return;
+      } catch (_) {
+        await _restoreSelection(settings, target, profileId);
+        rethrow;
+      }
+      await _restoreSelection(settings, target, profileId);
+      throw const FormatException('routing selection could not be applied');
+    });
+  }
+
+  Future<void> _restoreSelection(
+    AppSettingProps previous,
+    String target,
+    int? profileId,
+  ) async {
+    final current = ref.read(appSettingProvider);
+    if (current.routingOutbound != target ||
+        current.routingSubscriptionId != profileId ||
+        current.activeRoutingConfigId != previous.activeRoutingConfigId ||
+        !current.routingRulesEnabled) {
+      return;
+    }
     ref
         .read(appSettingProvider.notifier)
         .update(
           (settings) => settings.copyWith(
-            routingSubscriptionId: profileId,
-            routingOutbound: target,
+            routingSubscriptionId: previous.routingSubscriptionId,
+            routingOutbound: previous.routingOutbound,
           ),
         );
-    ref
+    await ref
         .read(setupActionProvider.notifier)
-        .applyProfileDebounce(silence: true, force: true);
+        .applyProfile(silence: true, force: true);
   }
 
   Future<void> select(int id) => _run(() async {

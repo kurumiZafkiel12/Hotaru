@@ -194,6 +194,7 @@ class ProxiesAction extends _$ProxiesAction {
     required String groupName,
     required String proxyName,
   }) async {
+    final profileId = ref.read(currentProfileIdProvider);
     final profilesAction = ref.read(profilesActionProvider.notifier);
     final rollbackName =
         _pendingSelectedRollback.remove(groupName) ??
@@ -219,9 +220,32 @@ class ProxiesAction extends _$ProxiesAction {
       );
       return;
     }
-    ref
-        .read(routingConfigsActionProvider.notifier)
-        .followSelection(groupName, proxyName);
+    try {
+      await ref
+          .read(routingConfigsActionProvider.notifier)
+          .followSelection(groupName, proxyName);
+    } catch (error) {
+      if (ref.read(currentProfileIdProvider) != profileId) return;
+      profilesAction.updateCurrentSelectedMap(groupName, rollbackName);
+      try {
+        final rollback = await _core.changeProxy(
+          ChangeProxyParams(groupName: groupName, proxyName: rollbackName),
+        );
+        if (rollback.message.isNotEmpty) {
+          throw MessageException(rollback.message);
+        }
+      } catch (rollbackError) {
+        commonPrint.log(
+          'routing selection rollback failed: $rollbackError',
+          logLevel: coreFailureLogLevel(rollbackError),
+        );
+      }
+      dialogs.showNotifier(
+        currentAppLocalizations.routingConfigFailed,
+        level: MessageLevel.error,
+      );
+      return;
+    }
     if (!result.changed) {
       return;
     }
