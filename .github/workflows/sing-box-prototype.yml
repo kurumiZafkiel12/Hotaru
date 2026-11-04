@@ -6,9 +6,15 @@ on:
     paths:
       - apps/hotaru/tool/sing_box_probe.py
       - apps/hotaru/tool/sing_box_adapter_smoke.dart
+      - apps/hotaru/tool/sing_box_lifecycle_smoke.dart
       - apps/hotaru/lib/core/adapter.dart
       - apps/hotaru/lib/core/config/**
       - apps/hotaru/lib/core/sing_box/**
+      - apps/hotaru/lib/core/desktop/connection.dart
+      - apps/hotaru/lib/core/desktop/lifecycle.dart
+      - apps/hotaru/lib/core/desktop/listener_owner.dart
+      - apps/hotaru/lib/core/desktop/model.dart
+      - apps/hotaru/lib/core/desktop/process_lease.dart
       - .github/workflows/sing-box-prototype.yml
 
 permissions:

@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'launcher.dart';
 import 'model.dart';
-import 'transport.dart';
+import 'connection.dart';
 
 abstract interface class DesktopCoreLifecycleController {
   DesktopCoreState get state;
@@ -124,12 +123,12 @@ final class _TransportConnectionWaiter {
 }
 
 final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
-  final DesktopCoreTransport Function() transportFactory;
+  final DesktopCoreConnection Function() transportFactory;
   final DesktopCoreLauncherResolver launcherResolver;
   final DesktopCoreTimeouts timeouts;
   final String Function() sessionIdFactory;
   final bool verifyPeerPid;
-  final DesktopCoreTransportBinding _transport;
+  final DesktopCoreConnectionBinding _transport;
 
   final StreamController<DesktopCoreState> _stateController =
       StreamController<DesktopCoreState>.broadcast();
@@ -154,34 +153,32 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
   bool _terminalRequested = false;
 
   factory DesktopCoreLifecycle({
-    required DesktopCoreTransport Function() transportFactory,
+    required DesktopCoreConnection Function() transportFactory,
     required DesktopCoreLauncherResolver launcherResolver,
     DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(),
     String Function()? sessionIdFactory,
     bool verifyPeerPid = false,
   }) {
-    return DesktopCoreLifecycle._(
+    return DesktopCoreLifecycle.withConnection(
       transportFactory: transportFactory,
       launcherResolver: launcherResolver,
       timeouts: timeouts,
       sessionIdFactory: sessionIdFactory ?? createCoreSessionId,
       verifyPeerPid: verifyPeerPid,
-      transport: DesktopCoreTransportBinding(transportFactory()),
+      connection: DesktopCoreConnectionBinding(transportFactory()),
     );
   }
 
-  DesktopCoreLifecycle._({
+  DesktopCoreLifecycle.withConnection({
     required this.transportFactory,
     required this.launcherResolver,
     required this.timeouts,
     required this.sessionIdFactory,
     required this.verifyPeerPid,
-    required DesktopCoreTransportBinding transport,
-  }) : _transport = transport {
+    required DesktopCoreConnectionBinding connection,
+  }) : _transport = connection {
     _transportSubscription = _transport.events.listen(_handleTransportEvent);
   }
-
-  DesktopCoreTransport get transport => _transport;
 
   @override
   DesktopCoreState get state => _state;
@@ -423,6 +420,10 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
       if (!_wantsRunning) {
         await releaseLease();
         return false;
+      }
+      final ownedLease = lease;
+      if (ownedLease is CoreProcessExitSource) {
+        _transport.observeProcess(ownedLease);
       }
       final connected = await _waitForConnectionWhileWanted(
         connectionWaiter.future,

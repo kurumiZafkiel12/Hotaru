@@ -27,7 +27,7 @@ void main() {
   });
 
   tearDown(() async {
-    adapter.close();
+    await adapter.close();
     await server.close(force: true);
   });
 
@@ -176,8 +176,8 @@ void main() {
   });
 
   test('close is terminal and idempotent', () async {
-    adapter.close();
-    adapter.close();
+    await adapter.close();
+    await adapter.close();
     await expectLater(
       adapter.outbounds(),
       throwsA(

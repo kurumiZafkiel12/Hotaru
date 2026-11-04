@@ -188,7 +188,7 @@ Future<void> main(List<String> arguments) async {
     stderr.writeln(error);
     exitCode = 1;
   } finally {
-    adapter.close();
+    await adapter.close();
   }
 }
 // The Windows protocol job runs directly with the standalone Dart SDK.

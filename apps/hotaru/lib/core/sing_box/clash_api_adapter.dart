@@ -97,6 +97,15 @@ final class SingBoxClashApiAdapter implements CoreAdapter {
     return Isolate.run(() => jsonDecode(utf8.decode(bytes)));
   }
 
+  Future<String> version({
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final result = _object(
+      await _request('GET', ['version'], timeout: timeout),
+    );
+    return _string(result['version']);
+  }
+
   @override
   Future<List<CoreOutbound>> outbounds() async {
     final result = _object(await _request('GET', ['proxies']));
@@ -194,7 +203,7 @@ final class SingBoxClashApiAdapter implements CoreAdapter {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     if (_closed) return;
     _closed = true;
     _client.close(force: true);

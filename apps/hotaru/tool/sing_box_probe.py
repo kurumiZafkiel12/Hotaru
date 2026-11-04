@@ -235,6 +235,13 @@ def run(binary, dart=None):
                                 raise RuntimeError(log.read())
                             time.sleep(0.05)
                     proxies = api('/proxies')['proxies']
+                    progress('Verify configuration reload capability rather than trusting HTTP status')
+                    replacement = json.loads(json.dumps(config))
+                    replacement['outbounds'][-1]['tag'] = 'replacement'
+                    replacement['route']['final'] = 'replacement'
+                    api('/configs', 'PUT', {'payload': json.dumps(replacement)})
+                    unchanged = api('/proxies')['proxies']
+                    assert 'selected' in unchanged and 'replacement' not in unchanged
                     target = f'https://127.0.0.1:{origin.server_port}/receipt'
                     client_tls = ssl.create_default_context(cafile=str(certificate))
                     for selected, instance, other in [
@@ -301,7 +308,7 @@ def run(binary, dart=None):
                     finally:
                         origin.release.set()
                         connection.close()
-                    return {
+                    report = {
                         'core': core_version,
                         'proxy_fields': sorted(proxies['selected']),
                         'connections_fields': sorted(connections),
@@ -310,11 +317,12 @@ def run(binary, dart=None):
                         'dart_adapter_verified': dart is not None,
                         'dart_config_builder_verified': dart is not None,
                         'protocol_config_check_verified': dart is not None,
+                        'clash_api_config_reload_supported': False,
                         'active_connection_fields': sorted(entry),
                         'metadata_fields': sorted(entry['metadata']),
                         'process_path_available': bool(entry['metadata']['processPath']),
                         'limits': ['Loopback HTTPS only; no remote protocol acceptance',
-                                   'Windows and TUN remain unverified',
+                                   'TUN and production UI remain unverified',
                                    'Only final-route chains verified; no multi-hop acceptance'],
                     }
                 finally:
@@ -324,6 +332,23 @@ def run(binary, dart=None):
                     except subprocess.TimeoutExpired:
                         process.kill()
                         process.wait(timeout=5)
+                if dart is not None:
+                    progress('Verify production desktop lifecycle with owned core processes')
+                    before = len(second.receipts)
+                    lifecycle_environment = dict(
+                        environment,
+                        HOTARU_PROBE_BINARY=binary,
+                        HOTARU_PROBE_CONFIG=str(path),
+                        HOTARU_PROBE_API=f'http://127.0.0.1:{api_port}',
+                        HOTARU_PROBE_SECRET=secret,
+                        HOTARU_PROBE_TARGET=target,
+                    )
+                    subprocess.run([
+                        dart, str(pathlib.Path(__file__).with_name('sing_box_lifecycle_smoke.dart')),
+                    ], check=True, timeout=90, env=lifecycle_environment)
+                    assert len(second.receipts) == before + 1
+                    report['desktop_lifecycle_verified'] = True
+                return report
 
 
 if __name__ == '__main__':

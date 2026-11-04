@@ -9,7 +9,7 @@ abstract interface class CoreAdapter {
 
   Future<void> closeConnection(String id);
 
-  void close();
+  Future<void> close();
 }
 
 final class CoreOutbound {
