@@ -201,69 +201,81 @@ void main() {
     },
   );
 
-  test(
-    'profile builder uses imported rules exclusively and retains the selected subscription group',
-    () async {
-      final cached = File(
-        join(
-          await appPath.profilesPath,
-          'routing-configs',
-          '${metadata.id}.yaml',
-        ),
-      );
-      await cached.parent.create(recursive: true);
-      await cached.writeAsString(
-        'rules: ["DOMAIN-SUFFIX,example.cn,DIRECT", "MATCH,Proxy"]',
-      );
-      when(() => core.getConfig(any())).thenAnswer(
-        (_) async => {
-          'proxies': [
-            {'name': 'Node', 'type': 'direct'},
-          ],
-          'proxy-groups': [
-            {
-              'name': 'Selected',
-              'type': 'select',
-              'proxies': ['Node'],
-            },
-          ],
-          'rules': ['IP-CIDR,127.0.0.0/8,REJECT', 'MATCH,Selected'],
-        },
-      );
-      final built = await container
-          .read(setupActionProvider.notifier)
-          .getProfile(
-            setupState: SetupState(
-              profileId: 1,
-              profileLastUpdateDate: null,
-              profileType: ProfileType.file,
-              extendType: ExtendType.standard,
-              rules: const [],
-              proxyGroups: const [],
-              addedRules: [Rule.parse('DOMAIN,old-added.test,REJECT', id: 1)],
-              script: null,
-              overrides: const ProfileOverrides(),
-              routingConfig: metadata,
-              routingOutbound: 'Selected',
-            ),
-            patchConfig: const PatchClashConfig(),
-          );
-      final result = loadYaml(built.yaml) as YamlMap;
-      expect(result['rules'], [
-        'DOMAIN-SUFFIX,example.cn,DIRECT',
-        'MATCH,Selected',
-      ]);
-      expect((result['proxies'] as YamlList).single['name'], 'Node');
-      expect((result['proxy-groups'] as YamlList).first['name'], 'Selected');
-      expect(built.base, isNull);
-      expect(built.counts.rules, 2);
-      final destination = Platform.environment['HOTARU_ROUTING_FIXTURE'];
-      if (destination != null) {
-        await File(destination).writeAsString(built.yaml);
-      }
-      verifyNever(() => core.getProfileBase(any()));
-    },
-  );
+  for (final binding in ['Selected', 'GLOBAL']) {
+    test(
+      'profile builder uses imported rules exclusively through $binding',
+      () async {
+        if (binding == 'GLOBAL') {
+          container
+              .read(profilesProvider.notifier)
+              .put(
+                profile.copyWith(
+                  currentGroupName: 'GLOBAL',
+                  selectedMap: {'GLOBAL': 'provider-only'},
+                ),
+              );
+        }
+        final cached = File(
+          join(
+            await appPath.profilesPath,
+            'routing-configs',
+            '${metadata.id}.yaml',
+          ),
+        );
+        await cached.parent.create(recursive: true);
+        await cached.writeAsString(
+          'rules: ["DOMAIN-SUFFIX,example.cn,DIRECT", "MATCH,Proxy"]',
+        );
+        when(() => core.getConfig(any())).thenAnswer(
+          (_) async => {
+            'proxies': [
+              {'name': 'Node', 'type': 'direct'},
+            ],
+            'proxy-groups': [
+              {
+                'name': 'Selected',
+                'type': 'select',
+                'proxies': ['Node'],
+              },
+            ],
+            'rules': ['IP-CIDR,127.0.0.0/8,REJECT', 'MATCH,Selected'],
+          },
+        );
+        final built = await container
+            .read(setupActionProvider.notifier)
+            .getProfile(
+              setupState: SetupState(
+                profileId: 1,
+                profileLastUpdateDate: null,
+                profileType: ProfileType.file,
+                extendType: ExtendType.standard,
+                rules: const [],
+                proxyGroups: const [],
+                addedRules: [Rule.parse('DOMAIN,old-added.test,REJECT', id: 1)],
+                script: null,
+                overrides: const ProfileOverrides(),
+                routingConfig: metadata,
+                routingOutbound: binding,
+              ),
+              patchConfig: const PatchClashConfig(),
+            );
+        final result = loadYaml(built.yaml) as YamlMap;
+        expect(result['rules'], [
+          'DOMAIN-SUFFIX,example.cn,DIRECT',
+          'MATCH,$binding',
+        ]);
+        expect((result['proxies'] as YamlList).single['name'], 'Node');
+        expect((result['proxy-groups'] as YamlList).first['name'], 'Selected');
+        expect(built.base, isNull);
+        expect(built.counts.rules, 2);
+        final destination = Platform.environment['HOTARU_ROUTING_FIXTURE'];
+        if (destination != null && binding == 'Selected') {
+          await File(destination).writeAsString(built.yaml);
+        }
+        verifyNever(() => core.getProfileBase(any()));
+      },
+    );
+  }
 
   test(
     'failed node binding restores the previous independent route through setup',

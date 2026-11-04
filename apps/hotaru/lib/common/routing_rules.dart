@@ -189,6 +189,7 @@ class RoutingRules {
     String selectedOutbound,
   ) {
     final names = <String>{
+      'GLOBAL',
       for (final section in ['proxies', 'proxy-groups'])
         for (final item in subscription[section] as List? ?? const [])
           if (item is Map && item['name'] is String) item['name'] as String,

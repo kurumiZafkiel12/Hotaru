@@ -2,6 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/common/routing_rules.dart';
 
 void main() {
+  test(
+    'independent rules can use the Core GLOBAL selector without exporting its node',
+    () {
+      final result = RoutingRules.parse('rules: ["MATCH,Proxy"]').apply({
+        'proxy-providers': {
+          'remote': {'type': 'inline', 'payload': []},
+        },
+      }, 'GLOBAL');
+      expect(result['rules'], ['MATCH,GLOBAL']);
+      expect(result['proxies'], isNull);
+    },
+  );
   const subscription = <String, dynamic>{
     'proxies': [
       {'name': 'Tokyo', 'type': 'ss'},

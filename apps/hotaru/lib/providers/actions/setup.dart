@@ -528,13 +528,19 @@ class SetupAction extends _$SetupAction {
           ? setupState.routingOutbound
           : profile?.currentGroupName;
       final names = {
+        GroupName.GLOBAL.name,
         for (final section in ['proxies', 'proxy-groups'])
           for (final item in rawConfig[section] as List? ?? const [])
             if (item is Map && item['name'] is String) item['name'] as String,
       };
       String? target;
       if (preferred == GroupName.GLOBAL.name) {
-        target = profile?.selectedMap[GroupName.GLOBAL.name];
+        if (profile?.selectedMap[GroupName.GLOBAL.name]?.isNotEmpty != true) {
+          throw const FormatException(
+            'choose a node before using independent rules',
+          );
+        }
+        target = GroupName.GLOBAL.name;
       } else if (preferred?.isNotEmpty == true) {
         target = preferred;
       } else {

@@ -109,7 +109,7 @@ class RoutingConfigsAction extends _$RoutingConfigsAction {
 
   Future<void> followSelection(String groupName, String proxyName) async {
     final settings = ref.read(appSettingProvider);
-    final target = groupName == GroupName.GLOBAL.name ? proxyName : groupName;
+    final target = groupName;
     final profileId = ref.read(currentProfileIdProvider);
     if (!settings.routingRulesEnabled ||
         (settings.routingSubscriptionId == profileId &&
