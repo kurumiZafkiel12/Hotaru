@@ -25,11 +25,84 @@ final class SingBoxConfigBuilder {
 
     for (final node in profile.nodes) {
       tag(node.tag, 'nodes.${node.tag}');
+      final options = <String, Object?>{
+        'username': node.username,
+        'password': node.password,
+        'uuid': node.uuid,
+        'cipher': node.cipher,
+        'alterId': node.alterId,
+        'flow': node.flow,
+        'tls': node.tls,
+        'transport': node.transport,
+        'congestionControl': node.congestionControl,
+        'udpRelayMode': node.udpRelayMode,
+        'obfsPassword': node.obfsPassword,
+        'upMbps': node.upMbps,
+        'downMbps': node.downMbps,
+      };
+      final allowed = switch (node.protocol) {
+        CoreNodeProtocol.direct => <String>{},
+        CoreNodeProtocol.http => {'username', 'password', 'tls'},
+        CoreNodeProtocol.socks => {'username', 'password'},
+        CoreNodeProtocol.shadowsocks => {'password', 'cipher'},
+        CoreNodeProtocol.vmess => {
+          'uuid',
+          'cipher',
+          'alterId',
+          'tls',
+          'transport',
+        },
+        CoreNodeProtocol.vless => {'uuid', 'flow', 'tls', 'transport'},
+        CoreNodeProtocol.trojan => {'password', 'tls', 'transport'},
+        CoreNodeProtocol.hysteria2 => {
+          'password',
+          'tls',
+          'obfsPassword',
+          'upMbps',
+          'downMbps',
+        },
+        CoreNodeProtocol.tuic => {
+          'uuid',
+          'password',
+          'tls',
+          'congestionControl',
+          'udpRelayMode',
+        },
+      };
+      for (final option in options.entries) {
+        if (option.value != null && !allowed.contains(option.key)) {
+          issues.add(
+            CoreConfigIssue(
+              'unsupported_protocol_option',
+              'nodes.${node.tag}.${option.key}',
+            ),
+          );
+        }
+      }
+      if (node.tls?.realityPublicKey != null &&
+          node.protocol != CoreNodeProtocol.vless) {
+        issues.add(CoreConfigIssue('unsupported_reality', 'nodes.${node.tag}'));
+      }
+      if (node.transport case final transport?) {
+        if (transport.kind == CoreTransportKind.grpc &&
+                (transport.path != null || transport.headers.isNotEmpty) ||
+            transport.kind == CoreTransportKind.ws &&
+                transport.serviceName != null) {
+          issues.add(
+            CoreConfigIssue(
+              'incompatible_transport_options',
+              'nodes.${node.tag}',
+            ),
+          );
+        }
+      }
       if (node.protocol == CoreNodeProtocol.direct) {
         if (node.server != null ||
             node.port != null ||
             node.username != null ||
-            node.password != null) {
+            node.password != null ||
+            node.tls != null ||
+            node.transport != null) {
           issues.add(
             CoreConfigIssue('direct_has_proxy_fields', 'nodes.${node.tag}'),
           );
@@ -41,10 +114,62 @@ final class SingBoxConfigBuilder {
           node.port! > 65535) {
         issues.add(CoreConfigIssue('invalid_server', 'nodes.${node.tag}'));
       }
-      if ((node.username == null) != (node.password == null)) {
+      if (const [
+            CoreNodeProtocol.http,
+            CoreNodeProtocol.socks,
+          ].contains(node.protocol) &&
+          (node.username == null) != (node.password == null)) {
         issues.add(
           CoreConfigIssue('incomplete_credentials', 'nodes.${node.tag}'),
         );
+      }
+      if (const [
+            CoreNodeProtocol.vless,
+            CoreNodeProtocol.vmess,
+            CoreNodeProtocol.tuic,
+          ].contains(node.protocol) &&
+          (node.uuid == null ||
+              !RegExp(
+                r'^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$',
+              ).hasMatch(node.uuid!))) {
+        issues.add(CoreConfigIssue('invalid_uuid', 'nodes.${node.tag}'));
+      }
+      if (const [
+            CoreNodeProtocol.shadowsocks,
+            CoreNodeProtocol.trojan,
+            CoreNodeProtocol.hysteria2,
+            CoreNodeProtocol.tuic,
+          ].contains(node.protocol) &&
+          (node.password == null || node.password!.isEmpty)) {
+        issues.add(CoreConfigIssue('missing_password', 'nodes.${node.tag}'));
+      }
+      if (node.protocol == CoreNodeProtocol.shadowsocks &&
+          (node.cipher == null || node.cipher!.isEmpty)) {
+        issues.add(CoreConfigIssue('missing_cipher', 'nodes.${node.tag}'));
+      }
+      if (const [
+            CoreNodeProtocol.hysteria2,
+            CoreNodeProtocol.tuic,
+          ].contains(node.protocol) &&
+          node.tls == null) {
+        issues.add(CoreConfigIssue('tls_required', 'nodes.${node.tag}'));
+      }
+      if (node.transport != null &&
+          !const [
+            CoreNodeProtocol.vmess,
+            CoreNodeProtocol.vless,
+            CoreNodeProtocol.trojan,
+          ].contains(node.protocol)) {
+        issues.add(
+          CoreConfigIssue('unsupported_transport', 'nodes.${node.tag}'),
+        );
+      }
+      if (node.tls != null &&
+          const [
+            CoreNodeProtocol.socks,
+            CoreNodeProtocol.shadowsocks,
+          ].contains(node.protocol)) {
+        issues.add(CoreConfigIssue('unsupported_tls', 'nodes.${node.tag}'));
       }
     }
     for (final selector in profile.selectors) {
@@ -78,6 +203,24 @@ final class SingBoxConfigBuilder {
         issues.add(
           CoreConfigIssue('invalid_selection', 'selectors.${selector.tag}'),
         );
+      }
+      if (selector.strategy == CoreGroupStrategy.urltest &&
+          (Uri.tryParse(selector.testUrl)?.scheme != 'https' ||
+              selector.interval.inSeconds < 1 ||
+              selector.tolerance < 0 ||
+              selector.selected != null)) {
+        issues.add(
+          CoreConfigIssue('invalid_urltest', 'selectors.${selector.tag}'),
+        );
+      }
+    }
+    for (var index = 0; index < profile.rules.length; index++) {
+      final rule = profile.rules[index];
+      if (rule.action == CoreRuleAction.route &&
+              !tags.contains(rule.outbound) ||
+          rule.action != CoreRuleAction.route && rule.outbound != null ||
+          rule.kind != CoreRuleKind.always && rule.value.isEmpty) {
+        issues.add(CoreConfigIssue('invalid_rule', 'rules.$index'));
       }
     }
     final incoming = {for (final name in groups.keys) name: 0};
@@ -124,26 +267,46 @@ final class SingBoxConfigBuilder {
           },
         ],
         'outbounds': [
-          for (final node in profile.nodes)
-            {
-              'type': node.protocol.name,
-              'tag': node.tag,
-              if (node.protocol != CoreNodeProtocol.direct) ...{
-                'server': node.server,
-                'server_port': node.port,
-                if (node.username != null) 'username': node.username,
-                if (node.password != null) 'password': node.password,
-              },
-            },
+          for (final node in profile.nodes) _node(node),
           for (final selector in profile.selectors)
             {
-              'type': 'selector',
+              'type': selector.strategy.name,
               'tag': selector.tag,
               'outbounds': selector.members,
               if (selector.selected != null) 'default': selector.selected,
+              if (selector.strategy == CoreGroupStrategy.urltest) ...{
+                'url': selector.testUrl,
+                'interval': '${selector.interval.inSeconds}s',
+                'tolerance': selector.tolerance,
+              },
             },
         ],
-        'route': {'final': profile.finalOutbound},
+        'route': {
+          'final': profile.finalOutbound,
+          if (profile.rules.isNotEmpty)
+            'rules': [
+              for (final rule in profile.rules)
+                {
+                  if (rule.kind != CoreRuleKind.always)
+                    switch (rule.kind) {
+                      CoreRuleKind.domain => 'domain',
+                      CoreRuleKind.domainSuffix => 'domain_suffix',
+                      CoreRuleKind.domainKeyword => 'domain_keyword',
+                      CoreRuleKind.ipCidr => 'ip_cidr',
+                      CoreRuleKind.always => throw StateError(
+                        'Unreachable rule kind',
+                      ),
+                    }: [
+                      rule.value,
+                    ],
+                  'action': rule.action == CoreRuleAction.route
+                      ? 'route'
+                      : 'reject',
+                  if (rule.action == CoreRuleAction.drop) 'method': 'drop',
+                  if (rule.outbound != null) 'outbound': rule.outbound,
+                },
+            ],
+        },
         'experimental': {
           'clash_api': {
             'external_controller': '127.0.0.1:${listeners.controllerPort}',
@@ -153,5 +316,58 @@ final class SingBoxConfigBuilder {
       }),
       issues: const [],
     );
+  }
+
+  static Map<String, Object?> _node(CoreNodeSpec node) {
+    return {
+      'type': node.protocol.name,
+      'tag': node.tag,
+      if (node.protocol != CoreNodeProtocol.direct) ...{
+        'server': node.server,
+        'server_port': node.port,
+        if (node.username != null) 'username': node.username,
+        if (node.password != null) 'password': node.password,
+        if (node.uuid != null) 'uuid': node.uuid,
+        if (node.protocol == CoreNodeProtocol.shadowsocks)
+          'method': node.cipher,
+        if (node.protocol == CoreNodeProtocol.vmess) ...{
+          'security': node.cipher ?? 'auto',
+          'alter_id': node.alterId ?? 0,
+        },
+        if (node.flow != null && node.flow!.isNotEmpty) 'flow': node.flow,
+        if (node.congestionControl != null)
+          'congestion_control': node.congestionControl,
+        if (node.udpRelayMode != null) 'udp_relay_mode': node.udpRelayMode,
+        if (node.upMbps != null) 'up_mbps': node.upMbps,
+        if (node.downMbps != null) 'down_mbps': node.downMbps,
+        if (node.obfsPassword != null)
+          'obfs': {'type': 'salamander', 'password': node.obfsPassword},
+        if (node.tcpOnly && node.protocol != CoreNodeProtocol.http)
+          'network': 'tcp',
+        if (node.tls case final tls?)
+          'tls': {
+            'enabled': true,
+            'insecure': tls.insecure,
+            if (tls.serverName != null) 'server_name': tls.serverName,
+            if (tls.alpn.isNotEmpty) 'alpn': tls.alpn,
+            if (tls.fingerprint != null)
+              'utls': {'enabled': true, 'fingerprint': tls.fingerprint},
+            if (tls.realityPublicKey != null)
+              'reality': {
+                'enabled': true,
+                'public_key': tls.realityPublicKey,
+                if (tls.realityShortId != null) 'short_id': tls.realityShortId,
+              },
+          },
+        if (node.transport case final transport?)
+          'transport': {
+            'type': transport.kind.name,
+            if (transport.path != null) 'path': transport.path,
+            if (transport.headers.isNotEmpty) 'headers': transport.headers,
+            if (transport.serviceName != null)
+              'service_name': transport.serviceName,
+          },
+      },
+    };
   }
 }

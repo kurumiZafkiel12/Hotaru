@@ -7,6 +7,113 @@ import '../lib/core/sing_box/clash_api_adapter.dart';
 import '../lib/core/sing_box/config_builder.dart';
 
 Future<void> main(List<String> arguments) async {
+  if (arguments.contains('--build-protocol-config')) {
+    const uuid = 'f0db417e-1460-4a2b-b37f-e62a1ab9d91c';
+    final nodes = <CoreNodeSpec>[
+      const CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
+      for (final protocol in CoreNodeProtocol.values.where(
+        (value) => value != CoreNodeProtocol.direct,
+      ))
+        CoreNodeSpec(
+          tag: protocol.name,
+          protocol: protocol,
+          server: '127.0.0.1',
+          port: 14443,
+          password:
+              const [
+                CoreNodeProtocol.shadowsocks,
+                CoreNodeProtocol.trojan,
+                CoreNodeProtocol.hysteria2,
+                CoreNodeProtocol.tuic,
+              ].contains(protocol)
+              ? 'fixture-password'
+              : null,
+          uuid:
+              const [
+                CoreNodeProtocol.vmess,
+                CoreNodeProtocol.vless,
+                CoreNodeProtocol.tuic,
+              ].contains(protocol)
+              ? uuid
+              : null,
+          cipher: protocol == CoreNodeProtocol.shadowsocks
+              ? 'aes-128-gcm'
+              : null,
+          tls:
+              const [
+                CoreNodeProtocol.vless,
+                CoreNodeProtocol.trojan,
+                CoreNodeProtocol.hysteria2,
+                CoreNodeProtocol.tuic,
+              ].contains(protocol)
+              ? CoreTlsSpec(serverName: 'localhost')
+              : null,
+          transport: protocol == CoreNodeProtocol.vmess
+              ? CoreTransportSpec(
+                  kind: CoreTransportKind.ws,
+                  path: '/fixture',
+                  headers: {'Host': 'localhost'},
+                )
+              : protocol == CoreNodeProtocol.vless
+              ? CoreTransportSpec(
+                  kind: CoreTransportKind.grpc,
+                  serviceName: 'fixture',
+                )
+              : null,
+        ),
+      CoreNodeSpec(
+        tag: 'reality',
+        protocol: CoreNodeProtocol.vless,
+        server: '127.0.0.1',
+        port: 14443,
+        uuid: uuid,
+        flow: 'xtls-rprx-vision',
+        tls: CoreTlsSpec(
+          serverName: 'localhost',
+          fingerprint: 'chrome',
+          realityPublicKey: base64Url
+              .encode(List.generate(32, (index) => index + 1))
+              .replaceAll('=', ''),
+          realityShortId: '01234567',
+        ),
+      ),
+    ];
+    final result = await SingBoxConfigBuilder().build(
+      CoreProfileSpec(
+        nodes: nodes,
+        selectors: [
+          CoreSelectorSpec(
+            tag: 'automatic',
+            members: ['http', 'socks'],
+            strategy: CoreGroupStrategy.urltest,
+          ),
+        ],
+        finalOutbound: 'direct',
+        rules: [
+          const CoreRouteRule(
+            kind: CoreRuleKind.domainSuffix,
+            value: 'example.com',
+            outbound: 'automatic',
+          ),
+          const CoreRouteRule(
+            kind: CoreRuleKind.ipCidr,
+            value: '192.0.2.0/24',
+            outbound: 'direct',
+          ),
+        ],
+      ),
+      const CoreListenerSpec(
+        mixedPort: 17890,
+        controllerPort: 19090,
+        secret: 'fixture-secret',
+      ),
+    );
+    if (result.json == null) {
+      throw StateError('Protocol fixture compilation failed');
+    }
+    stdout.writeln(result.json);
+    return;
+  }
   if (arguments.contains('--build-config')) {
     final input =
         jsonDecode(await utf8.decoder.bind(stdin).join())

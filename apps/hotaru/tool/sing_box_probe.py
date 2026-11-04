@@ -21,6 +21,10 @@ import urllib.parse
 import uuid
 
 
+def progress(stage):
+    print(f'::notice title=Sing-box P0::{stage}', flush=True)
+
+
 class Origin(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
         time.sleep(0.025)
@@ -70,13 +74,27 @@ class Proxy(Origin):
         super().do_GET()
 
 
+class FixtureServer(http.server.ThreadingHTTPServer):
+    tls = None
+
+    def get_request(self):
+        connection, address = super().get_request()
+        connection.settimeout(5)
+        try:
+            if self.tls is not None:
+                connection = self.tls.wrap_socket(connection, server_side=True)
+            return connection, address
+        except BaseException:
+            connection.close()
+            raise
+
+
 @contextlib.contextmanager
 def server(handler, tls=None):
-    instance = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
+    instance = FixtureServer(('127.0.0.1', 0), handler)
     instance.receipts = []
     instance.release = threading.Event()
-    if tls is not None:
-        instance.socket = tls.wrap_socket(instance.socket, server_side=True)
+    instance.tls = tls
     thread = threading.Thread(target=instance.serve_forever, daemon=True)
     thread.start()
     try:
@@ -106,17 +124,20 @@ def fixture_trust(certificate):
     import hashlib
 
     thumbprint = hashlib.sha1(fingerprint).hexdigest()
-    subprocess.run(['certutil', '-user', '-addstore', 'Root', str(certificate)],
-                   check=True, stdout=subprocess.DEVNULL)
+    progress('Install disposable CI fixture CA')
+    subprocess.run(['certutil', '-f', '-addstore', 'Root', str(certificate)],
+                   check=True, stdout=subprocess.DEVNULL, timeout=15)
     try:
         yield environment
     finally:
-        subprocess.run(['certutil', '-user', '-delstore', 'Root', thumbprint],
-                       check=True, stdout=subprocess.DEVNULL)
+        progress('Remove disposable CI fixture CA')
+        subprocess.run(['certutil', '-delstore', 'Root', thumbprint],
+                       check=True, stdout=subprocess.DEVNULL, timeout=15)
 
 
 def run(binary, dart=None):
-    version = subprocess.check_output([binary, 'version'], text=True)
+    progress('Verify pinned binary version')
+    version = subprocess.check_output([binary, 'version'], text=True, timeout=10)
     if version.splitlines()[0] != 'sing-box version 1.14.4':
         raise RuntimeError('The prototype requires sing-box 1.14.4')
     with tempfile.TemporaryDirectory(prefix='hotaru-sing-box-') as directory:
@@ -128,12 +149,13 @@ def run(binary, dart=None):
             openssl = str(fallback) if fallback.exists() else None
         if openssl is None:
             raise RuntimeError('OpenSSL is required for the local HTTPS fixture')
+        progress('Generate loopback HTTPS certificate')
         subprocess.run([
             openssl, 'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
             '-keyout', str(key), '-out', str(certificate), '-days', '1',
             '-subj', '/CN=Hotaru P0 local fixture',
             '-addext', 'subjectAltName=IP:127.0.0.1',
-        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=15)
         tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         tls.load_cert_chain(certificate, key)
         with server(Origin, tls) as origin, server(Proxy) as first, server(Proxy) as second:
@@ -157,6 +179,7 @@ def run(binary, dart=None):
                     'secret': secret}},
             }
             if dart is not None:
+                progress('Compile profile fixture with Dart')
                 compiled = subprocess.run([
                     dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
                     '--build-config',
@@ -170,8 +193,18 @@ def run(binary, dart=None):
                 config['certificate'] = {'store': 'none', 'certificate_path': [str(certificate)]}
                 config['route']['find_process'] = True
             path = pathlib.Path(directory) / 'config.json'
+            if dart is not None:
+                progress('Compile protocol matrix with Dart')
+                protocol_config = subprocess.run([
+                    dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
+                    '--build-protocol-config',
+                ], text=True, capture_output=True, check=True, timeout=20)
+                protocol_path = pathlib.Path(directory) / 'protocols.json'
+                protocol_path.write_text(protocol_config.stdout, encoding='utf-8')
+                subprocess.run([binary, 'check', '-c', str(protocol_path)], check=True, timeout=10)
             path.write_text(json.dumps(config), encoding='utf-8')
-            subprocess.run([binary, 'check', '-c', str(path)], check=True)
+            progress('Validate compiled runtime configuration')
+            subprocess.run([binary, 'check', '-c', str(path)], check=True, timeout=10)
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
             def api(endpoint, method='GET', payload=None):
@@ -190,6 +223,7 @@ def run(binary, dart=None):
                                            stdout=log, stderr=log, cwd=directory,
                                            env=environment)
                 try:
+                    progress('Start isolated core and wait for controller')
                     deadline = time.monotonic() + 10
                     while True:
                         try:
@@ -205,6 +239,7 @@ def run(binary, dart=None):
                     client_tls = ssl.create_default_context(cafile=str(certificate))
                     for selected, instance, other in [
                             ('node-a', first, second), ('node-b', second, first)]:
+                        progress(f'Verify controlled route {selected}')
                         api('/proxies/selected', 'PUT', {'name': selected})
                         assert api('/proxies/selected')['now'] == selected
                         before, other_before = len(instance.receipts), len(other.receipts)
@@ -221,6 +256,7 @@ def run(binary, dart=None):
                         assert len(instance.receipts) == before + 1
                         assert len(other.receipts) == other_before
                     before = len(first.receipts)
+                    progress('Verify node-specific HTTPS delay')
                     other_before = len(second.receipts)
                     delay = api('/proxies/node-a/delay?timeout=3000&url=' +
                                 urllib.parse.quote(target, safe=''))
@@ -245,6 +281,7 @@ def run(binary, dart=None):
                         assert entry['upload'] > 0 and entry['download'] > 0
                         assert isinstance(entry['metadata']['processPath'], str)
                         if dart is not None:
+                            progress('Verify live Dart adapter')
                             first_before, second_before = len(first.receipts), len(second.receipts)
                             dart_environment = dict(
                                 os.environ,
@@ -272,6 +309,7 @@ def run(binary, dart=None):
                         'node_specific_https_delay_verified': True,
                         'dart_adapter_verified': dart is not None,
                         'dart_config_builder_verified': dart is not None,
+                        'protocol_config_check_verified': dart is not None,
                         'active_connection_fields': sorted(entry),
                         'metadata_fields': sorted(entry['metadata']),
                         'process_path_available': bool(entry['metadata']['processPath']),
