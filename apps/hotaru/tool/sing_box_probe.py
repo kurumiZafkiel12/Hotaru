@@ -5,9 +5,12 @@ import contextlib
 import http.client
 import http.server
 import json
+import os
 import pathlib
 import select
+import shutil
 import socket
+import ssl
 import subprocess
 import tempfile
 import threading
@@ -20,6 +23,7 @@ import uuid
 
 class Origin(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
+        time.sleep(0.025)
         self.send_response(200)
         self.send_header('Content-Length', '0')
         self.end_headers()
@@ -29,7 +33,11 @@ class Origin(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        self.wfile.write(body[:1])
+        self.wfile.flush()
+        if self.path == '/hold':
+            self.server.release.wait(timeout=5)
+        self.wfile.write(body[1:])
 
     def log_message(self, *_):
         pass
@@ -63,14 +71,18 @@ class Proxy(Origin):
 
 
 @contextlib.contextmanager
-def server(handler):
+def server(handler, tls=None):
     instance = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
     instance.receipts = []
+    instance.release = threading.Event()
+    if tls is not None:
+        instance.socket = tls.wrap_socket(instance.socket, server_side=True)
     thread = threading.Thread(target=instance.serve_forever, daemon=True)
     thread.start()
     try:
         yield instance
     finally:
+        instance.release.set()
         instance.shutdown()
         instance.server_close()
         thread.join()
@@ -82,17 +94,55 @@ def port():
         return sock.getsockname()[1]
 
 
-def run(binary):
+@contextlib.contextmanager
+def fixture_trust(certificate):
+    environment = dict(os.environ, SSL_CERT_FILE=str(certificate))
+    if os.name != 'nt':
+        yield environment
+        return
+    if os.environ.get('CI') != 'true':
+        raise RuntimeError('Windows HTTPS fixture trust is restricted to disposable CI')
+    fingerprint = ssl.PEM_cert_to_DER_cert(certificate.read_text(encoding='utf-8'))
+    import hashlib
+
+    thumbprint = hashlib.sha1(fingerprint).hexdigest()
+    subprocess.run(['certutil', '-user', '-addstore', 'Root', str(certificate)],
+                   check=True, stdout=subprocess.DEVNULL)
+    try:
+        yield environment
+    finally:
+        subprocess.run(['certutil', '-user', '-delstore', 'Root', thumbprint],
+                       check=True, stdout=subprocess.DEVNULL)
+
+
+def run(binary, dart=None):
     version = subprocess.check_output([binary, 'version'], text=True)
     if version.splitlines()[0] != 'sing-box version 1.14.4':
         raise RuntimeError('The prototype requires sing-box 1.14.4')
     with tempfile.TemporaryDirectory(prefix='hotaru-sing-box-') as directory:
-        with server(Origin) as origin, server(Proxy) as first, server(Proxy) as second:
+        certificate = pathlib.Path(directory) / 'certificate.pem'
+        key = pathlib.Path(directory) / 'key.pem'
+        openssl = shutil.which('openssl')
+        if openssl is None:
+            fallback = pathlib.Path('C:/Program Files/Git/usr/bin/openssl.exe')
+            openssl = str(fallback) if fallback.exists() else None
+        if openssl is None:
+            raise RuntimeError('OpenSSL is required for the local HTTPS fixture')
+        subprocess.run([
+            openssl, 'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
+            '-keyout', str(key), '-out', str(certificate), '-days', '1',
+            '-subj', '/CN=Hotaru P0 local fixture',
+            '-addext', 'subjectAltName=IP:127.0.0.1',
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        tls.load_cert_chain(certificate, key)
+        with server(Origin, tls) as origin, server(Proxy) as first, server(Proxy) as second:
             first.origin_port = second.origin_port = origin.server_port
             api_port, mixed_port = port(), port()
             secret = uuid.uuid4().hex
             config = {
                 'log': {'level': 'error'},
+                'certificate': {'store': 'none', 'certificate_path': [str(certificate)]},
                 'inbounds': [{'type': 'mixed', 'tag': 'mixed',
                               'listen': '127.0.0.1', 'listen_port': mixed_port}],
                 'outbounds': [
@@ -101,7 +151,7 @@ def run(binary):
                     for name, instance in [('node-a', first), ('node-b', second)]
                 ] + [{'type': 'selector', 'tag': 'selected',
                       'outbounds': ['node-a', 'node-b']}],
-                'route': {'final': 'selected'},
+                'route': {'final': 'selected', 'find_process': True},
                 'experimental': {'clash_api': {
                     'external_controller': f'127.0.0.1:{api_port}',
                     'secret': secret}},
@@ -121,9 +171,11 @@ def run(binary):
                     data = response.read()
                     return json.loads(data) if data else None
 
-            with (pathlib.Path(directory) / 'core.log').open('w+') as log:
+            with fixture_trust(certificate) as environment, \
+                    (pathlib.Path(directory) / 'core.log').open('w+') as log:
                 process = subprocess.Popen([binary, 'run', '-c', str(path)],
-                                           stdout=log, stderr=log, cwd=directory)
+                                           stdout=log, stderr=log, cwd=directory,
+                                           env=environment)
                 try:
                     deadline = time.monotonic() + 10
                     while True:
@@ -136,16 +188,18 @@ def run(binary):
                                 raise RuntimeError(log.read())
                             time.sleep(0.05)
                     proxies = api('/proxies')['proxies']
-                    target = f'http://127.0.0.1:{origin.server_port}/receipt'
+                    target = f'https://127.0.0.1:{origin.server_port}/receipt'
+                    client_tls = ssl.create_default_context(cafile=str(certificate))
                     for selected, instance, other in [
                             ('node-a', first, second), ('node-b', second, first)]:
                         api('/proxies/selected', 'PUT', {'name': selected})
                         assert api('/proxies/selected')['now'] == selected
                         before, other_before = len(instance.receipts), len(other.receipts)
-                        connection = http.client.HTTPConnection('127.0.0.1', mixed_port,
-                                                                timeout=3)
+                        connection = http.client.HTTPSConnection(
+                            '127.0.0.1', mixed_port, timeout=3, context=client_tls)
+                        connection.set_tunnel('127.0.0.1', origin.server_port)
                         try:
-                            connection.request('GET', target)
+                            connection.request('GET', '/receipt')
                             response = connection.getresponse()
                             assert response.status == 200
                             assert response.read() == b'hotaru-sing-box-probe'
@@ -154,25 +208,62 @@ def run(binary):
                         assert len(instance.receipts) == before + 1
                         assert len(other.receipts) == other_before
                     before = len(first.receipts)
+                    other_before = len(second.receipts)
+                    delay = api('/proxies/node-a/delay?timeout=3000&url=' +
+                                urllib.parse.quote(target, safe=''))
+                    assert delay['delay'] > 0
+                    assert len(first.receipts) == before + 1
+                    assert len(second.receipts) == other_before
+                    assert api('/proxies/selected')['now'] == 'node-b'
+                    connection = http.client.HTTPSConnection(
+                        '127.0.0.1', mixed_port, timeout=3, context=client_tls)
+                    connection.set_tunnel('127.0.0.1', origin.server_port)
                     try:
-                        api('/proxies/node-a/delay?timeout=3000&url=' +
-                            urllib.parse.quote(target, safe=''))
-                        raise RuntimeError('Expected rejection of the HTTP delay target')
-                    except urllib.error.HTTPError as error:
-                        assert error.code == 503
-                        error.read()
-                    assert len(first.receipts) == before
-                    connections = api('/connections')
+                        connection.request('GET', '/hold')
+                        response = connection.getresponse()
+                        assert response.read(1) == b'h'
+                        connections = api('/connections')
+                        active = [entry for entry in connections['connections']
+                                  if 'node-b' in entry['chains']]
+                        assert len(active) == 1
+                        entry = active[0]
+                        assert entry['rule'] == 'final'
+                        assert entry['metadata']['destinationPort'] == str(origin.server_port)
+                        assert entry['upload'] > 0 and entry['download'] > 0
+                        assert isinstance(entry['metadata']['processPath'], str)
+                        if dart is not None:
+                            first_before, second_before = len(first.receipts), len(second.receipts)
+                            dart_environment = dict(
+                                os.environ,
+                                HOTARU_PROBE_API=f'http://127.0.0.1:{api_port}',
+                                HOTARU_PROBE_SECRET=secret,
+                                HOTARU_PROBE_TARGET=target,
+                            )
+                            subprocess.run([
+                                dart, str(pathlib.Path(__file__).with_name(
+                                    'sing_box_adapter_smoke.dart')),
+                            ], check=True, timeout=20, env=dart_environment)
+                            assert len(first.receipts) == first_before
+                            assert len(second.receipts) == second_before + 1
+                        origin.release.set()
+                        if dart is None:
+                            response.read()
+                    finally:
+                        origin.release.set()
+                        connection.close()
                     return {
                         'core': core_version,
                         'proxy_fields': sorted(proxies['selected']),
                         'connections_fields': sorted(connections),
                         'selection_receipts_verified': ['node-a', 'node-b'],
-                        'http_delay_target_rejected': True,
-                        'limits': ['Loopback HTTP only; no remote protocol acceptance',
+                        'node_specific_https_delay_verified': True,
+                        'dart_adapter_verified': dart is not None,
+                        'active_connection_fields': sorted(entry),
+                        'metadata_fields': sorted(entry['metadata']),
+                        'process_path_available': bool(entry['metadata']['processPath']),
+                        'limits': ['Loopback HTTPS only; no remote protocol acceptance',
                                    'Windows and TUN remain unverified',
-                                   'Delay requires an HTTPS fixture; HTTP URL is discarded',
-                                   'No live connection field coverage yet'],
+                                   'Only final-route chains verified; no multi-hop acceptance'],
                     }
                 finally:
                     process.terminate()
@@ -186,5 +277,6 @@ def run(binary):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', required=True)
+    parser.add_argument('--dart')
     args = parser.parse_args()
-    print(json.dumps(run(str(pathlib.Path(args.binary).resolve())), indent=2))
+    print(json.dumps(run(str(pathlib.Path(args.binary).resolve()), args.dart), indent=2))
