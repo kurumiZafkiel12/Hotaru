@@ -295,14 +295,16 @@ def run(binary, dart=None, stdio_host=False, tun=False):
             }
             if dart is not None:
                 progress('Compile profile fixture with Dart')
-                compiled = subprocess.run([
-                    dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
-                    '--build-config',
-                ], input=json.dumps({
+                profile_input = {
                     'nodes': [{'tag': 'node-a', 'port': first.server_port},
                               {'tag': 'node-b', 'port': second.server_port}],
                     'mixedPort': mixed_port, 'controllerPort': api_port, 'secret': secret,
-                }), text=True, capture_output=True, check=True, timeout=20)
+                }
+                compiled = subprocess.run([
+                    dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
+                    '--build-config',
+                ], input=json.dumps(profile_input), text=True,
+                    capture_output=True, check=True, timeout=20)
                 config = json.loads(compiled.stdout)
                 config['log'] = {'level': 'error'}
                 config['certificate'] = {'store': 'none', 'certificate_path': [str(certificate)]}
@@ -412,6 +414,7 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                                 HOTARU_PROBE_API=f'http://127.0.0.1:{api_port}',
                                 HOTARU_PROBE_SECRET=secret,
                                 HOTARU_PROBE_TARGET=target,
+                                HOTARU_PROBE_PROFILE=json.dumps(profile_input),
                             )
                             subprocess.run([
                                 dart, str(pathlib.Path(__file__).with_name(
@@ -432,6 +435,7 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                         'selection_receipts_verified': ['node-a', 'node-b'],
                         'node_specific_https_delay_verified': True,
                         'dart_adapter_verified': dart is not None,
+                        'offline_final_route_preview_verified': dart is not None,
                         'dart_config_builder_verified': dart is not None,
                         'protocol_config_check_verified': dart is not None,
                         'clash_api_config_reload_supported': False,

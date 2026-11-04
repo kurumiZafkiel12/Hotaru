@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../lib/core/adapter.dart';
 import '../lib/core/config/profile.dart';
+import '../lib/core/config/route_preview.dart';
 import '../lib/core/sing_box/clash_api_adapter.dart';
 import '../lib/core/sing_box/config_builder.dart';
 
@@ -118,21 +119,7 @@ Future<void> main(List<String> arguments) async {
     final input =
         jsonDecode(await utf8.decoder.bind(stdin).join())
             as Map<String, dynamic>;
-    final profile = CoreProfileSpec(
-      nodes: [
-        for (final node in input['nodes'] as List)
-          CoreNodeSpec(
-            tag: node['tag'] as String,
-            protocol: CoreNodeProtocol.http,
-            server: '127.0.0.1',
-            port: node['port'] as int,
-          ),
-      ],
-      selectors: [
-        CoreSelectorSpec(tag: 'selected', members: ['node-a', 'node-b']),
-      ],
-      finalOutbound: 'selected',
-    );
+    final profile = _fixtureProfile(input);
     final result = await SingBoxConfigBuilder().build(
       profile,
       CoreListenerSpec(
@@ -182,6 +169,19 @@ Future<void> main(List<String> arguments) async {
     if (selection.selected != 'node-a') {
       throw StateError('Node-specific delay changed the selected route');
     }
+    final preview = await CoreRoutePreviewer().preview(
+      _fixtureProfile(
+        jsonDecode(Platform.environment['HOTARU_PROBE_PROFILE']!)
+            as Map<String, dynamic>,
+      ),
+      'offline-preview.invalid',
+      selections: {'selected': selection.selected!},
+    );
+    if (preview.status != CoreRoutePreviewStatus.resolved ||
+        preview.ruleIndex != null ||
+        preview.chain.join('>') != 'selected>node-a') {
+      throw StateError('Offline preview differs from the live selection');
+    }
     await adapter.closeConnection(active.single.id);
     if ((await adapter.connections()).entries.any(
       (entry) => entry.id == active.single.id,
@@ -198,5 +198,21 @@ Future<void> main(List<String> arguments) async {
     await adapter.close();
   }
 }
+
+CoreProfileSpec _fixtureProfile(Map<String, dynamic> input) => CoreProfileSpec(
+  nodes: [
+    for (final node in input['nodes'] as List)
+      CoreNodeSpec(
+        tag: node['tag'] as String,
+        protocol: CoreNodeProtocol.http,
+        server: '127.0.0.1',
+        port: node['port'] as int,
+      ),
+  ],
+  selectors: [
+    CoreSelectorSpec(tag: 'selected', members: ['node-a', 'node-b']),
+  ],
+  finalOutbound: 'selected',
+);
 // The Windows protocol job runs directly with the standalone Dart SDK.
 // ignore_for_file: avoid_relative_lib_imports
