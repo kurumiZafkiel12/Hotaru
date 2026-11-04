@@ -8,6 +8,7 @@ on:
       - apps/hotaru/tool/sing_box_adapter_smoke.dart
       - apps/hotaru/tool/sing_box_lifecycle_smoke.dart
       - apps/hotaru/tool/sing_box_tun_smoke.dart
+      - apps/hotaru/tool/sing_box_owner_loss_smoke.dart
       - apps/hotaru/core/sing_box_host/**
       - apps/hotaru/lib/core/adapter.dart
       - apps/hotaru/lib/core/config/**

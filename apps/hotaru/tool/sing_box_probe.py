@@ -226,6 +226,28 @@ def host_eof_probe(binary, config, environment, name, baseline, log_path):
             process.stdout.close()
 
 
+def owner_loss_probe(dart, environment, name, baseline):
+    result = subprocess.run([
+        dart, str(pathlib.Path(__file__).with_name('sing_box_owner_loss_smoke.dart')),
+    ], env=environment, text=True, capture_output=True, timeout=60)
+    if result.returncode != 17:
+        raise RuntimeError('Dart owner-loss fixture did not reach its deliberate exit')
+    event = json.loads(result.stdout)
+    assert event['event'] == 'owner_ready' and isinstance(event['pid'], int) and event['pid'] > 0
+    deadline = time.monotonic() + 20
+    while True:
+        script = f"if (Get-Process -Id {event['pid']} -ErrorAction SilentlyContinue) {{ 'alive' }} else {{ 'gone' }}"
+        query = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+                               check=True, capture_output=True, text=True, timeout=10)
+        state = query.stdout.strip()
+        if state == 'gone':
+            break
+        if state != 'alive' or time.monotonic() >= deadline:
+            raise RuntimeError('Owned TUN host survived the Dart parent exit')
+        time.sleep(0.5)
+    wait_tun_cleanup(name, baseline)
+
+
 def run(binary, dart=None, stdio_host=False, tun=False):
     if tun and (os.name != 'nt' or os.environ.get('CI') != 'true' or not stdio_host or dart is None):
         raise RuntimeError('TUN probe requires the stdio host and disposable Windows CI')
@@ -489,9 +511,12 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                     progress('Verify TUN cleanup when the parent control pipe closes')
                     host_eof_probe(binary, tun_path, environment, name, before,
                                    pathlib.Path(directory) / 'host-eof.log')
+                    progress('Verify TUN cleanup after the actual Dart owner exits abruptly')
+                    owner_loss_probe(dart, tun_environment, name, before)
                     report['windows_tun_verified'] = True
                     report['tun_cleanup_verified'] = True
                     report['parent_eof_cleanup_verified'] = True
+                    report['dart_owner_loss_cleanup_verified'] = True
                     report['limits'] = ['Controlled HTTPS only; no remote protocol acceptance',
                                         'Production UI and privileged helper integration remain unverified',
                                         'Only final-route chains verified; no multi-hop acceptance']
