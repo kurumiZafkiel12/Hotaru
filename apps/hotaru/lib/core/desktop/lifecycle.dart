@@ -421,10 +421,7 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
         await releaseLease();
         return false;
       }
-      final ownedLease = lease;
-      if (ownedLease is CoreProcessExitSource) {
-        _transport.observeProcess(ownedLease);
-      }
+      _transport.observeProcess(lease);
       final connected = await _waitForConnectionWhileWanted(
         connectionWaiter.future,
       );

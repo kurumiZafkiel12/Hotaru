@@ -13,4 +13,6 @@ go -C core/sing_box_host test -tags with_clash_api,with_quic,with_utls ./...
 
 `check -c <compiled.json>` validates through the upstream engine without starting it. `version` derives its version from Go build metadata and rejects replaced or mismatched upstream modules.
 
+On Windows, the existing Helper can launch the host with its fixed `\\.\pipe\HotaruCore_<32 lowercase hex>` argument. The client verifies the pipe peer PID before sending an in-memory `hotaru-bootstrap-v1` configuration. Frames use the existing Rust transport's four-byte little-endian length header, capped at 16 MiB by this host. Subsequent frames carry the same host events and `stop\n` control. The pipe client requests identification-only security quality of service so the server cannot impersonate a privileged host. A ten-second bootstrap deadline prevents an unconfigured process from waiting indefinitely.
+
 Windows TUN and privileged helper packaging are still under development. This component is not yet selected by the normal application UI. Redistribution must retain the upstream sing-box license and source obligations alongside Hotaru's license.

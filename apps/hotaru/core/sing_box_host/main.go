@@ -98,11 +98,15 @@ func serve(parent context.Context, configPath string, input io.Reader, output io
 }
 
 func newEngine(ctx context.Context, path string) (engine, error) {
-	ctx = include.Context(service.ContextWith(ctx, deprecated.NewStderrManager(log.StdLogger())))
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
+	return newEngineConfig(ctx, content)
+}
+
+func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
+	ctx = include.Context(service.ContextWith(ctx, deprecated.NewStderrManager(log.StdLogger())))
 	options, err := boxJSON.UnmarshalExtendedContext[option.Options](ctx, content)
 	if err != nil {
 		return nil, err
@@ -132,6 +136,11 @@ func command(args []string) error {
 		return err
 	}
 	C.Version = version
+	if len(args) == 1 && strings.HasPrefix(args[0], `\\.\pipe\`) {
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer cancel()
+		return runPipe(ctx, args[0])
+	}
 	if len(args) == 1 && args[0] == "version" {
 		fmt.Printf("sing-box version %s\nHost control: %s\n", version, controlProtocol)
 		return nil

@@ -42,15 +42,24 @@ final class SingBoxDesktopCore {
       verifyPeerPid: Platform.isWindows,
       timeouts: timeouts,
     );
-    return SingBoxDesktopCore._(
-      lifecycle,
-      SessionCoreAdapter(
-        lifecycle: lifecycle,
-        factory: () =>
-            SingBoxClashApiAdapter(endpoint: endpoint, secret: secret),
-      ),
+    return SingBoxDesktopCore.withLifecycle(
+      lifecycle: lifecycle,
+      endpoint: endpoint,
+      secret: secret,
     );
   }
+
+  factory SingBoxDesktopCore.withLifecycle({
+    required DesktopCoreLifecycleController lifecycle,
+    required Uri endpoint,
+    required String secret,
+  }) => SingBoxDesktopCore._(
+    lifecycle,
+    SessionCoreAdapter(
+      lifecycle: lifecycle,
+      factory: () => SingBoxClashApiAdapter(endpoint: endpoint, secret: secret),
+    ),
+  );
 
   Future<CoreLifecycleResult> start() => lifecycle.start();
   Future<CoreLifecycleResult> restart() => lifecycle.restart();

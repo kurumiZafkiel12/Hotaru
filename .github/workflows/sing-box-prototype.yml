@@ -9,7 +9,10 @@ on:
       - apps/hotaru/tool/sing_box_lifecycle_smoke.dart
       - apps/hotaru/tool/sing_box_tun_smoke.dart
       - apps/hotaru/tool/sing_box_owner_loss_smoke.dart
+      - apps/hotaru/tool/sing_box_helper_probe.ps1
       - apps/hotaru/core/sing_box_host/**
+      - apps/hotaru/services/helper/**
+      - apps/hotaru/lib/core/desktop/core_manifest.dart
       - apps/hotaru/lib/core/adapter.dart
       - apps/hotaru/lib/core/config/**
       - apps/hotaru/lib/core/sing_box/**
@@ -83,3 +86,28 @@ jobs:
         run: |
           python tool/sing_box_probe.py --binary "$env:RUNNER_TEMP/hotaru-box-host.exe" --dart (Get-Command dart).Source --stdio-host --tun
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify real Windows named pipe bootstrap and TUN packets
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          ./tool/sing_box_helper_probe.ps1 -Binary "$env:RUNNER_TEMP/hotaru-box-host.exe"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/hotaru/services/helper -> target
+      - name: Build isolated Helper against the exact host digest
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe'
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item "$env:RUNNER_TEMP/hotaru-box-host.exe" "$stage/HotaruCore.exe"
+          $env:CORE_SHA256 = (Get-FileHash "$stage/HotaruCore.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          cargo build --locked --manifest-path services/helper/Cargo.toml --features windows-service
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item services/helper/target/debug/helper.exe "$stage/HotaruHelperService.exe"
+      - name: Verify real SCM Helper identity, TUN packets and cleanup
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe'
+          ./tool/sing_box_helper_probe.ps1 -Binary "$stage/HotaruCore.exe" -HelperPath "$stage/HotaruHelperService.exe"

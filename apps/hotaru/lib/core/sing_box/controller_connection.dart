@@ -15,7 +15,7 @@ final class SingBoxControllerConnection
   final StreamController<DesktopTransportEvent> _events =
       StreamController<DesktopTransportEvent>.broadcast();
   DesktopTransportState _state = DesktopTransportState.idle;
-  CoreProcessExitSource? _process;
+  CoreProcessLease? _process;
   Timer? _timer;
   Future<void>? _polling;
   Future<void>? _closing;
@@ -59,25 +59,27 @@ final class SingBoxControllerConnection
   }
 
   @override
-  void observeProcess(CoreProcessExitSource process) {
+  void observeProcess(CoreProcessLease process) {
     if (_terminal) return;
     if (_process != null && !identical(_process, process)) {
       _fail(StateError('Controller process changed without a new connection'));
       return;
     }
     _process = process;
-    unawaited(
-      process.exitCode.then<void>(
-        (code) {
-          if (!_terminal && identical(_process, process)) {
-            _fail(StateError('Owned core exited: $code'));
-          }
-        },
-        onError: (Object error, StackTrace trace) {
-          if (!_terminal) _fail(error, trace);
-        },
-      ),
-    );
+    if (process is CoreProcessExitSource) {
+      unawaited(
+        process.exitCode.then<void>(
+          (code) {
+            if (!_terminal && identical(_process, process)) {
+              _fail(StateError('Owned core exited: $code'));
+            }
+          },
+          onError: (Object error, StackTrace trace) {
+            if (!_terminal) _fail(error, trace);
+          },
+        ),
+      );
+    }
     if (process is CoreProcessReadySource) {
       unawaited(
         process.ready.then<void>(

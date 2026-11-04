@@ -3,14 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../desktop/model.dart';
+import 'host_events.dart';
 
 final class StdioCoreLease implements CoreProcessReadySource {
   final Process _process;
-  final Completer<void> _ready = Completer<void>();
-  final Completer<void> _outputDone = Completer<void>();
-  bool _clean = false;
-  bool _protocolFailed = false;
-  bool _stopped = false;
+  final SingBoxHostEvents _events;
   Future<CoreProcessStopResult>? _stopping;
 
   @override
@@ -20,66 +17,21 @@ final class StdioCoreLease implements CoreProcessReadySource {
     required this.sessionId,
     required Process process,
     void Function(String)? onStderr,
-  }) : _process = process {
-    _ready.future.ignore();
+  }) : _process = process,
+       _events = SingBoxHostEvents(process.pid) {
     process.stdin.done.ignore();
     process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen(
-          _event,
-          onError: (Object error) => _invalidOutput(),
-          onDone: () {
-            if (!_ready.isCompleted) {
-              _ready.completeError(StateError('Host exited before ready'));
-            }
-            if (!_outputDone.isCompleted) _outputDone.complete();
-          },
+          _events.add,
+          onError: (Object error) => _events.fail(),
+          onDone: _events.finish,
           cancelOnError: false,
         );
     process.stderr
         .transform(utf8.decoder)
         .listen(onStderr ?? (_) {}, onError: (Object _) {});
-  }
-
-  void _invalidOutput() {
-    _protocolFailed = true;
-    _clean = false;
-    if (!_ready.isCompleted) {
-      _ready.completeError(StateError('Invalid host control output'));
-    }
-  }
-
-  void _event(String line) {
-    try {
-      final value = jsonDecode(line);
-      if (_stopped ||
-          value is! Map<String, dynamic> ||
-          value['pid'] is! int ||
-          value['protocol'] != 'hotaru-stdio-v1' ||
-          value['pid'] != pid) {
-        _invalidOutput();
-        return;
-      }
-      switch (value['event']) {
-        case 'ready':
-          if (_ready.isCompleted) {
-            _invalidOutput();
-          } else {
-            _ready.complete();
-          }
-        case 'stopped':
-          _stopped = true;
-          _clean = !_protocolFailed && value['clean'] == true;
-          if (!_ready.isCompleted) {
-            _ready.completeError(StateError('Host stopped before ready'));
-          }
-        default:
-          _invalidOutput();
-      }
-    } on FormatException {
-      _invalidOutput();
-    }
   }
 
   @override
@@ -89,7 +41,7 @@ final class StdioCoreLease implements CoreProcessReadySource {
   @override
   Future<int> get exitCode => _process.exitCode;
   @override
-  Future<void> get ready => _ready.future;
+  Future<void> get ready => _events.ready;
 
   @override
   Future<CoreProcessStopResult> stop(Duration timeout) {
@@ -114,11 +66,11 @@ final class StdioCoreLease implements CoreProcessReadySource {
     }
     try {
       await _process.exitCode.timeout(remaining());
-      await _outputDone.future.timeout(remaining());
+      await _events.finished.timeout(remaining());
     } on TimeoutException {
       return const CoreProcessStopResult(stopped: true, exitConfirmed: false);
     }
-    if (!_clean) throw StateError('Core cleanup was not acknowledged');
+    if (!_events.clean) throw StateError('Core cleanup was not acknowledged');
     return const CoreProcessStopResult(stopped: true, exitConfirmed: true);
   }
 }

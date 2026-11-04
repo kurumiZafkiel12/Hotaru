@@ -3,7 +3,7 @@ import 'dart:async';
 import 'model.dart';
 
 abstract interface class DesktopCoreProcessObserver {
-  void observeProcess(CoreProcessExitSource process);
+  void observeProcess(CoreProcessLease process);
 }
 
 enum DesktopTransportState { idle, starting, ready, connected, failed, closed }
@@ -60,7 +60,7 @@ class DesktopCoreConnectionBinding implements DesktopCoreConnection {
 
   DesktopCoreConnection get current => _connection;
 
-  void observeProcess(CoreProcessExitSource process) {
+  void observeProcess(CoreProcessLease process) {
     if (_connection case final DesktopCoreProcessObserver observer) {
       observer.observeProcess(process);
     }
