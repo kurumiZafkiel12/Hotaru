@@ -7,6 +7,7 @@ on:
       - apps/hotaru/tool/sing_box_probe.py
       - apps/hotaru/tool/sing_box_adapter_smoke.dart
       - apps/hotaru/lib/core/adapter.dart
+      - apps/hotaru/lib/core/config/**
       - apps/hotaru/lib/core/sing_box/**
       - .github/workflows/sing-box-prototype.yml
 

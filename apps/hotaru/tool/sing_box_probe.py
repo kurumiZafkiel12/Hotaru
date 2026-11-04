@@ -156,6 +156,19 @@ def run(binary, dart=None):
                     'external_controller': f'127.0.0.1:{api_port}',
                     'secret': secret}},
             }
+            if dart is not None:
+                compiled = subprocess.run([
+                    dart, str(pathlib.Path(__file__).with_name('sing_box_adapter_smoke.dart')),
+                    '--build-config',
+                ], input=json.dumps({
+                    'nodes': [{'tag': 'node-a', 'port': first.server_port},
+                              {'tag': 'node-b', 'port': second.server_port}],
+                    'mixedPort': mixed_port, 'controllerPort': api_port, 'secret': secret,
+                }), text=True, capture_output=True, check=True, timeout=20)
+                config = json.loads(compiled.stdout)
+                config['log'] = {'level': 'error'}
+                config['certificate'] = {'store': 'none', 'certificate_path': [str(certificate)]}
+                config['route']['find_process'] = True
             path = pathlib.Path(directory) / 'config.json'
             path.write_text(json.dumps(config), encoding='utf-8')
             subprocess.run([binary, 'check', '-c', str(path)], check=True)
@@ -258,6 +271,7 @@ def run(binary, dart=None):
                         'selection_receipts_verified': ['node-a', 'node-b'],
                         'node_specific_https_delay_verified': True,
                         'dart_adapter_verified': dart is not None,
+                        'dart_config_builder_verified': dart is not None,
                         'active_connection_fields': sorted(entry),
                         'metadata_fields': sorted(entry['metadata']),
                         'process_path_available': bool(entry['metadata']['processPath']),
