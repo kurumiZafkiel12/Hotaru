@@ -7,6 +7,7 @@ import http.server
 import json
 import os
 import pathlib
+import queue
 import select
 import shutil
 import socket
@@ -148,6 +149,10 @@ $proxy = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\Current
 $routes = @(Get-NetRoute)
 $adapters = @(Get-NetAdapter -IncludeHidden)
 $addresses = @(Get-NetIPAddress)
+$dns = @{}
+Get-DnsClientServerAddress | ForEach-Object {
+    $dns["$($_.InterfaceIndex)|$($_.AddressFamily)"] = @($_.ServerAddresses) -join ','
+}
 $defaults = @(($routes | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' -or $_.DestinationPrefix -eq '::/0' }) |
     ForEach-Object { "$($_.DestinationPrefix)|$($_.InterfaceIndex)|$($_.NextHop)|$($_.RouteMetric)" } | Sort-Object)
 @{
@@ -156,11 +161,69 @@ $defaults = @(($routes | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' -or
     routeCount = @($routes | Where-Object { $_.DestinationPrefix -eq '198.18.7.0/30' }).Count
     defaultRoutes = $defaults
     proxy = @{ enabled = $proxy.ProxyEnable; server = $proxy.ProxyServer; pac = $proxy.AutoConfigURL }
+    dns = $dns
 } | ConvertTo-Json -Depth 4 -Compress
 """.replace('INTERFACE_NAME', name)
     result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
                             capture_output=True, text=True, timeout=20, check=True)
     return json.loads(result.stdout)
+
+
+def wait_tun_cleanup(name, baseline):
+    deadline = time.monotonic() + 20
+    while True:
+        after = windows_snapshot(name)
+        if not after['adapterCount'] and not after['addressCount'] and not after['routeCount']:
+            break
+        if time.monotonic() >= deadline:
+            raise RuntimeError('TUN interface, addresses or routes survived stop')
+        time.sleep(0.5)
+    assert after['proxy'] == baseline['proxy'], 'System proxy changed'
+    assert after['defaultRoutes'] == baseline['defaultRoutes'], 'Default routes changed'
+    assert all(after['dns'].get(key) == value for key, value in baseline['dns'].items()), 'Existing interface DNS changed'
+
+
+def host_eof_probe(binary, config, environment, name, baseline, log_path):
+    messages = queue.Queue()
+    with log_path.open('w+') as log:
+        process = subprocess.Popen([binary, 'run', '-c', str(config), '--stdio-control'],
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=log, env=environment, text=True)
+
+        def read_events():
+            for line in process.stdout:
+                messages.put(line)
+            messages.put(None)
+
+        reader = threading.Thread(target=read_events, daemon=True)
+        reader.start()
+        try:
+            message = messages.get(timeout=20)
+            if message is None:
+                raise RuntimeError('Host exited before EOF fixture startup')
+            event = json.loads(message)
+            assert event['protocol'] == 'hotaru-stdio-v1' and event['pid'] == process.pid
+            assert event['event'] == 'ready'
+            active = windows_snapshot(name)
+            assert active['adapterCount'] == 1 and active['addressCount'] > 0 and active['routeCount'] > 0
+            assert process.poll() is None, 'Host exited before parent control pipe closed'
+            process.stdin.close()
+            assert process.wait(timeout=10) == 0, 'Host failed during EOF cleanup'
+            stopped = json.loads(messages.get(timeout=3))
+            assert stopped['protocol'] == 'hotaru-stdio-v1' and stopped['pid'] == process.pid
+            assert stopped['event'] == 'stopped' and stopped.get('clean') is True
+            assert messages.get(timeout=3) is None
+            wait_tun_cleanup(name, baseline)
+        finally:
+            if not process.stdin.closed:
+                process.stdin.close()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+            reader.join(timeout=2)
+            process.stdout.close()
 
 
 def run(binary, dart=None, stdio_host=False, tun=False):
@@ -422,18 +485,13 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                     expected = f'198.18.7.2:{origin.server_port}'
                     assert first.receipts[first_before:] == [expected]
                     assert second.receipts[second_before:] == [expected]
-                    deadline = time.monotonic() + 20
-                    while True:
-                        after = windows_snapshot(name)
-                        if not after['adapterCount'] and not after['addressCount'] and not after['routeCount']:
-                            break
-                        if time.monotonic() >= deadline:
-                            raise RuntimeError('TUN interface, addresses or routes survived stop')
-                        time.sleep(0.5)
-                    assert after['proxy'] == before['proxy'], 'System proxy changed'
-                    assert after['defaultRoutes'] == before['defaultRoutes'], 'Default routes changed'
+                    wait_tun_cleanup(name, before)
+                    progress('Verify TUN cleanup when the parent control pipe closes')
+                    host_eof_probe(binary, tun_path, environment, name, before,
+                                   pathlib.Path(directory) / 'host-eof.log')
                     report['windows_tun_verified'] = True
                     report['tun_cleanup_verified'] = True
+                    report['parent_eof_cleanup_verified'] = True
                     report['limits'] = ['Controlled HTTPS only; no remote protocol acceptance',
                                         'Production UI and privileged helper integration remain unverified',
                                         'Only final-route chains verified; no multi-hop acceptance']
