@@ -1,0 +1,38 @@
+name: Sing-box P0 prototype
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - apps/hotaru/tool/sing_box_probe.py
+      - .github/workflows/sing-box-prototype.yml
+
+permissions:
+  contents: read
+
+jobs:
+  controlled-routing:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch and verify pinned upstream binary
+        shell: pwsh
+        run: |
+          $asset = Join-Path $env:RUNNER_TEMP 'sing-box.zip'
+          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset
+          $expected = '99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df'
+          if ((Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) {
+            throw 'Upstream sing-box asset digest mismatch'
+          }
+          Expand-Archive $asset -DestinationPath (Join-Path $env:RUNNER_TEMP 'sing-box')
+      - name: Verify actual selected outbound with loopback receipts
+        shell: pwsh
+        working-directory: apps/hotaru
+        run: |
+          $binary = Join-Path $env:RUNNER_TEMP 'sing-box/sing-box-1.14.4-windows-amd64/sing-box.exe'
+          python tool/sing_box_probe.py --binary $binary
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
