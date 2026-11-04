@@ -10,6 +10,7 @@ public static class HotaruWindowCapture {
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
+    [DllImport("user32.dll")] public static extern bool IsZoomed(IntPtr window);
 }
 '@
 function Get-ProxyState {
@@ -51,11 +52,27 @@ try {
         $graphics.Dispose()
         $image.Dispose()
     }
+    [HotaruWindowCapture]::ShowWindow($window, 3) | Out-Null
+    Start-Sleep -Seconds 2
+    if (-not [HotaruWindowCapture]::IsZoomed($window)) { throw 'Owned window did not maximize' }
+    $maximized = New-Object HotaruWindowCapture+Rect
+    if (-not [HotaruWindowCapture]::GetWindowRect($window, [ref]$maximized)) { throw 'Maximized bounds unavailable' }
+    $maxWidth = $maximized.Right - $maximized.Left
+    $maxHeight = $maximized.Bottom - $maximized.Top
+    if ($maxWidth -lt $width -or $maxHeight -lt $height) { throw 'Maximized window became smaller' }
+    [HotaruWindowCapture]::ShowWindow($window, 9) | Out-Null
+    Start-Sleep -Seconds 2
+    if ([HotaruWindowCapture]::IsZoomed($window)) { throw 'Owned window did not restore' }
+    $restored = New-Object HotaruWindowCapture+Rect
+    if (-not [HotaruWindowCapture]::GetWindowRect($window, [ref]$restored)) { throw 'Restored bounds unavailable' }
+    if ([Math]::Abs(($restored.Right - $restored.Left) - $width) -gt 1 -or
+        [Math]::Abs(($restored.Bottom - $restored.Top) - $height) -gt 1) { throw 'Restore did not preserve original dimensions' }
     if ((Get-ProxyState) -ne $before) { throw 'Safe UI changed system proxy settings' }
     $result = [ordered]@{
         source_sha=$env:GITHUB_SHA; safe_mode_build=$true; owned_pid=$ownedProcess.Id;
         window_width=$width; window_height=$height; dpi=[HotaruWindowCapture]::GetDpiForWindow($window);
         system_proxy_unchanged=$true; scope='Actual Windows app in SAFE_MODE; no connected-node or performance acceptance'
+        maximize_restore_verified=$true; maximized_width=$maxWidth; maximized_height=$maxHeight
     }
     $result | ConvertTo-Json | Set-Content 'native-ui/windows/result.json'
     Write-Host "::notice title=Native Windows safe UI::$($result | ConvertTo-Json -Compress)"

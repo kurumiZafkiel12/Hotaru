@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/io.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,18 @@ void main() {
   test(
     'link import validates with Core, persists rules separately and rejects a bad update',
     () async {
+      final previousAdapter = request.dio.httpClientAdapter;
+      final adapter = IOHttpClientAdapter(
+        createHttpClient: () => HttpOverrides.runWithHttpOverrides(
+          HttpClient.new,
+          _RealHttpOverrides(),
+        ),
+      );
+      request.dio.httpClientAdapter = adapter;
+      addTearDown(() {
+        request.dio.httpClientAdapter = previousAdapter;
+        adapter.close(force: true);
+      });
       var source = 'rules: ["DOMAIN-SUFFIX,example.cn,DIRECT", "MATCH,Proxy"]';
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       addTearDown(() => server.close(force: true));
