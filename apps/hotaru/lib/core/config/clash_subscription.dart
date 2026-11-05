@@ -150,6 +150,20 @@ Future<_ExpandedClash> _expandProviders(
   Map<String, String> payloads,
 ) => Isolate.run(() => _ProviderImport().expand(prepared, payloads));
 
+List<String> _sortedNames(Iterable<String> names) {
+  // Go sorts UTF-8 bytes; preserving that order also preserves default selection.
+  final encoded = [for (final name in names) (name, utf8.encode(name))];
+  encoded.sort((a, b) {
+    final length = a.$2.length < b.$2.length ? a.$2.length : b.$2.length;
+    for (var i = 0; i < length; i++) {
+      final compared = a.$2[i].compareTo(b.$2[i]);
+      if (compared != 0) return compared;
+    }
+    return a.$2.length.compareTo(b.$2.length);
+  });
+  return [for (final entry in encoded) entry.$1];
+}
+
 final class _ExpandedClash {
   final Map<String, dynamic> document;
   final List<String> origins;
@@ -384,7 +398,7 @@ final class _ProviderImport {
         if (!names.add(name)) issue('duplicate_node_tag', 'proxies.$i');
         origins.add('proxies.$i');
       }
-      final rootNames = names.toList()..sort();
+      final rootNames = _sortedNames(names);
       final memberships = <String, List<String>>{};
       final declarations = map(
         root.remove('proxy-providers') ?? <String, dynamic>{},
@@ -428,7 +442,7 @@ final class _ProviderImport {
         memberships[name] = members;
         providerIndex++;
       }
-      final allProviders = memberships.keys.toList()..sort();
+      final allProviders = _sortedNames(memberships.keys);
       final groups = list(root['proxy-groups'] ?? []);
       final expandedGroups = <Map<String, dynamic>>[];
       var totalMemberships = 0;

@@ -39,6 +39,36 @@ Map<String, dynamic> _http([String suffix = 'fixture']) => {
 };
 
 void main() {
+  test(
+    'include-all uses UTF-8 name ordering rather than UTF-16 code units',
+    () async {
+      final importer = ClashSubscriptionImporter(
+        resolve: (_) => throw StateError('Inline only'),
+      );
+      final result = await importer.import(
+        _source(
+          {
+            '🇯🇵': {
+              'type': 'inline',
+              'payload': [_node('Emoji')],
+            },
+            '\uf000': {
+              'type': 'inline',
+              'payload': [_node('Glyph')],
+            },
+          },
+          groups: [
+            {
+              'name': 'Selected',
+              'type': 'select',
+              'include-all-providers': true,
+            },
+          ],
+        ),
+      );
+      expect(result.profile!.selectors.single.members, ['Glyph', 'Emoji']);
+    },
+  );
   test('isolate tasks do not capture the resolver native resources', () async {
     final port = ReceivePort();
     addTearDown(port.close);
