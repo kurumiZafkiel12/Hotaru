@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import 'package:yaml/yaml.dart';
 
+import 'clash_dns.dart';
 import 'profile.dart';
 
 final class ClashProfileImporter {
@@ -79,6 +80,7 @@ final class _ClashImport {
   CoreConfigImportResult readDocument(Map<String, dynamic> input) {
     try {
       for (final key in input.keys) {
+        if (key == 'dns') continue;
         if (const ['proxies', 'proxy-groups', 'rules'].contains(key)) continue;
         if (const [
           'mixed-port',
@@ -97,12 +99,13 @@ final class _ClashImport {
           issue(switch (key) {
             'proxy-providers' => 'provider_expansion_required',
             'rule-providers' => 'rule_provider_conversion_required',
-            'dns' => 'dns_conversion_required',
             _ => 'unsupported_field',
           }, key);
         }
       }
       final nodes = <CoreNodeSpec>[];
+      final dns = input['dns'] == null ? null : importClashDns(input['dns']);
+      if (dns != null) issues.addAll(dns.issues);
       final rawNodes = list(input['proxies'] ?? []);
       for (var index = 0; index < rawNodes.length; index++) {
         final path = 'proxies.$index';
@@ -210,6 +213,7 @@ final class _ClashImport {
                 selectors: selectors,
                 finalOutbound: finalOutbound!,
                 rules: rules,
+                dns: dns?.dns,
               ),
         issues: issues,
       );

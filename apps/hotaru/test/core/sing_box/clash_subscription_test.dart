@@ -309,7 +309,7 @@ void main() {
     expect(dns.profile, isNull);
     expect(
       dns.issues.map((issue) => issue.code),
-      contains('dns_conversion_required'),
+      contains('invalid_dns_value'),
     );
     final filter = await importer.import(
       _source(

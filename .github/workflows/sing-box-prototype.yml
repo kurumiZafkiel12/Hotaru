@@ -14,6 +14,8 @@ on:
       - apps/hotaru/tool/build_sing_box_bundle.ps1
       - apps/hotaru/test/core/sing_box/helper_native_test.dart
       - apps/hotaru/test/core/sing_box/clash_subscription_test.dart
+      - apps/hotaru/test/core/sing_box/dns_config_test.dart
+      - apps/hotaru/test/core/sing_box/dns_wire_test.dart
       - apps/hotaru/core/sing_box_host/**
       - apps/hotaru/services/helper/**
       - apps/hotaru/lib/core/desktop/core_manifest.dart
@@ -128,7 +130,14 @@ jobs:
           Set-Content -NoNewline -Encoding utf8 pubspec.yaml $source
           flutter pub get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          flutter test test/core/sing_box/clash_subscription_test.dart --reporter expanded
+          $asset = Join-Path $env:RUNNER_TEMP 'sing-box-dns.zip'
+          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset
+          if ((Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne '99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df') {
+            throw 'DNS test engine digest mismatch'
+          }
+          Expand-Archive $asset -DestinationPath (Join-Path $env:RUNNER_TEMP 'sing-box-dns')
+          $env:HOTARU_TEST_SING_BOX = Join-Path $env:RUNNER_TEMP 'sing-box-dns/sing-box-1.14.4-windows-amd64/sing-box.exe'
+          flutter test test/core/sing_box/clash_subscription_test.dart test/core/sing_box/clash_importer_test.dart test/core/sing_box/config_builder_test.dart test/core/sing_box/dns_config_test.dart test/core/sing_box/dns_wire_test.dart --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify real Flutter Rust IPC through SYSTEM Helper
         working-directory: apps/hotaru

@@ -1,3 +1,5 @@
+import 'dns.dart';
+
 enum CoreNodeProtocol {
   direct,
   http,
@@ -131,12 +133,14 @@ final class CoreProfileSpec {
   final List<CoreSelectorSpec> selectors;
   final String finalOutbound;
   final List<CoreRouteRule> rules;
+  final CoreDnsSpec? dns;
 
   CoreProfileSpec({
     required List<CoreNodeSpec> nodes,
     required List<CoreSelectorSpec> selectors,
     required this.finalOutbound,
     List<CoreRouteRule> rules = const [],
+    this.dns,
   }) : nodes = List.unmodifiable(nodes),
        selectors = List.unmodifiable(selectors),
        rules = List.unmodifiable(rules);
@@ -146,11 +150,13 @@ final class CoreTunSpec {
   final String interfaceName;
   final List<String> addresses;
   final bool autoRoute;
+  final bool hijackDns;
 
   CoreTunSpec({
     required this.interfaceName,
     required List<String> addresses,
     required this.autoRoute,
+    this.hijackDns = false,
   }) : addresses = List.unmodifiable(addresses);
 }
 
@@ -159,12 +165,14 @@ final class CoreListenerSpec {
   final int controllerPort;
   final String secret;
   final CoreTunSpec? tun;
+  final int? dnsPort;
 
   const CoreListenerSpec({
     required this.mixedPort,
     required this.controllerPort,
     required this.secret,
     this.tun,
+    this.dnsPort,
   });
 }
 

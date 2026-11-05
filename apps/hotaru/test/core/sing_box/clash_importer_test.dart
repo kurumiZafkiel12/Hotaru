@@ -164,7 +164,7 @@ rules: ["MATCH,DIRECT"]
         containsAll([
           'provider_expansion_required',
           'rule_provider_conversion_required',
-          'dns_conversion_required',
+          'invalid_dns_value',
         ]),
       );
       expect(

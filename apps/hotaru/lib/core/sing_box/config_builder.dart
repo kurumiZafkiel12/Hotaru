@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:io';
 
 import '../config/profile.dart';
+import 'dns_config.dart';
 
 final class SingBoxConfigBuilder {
   Future<CoreConfigBuildResult> build(
@@ -280,10 +281,19 @@ final class SingBoxConfigBuilder {
         }
       }
     }
+    issues.addAll(validateDns(profile, listeners));
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     return CoreConfigBuildResult(
       json: jsonEncode({
+        if (profile.dns case final dns?) 'dns': compileDns(dns),
         'inbounds': [
+          if (listeners.dnsPort != null)
+            {
+              'type': 'direct',
+              'tag': 'dns-in',
+              'listen': '127.0.0.1',
+              'listen_port': listeners.dnsPort,
+            },
           {
             'type': 'mixed',
             'tag': 'mixed',
@@ -301,7 +311,13 @@ final class SingBoxConfigBuilder {
             },
         ],
         'outbounds': [
-          for (final node in profile.nodes) _node(node),
+          for (final node in profile.nodes)
+            {
+              ..._node(node),
+              if (profile.dns?.proxyServer != null &&
+                  node.protocol != CoreNodeProtocol.direct)
+                'domain_resolver': profile.dns!.proxyServer,
+            },
           for (final selector in profile.selectors)
             {
               'type': selector.strategy.name,
@@ -317,9 +333,24 @@ final class SingBoxConfigBuilder {
         ],
         'route': {
           'final': profile.finalOutbound,
+          if (profile.dns != null)
+            'default_domain_resolver': profile.dns!.finalServer,
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
-          if (profile.rules.isNotEmpty)
+          if (profile.rules.isNotEmpty ||
+              listeners.dnsPort != null ||
+              tun?.hijackDns == true)
             'rules': [
+              if (listeners.dnsPort != null)
+                {
+                  'inbound': ['dns-in'],
+                  'action': 'hijack-dns',
+                },
+              if (tun?.hijackDns == true)
+                {
+                  'inbound': ['tun'],
+                  'port': [53],
+                  'action': 'hijack-dns',
+                },
               for (final rule in profile.rules)
                 {
                   if (rule.kind != CoreRuleKind.always)
