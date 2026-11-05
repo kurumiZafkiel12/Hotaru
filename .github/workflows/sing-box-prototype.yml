@@ -11,6 +11,7 @@ on:
       - apps/hotaru/tool/sing_box_owner_loss_smoke.dart
       - apps/hotaru/tool/sing_box_helper_probe.ps1
       - apps/hotaru/tool/sing_box_flutter_helper_probe.ps1
+      - apps/hotaru/tool/build_sing_box_bundle.ps1
       - apps/hotaru/test/core/sing_box/helper_native_test.dart
       - apps/hotaru/core/sing_box_host/**
       - apps/hotaru/services/helper/**
@@ -62,6 +63,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -101,14 +104,7 @@ jobs:
         shell: pwsh
         run: |
           $stage = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe'
-          New-Item -ItemType Directory -Path $stage -Force | Out-Null
-          Copy-Item "$env:RUNNER_TEMP/hotaru-box-host.exe" "$stage/HotaruCore.exe"
-          $env:CORE_SHA256 = (Get-FileHash "$stage/HotaruCore.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
-          cargo build --locked --manifest-path services/helper/Cargo.toml --features windows-service
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item services/helper/target/debug/helper.exe "$stage/HotaruHelperService.exe"
-          @{ engine = 'sing-box'; coreVersion = '1.14.4'; hostProtocol = 'hotaru-bootstrap-v1'; coreSha256 = $env:CORE_SHA256 } |
-            ConvertTo-Json | Set-Content -Encoding utf8 "$stage/manifest.json"
+          ./tool/build_sing_box_bundle.ps1 -Destination $stage
       - name: Verify real SCM Helper identity, TUN packets and cleanup
         working-directory: apps/hotaru
         shell: pwsh

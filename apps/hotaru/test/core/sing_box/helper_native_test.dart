@@ -134,6 +134,53 @@ void main() {
         await service.close();
         expect(service.lifecycle.state, isA<DesktopCoreClosed>());
         expect(await isProcessAlive(third.session.pid), isFalse);
+        final badBundle = await Directory.systemTemp.createTemp(
+          'hotaru_bad_digest_',
+        );
+        try {
+          final manifest =
+              jsonDecode(
+                    await File(
+                      '${_environment['HOTARU_NATIVE_HELPER_BUNDLE']!}/manifest.json',
+                    ).readAsString(),
+                  )
+                  as Map<String, dynamic>;
+          manifest['coreSha256'] = '0' * 64;
+          await File(
+            '${badBundle.path}/manifest.json',
+          ).writeAsString(jsonEncode(manifest));
+          final denied = await createSingBoxHelperCore(
+            bundleDirectory: badBundle.path,
+            profile: CoreProfileSpec(
+              nodes: const [
+                CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
+              ],
+              selectors: [],
+              finalOutbound: 'direct',
+            ),
+            listeners: CoreListenerSpec(
+              mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
+              controllerPort: int.parse(
+                _environment['HOTARU_NATIVE_API_PORT']!,
+              ),
+              secret: 'denied-fixture-secret',
+            ),
+          );
+          try {
+            await expectLater(
+              denied.start(),
+              throwsA(isA<DesktopCoreFailure>()),
+            );
+            expect(
+              (denied.lifecycle.state as DesktopCoreFailed).failure.pid,
+              isNull,
+            );
+          } finally {
+            await denied.close();
+          }
+        } finally {
+          await badBundle.delete(recursive: true);
+        }
         await File(_environment['HOTARU_NATIVE_HELPER_RESULT']!).writeAsString(
           jsonEncode({
             'native_ipc': true,
@@ -141,6 +188,7 @@ void main() {
             'tun_payload': true,
             'restart': true,
             'terminal_close': true,
+            'digest_mismatch_refused': true,
             'pids': pids,
           }),
         );
