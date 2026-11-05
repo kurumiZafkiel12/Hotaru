@@ -31,10 +31,11 @@ try {
   $env:CORE_NAME = 'HotaruCore.exe'
   $helperRoot = Join-Path $root 'services/helper'
   $helperTarget = Join-Path $helperRoot 'target'
-  cargo build --locked --release --features windows-service --manifest-path "$helperRoot/Cargo.toml" --target-dir $helperTarget
+  $triple = 'x86_64-pc-windows-msvc'
+  cargo build --locked --release --target $triple --features windows-service --manifest-path "$helperRoot/Cargo.toml" --target-dir $helperTarget
   if ($LASTEXITCODE -ne 0) { throw 'Digest-bound Helper build failed' }
   $helper = Join-Path $staging 'HotaruHelperService.exe'
-  Copy-Item "$helperTarget/release/helper.exe" $helper
+  Copy-Item "$helperTarget/$triple/release/helper.exe" $helper
   $upstream = go -C $module list -mod=readonly -m -f '{{.Dir}}' github.com/sagernet/sing-box
   if ($LASTEXITCODE -ne 0) { throw 'Cannot locate pinned upstream source' }
   Copy-Item (Join-Path $upstream 'LICENSE') (Join-Path $staging 'LICENSE-sing-box')
