@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../../common/constant.dart';
 import '../config/profile.dart';
 import '../desktop/helper_client.dart';
@@ -15,6 +17,7 @@ import 'pipe_connection.dart';
 Future<SingBoxDesktopCore> createSingBoxHelperCore({
   required CoreProfileSpec profile,
   required CoreListenerSpec listeners,
+  String? bundleDirectory,
   DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(
     connection: Duration(seconds: 20),
   ),
@@ -22,11 +25,19 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
   if (!Platform.isWindows || safeModeBuild) {
     throw StateError('Privileged sing-box requires Windows outside safe mode');
   }
-  final digest = await CoreManifest.readSingBoxHostSha256();
+  final directory = p.normalize(
+    p.absolute(bundleDirectory ?? p.dirname(Platform.resolvedExecutable)),
+  );
+  final digest = await CoreManifest.readSingBoxHostSha256(
+    path: p.join(directory, coreManifestName),
+  );
   if (digest == null) {
     throw StateError('Matching sing-box host manifest is missing');
   }
-  final helper = HelperClient(readCoreSha256: () async => digest);
+  final helper = HelperClient(
+    readCoreSha256: () async => digest,
+    expectedHelperPath: () => p.join(directory, '$appHelperService.exe'),
+  );
   final built = await SingBoxConfigBuilder().build(profile, listeners);
   final config = built.json;
   if (config == null) throw StateError('Invalid sing-box profile');

@@ -1,0 +1,52 @@
+param([Parameter(Mandatory = $true)][string]$Bundle)
+$ErrorActionPreference = 'Stop'
+if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Disposable Windows CI only' }
+$binary = Join-Path $Bundle 'HotaruCore.exe'
+$helper = Join-Path $Bundle 'HotaruHelperService.exe'
+. "$PSScriptRoot/sing_box_helper_probe.ps1" -Binary $binary -DefinitionsOnly
+if (Get-Service -ErrorAction Stop | Where-Object Name -eq 'HotaruHelperService') {
+  throw 'An existing Helper service must not be replaced'
+}
+if (Get-NetRoute -ErrorAction Stop | Where-Object DestinationPrefix -eq '198.18.8.0/30') {
+  throw 'Test subnet already has a route'
+}
+$baseline = Snapshot
+$fixture = [HotaruProxyFixture]::new(600000)
+$fixture.Release()
+$tunName = 'HotaruFlutter_' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
+$installed = $false
+$resultPath = Join-Path $Bundle 'native-result.json'
+try {
+  $installed = $true
+  $installer = Start-Process $helper -ArgumentList @('install', '--owner-pid', $PID) -PassThru -Wait
+  if ($installer.ExitCode -ne 0) { throw 'Disposable Helper installation failed' }
+  $env:HOTARU_NATIVE_HELPER_BUNDLE = $Bundle
+  $env:HOTARU_NATIVE_PROXY_PORT = [string]$fixture.Port
+  $env:HOTARU_NATIVE_MIXED_PORT = [string][HotaruPipeProbe]::FreePort()
+  $env:HOTARU_NATIVE_API_PORT = [string][HotaruPipeProbe]::FreePort()
+  $env:HOTARU_NATIVE_TUN_NAME = $tunName
+  $env:HOTARU_NATIVE_HELPER_RESULT = $resultPath
+  flutter test test/core/sing_box/helper_native_test.dart --reporter expanded
+  if ($LASTEXITCODE -ne 0) { throw 'Native Flutter Helper integration failed' }
+  $report = Get-Content -Raw $resultPath | ConvertFrom-Json
+  foreach ($field in @('native_ipc', 'helper_system', 'tun_payload', 'restart', 'terminal_close')) {
+    if ($report.$field -ne $true) { throw "Missing native proof: $field" }
+  }
+  if (-not $fixture.Run.Wait(10000)) { throw 'Proxy fixture did not finish' }
+  $fixture.Run.GetAwaiter().GetResult()
+  if ($fixture.Target.Task.GetAwaiter().GetResult() -ne 'CONNECT 198.18.8.2:80 HTTP/1.1') {
+    throw 'Independent native TUN proxy receipt mismatch'
+  }
+  Assert-NoTun $tunName
+  if ((Snapshot) -ne $baseline) { throw 'Native client changed DNS, system proxy or default routes' }
+  Write-Output ($report | ConvertTo-Json -Compress)
+} finally {
+  $fixture.Dispose()
+  if ($installed) {
+    $uninstall = Start-Process $helper -ArgumentList 'uninstall' -PassThru -Wait
+    if ($uninstall.ExitCode -ne 0) { throw 'Owned Helper uninstall failed' }
+  }
+  foreach ($key in @('HELPER_BUNDLE', 'PROXY_PORT', 'MIXED_PORT', 'API_PORT', 'TUN_NAME', 'HELPER_RESULT')) {
+    Remove-Item "Env:HOTARU_NATIVE_$key" -ErrorAction SilentlyContinue
+  }
+}

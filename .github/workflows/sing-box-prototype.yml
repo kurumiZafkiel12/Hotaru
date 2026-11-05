@@ -10,6 +10,8 @@ on:
       - apps/hotaru/tool/sing_box_tun_smoke.dart
       - apps/hotaru/tool/sing_box_owner_loss_smoke.dart
       - apps/hotaru/tool/sing_box_helper_probe.ps1
+      - apps/hotaru/tool/sing_box_flutter_helper_probe.ps1
+      - apps/hotaru/test/core/sing_box/helper_native_test.dart
       - apps/hotaru/core/sing_box_host/**
       - apps/hotaru/services/helper/**
       - apps/hotaru/lib/core/desktop/core_manifest.dart
@@ -57,7 +59,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   desktop-host-tun:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -105,9 +107,33 @@ jobs:
           cargo build --locked --manifest-path services/helper/Cargo.toml --features windows-service
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item services/helper/target/debug/helper.exe "$stage/HotaruHelperService.exe"
+          @{ engine = 'sing-box'; coreVersion = '1.14.4'; hostProtocol = 'hotaru-bootstrap-v1'; coreSha256 = $env:CORE_SHA256 } |
+            ConvertTo-Json | Set-Content -Encoding utf8 "$stage/manifest.json"
       - name: Verify real SCM Helper identity, TUN packets and cleanup
         working-directory: apps/hotaru
         shell: pwsh
         run: |
           $stage = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe'
           ./tool/sing_box_helper_probe.ps1 -Binary "$stage/HotaruCore.exe" -HelperPath "$stage/HotaruHelperService.exe"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.6'
+          cache: true
+      - name: Prepare isolated Flutter native test dependencies
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          $source = Get-Content -Raw pubspec.yaml
+          $source = $source.Replace("setup:`n      build_assets: true", "setup:`n      build_assets: false")
+          $source = $source.Replace("setup:`r`n      build_assets: true", "setup:`r`n      build_assets: false")
+          if ($source -notmatch 'setup:\r?\n      build_assets: false') { throw 'Isolated setup hook was not disabled' }
+          Set-Content -NoNewline -Encoding utf8 pubspec.yaml $source
+          flutter pub get
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify real Flutter Rust IPC through SYSTEM Helper
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe'
+          ./tool/sing_box_flutter_helper_probe.ps1 -Bundle $stage

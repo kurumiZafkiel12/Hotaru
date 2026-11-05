@@ -1,6 +1,7 @@
 param(
   [Parameter(Mandatory = $true)][string]$Binary,
-  [string]$HelperPath
+  [string]$HelperPath,
+  [switch]$DefinitionsOnly
 )
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Disposable Windows CI only' }
@@ -58,12 +59,16 @@ public static class HotaruPipeProbe {
 }
 public sealed class HotaruProxyFixture : IDisposable {
   readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-  readonly CancellationTokenSource timeout = new CancellationTokenSource(30000);
+  readonly CancellationTokenSource timeout;
   readonly TaskCompletionSource<bool> release = new TaskCompletionSource<bool>();
   public readonly TaskCompletionSource<string> Target = new TaskCompletionSource<string>();
   public Task Run;
   public int Port { get { return ((IPEndPoint)listener.LocalEndpoint).Port; } }
-  public HotaruProxyFixture() { listener.Start(); Run = Serve(); }
+  public HotaruProxyFixture() : this(30000) { }
+  public HotaruProxyFixture(int milliseconds) {
+    timeout = new CancellationTokenSource(milliseconds);
+    listener.Start(); Run = Serve();
+  }
   static async Task<string> Header(NetworkStream stream, CancellationToken token) {
     var text = new StringBuilder(); byte[] b = new byte[1];
     while (text.Length < 8192) {
@@ -112,6 +117,8 @@ function Assert-NoTun([string]$name) {
   }
   throw 'Owned TUN resources remain after exit'
 }
+
+if ($DefinitionsOnly) { return }
 
 $baseline = Snapshot
 $pipeName = 'HotaruCore_' + [Guid]::NewGuid().ToString('N')
