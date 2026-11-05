@@ -8,6 +8,10 @@ final class ClashProfileImporter {
   Future<CoreConfigImportResult> import(String source) {
     return Isolate.run(() => _ClashImport().read(source));
   }
+
+  Future<CoreConfigImportResult> importDocument(Map<String, dynamic> document) {
+    return Isolate.run(() => _ClashImport().readDocument(document));
+  }
 }
 
 final class _ClashImport {
@@ -63,7 +67,17 @@ final class _ClashImport {
 
   CoreConfigImportResult read(String source) {
     try {
-      final input = map(loadYaml(source));
+      return readDocument(map(loadYaml(source)));
+    } on YamlException {
+      issue('invalid_yaml', 'document');
+    } on FormatException {
+      issue('invalid_document_value', 'document');
+    }
+    return CoreConfigImportResult(issues: issues);
+  }
+
+  CoreConfigImportResult readDocument(Map<String, dynamic> input) {
+    try {
       for (final key in input.keys) {
         if (const ['proxies', 'proxy-groups', 'rules'].contains(key)) continue;
         if (const [

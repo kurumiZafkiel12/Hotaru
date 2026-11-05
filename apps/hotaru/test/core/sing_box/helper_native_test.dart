@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/desktop/process_probe.dart';
 import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
@@ -48,26 +49,95 @@ void main() {
     'real Flutter Rust IPC owns a SYSTEM Helper TUN session through restart and close',
     () async {
       await initEditorNative();
+      final providerServer = await HttpServer.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      addTearDown(() => providerServer.close(force: true));
+      var providerAvailable = true;
+      var providerRequests = 0;
+      providerServer.listen((request) async {
+        providerRequests++;
+        expect(
+          request.headers.value('authorization'),
+          'provider-fixture-token',
+        );
+        request.response.statusCode = providerAvailable ? 200 : 503;
+        request.response.write(
+          jsonEncode({
+            'proxies': [
+              {
+                'name': 'proof',
+                'type': 'http',
+                'server': '127.0.0.1',
+                'port': int.parse(_environment['HOTARU_NATIVE_PROXY_PORT']!),
+              },
+            ],
+          }),
+        );
+        await request.response.close();
+      });
+      final providerClient = HttpClient()..findProxy = (_) => 'DIRECT';
+      providerClient.connectionTimeout = const Duration(seconds: 10);
+      addTearDown(() => providerClient.close(force: true));
+      final importer = ClashSubscriptionImporter(
+        resolve: (provider) async {
+          expect(provider.outbound, 'DIRECT');
+          final request = await providerClient.getUrl(provider.url!);
+          provider.headers.forEach((name, values) {
+            for (final value in values) {
+              request.headers.add(name, value);
+            }
+          });
+          final response = await request.close().timeout(
+            const Duration(seconds: 10),
+          );
+          if (response.statusCode != 200) {
+            await response.drain<void>();
+            throw StateError('Provider fixture is unavailable');
+          }
+          final bytes = <int>[];
+          await for (final chunk in response.timeout(
+            const Duration(seconds: 10),
+          )) {
+            if (bytes.length + chunk.length > provider.maxBytes) {
+              throw StateError('Provider byte limit');
+            }
+            bytes.addAll(chunk);
+          }
+          return utf8.decode(bytes);
+        },
+      );
+      final source = jsonEncode({
+        'proxies': [
+          {'name': 'direct', 'type': 'direct'},
+        ],
+        'proxy-providers': {
+          'remote': {
+            'type': 'http',
+            'url': 'http://127.0.0.1:${providerServer.port}/proxies',
+            'proxy': 'DIRECT',
+            'interval': 1800,
+            'header': {
+              'Authorization': ['provider-fixture-token'],
+            },
+          },
+        },
+        'proxy-groups': [
+          {
+            'name': 'selected',
+            'type': 'select',
+            'proxies': ['direct'],
+            'use': ['remote'],
+          },
+        ],
+        'rules': ['MATCH,selected'],
+      });
+      final imported = await importer.import(source);
+      expect(imported.issues, isEmpty);
       final service = await createSingBoxHelperCore(
         bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
-        profile: CoreProfileSpec(
-          nodes: [
-            CoreNodeSpec(
-              tag: 'proof',
-              protocol: CoreNodeProtocol.http,
-              server: '127.0.0.1',
-              port: int.parse(_environment['HOTARU_NATIVE_PROXY_PORT']!),
-            ),
-            const CoreNodeSpec(
-              tag: 'direct',
-              protocol: CoreNodeProtocol.direct,
-            ),
-          ],
-          selectors: [
-            CoreSelectorSpec(tag: 'selected', members: ['proof', 'direct']),
-          ],
-          finalOutbound: 'selected',
-        ),
+        profile: imported.profile!,
         listeners: CoreListenerSpec(
           mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
           controllerPort: int.parse(_environment['HOTARU_NATIVE_API_PORT']!),
@@ -110,6 +180,25 @@ void main() {
               .timeout(const Duration(seconds: 10)),
           'helper-tun-proof',
         );
+
+        providerAvailable = false;
+        final failedRefresh = await importer.import(source);
+        expect(failedRefresh.profile, isNull);
+        expect(
+          failedRefresh.issues.map((issue) => issue.code),
+          contains('provider_resolution_failed'),
+        );
+        expect(
+          (service.lifecycle.state as DesktopCoreRunning).session.pid,
+          first.session.pid,
+        );
+        expect(
+          (await service.adapter.outbounds()).any(
+            (node) => node.name == 'proof',
+          ),
+          isTrue,
+        );
+        expect(providerRequests, 2);
 
         await service.restart();
         final second = service.lifecycle.state as DesktopCoreRunning;
@@ -184,6 +273,8 @@ void main() {
         await File(_environment['HOTARU_NATIVE_HELPER_RESULT']!).writeAsString(
           jsonEncode({
             'native_ipc': true,
+            'provider_import': true,
+            'failed_provider_keeps_session': true,
             'helper_system': true,
             'tun_payload': true,
             'restart': true,
