@@ -104,7 +104,9 @@ final class _ClashImport {
         }
       }
       final nodes = <CoreNodeSpec>[];
-      final dns = input['dns'] == null ? null : importClashDns(input['dns']);
+      final CoreDnsImportResult? dns = input['dns'] == null
+          ? null
+          : importClashDns(input['dns']);
       if (dns != null) issues.addAll(dns.issues);
       final rawNodes = list(input['proxies'] ?? []);
       for (var index = 0; index < rawNodes.length; index++) {
