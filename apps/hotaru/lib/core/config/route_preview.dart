@@ -2,6 +2,7 @@ import 'dart:io' show InternetAddress;
 import 'dart:isolate';
 
 import 'profile.dart';
+import 'ip_prefix.dart';
 
 enum CoreRoutePreviewStatus {
   resolved,
@@ -63,7 +64,10 @@ final class CoreRoutePreviewer {
   }) {
     final target = input.trim().toLowerCase();
     final address = InternetAddress.tryParse(target);
-    if (address == null && !_validDomain(target)) {
+    if (address == null && !_validDomain(target) ||
+        address != null &&
+            CoreIpPrefix.parse('$target/${address.rawAddress.length * 8}') ==
+                null) {
       return CoreRoutePreview(
         status: CoreRoutePreviewStatus.invalidTarget,
         target: target,
@@ -100,7 +104,7 @@ final class CoreRoutePreviewer {
         case CoreRuleKind.domainKeyword:
           matches = address == null && target.contains(value);
         case CoreRuleKind.ipCidr:
-          final cidr = _Cidr.parse(value);
+          final cidr = CoreIpPrefix.parse(value);
           if (cidr == null) {
             return CoreRoutePreview(
               status: CoreRoutePreviewStatus.invalidProfile,
@@ -110,6 +114,7 @@ final class CoreRoutePreviewer {
             );
           }
           if (address == null) {
+            if (rule.noResolve) continue;
             return CoreRoutePreview(
               status: CoreRoutePreviewStatus.addressRequired,
               target: target,
@@ -181,39 +186,5 @@ final class CoreRoutePreviewer {
               label.length <= 63 &&
               RegExp(r'^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$').hasMatch(label),
         );
-  }
-}
-
-final class _Cidr {
-  final InternetAddress network;
-  final int prefix;
-
-  const _Cidr(this.network, this.prefix);
-
-  static _Cidr? parse(String value) {
-    final parts = value.split('/');
-    if (parts.length != 2) return null;
-    final network = InternetAddress.tryParse(parts.first);
-    final prefix = int.tryParse(parts.last);
-    if (network == null ||
-        prefix == null ||
-        prefix < 0 ||
-        prefix > network.rawAddress.length * 8) {
-      return null;
-    }
-    return _Cidr(network, prefix);
-  }
-
-  bool contains(InternetAddress address) {
-    final bytes = address.rawAddress;
-    final networkBytes = network.rawAddress;
-    if (bytes.length != networkBytes.length) return false;
-    for (var index = 0; index < prefix ~/ 8; index++) {
-      if (bytes[index] != networkBytes[index]) return false;
-    }
-    final remainder = prefix % 8;
-    if (remainder == 0) return true;
-    final mask = (0xff << (8 - remainder)) & 0xff;
-    return bytes[prefix ~/ 8] & mask == networkBytes[prefix ~/ 8] & mask;
   }
 }

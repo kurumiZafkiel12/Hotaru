@@ -119,12 +119,14 @@ final class CoreRouteRule {
   final String value;
   final String? outbound;
   final CoreRuleAction action;
+  final bool noResolve;
 
   const CoreRouteRule({
     required this.kind,
     required this.value,
     this.outbound,
     this.action = CoreRuleAction.route,
+    this.noResolve = false,
   });
 }
 

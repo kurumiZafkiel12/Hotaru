@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'clash_dns.dart';
+import 'ip_prefix.dart';
 import 'profile.dart';
 
 final class ClashProfileImporter {
@@ -164,8 +165,19 @@ final class _ClashImport {
           'IP-CIDR' || 'IP-CIDR6' => CoreRuleKind.ipCidr,
           _ => null,
         };
-        if (fields.length != 3 || kind == null) {
+        final ip = kind == CoreRuleKind.ipCidr;
+        final noResolve =
+            ip && fields.length == 4 && fields.last == 'no-resolve';
+        if (kind == null || (fields.length != 3 && !noResolve)) {
           issue('unsupported_rule', path);
+          continue;
+        }
+        if (ip && !noResolve) {
+          issue('ip_rule_resolution_not_migrated', path);
+          continue;
+        }
+        if (ip && CoreIpPrefix.parse(fields[1]) == null) {
+          issue('invalid_ip_prefix', path);
           continue;
         }
         final action = switch (fields[2]) {
@@ -177,6 +189,7 @@ final class _ClashImport {
           CoreRouteRule(
             kind: kind,
             value: fields[1],
+            noResolve: noResolve,
             action: action,
             outbound: action == CoreRuleAction.route ? fields[2] : null,
           ),

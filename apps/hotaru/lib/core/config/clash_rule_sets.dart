@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'profile.dart';
+import 'ip_prefix.dart';
 
 final class CoreRuleProviderRequest {
   final String name;
@@ -198,7 +199,7 @@ final class _RuleImport {
           final type = text(value['type']);
           final behavior = text(value['behavior']);
           final format = text(value['format'] ?? 'yaml');
-          if (!const {'domain', 'classical'}.contains(behavior)) {
+          if (!const {'domain', 'ipcidr', 'classical'}.contains(behavior)) {
             issue('rule_provider_behavior_not_migrated', path);
           }
           if (!const {'yaml', 'text'}.contains(format)) {
@@ -328,11 +329,29 @@ final class _RuleImport {
               final domain = suffix ? entry.substring(2) : entry;
               if (!_domain(domain)) throw const FormatException();
               converted.add('${suffix ? 'DOMAIN-SUFFIX' : 'DOMAIN'},$domain');
+            } else if (plan.behaviors[name] == 'ipcidr') {
+              if (CoreIpPrefix.parse(entry) == null) {
+                throw const FormatException();
+              }
+              converted.add(
+                '${entry.contains(':') ? 'IP-CIDR6' : 'IP-CIDR'},$entry',
+              );
             } else {
               final fields = entry
                   .split(',')
                   .map((part) => part.trim())
                   .toList();
+              final ip =
+                  fields.first == 'IP-CIDR' || fields.first == 'IP-CIDR6';
+              if (ip) {
+                if ((fields.length != 2 &&
+                        !(fields.length == 3 && fields.last == 'no-resolve')) ||
+                    CoreIpPrefix.parse(fields[1]) == null) {
+                  throw const FormatException();
+                }
+                converted.add(fields.join(','));
+                continue;
+              }
               if (fields.length != 2 ||
                   !const {
                     'DOMAIN',
@@ -374,7 +393,8 @@ final class _RuleImport {
           }
           if (fields.first == 'MATCH') finalSeen = true;
           if (fields.first == 'RULE-SET') {
-            if (fields.length != 3 ||
+            final noResolve = fields.length == 4 && fields.last == 'no-resolve';
+            if ((fields.length != 3 && !noResolve) ||
                 fields[2].isEmpty ||
                 !entries.containsKey(fields[1])) {
               issue('invalid_rule_set_reference', path);
@@ -384,9 +404,23 @@ final class _RuleImport {
               issue('expanded_rule_limit_exceeded', path);
               break;
             }
-            rules.addAll(
-              entries[fields[1]]!.map((entry) => '$entry,${fields[2]}'),
-            );
+            if (plan.behaviors[fields[1]] == 'ipcidr' && !noResolve) {
+              issue('ip_rule_resolution_not_migrated', path);
+              continue;
+            }
+            for (final entry in entries[fields[1]]!) {
+              final parts = entry.split(',');
+              final ip = parts.first == 'IP-CIDR' || parts.first == 'IP-CIDR6';
+              if (ip) {
+                if (!noResolve && parts.length != 3) {
+                  issue('ip_rule_resolution_not_migrated', path);
+                  break;
+                }
+                rules.add('${parts[0]},${parts[1]},${fields[2]},no-resolve');
+              } else {
+                rules.add('$entry,${fields[2]}');
+              }
+            }
           } else {
             if (rules.length >= ruleLimit) {
               issue('expanded_rule_limit_exceeded', path);

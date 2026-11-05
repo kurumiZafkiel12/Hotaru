@@ -227,7 +227,7 @@ void main() {
     'unknown settings, traversal and unsupported formats are not approximated',
     () async {
       for (final provider in [
-        {...remote(), 'behavior': 'ipcidr'},
+        {...remote(), 'behavior': 'geoip'},
         {...remote(), 'format': 'mrs'},
         {...remote(), 'header': {}},
         {...remote(), 'url': 'https://name:secret@fixture.invalid/rules'},
@@ -272,7 +272,7 @@ void main() {
   test('missing references and rule-set modifiers fail explicitly', () async {
     for (final rule in [
       'RULE-SET,missing,proxy',
-      'RULE-SET,remote,proxy,no-resolve',
+      'RULE-SET,remote,proxy,unsupported-mode',
     ]) {
       final result = await convert(
         document(

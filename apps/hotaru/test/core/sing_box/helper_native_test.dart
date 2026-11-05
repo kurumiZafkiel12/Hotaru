@@ -78,10 +78,14 @@ void main() {
       var rulesRequests = 0;
       var providerRequests = 0;
       providerServer.listen((request) async {
-        if (request.uri.path == '/rules') {
+        if (request.uri.path == '/rules' || request.uri.path == '/ip-rules') {
           rulesRequests++;
           request.response.statusCode = rulesAvailable ? 200 : 503;
-          request.response.write('payload: [rule-fixture.invalid]');
+          request.response.write(
+            request.uri.path == '/ip-rules'
+                ? 'payload: [198.18.8.2/32]'
+                : 'payload: [rule-fixture.invalid]',
+          );
           await request.response.close();
           return;
         }
@@ -189,6 +193,12 @@ void main() {
           },
         ],
         'rule-providers': {
+          'ip-path': {
+            'type': 'http',
+            'behavior': 'ipcidr',
+            'url': 'http://127.0.0.1:${providerServer.port}/ip-rules',
+            'proxy': 'DIRECT',
+          },
           'domains': {
             'type': 'http',
             'behavior': 'domain',
@@ -196,7 +206,11 @@ void main() {
             'proxy': 'DIRECT',
           },
         },
-        'rules': ['RULE-SET,domains,rule-proof', 'MATCH,selected'],
+        'rules': [
+          'RULE-SET,ip-path,proof,no-resolve',
+          'RULE-SET,domains,rule-proof',
+          'MATCH,selected',
+        ],
       });
       final imported = await importer.import(source);
       expect(imported.issues, isEmpty);
@@ -233,7 +247,6 @@ void main() {
               .selected,
           'direct',
         );
-        await service.adapter.selectOutbound('selected', 'proof');
         final request = await client.getUrl(Uri.parse('http://198.18.8.2/'));
         final response = await request.close().timeout(
           const Duration(seconds: 10),
@@ -247,6 +260,7 @@ void main() {
           'helper-tun-proof',
         );
 
+        await service.adapter.selectOutbound('selected', 'proof');
         final dnsResponse = await udpQuery(
           53,
           question('helper-dns.invalid'),
@@ -272,7 +286,8 @@ void main() {
                 .timeout(const Duration(seconds: 10)),
             'helper-tun-proof',
           );
-          expect(rulesRequests, 1);
+          expect(rulesRequests, 2);
+          expect(dnsReceipts, 1);
         } finally {
           ruleClient.close(force: true);
         }
@@ -313,7 +328,7 @@ void main() {
           ),
           isTrue,
         );
-        expect(rulesRequests, 2);
+        expect(rulesRequests, greaterThanOrEqualTo(3));
 
         await service.restart();
         final second = service.lifecycle.state as DesktopCoreRunning;
@@ -390,6 +405,9 @@ void main() {
             'native_ipc': true,
             'provider_import': true,
             'rule_provider_import': true,
+            'ip_rule_provider_import': true,
+            'ip_no_resolve_literal_receipt': true,
+            'ip_no_resolve_domain_skipped_dns': true,
             'failed_rule_provider_keeps_session': true,
             'failed_provider_keeps_session': true,
             'helper_system': true,

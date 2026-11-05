@@ -40,8 +40,8 @@ rules:
   - DOMAIN,example.com,Selected
   - DOMAIN-SUFFIX,example.org,Automatic
   - DOMAIN-KEYWORD,blocked,REJECT
-  - IP-CIDR,192.0.2.0/24,DIRECT
-  - IP-CIDR6,2001:db8::/32,DIRECT
+  - IP-CIDR,192.0.2.0/24,DIRECT,no-resolve
+  - IP-CIDR6,2001:db8::/32,DIRECT,no-resolve
   - MATCH,Selected
 ''';
 
@@ -213,7 +213,7 @@ rules: ["MATCH,SS"]
       'rules: ["DOMAIN,example.com,DIRECT"]',
       'rules: ["MATCH,DIRECT", "DOMAIN,example.com,DIRECT"]',
       'rules: ["GEOIP,CN,DIRECT", "MATCH,DIRECT"]',
-      'rules: ["IP-CIDR,192.0.2.0/24,DIRECT,no-resolve", "MATCH,DIRECT"]',
+      'rules: ["IP-CIDR,192.0.2.0/24,DIRECT", "MATCH,DIRECT"]',
     ]) {
       final imported = await importer.import(source);
       expect(imported.profile, isNull);

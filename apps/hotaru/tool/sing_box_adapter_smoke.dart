@@ -98,6 +98,7 @@ Future<void> main(List<String> arguments) async {
           ),
           const CoreRouteRule(
             kind: CoreRuleKind.ipCidr,
+            noResolve: true,
             value: '192.0.2.0/24',
             outbound: 'direct',
           ),

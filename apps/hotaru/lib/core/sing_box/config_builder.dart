@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:io';
 
 import '../config/profile.dart';
+import '../config/ip_prefix.dart';
 import 'dns_config.dart';
 
 final class SingBoxConfigBuilder {
@@ -218,6 +219,18 @@ final class SingBoxConfigBuilder {
     }
     for (var index = 0; index < profile.rules.length; index++) {
       final rule = profile.rules[index];
+      if (rule.kind == CoreRuleKind.ipCidr) {
+        if (!rule.noResolve) {
+          issues.add(
+            CoreConfigIssue('ip_rule_resolution_not_migrated', 'rules.$index'),
+          );
+        }
+        if (CoreIpPrefix.parse(rule.value) == null) {
+          issues.add(CoreConfigIssue('invalid_ip_prefix', 'rules.$index'));
+        }
+      } else if (rule.noResolve) {
+        issues.add(CoreConfigIssue('unexpected_no_resolve', 'rules.$index'));
+      }
       if (rule.action == CoreRuleAction.route &&
               !tags.contains(rule.outbound) ||
           rule.action != CoreRuleAction.route && rule.outbound != null ||
