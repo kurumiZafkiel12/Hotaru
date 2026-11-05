@@ -74,8 +74,17 @@ void main() {
       );
       addTearDown(() => providerServer.close(force: true));
       var providerAvailable = true;
+      var rulesAvailable = true;
+      var rulesRequests = 0;
       var providerRequests = 0;
       providerServer.listen((request) async {
+        if (request.uri.path == '/rules') {
+          rulesRequests++;
+          request.response.statusCode = rulesAvailable ? 200 : 503;
+          request.response.write('payload: [rule-fixture.invalid]');
+          await request.response.close();
+          return;
+        }
         providerRequests++;
         expect(
           request.headers.value('authorization'),
@@ -91,6 +100,14 @@ void main() {
                 'server': '127.0.0.1',
                 'port': int.parse(_environment['HOTARU_NATIVE_PROXY_PORT']!),
               },
+              {
+                'name': 'rule-proof',
+                'type': 'http',
+                'server': '127.0.0.1',
+                'port': int.parse(
+                  _environment['HOTARU_NATIVE_RULE_PROXY_PORT']!,
+                ),
+              },
             ],
           }),
         );
@@ -100,6 +117,21 @@ void main() {
       providerClient.connectionTimeout = const Duration(seconds: 10);
       addTearDown(() => providerClient.close(force: true));
       final importer = ClashSubscriptionImporter(
+        resolveRules: (provider) async {
+          expect(provider.outbound, 'DIRECT');
+          final request = await providerClient.getUrl(provider.url!);
+          final response = await request.close().timeout(
+            const Duration(seconds: 10),
+          );
+          if (response.statusCode != 200) {
+            await response.drain<void>();
+            throw StateError('Rule provider fixture is unavailable');
+          }
+          return utf8.decoder
+              .bind(response)
+              .join()
+              .timeout(const Duration(seconds: 10));
+        },
         resolve: (provider) async {
           expect(provider.outbound, 'DIRECT');
           final request = await providerClient.getUrl(provider.url!);
@@ -156,7 +188,15 @@ void main() {
             'use': ['remote'],
           },
         ],
-        'rules': ['MATCH,selected'],
+        'rule-providers': {
+          'domains': {
+            'type': 'http',
+            'behavior': 'domain',
+            'url': 'http://127.0.0.1:${providerServer.port}/rules',
+            'proxy': 'DIRECT',
+          },
+        },
+        'rules': ['RULE-SET,domains,rule-proof', 'MATCH,selected'],
       });
       final imported = await importer.import(source);
       expect(imported.issues, isEmpty);
@@ -215,6 +255,28 @@ void main() {
         expect(dnsResponse.sublist(dnsResponse.length - 4), [192, 0, 2, 45]);
         expect(dnsReceipts, 1);
 
+        final ruleClient = HttpClient()
+          ..findProxy = (_) =>
+              'PROXY 127.0.0.1:${_environment['HOTARU_NATIVE_MIXED_PORT']}';
+        try {
+          final ruleRequest = await ruleClient.getUrl(
+            Uri.parse('http://rule-fixture.invalid/'),
+          );
+          final ruleResponse = await ruleRequest.close().timeout(
+            const Duration(seconds: 10),
+          );
+          expect(
+            await utf8.decoder
+                .bind(ruleResponse)
+                .join()
+                .timeout(const Duration(seconds: 10)),
+            'helper-tun-proof',
+          );
+          expect(rulesRequests, 1);
+        } finally {
+          ruleClient.close(force: true);
+        }
+
         providerAvailable = false;
         final failedRefresh = await importer.import(source);
         expect(failedRefresh.profile, isNull);
@@ -233,6 +295,25 @@ void main() {
           isTrue,
         );
         expect(providerRequests, 2);
+        providerAvailable = true;
+        rulesAvailable = false;
+        final failedRules = await importer.import(source);
+        expect(failedRules.profile, isNull);
+        expect(
+          failedRules.issues.map((issue) => issue.code),
+          contains('rule_provider_resolution_failed'),
+        );
+        expect(
+          (service.lifecycle.state as DesktopCoreRunning).session.pid,
+          first.session.pid,
+        );
+        expect(
+          (await service.adapter.outbounds()).any(
+            (node) => node.name == 'rule-proof',
+          ),
+          isTrue,
+        );
+        expect(rulesRequests, 2);
 
         await service.restart();
         final second = service.lifecycle.state as DesktopCoreRunning;
@@ -308,6 +389,8 @@ void main() {
           jsonEncode({
             'native_ipc': true,
             'provider_import': true,
+            'rule_provider_import': true,
+            'failed_rule_provider_keeps_session': true,
             'failed_provider_keeps_session': true,
             'helper_system': true,
             'tun_payload': true,

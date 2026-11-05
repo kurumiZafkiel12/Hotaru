@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'clash_importer.dart';
+import 'clash_rule_sets.dart';
 import 'profile.dart';
 
 enum CoreProxyProviderKind { http, file }
@@ -61,11 +62,13 @@ final class ClashProviderPlan {
 
 final class ClashSubscriptionImporter {
   final CoreProxyProviderResolver resolve;
+  final CoreRuleProviderResolver? resolveRules;
   final int concurrency;
   final Duration timeout;
 
   ClashSubscriptionImporter({
     required this.resolve,
+    this.resolveRules,
     this.concurrency = 4,
     this.timeout = const Duration(seconds: 20),
   }) {
@@ -121,9 +124,20 @@ final class ClashSubscriptionImporter {
     final expanded = await _expandProviders(prepared, payloads);
     issues.addAll(expanded.issues);
     if (_hasErrors(issues)) return CoreConfigImportResult(issues: issues);
-    final imported = await ClashProfileImporter().importDocument(
-      expanded.document,
-    );
+    var document = expanded.document;
+    if (document.containsKey('rule-providers')) {
+      final ExpandedClashRules ruleSets = await ClashRuleSetImporter(
+        resolve: resolveRules,
+        timeout: timeout,
+        concurrency: concurrency,
+      ).expand(document);
+      issues.addAll(ruleSets.issues);
+      if (ruleSets.document == null) {
+        return CoreConfigImportResult(issues: issues);
+      }
+      document = ruleSets.document!;
+    }
+    final imported = await ClashProfileImporter().importDocument(document);
     for (final issue in imported.issues) {
       final match = RegExp(r'^proxies\.(\d+)(.*)$').firstMatch(issue.path);
       final index = match == null ? null : int.tryParse(match[1]!);
