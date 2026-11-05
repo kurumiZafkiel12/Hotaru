@@ -9,6 +9,7 @@ import 'package:hotaru/core/desktop/process_probe.dart';
 import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
 import '../../plugins/code_forge/support.dart' show initEditorNative;
+import 'support/dns_fixture.dart';
 
 final _environment = Platform.environment;
 final _enabled =
@@ -49,6 +50,24 @@ void main() {
     'real Flutter Rust IPC owns a SYSTEM Helper TUN session through restart and close',
     () async {
       await initEditorNative();
+      final dnsServer = await RawDatagramSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      addTearDown(dnsServer.close);
+      var dnsReceipts = 0;
+      dnsServer.listen((event) {
+        if (event != RawSocketEvent.read) return;
+        final packet = dnsServer.receive();
+        if (packet == null) return;
+        final expectedQuestion = question('helper-dns.invalid');
+        expect(
+          packet.data.sublist(12, expectedQuestion.length),
+          expectedQuestion.sublist(12),
+        );
+        dnsReceipts++;
+        dnsServer.send(answer(packet.data), packet.address, packet.port);
+      });
       final providerServer = await HttpServer.bind(
         InternetAddress.loopbackIPv4,
         0,
@@ -109,6 +128,12 @@ void main() {
         },
       );
       final source = jsonEncode({
+        'dns': {
+          'enable': true,
+          'nameserver': ['udp://127.0.0.1:${dnsServer.port}'],
+          'use-hosts': false,
+          'use-system-hosts': false,
+        },
         'proxies': [
           {'name': 'direct', 'type': 'direct'},
         ],
@@ -146,6 +171,7 @@ void main() {
             interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
             addresses: ['198.18.8.1/30'],
             autoRoute: false,
+            hijackDns: true,
           ),
         ),
       );
@@ -180,6 +206,14 @@ void main() {
               .timeout(const Duration(seconds: 10)),
           'helper-tun-proof',
         );
+
+        final dnsResponse = await udpQuery(
+          53,
+          question('helper-dns.invalid'),
+          address: InternetAddress('198.18.8.2'),
+        );
+        expect(dnsResponse.sublist(dnsResponse.length - 4), [192, 0, 2, 45]);
+        expect(dnsReceipts, 1);
 
         providerAvailable = false;
         final failedRefresh = await importer.import(source);
@@ -277,6 +311,7 @@ void main() {
             'failed_provider_keeps_session': true,
             'helper_system': true,
             'tun_payload': true,
+            'tun_dns_receipt': true,
             'restart': true,
             'terminal_close': true,
             'digest_mismatch_refused': true,

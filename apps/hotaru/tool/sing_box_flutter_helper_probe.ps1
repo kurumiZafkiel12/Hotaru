@@ -29,7 +29,7 @@ try {
   flutter test test/core/sing_box/helper_native_test.dart --reporter expanded
   if ($LASTEXITCODE -ne 0) { throw 'Native Flutter Helper integration failed' }
   $report = Get-Content -Raw $resultPath | ConvertFrom-Json
-  foreach ($field in @('native_ipc', 'provider_import', 'failed_provider_keeps_session', 'helper_system', 'tun_payload', 'restart', 'terminal_close', 'digest_mismatch_refused')) {
+  foreach ($field in @('native_ipc', 'provider_import', 'failed_provider_keeps_session', 'helper_system', 'tun_payload', 'tun_dns_receipt', 'restart', 'terminal_close', 'digest_mismatch_refused')) {
     if ($report.$field -ne $true) { throw "Missing native proof: $field" }
   }
   if (-not $fixture.Run.Wait(10000)) { throw 'Proxy fixture did not finish' }
