@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
@@ -38,6 +39,19 @@ Map<String, dynamic> _http([String suffix = 'fixture']) => {
 };
 
 void main() {
+  test('isolate tasks do not capture the resolver native resources', () async {
+    final port = ReceivePort();
+    addTearDown(port.close);
+    final importer = ClashSubscriptionImporter(
+      resolve: (_) async {
+        expect(port.sendPort, isNotNull);
+        return _payload('Remote');
+      },
+    );
+    final result = await importer.import(_source({'remote': _http()}));
+    expect(result.issues, isEmpty);
+    expect(result.profile, isNotNull);
+  });
   test(
     'expands HTTP providers and produces a validated sing-box profile',
     () async {

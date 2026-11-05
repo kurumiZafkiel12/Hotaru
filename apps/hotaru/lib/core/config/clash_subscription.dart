@@ -75,8 +75,7 @@ final class ClashSubscriptionImporter {
   }
 
   Future<ClashProviderPlan> plan(String source) {
-    final deadline = timeout;
-    return Isolate.run(() => _ProviderImport().plan(source, deadline));
+    return _planProviders(source, timeout);
   }
 
   Future<CoreConfigImportResult> import(String source) async {
@@ -100,7 +99,7 @@ final class ClashSubscriptionImporter {
             issues.add(CoreConfigIssue('provider_payload_too_large', path));
             continue;
           }
-          final size = await Isolate.run(() => utf8.encode(content).length);
+          final size = await _providerPayloadSize(content);
           if (size > request.maxBytes) {
             aborted = true;
             issues.add(CoreConfigIssue('provider_payload_too_large', path));
@@ -119,9 +118,7 @@ final class ClashSubscriptionImporter {
 
     await Future.wait(List.generate(concurrency, (_) => worker()));
     if (_hasErrors(issues)) return CoreConfigImportResult(issues: issues);
-    final expanded = await Isolate.run(
-      () => _ProviderImport().expand(prepared, payloads),
-    );
+    final expanded = await _expandProviders(prepared, payloads);
     issues.addAll(expanded.issues);
     if (_hasErrors(issues)) return CoreConfigImportResult(issues: issues);
     final imported = await ClashProfileImporter().importDocument(
@@ -141,6 +138,17 @@ final class ClashSubscriptionImporter {
 
 bool _hasErrors(List<CoreConfigIssue> issues) =>
     issues.any((issue) => issue.severity == CoreConfigIssueSeverity.error);
+
+Future<ClashProviderPlan> _planProviders(String source, Duration timeout) =>
+    Isolate.run(() => _ProviderImport().plan(source, timeout));
+
+Future<int> _providerPayloadSize(String content) =>
+    Isolate.run(() => utf8.encode(content).length);
+
+Future<_ExpandedClash> _expandProviders(
+  ClashProviderPlan prepared,
+  Map<String, String> payloads,
+) => Isolate.run(() => _ProviderImport().expand(prepared, payloads));
 
 final class _ExpandedClash {
   final Map<String, dynamic> document;
