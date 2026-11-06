@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
+import 'package:hotaru/core/config/dns.dart';
 import 'package:hotaru/core/config/encoding.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/sing_box/bootstrap.dart';
@@ -297,6 +298,12 @@ void main() {
         nodes: [CoreNodeSpec(tag: name, protocol: CoreNodeProtocol.direct)],
         selectors: [],
         finalOutbound: name,
+        dns: CoreDnsSpec(
+          servers: const [
+            CoreDnsServerSpec(tag: 'dns', protocol: CoreDnsProtocol.local),
+          ],
+          finalServer: 'dns',
+        ),
         rules: List.generate(
           600,
           (i) => CoreRouteRule(
@@ -306,17 +313,32 @@ void main() {
           ),
         ),
       );
-      final built = await SingBoxConfigBuilder().build(spec, listeners);
-      expect(built.json, isNull);
-      expect(built.issues.single.code, 'compiled_config_too_large');
-      final prepared = await SingBoxConfigPreparer().prepare(
-        import: () async =>
-            CoreConfigImportResult(profile: spec, issues: const []),
-        listeners: listeners,
-      );
-      expect(prepared.status, SingBoxPreparationStatus.invalid);
-      expect(prepared.candidate, isNull);
-      expect(prepared.issues.single.code, 'compiled_config_too_large');
+      for (final binding in [
+        listeners,
+        CoreListenerSpec(
+          mixedPort: 17890,
+          controllerPort: 19090,
+          secret: 'fixture',
+          tun: CoreTunSpec(
+            interfaceName: 'HotaruFixture',
+            addresses: ['198.18.8.1/30'],
+            autoRoute: false,
+            hijackDns: true,
+          ),
+        ),
+      ]) {
+        final built = await SingBoxConfigBuilder().build(spec, binding);
+        expect(built.json, isNull);
+        expect(built.issues.single.code, 'compiled_config_too_large');
+        final prepared = await SingBoxConfigPreparer().prepare(
+          import: () async =>
+              CoreConfigImportResult(profile: spec, issues: const []),
+          listeners: binding,
+        );
+        expect(prepared.status, SingBoxPreparationStatus.invalid);
+        expect(prepared.candidate, isNull);
+        expect(prepared.issues.single.code, 'compiled_config_too_large');
+      }
     },
   );
 

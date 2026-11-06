@@ -324,6 +324,7 @@ void main() {
               ],
               selectors: [],
               finalOutbound: hugeTag,
+              dns: imported.profile!.dns,
               rules: List.generate(
                 600,
                 (index) => CoreRouteRule(
