@@ -66,10 +66,7 @@ final class SingBoxDesktopCore {
       selections: selections,
     );
     checkSnapshot();
-    final groupTags = applied.profile.selectors
-        .map((group) => group.tag)
-        .toSet();
-    final usedGroups = preview.chain.where(groupTags.contains).toList();
+    final usedGroups = preview.selectedOutbounds.keys.toList();
     if (usedGroups.isNotEmpty) {
       final current = {
         for (final outbound in await adapter.outbounds())

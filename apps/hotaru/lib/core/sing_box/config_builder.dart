@@ -106,7 +106,8 @@ final class SingBoxConfigBuilder {
             node.username != null ||
             node.password != null ||
             node.tls != null ||
-            node.transport != null) {
+            node.transport != null ||
+            node.detour != null) {
           issues.add(
             CoreConfigIssue('direct_has_proxy_fields', 'nodes.${node.tag}'),
           );
@@ -239,24 +240,41 @@ final class SingBoxConfigBuilder {
         issues.add(CoreConfigIssue('invalid_rule', 'rules.$index'));
       }
     }
-    final incoming = {for (final name in groups.keys) name: 0};
-    for (final group in groups.values) {
-      for (final member in group.members) {
-        if (groups.containsKey(member)) {
-          incoming[member] = incoming[member]! + 1;
-        }
+    final nodesByTag = {for (final node in profile.nodes) node.tag: node};
+    final graph = <String, List<String>>{
+      for (final node in profile.nodes)
+        node.tag: [if (node.detour != null) node.detour!],
+      for (final group in groups.values) group.tag: group.members,
+    };
+    for (final node in profile.nodes) {
+      if (node.detour != null &&
+          nodesByTag[node.detour]?.protocol == CoreNodeProtocol.direct) {
+        issues.add(
+          CoreConfigIssue('empty_direct_detour', 'nodes.${node.tag}.detour'),
+        );
+      }
+      if (node.detour != null && !tags.contains(node.detour)) {
+        issues.add(
+          CoreConfigIssue('unknown_detour', 'nodes.${node.tag}.detour'),
+        );
+      }
+    }
+    final incoming = {for (final name in graph.keys) name: 0};
+    for (final edges in graph.values) {
+      for (final edge in edges) {
+        if (incoming.containsKey(edge)) incoming[edge] = incoming[edge]! + 1;
       }
     }
     final ready = incoming.keys.where((name) => incoming[name] == 0).toList();
     for (var index = 0; index < ready.length; index++) {
-      for (final member in groups[ready[index]]!.members) {
-        if (!groups.containsKey(member)) continue;
-        incoming[member] = incoming[member]! - 1;
-        if (incoming[member] == 0) ready.add(member);
+      for (final edge in graph[ready[index]]!) {
+        if (!incoming.containsKey(edge)) continue;
+        incoming[edge] = incoming[edge]! - 1;
+        if (incoming[edge] == 0) ready.add(edge);
       }
     }
-    if (ready.length != groups.length) {
-      issues.add(const CoreConfigIssue('selector_cycle', 'selectors'));
+    if (ready.length != graph.length) {
+      issues.add(const CoreConfigIssue('outbound_cycle', 'outbounds'));
     }
     if (listeners.mixedPort < 1 ||
         listeners.mixedPort > 65535 ||
@@ -414,6 +432,7 @@ final class SingBoxConfigBuilder {
       if (node.protocol != CoreNodeProtocol.direct) ...{
         'server': node.server,
         'server_port': node.port,
+        if (node.detour != null) 'detour': node.detour,
         if (node.username != null) 'username': node.username,
         if (node.password != null) 'password': node.password,
         if (node.uuid != null) 'uuid': node.uuid,

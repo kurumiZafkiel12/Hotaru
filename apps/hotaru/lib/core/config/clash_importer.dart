@@ -259,7 +259,7 @@ final class _ClashImport {
     }
     final allowed = <String>{'name', 'type'};
     if (protocol != CoreNodeProtocol.direct) {
-      allowed.addAll(['server', 'port', 'udp']);
+      allowed.addAll(['server', 'port', 'udp', 'dialer-proxy']);
     }
     switch (protocol) {
       case CoreNodeProtocol.direct:
@@ -404,6 +404,9 @@ final class _ClashImport {
       protocol: protocol,
       server: optionalText(node['server']),
       port: node['port'] == null ? null : number(node['port']),
+      detour: node['dialer-proxy'] == ''
+          ? null
+          : optionalText(node['dialer-proxy']),
       username: optionalText(node['username']),
       password: optionalText(node['password']),
       uuid: optionalText(node['uuid']),

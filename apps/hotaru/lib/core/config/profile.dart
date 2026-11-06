@@ -51,6 +51,7 @@ final class CoreNodeSpec {
   final CoreNodeProtocol protocol;
   final String? server;
   final int? port;
+  final String? detour;
   final String? username;
   final String? password;
   final String? uuid;
@@ -71,6 +72,7 @@ final class CoreNodeSpec {
     required this.protocol,
     this.server,
     this.port,
+    this.detour,
     this.username,
     this.password,
     this.uuid,

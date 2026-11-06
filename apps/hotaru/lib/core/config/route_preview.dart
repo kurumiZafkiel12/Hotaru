@@ -19,6 +19,8 @@ final class CoreRoutePreview {
   final CoreRouteRule? rule;
   final CoreRuleAction? action;
   final List<String> chain;
+  final List<String> hops;
+  final Map<String, String> selectedOutbounds;
 
   CoreRoutePreview({
     required this.status,
@@ -27,7 +29,11 @@ final class CoreRoutePreview {
     this.rule,
     this.action,
     List<String> chain = const [],
-  }) : chain = List.unmodifiable(chain);
+    List<String> hops = const [],
+    Map<String, String> selectedOutbounds = const {},
+  }) : chain = List.unmodifiable(chain),
+       hops = List.unmodifiable(hops),
+       selectedOutbounds = Map.unmodifiable(selectedOutbounds);
 }
 
 final class CoreRoutePreviewer {
@@ -38,14 +44,14 @@ final class CoreRoutePreviewer {
     Map<String, String> selections = const {},
   }) {
     final snapshot = Map<String, String>.of(selections);
-    final nodeTags = profile.nodes.map((node) => node.tag).toList();
+    final nodes = profile.nodes;
     final selectors = profile.selectors;
     final rules = profile.rules;
     final finalOutbound = profile.finalOutbound;
     return Isolate.run(
       () => _preview(
         target,
-        nodeTags: nodeTags,
+        nodes: nodes,
         selectors: selectors,
         rules: rules,
         finalOutbound: finalOutbound,
@@ -56,7 +62,7 @@ final class CoreRoutePreviewer {
 
   static CoreRoutePreview _preview(
     String input, {
-    required List<String> nodeTags,
+    required List<CoreNodeSpec> nodes,
     required List<CoreSelectorSpec> selectors,
     required List<CoreRouteRule> rules,
     required String finalOutbound,
@@ -73,11 +79,11 @@ final class CoreRoutePreviewer {
         target: target,
       );
     }
-    final nodes = nodeTags.toSet();
+    final nodeMap = {for (final node in nodes) node.tag: node};
     final groups = {for (final group in selectors) group.tag: group};
-    if (nodes.length != nodeTags.length ||
+    if (nodeMap.length != nodes.length ||
         groups.length != selectors.length ||
-        groups.keys.any(nodes.contains)) {
+        groups.keys.any(nodeMap.containsKey)) {
       return CoreRoutePreview(
         status: CoreRoutePreviewStatus.invalidProfile,
         target: target,
@@ -140,6 +146,8 @@ final class CoreRoutePreviewer {
 
     final action = matched?.action ?? CoreRuleAction.route;
     final chain = <String>[];
+    final physical = <String>[];
+    final selectedOutbounds = <String, String>{};
     CoreRoutePreview result(CoreRoutePreviewStatus status) => CoreRoutePreview(
       status: status,
       target: target,
@@ -147,6 +155,10 @@ final class CoreRoutePreviewer {
       rule: matched,
       action: action,
       chain: chain,
+      hops: status == CoreRoutePreviewStatus.resolved
+          ? physical.reversed.toList()
+          : const [],
+      selectedOutbounds: selectedOutbounds,
     );
     if (action != CoreRuleAction.route) {
       return result(
@@ -157,10 +169,16 @@ final class CoreRoutePreviewer {
     }
     var next = matched == null ? finalOutbound : matched.outbound;
     final visited = <String>{};
+    var followsDetour = false;
     while (next != null && visited.add(next)) {
-      chain.add(next);
-      if (nodes.contains(next)) {
-        return result(CoreRoutePreviewStatus.resolved);
+      if (!followsDetour) chain.add(next);
+      final node = nodeMap[next];
+      if (node != null) {
+        physical.add(next);
+        if (node.detour == null) return result(CoreRoutePreviewStatus.resolved);
+        followsDetour = true;
+        next = node.detour;
+        continue;
       }
       final group = groups[next];
       if (group == null) return result(CoreRoutePreviewStatus.invalidProfile);
@@ -171,6 +189,7 @@ final class CoreRoutePreviewer {
       if (!group.members.contains(selected)) {
         return result(CoreRoutePreviewStatus.invalidProfile);
       }
+      selectedOutbounds[next] = selected;
       next = selected;
     }
     return result(CoreRoutePreviewStatus.invalidProfile);

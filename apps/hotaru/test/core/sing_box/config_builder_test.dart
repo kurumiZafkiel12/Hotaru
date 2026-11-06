@@ -154,7 +154,7 @@ void main() {
       listeners,
     );
     expect(result.json, isNull);
-    expect(result.issues.single.code, 'selector_cycle');
+    expect(result.issues.single.code, 'outbound_cycle');
   });
 
   test(

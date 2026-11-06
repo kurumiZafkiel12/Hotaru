@@ -167,6 +167,72 @@ void main() {
   );
 
   test(
+    'a detour group selection change also invalidates the physical path',
+    () async {
+      final prep = SingBoxConfigPreparer();
+      final prepared = await prep.prepare(
+        import: () async => CoreConfigImportResult(
+          profile: CoreProfileSpec(
+            nodes: const [
+              CoreNodeSpec(
+                tag: 'exit',
+                protocol: CoreNodeProtocol.http,
+                server: '127.0.0.1',
+                port: 8080,
+                detour: 'relays',
+              ),
+              CoreNodeSpec(
+                tag: 'a',
+                protocol: CoreNodeProtocol.http,
+                server: '127.0.0.1',
+                port: 8081,
+              ),
+              CoreNodeSpec(
+                tag: 'b',
+                protocol: CoreNodeProtocol.http,
+                server: '127.0.0.1',
+                port: 8082,
+              ),
+            ],
+            selectors: [
+              CoreSelectorSpec(tag: 'relays', members: ['a', 'b']),
+            ],
+            finalOutbound: 'exit',
+          ),
+          issues: [],
+        ),
+        listeners: const CoreListenerSpec(
+          mixedPort: 17890,
+          controllerPort: 19090,
+          secret: 'fixture',
+        ),
+      );
+      binding.current = prep.approve(prepared.candidate!);
+      var reads = 0;
+      when(() => adapter.outbounds()).thenAnswer(
+        (_) async => [
+          CoreOutbound(
+            name: 'relays',
+            type: 'Selector',
+            members: const ['a', 'b'],
+            selected: ++reads == 1 ? 'a' : 'b',
+          ),
+        ],
+      );
+      await expectLater(
+        core.previewRoute('example.org'),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'route_changed',
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
     'a restart while reading groups rejects the old profile snapshot',
     () async {
       when(() => adapter.outbounds()).thenAnswer((_) async {

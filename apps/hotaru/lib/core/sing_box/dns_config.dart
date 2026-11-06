@@ -92,7 +92,10 @@ List<CoreConfigIssue> validateDns(
   }
   for (final node in profile.nodes) {
     graph['out:${node.tag}'] = [
-      if (node.server != null && InternetAddress.tryParse(node.server!) == null)
+      if (node.detour != null) 'out:${node.detour}',
+      if (node.server != null &&
+          InternetAddress.tryParse(node.server!) == null &&
+          (node.detour == null || dns.proxyServer != null))
         'dns:${dns.proxyServer ?? dns.finalServer}',
     ];
   }
