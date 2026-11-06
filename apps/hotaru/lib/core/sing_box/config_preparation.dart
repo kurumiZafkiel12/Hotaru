@@ -12,15 +12,19 @@ final class SingBoxConfigCandidate {
   final List<CoreConfigIssue> warnings;
   final CoreListenerSpec _listeners;
   final SingBoxBootstrap _bootstrap;
+  final CoreProfileSpec _profile;
 
   const SingBoxConfigCandidate._(
     this.revision,
     this.warnings,
     this._listeners,
     this._bootstrap,
+    this._profile,
   );
 
   int get bootstrapBytes => _bootstrap.length;
+  int get nodeCount => _profile.nodes.length;
+  int get ruleCount => _profile.rules.length;
 }
 
 final class AcknowledgedSingBoxWarnings {
@@ -36,6 +40,7 @@ final class AcceptedSingBoxConfig {
 
   CoreListenerSpec get listeners => _candidate._listeners;
   SingBoxBootstrap get bootstrap => _candidate._bootstrap;
+  CoreProfileSpec get profile => _candidate._profile;
 }
 
 final class SingBoxPreparationResult {
@@ -77,6 +82,7 @@ final class SingBoxConfigPreparer {
         data.issues,
         listeners,
         bootstrap,
+        imported.profile!,
       );
       _current = candidate;
       return SingBoxPreparationResult._(

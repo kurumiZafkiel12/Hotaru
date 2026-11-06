@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../adapter.dart';
+import '../config/route_preview.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 import 'clash_api_adapter.dart';
@@ -36,6 +37,51 @@ final class SingBoxDesktopCore {
   );
 
   AcceptedSingBoxConfig? get configuration => _configuration?.current;
+
+  Future<CoreRoutePreview> previewRoute(String target) async {
+    final state = lifecycle.state;
+    final applied = configuration;
+    if (state is! DesktopCoreRunning || applied == null) {
+      throw const CoreAdapterException('applied_profile_unavailable');
+    }
+    final sessionId = state.session.sessionId;
+    void checkSnapshot() {
+      final current = lifecycle.state;
+      if (current is! DesktopCoreRunning ||
+          current.session.sessionId != sessionId ||
+          !identical(configuration, applied)) {
+        throw const CoreAdapterException('session_changed');
+      }
+    }
+
+    final outbounds = await adapter.outbounds();
+    checkSnapshot();
+    final selections = {
+      for (final outbound in outbounds)
+        if (outbound.selected != null) outbound.name: outbound.selected!,
+    };
+    final preview = await CoreRoutePreviewer().preview(
+      applied.profile,
+      target,
+      selections: selections,
+    );
+    checkSnapshot();
+    final groupTags = applied.profile.selectors
+        .map((group) => group.tag)
+        .toSet();
+    final usedGroups = preview.chain.where(groupTags.contains).toList();
+    if (usedGroups.isNotEmpty) {
+      final current = {
+        for (final outbound in await adapter.outbounds())
+          outbound.name: outbound.selected,
+      };
+      checkSnapshot();
+      if (usedGroups.any((group) => current[group] != selections[group])) {
+        throw const CoreAdapterException('route_changed');
+      }
+    }
+    return preview;
+  }
 
   Future<CoreLifecycleResult> applyConfiguration(
     AcceptedSingBoxConfig configuration,

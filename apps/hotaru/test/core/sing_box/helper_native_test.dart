@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
@@ -256,6 +257,23 @@ void main() {
               .selected,
           'direct',
         );
+        final literalPreview = await service.previewRoute('198.18.8.2');
+        expect(literalPreview.status, CoreRoutePreviewStatus.resolved);
+        expect(literalPreview.chain, ['proof']);
+        final domainPreview = await service.previewRoute(
+          'rule-fixture.invalid',
+        );
+        expect(domainPreview.status, CoreRoutePreviewStatus.resolved);
+        expect(domainPreview.chain, ['rule-proof']);
+        final finalPreview = await service.previewRoute(
+          'offline-preview.invalid',
+        );
+        expect(finalPreview.status, CoreRoutePreviewStatus.resolved);
+        expect(finalPreview.chain, ['selected', 'direct']);
+        expect((await service.adapter.connections()).entries, isEmpty);
+        expect(dnsReceipts, 0);
+        expect(providerRequests, 1);
+        expect(rulesRequests, 2);
         final request = await client.getUrl(Uri.parse('http://198.18.8.2/'));
         final response = await request.close().timeout(
           const Duration(seconds: 10),
@@ -475,6 +493,11 @@ void main() {
           request.response.write('restored-configuration-proof');
           await request.response.close();
         });
+        final recoveredPreview = await service.previewRoute(
+          'offline-preview.invalid',
+        );
+        expect(recoveredPreview.status, CoreRoutePreviewStatus.resolved);
+        expect(recoveredPreview.chain, ['selected', 'direct']);
         final restoredClient = HttpClient()
           ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
         try {
@@ -579,6 +602,9 @@ void main() {
             'native_ipc': true,
             'configuration_preflight': true,
             'configuration_replacement': true,
+            'route_preview_committed_ir': true,
+            'route_preview_no_dial': true,
+            'route_preview_recovered_configuration': true,
             'failed_activation_restored': true,
             'restored_configuration_payload': true,
             'oversized_config_keeps_session': true,

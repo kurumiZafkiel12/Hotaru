@@ -131,6 +131,10 @@ void main() {
       expect(candidate.bootstrapBytes, lessThan(CoreConfigEncoding.maxBytes));
       final accepted = prep.approve(candidate);
       expect(accepted.listeners, same(listeners));
+      expect(accepted.profile.finalOutbound, 'direct');
+      expect(candidate.nodeCount, 1);
+      expect(candidate.ruleCount, 0);
+      expect(() => accepted.profile.nodes.clear(), throwsUnsupportedError);
       expect(
         decoded(accepted)['config']['experimental']['clash_api']['secret'],
         listeners.secret,
