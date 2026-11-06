@@ -271,12 +271,16 @@ void main() {
         final fixtureCertificate = await File(
           'test/core/sing_box/support/tls/cert.pem',
         ).readAsString();
+        final fixtureDer = fixtureCertificate.replaceAll(
+          RegExp(r'-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\s+'),
+          '',
+        );
         Future<String> fetch(String node, Uri target) =>
             adapter.withOutboundClient(node, (client) async {
               client.badCertificateCallback = (certificate, host, port) =>
                   host == '127.0.0.1' &&
                   port == secureOrigin.port &&
-                  certificate.pem.trim() == fixtureCertificate.trim();
+                  base64Encode(certificate.der) == fixtureDer;
               final request = await client.getUrl(target);
               final response = await request.close();
               expect(response.statusCode, 200);
