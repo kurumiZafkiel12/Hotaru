@@ -100,6 +100,33 @@ void main() {
     },
   );
 
+  test('a corrupted cache row cannot return facts for another IP', () async {
+    final now = DateTime.now().toUtc();
+    await database
+        .into(database.ipFactRecords)
+        .insert(
+          db.IpFactRecordsCompanion.insert(
+            ip: '8.8.8.8',
+            checkedAt: now,
+            facts: IpFacts(
+              ip: '1.1.1.1',
+              checkedAt: now,
+              locationCheckedAt: now,
+              registryCheckedAt: now,
+              scoreCheckedAt: now,
+              riskScore: 0,
+              locationStatus: IpFactStatus.available,
+              registryStatus: IpFactStatus.available,
+              scoreStatus: IpFactStatus.available,
+            ),
+          ),
+        );
+    final facts = await container.read(provider.future);
+    expect(facts.ip, '8.8.8.8');
+    expect(facts.riskScore, 3);
+    expect(adapter.requests, 3);
+  });
+
   test('partial failure is cached without pretending risk is low', () async {
     adapter.fail = true;
     final facts = await container.read(provider.future);

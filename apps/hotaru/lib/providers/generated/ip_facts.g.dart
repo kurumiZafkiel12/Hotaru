@@ -58,7 +58,7 @@ final class IpFactsProvider
   }
 }
 
-String _$ipFactsHash() => r'023377b65b6dcc3bbf0b981db96ee55f5d119816';
+String _$ipFactsHash() => r'4b6258a1251a6477818736b10a578df878c77e55';
 
 final class IpFactsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<IpFacts>, String> {
