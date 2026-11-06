@@ -1,4 +1,5 @@
 import 'dns.dart';
+import 'probe_listener.dart';
 
 enum CoreNodeProtocol {
   direct,
@@ -170,6 +171,7 @@ final class CoreListenerSpec {
   final String secret;
   final CoreTunSpec? tun;
   final int? dnsPort;
+  final CoreProbeListenerSpec? probe;
 
   const CoreListenerSpec({
     required this.mixedPort,
@@ -177,6 +179,7 @@ final class CoreListenerSpec {
     required this.secret,
     this.tun,
     this.dnsPort,
+    this.probe,
   });
 }
 

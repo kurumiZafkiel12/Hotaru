@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/config/probe_listener.dart';
+import 'package:hotaru/core/outbound_http.dart';
+import 'package:hotaru/core/sing_box/outbound_http.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/sing_box/session_adapter.dart';
@@ -12,6 +16,26 @@ import '../desktop/fakes.dart';
 final class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
 final class _Adapter extends Mock implements CoreAdapter {}
+
+final class _HttpAdapter extends Mock implements CoreAdapter, CoreOutboundHttp {
+  final transport = SingBoxOutboundHttp(
+    listener: const CoreProbeListenerSpec(
+      port: 17891,
+      secret: 'fixture-only-12345678901234567890123456789',
+    ),
+    outbounds: ['node'],
+  );
+
+  @override
+  Future<T> withOutboundClient<T>(
+    String outbound,
+    Future<T> Function(HttpClient client) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) => transport.withOutboundClient(outbound, action, timeout: timeout);
+
+  @override
+  Future<void> close() async => transport.close();
+}
 
 DesktopCoreRunning _running(String id) => DesktopCoreRunning(
   DesktopCoreSession(
@@ -57,6 +81,61 @@ void main() {
     await adapter.close();
     await events.close();
   });
+
+  test('an adapter without node HTTP support refuses the callback', () async {
+    var invoked = false;
+    await expectLater(
+      adapter.withOutboundClient('node', (_) async {
+        invoked = true;
+        return 42;
+      }),
+      throwsA(
+        isA<CoreAdapterException>().having(
+          (e) => e.code,
+          'code',
+          'outbound_http_unavailable',
+        ),
+      ),
+    );
+    expect(invoked, isFalse);
+  });
+
+  test(
+    'session replacement closes the probe client and rejects its late result',
+    () async {
+      final underlying = _HttpAdapter();
+      final scoped = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => underlying,
+      );
+      addTearDown(scoped.close);
+      final pending = Completer<int>();
+      HttpClient? client;
+      final result = scoped.withOutboundClient('node', (current) {
+        client = current;
+        return pending.future;
+      });
+      state = _running('replacement');
+      events.add(state);
+      await pumpEventQueue();
+      expect(
+        () => client!.getUrl(Uri.parse('http://127.0.0.1/')),
+        throwsStateError,
+      );
+      final rejected = expectLater(
+        result,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      pending.complete(42);
+      await rejected;
+    },
+  );
 
   test(
     'idle operations neither create an API client nor start the process',

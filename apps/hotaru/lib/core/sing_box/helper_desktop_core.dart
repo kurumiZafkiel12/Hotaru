@@ -7,6 +7,7 @@ import '../adapter.dart';
 import '../desktop/helper_client.dart';
 import '../desktop/core_manifest.dart';
 import '../desktop/lifecycle.dart';
+import '../desktop/listener_owner.dart';
 import '../desktop/model.dart';
 import '../desktop/transport.dart';
 import 'clash_api_adapter.dart';
@@ -67,6 +68,11 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
     return SingBoxClashApiAdapter(
       endpoint: Uri.parse('http://127.0.0.1:${listeners.controllerPort}'),
       secret: listeners.secret,
+      probe: listeners.probe,
+      probeOutbounds: [
+        ...configuration.profile.nodes.map((node) => node.tag),
+        ...configuration.profile.selectors.map((group) => group.tag),
+      ],
     );
   }
 
@@ -99,6 +105,19 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
           controller: SingBoxControllerConnection(
             endpoint: endpoint,
             secret: listeners.secret,
+            peerPid: () async {
+              final owners = await Future.wait([
+                windowsListenerOwner(endpoint),
+                if (listeners.probe case final probe?)
+                  windowsListenerOwner(
+                    Uri.parse('http://127.0.0.1:${probe.port}'),
+                  ),
+              ]);
+              final owner = owners.first;
+              return owner != null && owners.every((pid) => pid == owner)
+                  ? owner
+                  : null;
+            },
           ),
           bootstrap: configuration.bootstrap,
         );

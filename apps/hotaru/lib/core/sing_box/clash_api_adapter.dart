@@ -4,16 +4,28 @@ import 'dart:io';
 import 'dart:isolate';
 
 import '../adapter.dart';
+import '../config/probe_listener.dart';
+import '../outbound_http.dart';
+import 'outbound_http.dart';
 
-final class SingBoxClashApiAdapter implements CoreAdapter {
+final class SingBoxClashApiAdapter implements CoreAdapter, CoreOutboundHttp {
   final Uri endpoint;
   final String _secret;
   final HttpClient _client;
+  final SingBoxOutboundHttp _outboundHttp;
   bool _closed = false;
 
-  SingBoxClashApiAdapter({required this.endpoint, required String secret})
-    : _secret = secret,
-      _client = HttpClient() {
+  SingBoxClashApiAdapter({
+    required this.endpoint,
+    required String secret,
+    CoreProbeListenerSpec? probe,
+    Iterable<String> probeOutbounds = const [],
+  }) : _secret = secret,
+       _outboundHttp = SingBoxOutboundHttp(
+         listener: probe,
+         outbounds: probeOutbounds,
+       ),
+       _client = HttpClient() {
     if (endpoint.scheme != 'http' ||
         !const ['127.0.0.1', '::1'].contains(endpoint.host) ||
         !endpoint.hasPort ||
@@ -203,9 +215,17 @@ final class SingBoxClashApiAdapter implements CoreAdapter {
   }
 
   @override
+  Future<T> withOutboundClient<T>(
+    String outbound,
+    Future<T> Function(HttpClient client) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) => _outboundHttp.withOutboundClient(outbound, action, timeout: timeout);
+
+  @override
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
+    _outboundHttp.close();
     _client.close(force: true);
   }
 

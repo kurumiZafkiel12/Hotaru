@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/probe_listener.dart';
+import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
@@ -13,6 +15,7 @@ import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
 import '../../plugins/code_forge/support.dart' show initEditorNative;
 import 'support/dns_fixture.dart';
+import 'loopback_proxy_fixture.dart' show freeLoopbackPort;
 
 final _environment = Platform.environment;
 final _enabled =
@@ -221,6 +224,10 @@ void main() {
         mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
         controllerPort: int.parse(_environment['HOTARU_NATIVE_API_PORT']!),
         secret: 'native-fixture-secret',
+        probe: CoreProbeListenerSpec(
+          port: await freeLoopbackPort(),
+          secret: 'native-probe-fixture-12345678901234567890',
+        ),
         tun: CoreTunSpec(
           interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
           addresses: ['198.18.8.1/30'],
@@ -432,6 +439,10 @@ void main() {
             mixedPort: listeners.mixedPort,
             controllerPort: listeners.controllerPort,
             secret: 'replacement-fixture-secret',
+            probe: CoreProbeListenerSpec(
+              port: listeners.probe!.port,
+              secret: 'replacement-probe-fixture-12345678901234567890',
+            ),
             tun: listeners.tun,
           ),
         );
@@ -512,6 +523,17 @@ void main() {
             'restored-configuration-proof',
           );
           expect(restoredRequests, 1);
+          final probePayload = await (service.adapter as CoreOutboundHttp)
+              .withOutboundClient('direct', (probeClient) async {
+                final probeRequest = await probeClient.getUrl(
+                  Uri.parse('http://127.0.0.1:${origin.port}/restored'),
+                );
+                final probeResponse = await probeRequest.close();
+                expect(probeResponse.statusCode, 200);
+                return utf8.decoder.bind(probeResponse).join();
+              });
+          expect(probePayload, 'restored-configuration-proof');
+          expect(restoredRequests, 2);
         } finally {
           restoredClient.close(force: true);
           await origin.close(force: true);
@@ -605,6 +627,7 @@ void main() {
             'route_preview_committed_ir': true,
             'route_preview_no_dial': true,
             'route_preview_recovered_configuration': true,
+            'node_http_recovered_configuration': true,
             'failed_activation_restored': true,
             'restored_configuration_payload': true,
             'oversized_config_keeps_session': true,

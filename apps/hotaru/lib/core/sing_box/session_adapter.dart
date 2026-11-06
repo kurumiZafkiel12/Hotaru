@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import '../adapter.dart';
+import '../outbound_http.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 
-final class SessionCoreAdapter implements CoreAdapter {
+final class SessionCoreAdapter implements CoreAdapter, CoreOutboundHttp {
   final DesktopCoreLifecycleController lifecycle;
   final CoreAdapter Function() _factory;
   late final StreamSubscription<DesktopCoreState> _subscription;
@@ -90,6 +92,22 @@ final class SessionCoreAdapter implements CoreAdapter {
   @override
   Future<void> closeConnection(String id) =>
       _invoke((adapter) => adapter.closeConnection(id));
+
+  @override
+  Future<T> withOutboundClient<T>(
+    String outbound,
+    Future<T> Function(HttpClient client) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) => _invoke((adapter) {
+    if (adapter is! CoreOutboundHttp) {
+      throw const CoreAdapterException('outbound_http_unavailable');
+    }
+    return (adapter as CoreOutboundHttp).withOutboundClient(
+      outbound,
+      action,
+      timeout: timeout,
+    );
+  });
 
   @override
   Future<void> close() => _closing ??= _close();

@@ -5,6 +5,7 @@ import 'dart:io';
 import '../config/profile.dart';
 import '../config/encoding.dart';
 import '../config/ip_prefix.dart';
+import '../config/probe_listener.dart';
 import 'dns_config.dart';
 
 final class SingBoxConfigBuilder {
@@ -314,11 +315,37 @@ final class SingBoxConfigBuilder {
       }
     }
     issues.addAll(validateDns(profile, listeners));
+    final probe = listeners.probe;
+    if (probe != null &&
+        (!probe.isValid ||
+            [
+              listeners.mixedPort,
+              listeners.controllerPort,
+              listeners.dnsPort,
+            ].contains(probe.port))) {
+      issues.add(
+        const CoreConfigIssue('invalid_probe_listener', 'listeners.probe'),
+      );
+    }
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     try {
       final encoded = CoreConfigEncoding.encode({
         if (profile.dns case final dns?) 'dns': compileDns(dns),
         'inbounds': [
+          if (probe != null)
+            {
+              'type': 'http',
+              'tag': 'hotaru-probe',
+              'listen': '127.0.0.1',
+              'listen_port': probe.port,
+              'users': [
+                for (final tag in tags)
+                  {
+                    'username': CoreProbeListenerSpec.username(tag),
+                    'password': probe.secret,
+                  },
+              ],
+            },
           if (listeners.dnsPort != null)
             {
               'type': 'direct',
@@ -369,9 +396,23 @@ final class SingBoxConfigBuilder {
             'default_domain_resolver': profile.dns!.finalServer,
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
           if (profile.rules.isNotEmpty ||
+              probe != null ||
               listeners.dnsPort != null ||
               tun?.hijackDns == true)
             'rules': [
+              if (probe != null) ...[
+                for (final tag in tags)
+                  {
+                    'inbound': ['hotaru-probe'],
+                    'auth_user': [CoreProbeListenerSpec.username(tag)],
+                    'action': 'route',
+                    'outbound': tag,
+                  },
+                {
+                  'inbound': ['hotaru-probe'],
+                  'action': 'reject',
+                },
+              ],
               if (listeners.dnsPort != null)
                 {
                   'inbound': ['dns-in'],
