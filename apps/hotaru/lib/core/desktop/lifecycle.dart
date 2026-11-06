@@ -476,8 +476,6 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
 
   Future<_LifecycleAchievement> _startForIntent(_LifecycleIntent intent) async {
     if (await _startSession(intent)) {
-      _committedPlan = intent.plan;
-      _recoveryPlan = null;
       return _LifecycleAchievement.runningFresh;
     }
     return _abandonedStart();
@@ -567,6 +565,8 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
       _session = session;
       _sessionDisconnect = _SessionDisconnect(session);
       leaseReleased = true;
+      _committedPlan = intent.plan;
+      _recoveryPlan = null;
       _publish(DesktopCoreRunning(session));
       return true;
     } catch (error, stackTrace) {

@@ -68,6 +68,54 @@ Future<void> _until(bool Function() ready) async {
 
 void main() {
   test(
+    'running publication and committed configuration are one snapshot',
+    () async {
+      final a = _Plan(100);
+      final b = _Plan(200);
+      final core = _owner(a);
+      addTearDown(core.close);
+      final published = <DesktopCoreLaunchPlan>[];
+      final listener = core.states.listen((state) {
+        if (state is DesktopCoreRunning && state.session.pid == 200) {
+          published.add(core.committedPlan);
+        }
+      });
+      addTearDown(listener.cancel);
+      await core.start();
+      await core.applyConfiguration(b.plan);
+      await pumpEventQueue();
+      expect(published, [same(b.plan)]);
+    },
+  );
+
+  test(
+    'restart from a replacement notification keeps the new configuration',
+    () async {
+      final a = _Plan(100);
+      final b = _Plan(200);
+      final core = _owner(a);
+      addTearDown(core.close);
+      Future<CoreLifecycleResult>? restarted;
+      final listener = core.states.listen((state) {
+        if (state is DesktopCoreRunning && state.session.pid == 200) {
+          restarted = core.restart();
+        }
+      });
+      addTearDown(listener.cancel);
+      await core.start();
+      await core.applyConfiguration(b.plan);
+      await _until(() => restarted != null);
+      expect((await restarted!).session!.pid, 200);
+      expect(a.leases, hasLength(1));
+      expect(b.leases, hasLength(1));
+      expect(core.committedPlan, same(b.plan));
+      await core.restart();
+      expect(b.leases, hasLength(2));
+      expect((core.state as DesktopCoreRunning).session.pid, 201);
+    },
+  );
+
+  test(
     'replacement commits only after its owned session is connected',
     () async {
       final a = _Plan(100);
