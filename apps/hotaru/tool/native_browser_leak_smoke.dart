@@ -2,38 +2,29 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hotaru/common/browser_leak_result.dart';
 import 'package:hotaru/common/constant.dart';
-import 'package:hotaru/features/browser_diagnostics/browser_leak_probe.dart';
+import 'package:hotaru/features/browser_diagnostics/tool_site.dart';
 import 'package:material_ui/material_ui.dart';
 
-Future<void> checkBrowserLeak() async {
+import 'visible_browser_check.dart';
+
+Future<void> checkBrowserTools() async {
   final report = <String, Object?>{
     'source_sha': const String.fromEnvironment('NATIVE_SMOKE_SOURCE'),
     'safe_mode': safeModeBuild,
     'scope':
-        'Actual Windows WebView2 and BrowserLeaks on an isolated CI host; no proxy/TUN or external-browser safety claim',
+        'Visible localized Windows WebView2 through an owned loopback proxy; validates the tool wrapper, not a TUN or a leak verdict',
   };
   final results = <Map<String, Object?>>[];
   if (safeModeBuild) {
-    for (final kind in BrowserLeakKind.values) {
+    for (final site in [ToolSite.dns, ToolSite.webrtc]) {
       try {
-        final result = await BrowserLeakProbe().run(
-          kind,
-          Directory.systemTemp.path,
-        );
-        results.add({
-          'kind': kind.name,
-          'completed': result.completed,
-          'resolver_count': result.resolvers.length,
-          'rtc_supported': result.supported,
-          'remote_count': result.remote.length,
-          'public_count': result.public.length,
-          'rtc_matching': result.rtcMatches,
-          'rtc_mismatch': result.hasRtcMismatch,
-        });
+        final result = await visibleBrowserKey.currentState!.check(site);
+        await visibleBrowserKey.currentState!.finish();
+        results.add({...result, 'visible_cleanup': true});
       } catch (error) {
-        results.add({'kind': kind.name, 'error': error.toString()});
+        await visibleBrowserKey.currentState!.finish();
+        results.add({'kind': site.name, 'error': error.runtimeType.toString()});
       }
     }
   }
@@ -46,14 +37,8 @@ Future<void> checkBrowserLeak() async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('Hotaru browser diagnostic validation')),
-      ),
-    ),
-  );
+  runApp(MaterialApp(home: VisibleBrowserCheck(key: visibleBrowserKey)));
   WidgetsBinding.instance.addPostFrameCallback(
-    (_) => unawaited(checkBrowserLeak()),
+    (_) => unawaited(checkBrowserTools()),
   );
 }

@@ -421,9 +421,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("블랙리스트 모드"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("연결 차단"),
     "brightness": MessageLookupByLibrary.simpleMessage("밝기"),
+    "browserCity": MessageLookupByLibrary.simpleMessage("도시"),
+    "browserCountry": MessageLookupByLibrary.simpleMessage("국가"),
     "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
       "DNS 리졸버를 확인했으며 이번 표본에서 중국 본토 ISP는 발견되지 않았습니다. 예상 DNS와 비교하세요. 다른 앱의 경로는 검사하지 않았습니다.",
     ),
+    "browserDnsServers": MessageLookupByLibrary.simpleMessage("DNS 서버"),
+    "browserIpv4": MessageLookupByLibrary.simpleMessage("IPv4 주소"),
+    "browserIpv6": MessageLookupByLibrary.simpleMessage("IPv6 주소"),
+    "browserLeakDetected": MessageLookupByLibrary.simpleMessage("유출 감지"),
     "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
       "검사가 완료되지 않았습니다. 일부 데이터만 표시됩니다. 다시 검사하세요.",
     ),
@@ -433,11 +439,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
       "웹 검사를 실행할 수 없습니다. BrowserLeaks 연결과 Microsoft Edge WebView2 런타임 설치를 확인하세요.",
     ),
-    "browserLocalIp": MessageLookupByLibrary.simpleMessage("로컬 IP"),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("로컬 IP 주소"),
     "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
       "식별 가능한 로컬 주소가 노출되지 않음",
     ),
-    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("페이지 출구 IP"),
+    "browserMediaDevices": MessageLookupByLibrary.simpleMessage("미디어 장치"),
+    "browserNoLeak": MessageLookupByLibrary.simpleMessage(
+      "이번 검사에서 유출이 발견되지 않음",
+    ),
+    "browserOrganization": MessageLookupByLibrary.simpleMessage("조직"),
+    "browserPermissions": MessageLookupByLibrary.simpleMessage("권한"),
+    "browserPotentialLeak": MessageLookupByLibrary.simpleMessage("유출 가능성"),
+    "browserPublicIp": MessageLookupByLibrary.simpleMessage("공인 IP 주소"),
+    "browserRegion": MessageLookupByLibrary.simpleMessage("지역"),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("사이트에 표시되는 IP"),
     "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
       "이번 WebRTC 공개 주소는 페이지 출구와 같습니다. 다른 브라우저의 경로는 검사하지 않았습니다.",
     ),
@@ -445,6 +460,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebRTC 공개 주소가 같은 주소 체계의 페이지 출구와 다릅니다. UDP 및 프록시 설정을 확인하세요.",
     ),
     "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 공개 IP"),
+    "browserSessionDescription": MessageLookupByLibrary.simpleMessage("세션 설명"),
+    "browserSupport": MessageLookupByLibrary.simpleMessage("WebRTC 지원"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("우회 도메인"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "우회 도메인은 시스템 프록시가 켜져 있을 때만 적용됩니다.",
@@ -781,6 +798,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("SSID 편집"),
     "editorUnavailable": MessageLookupByLibrary.simpleMessage("편집기를 사용할 수 없음"),
     "elapsed": MessageLookupByLibrary.simpleMessage("소요"),
+    "embeddedToolNeedCore": MessageLookupByLibrary.simpleMessage(
+      "이 도구를 열려면 Hotaru에 연결하세요.",
+    ),
+    "embeddedToolReload": MessageLookupByLibrary.simpleMessage("페이지 새로고침"),
+    "embeddedToolScope": MessageLookupByLibrary.simpleMessage(
+      "페이지는 Hotaru의 현재 프록시를 사용하며 웹사이트에서 검사합니다.",
+    ),
+    "embeddedToolUnavailable": MessageLookupByLibrary.simpleMessage(
+      "페이지를 불러올 수 없습니다. 연결과 WebView2를 확인한 후 다시 시도하세요.",
+    ),
     "emptyFallback": MessageLookupByLibrary.simpleMessage("빈 폴백"),
     "emptyTip": m26,
     "en": MessageLookupByLibrary.simpleMessage("영어"),
@@ -1059,6 +1086,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage("아웃바운드 IP가 다름"),
     "ipSourceNoType": MessageLookupByLibrary.simpleMessage("유형 없음"),
     "ipSourceRateLimited": MessageLookupByLibrary.simpleMessage("요청 제한됨"),
+    "ipToolsDetails": MessageLookupByLibrary.simpleMessage("위치 및 네트워크 정보"),
+    "ipToolsPrivacy": MessageLookupByLibrary.simpleMessage("IP 및 브라우저 개인정보"),
+    "ipToolsReputation": MessageLookupByLibrary.simpleMessage("IP 평판 및 위험"),
+    "ipToolsScope": MessageLookupByLibrary.simpleMessage(
+      "현재 연결의 IP, 네트워크 및 평판을 확인할 사이트를 선택하세요.",
+    ),
+    "ipToolsTitle": MessageLookupByLibrary.simpleMessage("IP 진단"),
     "ipType": MessageLookupByLibrary.simpleMessage("유형"),
     "ipTypeBusiness": MessageLookupByLibrary.simpleMessage("기업용"),
     "ipTypeHosting": MessageLookupByLibrary.simpleMessage("데이터 센터"),

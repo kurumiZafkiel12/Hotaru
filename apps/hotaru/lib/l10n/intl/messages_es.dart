@@ -551,8 +551,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Bloquear conexión",
     ),
     "brightness": MessageLookupByLibrary.simpleMessage("Brillo"),
+    "browserCity": MessageLookupByLibrary.simpleMessage("Ciudad"),
+    "browserCountry": MessageLookupByLibrary.simpleMessage("País"),
     "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
       "Se observaron resolutores DNS sin identificar un ISP de China continental en esta muestra. Compara con el DNS previsto; otras aplicaciones no se probaron.",
+    ),
+    "browserDnsServers": MessageLookupByLibrary.simpleMessage("Servidores DNS"),
+    "browserIpv4": MessageLookupByLibrary.simpleMessage("Dirección IPv4"),
+    "browserIpv6": MessageLookupByLibrary.simpleMessage("Dirección IPv6"),
+    "browserLeakDetected": MessageLookupByLibrary.simpleMessage(
+      "Fuga detectada",
     ),
     "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
       "La prueba no terminó. Los datos son parciales; repítela.",
@@ -563,12 +571,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
       "No se pudo ejecutar la prueba web. Revisa la conexión con BrowserLeaks y la instalación de Microsoft Edge WebView2.",
     ),
-    "browserLocalIp": MessageLookupByLibrary.simpleMessage("IP local"),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage(
+      "Dirección IP local",
+    ),
     "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
       "No se expuso una dirección local identificable",
     ),
+    "browserMediaDevices": MessageLookupByLibrary.simpleMessage(
+      "Dispositivos multimedia",
+    ),
+    "browserNoLeak": MessageLookupByLibrary.simpleMessage(
+      "No se detectaron fugas en esta prueba",
+    ),
+    "browserOrganization": MessageLookupByLibrary.simpleMessage("Organización"),
+    "browserPermissions": MessageLookupByLibrary.simpleMessage("Permisos"),
+    "browserPotentialLeak": MessageLookupByLibrary.simpleMessage(
+      "Posible fuga",
+    ),
+    "browserPublicIp": MessageLookupByLibrary.simpleMessage(
+      "Dirección IP pública",
+    ),
+    "browserRegion": MessageLookupByLibrary.simpleMessage("Región"),
     "browserRemoteIp": MessageLookupByLibrary.simpleMessage(
-      "IP de salida de la página",
+      "IP visible para el sitio",
     ),
     "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
       "La IP pública WebRTC coincide con la salida de esta página. Otros navegadores pueden usar otra ruta.",
@@ -578,6 +603,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
       "IP pública WebRTC",
+    ),
+    "browserSessionDescription": MessageLookupByLibrary.simpleMessage(
+      "Descripción de sesión",
+    ),
+    "browserSupport": MessageLookupByLibrary.simpleMessage(
+      "Compatibilidad con WebRTC",
     ),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Dominios excluidos"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
@@ -1019,6 +1050,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "Editor no disponible",
     ),
     "elapsed": MessageLookupByLibrary.simpleMessage("Tardó"),
+    "embeddedToolNeedCore": MessageLookupByLibrary.simpleMessage(
+      "Conecta Hotaru para abrir esta herramienta.",
+    ),
+    "embeddedToolReload": MessageLookupByLibrary.simpleMessage(
+      "Recargar página",
+    ),
+    "embeddedToolScope": MessageLookupByLibrary.simpleMessage(
+      "La página usa el proxy actual de Hotaru. El sitio realiza la prueba.",
+    ),
+    "embeddedToolUnavailable": MessageLookupByLibrary.simpleMessage(
+      "No se pudo cargar la página. Comprueba la conexión y WebView2 e inténtalo de nuevo.",
+    ),
     "emptyFallback": MessageLookupByLibrary.simpleMessage(
       "Respaldo si está vacío",
     ),
@@ -1259,9 +1302,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -1366,6 +1410,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipSourceRateLimited": MessageLookupByLibrary.simpleMessage(
       "Límite de solicitudes",
     ),
+    "ipToolsDetails": MessageLookupByLibrary.simpleMessage("Ubicación y red"),
+    "ipToolsPrivacy": MessageLookupByLibrary.simpleMessage(
+      "Privacidad de IP y navegador",
+    ),
+    "ipToolsReputation": MessageLookupByLibrary.simpleMessage(
+      "Reputación y riesgo de IP",
+    ),
+    "ipToolsScope": MessageLookupByLibrary.simpleMessage(
+      "Elige un sitio para consultar la IP, la red y la reputación de la conexión actual.",
+    ),
+    "ipToolsTitle": MessageLookupByLibrary.simpleMessage("Diagnóstico IP"),
     "ipType": MessageLookupByLibrary.simpleMessage("Tipo"),
     "ipTypeBusiness": MessageLookupByLibrary.simpleMessage("Empresarial"),
     "ipTypeHosting": MessageLookupByLibrary.simpleMessage("Centro de datos"),

@@ -428,9 +428,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("ブラックリストモード"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("接続をブロック"),
     "brightness": MessageLookupByLibrary.simpleMessage("明度"),
+    "browserCity": MessageLookupByLibrary.simpleMessage("都市"),
+    "browserCountry": MessageLookupByLibrary.simpleMessage("国・地域"),
     "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
       "DNS リゾルバーを取得しました。今回、中国本土の ISP は検出されませんでした。想定する DNS と比較してください。他のアプリの安全性は保証しません。",
     ),
+    "browserDnsServers": MessageLookupByLibrary.simpleMessage("DNS サーバー"),
+    "browserIpv4": MessageLookupByLibrary.simpleMessage("IPv4 アドレス"),
+    "browserIpv6": MessageLookupByLibrary.simpleMessage("IPv6 アドレス"),
+    "browserLeakDetected": MessageLookupByLibrary.simpleMessage("漏洩を検出"),
     "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
       "検査が完了していません。表示データは一部のみです。再検査してください。",
     ),
@@ -440,11 +446,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
       "ウェブ検査を実行できません。BrowserLeaks への接続と Microsoft Edge WebView2 ランタイムを確認してください。",
     ),
-    "browserLocalIp": MessageLookupByLibrary.simpleMessage("ローカル IP"),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("ローカル IP アドレス"),
     "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
       "識別可能なローカルアドレスは非公開",
     ),
-    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("ページ出口 IP"),
+    "browserMediaDevices": MessageLookupByLibrary.simpleMessage("メディアデバイス"),
+    "browserNoLeak": MessageLookupByLibrary.simpleMessage(
+      "今回の検査で漏洩は検出されませんでした",
+    ),
+    "browserOrganization": MessageLookupByLibrary.simpleMessage("組織"),
+    "browserPermissions": MessageLookupByLibrary.simpleMessage("権限"),
+    "browserPotentialLeak": MessageLookupByLibrary.simpleMessage("漏洩の可能性"),
+    "browserPublicIp": MessageLookupByLibrary.simpleMessage("公開 IP アドレス"),
+    "browserRegion": MessageLookupByLibrary.simpleMessage("地域"),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("サイトから見える IP"),
     "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
       "今回の WebRTC 公開アドレスはページ出口と一致しています。他のブラウザーの経路は未検査です。",
     ),
@@ -452,6 +467,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebRTC の公開アドレスが同じアドレス形式のページ出口と異なります。UDP とプロキシ設定を確認してください。",
     ),
     "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 公開 IP"),
+    "browserSessionDescription": MessageLookupByLibrary.simpleMessage(
+      "セッションの説明",
+    ),
+    "browserSupport": MessageLookupByLibrary.simpleMessage("WebRTC の対応状況"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("除外ドメイン"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "除外ドメインはシステムプロキシが有効な場合のみ適用されます。",
@@ -794,6 +813,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("SSIDを編集"),
     "editorUnavailable": MessageLookupByLibrary.simpleMessage("エディターを利用できません"),
     "elapsed": MessageLookupByLibrary.simpleMessage("所要時間"),
+    "embeddedToolNeedCore": MessageLookupByLibrary.simpleMessage(
+      "このツールを開くには Hotaru に接続してください。",
+    ),
+    "embeddedToolReload": MessageLookupByLibrary.simpleMessage("ページを再読み込み"),
+    "embeddedToolScope": MessageLookupByLibrary.simpleMessage(
+      "ページは Hotaru の現在のプロキシ経由で読み込まれ、サイトが検査します。",
+    ),
+    "embeddedToolUnavailable": MessageLookupByLibrary.simpleMessage(
+      "ページを読み込めません。接続と WebView2 を確認して再試行してください。",
+    ),
     "emptyFallback": MessageLookupByLibrary.simpleMessage("空グループのフォールバック"),
     "emptyTip": m26,
     "en": MessageLookupByLibrary.simpleMessage("英語"),
@@ -1076,6 +1105,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipSourceNoType": MessageLookupByLibrary.simpleMessage("判定不可"),
     "ipSourceRateLimited": MessageLookupByLibrary.simpleMessage("レート制限"),
+    "ipToolsDetails": MessageLookupByLibrary.simpleMessage("位置とネットワーク情報"),
+    "ipToolsPrivacy": MessageLookupByLibrary.simpleMessage("IP とブラウザーのプライバシー"),
+    "ipToolsReputation": MessageLookupByLibrary.simpleMessage("IP の評判とリスク"),
+    "ipToolsScope": MessageLookupByLibrary.simpleMessage(
+      "現在の接続の IP、ネットワーク、評判を確認するサイトを選択します。",
+    ),
+    "ipToolsTitle": MessageLookupByLibrary.simpleMessage("IP 診断"),
     "ipType": MessageLookupByLibrary.simpleMessage("タイプ"),
     "ipTypeBusiness": MessageLookupByLibrary.simpleMessage("ビジネス"),
     "ipTypeHosting": MessageLookupByLibrary.simpleMessage("データセンター"),

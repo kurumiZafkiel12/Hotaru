@@ -403,9 +403,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "blacklistMode": MessageLookupByLibrary.simpleMessage("黑名单模式"),
     "blockConnection": MessageLookupByLibrary.simpleMessage("阻止连接"),
     "brightness": MessageLookupByLibrary.simpleMessage("亮度"),
+    "browserCity": MessageLookupByLibrary.simpleMessage("城市"),
+    "browserCountry": MessageLookupByLibrary.simpleMessage("国家或地区"),
     "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
       "已获取 DNS 解析器，本次未发现国内运营商解析器。请对照预期 DNS；这不代表所有应用均无泄漏。",
     ),
+    "browserDnsServers": MessageLookupByLibrary.simpleMessage("DNS 服务器"),
+    "browserIpv4": MessageLookupByLibrary.simpleMessage("IPv4 地址"),
+    "browserIpv6": MessageLookupByLibrary.simpleMessage("IPv6 地址"),
+    "browserLeakDetected": MessageLookupByLibrary.simpleMessage("检测到泄漏"),
     "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
       "本次检测未完整结束，已有数据仅供参考，请重新检测。",
     ),
@@ -415,11 +421,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserLeakUnavailable": MessageLookupByLibrary.simpleMessage(
       "无法运行网页检测。请检查网络能否访问 BrowserLeaks，以及 Microsoft Edge WebView2 运行时是否已安装。",
     ),
-    "browserLocalIp": MessageLookupByLibrary.simpleMessage("本地 IP"),
+    "browserLocalIp": MessageLookupByLibrary.simpleMessage("本地 IP 地址"),
     "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
       "未暴露可识别的本地地址",
     ),
-    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("网页出口 IP"),
+    "browserMediaDevices": MessageLookupByLibrary.simpleMessage("媒体设备"),
+    "browserNoLeak": MessageLookupByLibrary.simpleMessage("本次未发现泄漏"),
+    "browserOrganization": MessageLookupByLibrary.simpleMessage("组织"),
+    "browserPermissions": MessageLookupByLibrary.simpleMessage("权限"),
+    "browserPotentialLeak": MessageLookupByLibrary.simpleMessage("可能存在泄漏"),
+    "browserPublicIp": MessageLookupByLibrary.simpleMessage("公网 IP 地址"),
+    "browserRegion": MessageLookupByLibrary.simpleMessage("区域"),
+    "browserRemoteIp": MessageLookupByLibrary.simpleMessage("网站看到的出口 IP"),
     "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
       "本次 WebRTC 公网地址与网页出口一致，未发现地址不一致；不代表其他浏览器也使用相同路径。",
     ),
@@ -427,6 +440,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebRTC 暴露的公网地址与同地址族的网页出口不同，可能存在泄漏，请检查 UDP 与代理设置。",
     ),
     "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage("WebRTC 公网 IP"),
+    "browserSessionDescription": MessageLookupByLibrary.simpleMessage("会话描述"),
+    "browserSupport": MessageLookupByLibrary.simpleMessage("WebRTC 支持情况"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("排除域名"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "排除域名仅在系统代理启用时生效。",
@@ -723,6 +738,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("编辑SSID"),
     "editorUnavailable": MessageLookupByLibrary.simpleMessage("编辑器不可用"),
     "elapsed": MessageLookupByLibrary.simpleMessage("耗时"),
+    "embeddedToolNeedCore": MessageLookupByLibrary.simpleMessage(
+      "请先连接 Hotaru，再打开此工具。",
+    ),
+    "embeddedToolReload": MessageLookupByLibrary.simpleMessage("重新加载网页"),
+    "embeddedToolScope": MessageLookupByLibrary.simpleMessage(
+      "网页请求通过 Hotaru 当前代理加载，检测由网站执行。",
+    ),
+    "embeddedToolUnavailable": MessageLookupByLibrary.simpleMessage(
+      "网页加载失败，请检查连接和 WebView2 后重试。",
+    ),
     "emptyFallback": MessageLookupByLibrary.simpleMessage("空组兜底"),
     "emptyTip": m26,
     "en": MessageLookupByLibrary.simpleMessage("英语"),
@@ -977,6 +1002,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipSourceIpMismatch": MessageLookupByLibrary.simpleMessage("出站 IP 不一致"),
     "ipSourceNoType": MessageLookupByLibrary.simpleMessage("无法判定类型"),
     "ipSourceRateLimited": MessageLookupByLibrary.simpleMessage("限流"),
+    "ipToolsDetails": MessageLookupByLibrary.simpleMessage("位置与网络信息"),
+    "ipToolsPrivacy": MessageLookupByLibrary.simpleMessage("IP 与浏览器隐私"),
+    "ipToolsReputation": MessageLookupByLibrary.simpleMessage("IP 信誉与风险"),
+    "ipToolsScope": MessageLookupByLibrary.simpleMessage(
+      "选择网站查看当前连接的 IP、网络归属和信誉。",
+    ),
+    "ipToolsTitle": MessageLookupByLibrary.simpleMessage("IP 检测"),
     "ipType": MessageLookupByLibrary.simpleMessage("类型"),
     "ipTypeBusiness": MessageLookupByLibrary.simpleMessage("商业"),
     "ipTypeHosting": MessageLookupByLibrary.simpleMessage("机房"),

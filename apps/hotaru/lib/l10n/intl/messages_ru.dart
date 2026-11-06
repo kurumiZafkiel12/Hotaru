@@ -534,8 +534,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Заблокировать соединение",
     ),
     "brightness": MessageLookupByLibrary.simpleMessage("Яркость"),
+    "browserCity": MessageLookupByLibrary.simpleMessage("Город"),
+    "browserCountry": MessageLookupByLibrary.simpleMessage("Страна"),
     "browserDnsObserved": MessageLookupByLibrary.simpleMessage(
       "Получены DNS-резолверы; провайдеры материкового Китая в этой выборке не обнаружены. Сравните с ожидаемым DNS. Другие приложения не проверены.",
+    ),
+    "browserDnsServers": MessageLookupByLibrary.simpleMessage("Серверы DNS"),
+    "browserIpv4": MessageLookupByLibrary.simpleMessage("Адрес IPv4"),
+    "browserIpv6": MessageLookupByLibrary.simpleMessage("Адрес IPv6"),
+    "browserLeakDetected": MessageLookupByLibrary.simpleMessage(
+      "Обнаружена утечка",
     ),
     "browserLeakIncomplete": MessageLookupByLibrary.simpleMessage(
       "Проверка не завершена. Данные частичные; запустите её повторно.",
@@ -550,8 +558,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserLocalNotExposed": MessageLookupByLibrary.simpleMessage(
       "Определяемый локальный адрес не раскрыт",
     ),
+    "browserMediaDevices": MessageLookupByLibrary.simpleMessage(
+      "Медиаустройства",
+    ),
+    "browserNoLeak": MessageLookupByLibrary.simpleMessage(
+      "В этой проверке утечка не обнаружена",
+    ),
+    "browserOrganization": MessageLookupByLibrary.simpleMessage("Организация"),
+    "browserPermissions": MessageLookupByLibrary.simpleMessage("Разрешения"),
+    "browserPotentialLeak": MessageLookupByLibrary.simpleMessage(
+      "Возможна утечка",
+    ),
+    "browserPublicIp": MessageLookupByLibrary.simpleMessage("Публичный IP"),
+    "browserRegion": MessageLookupByLibrary.simpleMessage("Регион"),
     "browserRemoteIp": MessageLookupByLibrary.simpleMessage(
-      "Выходной IP страницы",
+      "IP, видимый сайту",
     ),
     "browserRtcMatch": MessageLookupByLibrary.simpleMessage(
       "Публичный адрес WebRTC совпадает с выходом этой страницы. Другие браузеры могут использовать иной маршрут.",
@@ -562,6 +583,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserRtcPublicIp": MessageLookupByLibrary.simpleMessage(
       "Публичный IP WebRTC",
     ),
+    "browserSessionDescription": MessageLookupByLibrary.simpleMessage(
+      "Описание сеанса",
+    ),
+    "browserSupport": MessageLookupByLibrary.simpleMessage("Поддержка WebRTC"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Исключённые домены"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Исключённые домены действуют только при включённом системном прокси.",
@@ -996,6 +1021,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "Редактор недоступен",
     ),
     "elapsed": MessageLookupByLibrary.simpleMessage("Время"),
+    "embeddedToolNeedCore": MessageLookupByLibrary.simpleMessage(
+      "Подключите Hotaru, чтобы открыть инструмент.",
+    ),
+    "embeddedToolReload": MessageLookupByLibrary.simpleMessage(
+      "Обновить страницу",
+    ),
+    "embeddedToolScope": MessageLookupByLibrary.simpleMessage(
+      "Страница загружается через текущий прокси Hotaru. Проверку выполняет сайт.",
+    ),
+    "embeddedToolUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить страницу. Проверьте подключение и WebView2 и повторите попытку.",
+    ),
     "emptyFallback": MessageLookupByLibrary.simpleMessage(
       "Резерв для пустой группы",
     ),
@@ -1224,9 +1261,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -1325,6 +1363,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipSourceRateLimited": MessageLookupByLibrary.simpleMessage(
       "Лимит запросов",
     ),
+    "ipToolsDetails": MessageLookupByLibrary.simpleMessage(
+      "Местоположение и сеть",
+    ),
+    "ipToolsPrivacy": MessageLookupByLibrary.simpleMessage(
+      "Конфиденциальность IP и браузера",
+    ),
+    "ipToolsReputation": MessageLookupByLibrary.simpleMessage(
+      "Репутация и риск IP",
+    ),
+    "ipToolsScope": MessageLookupByLibrary.simpleMessage(
+      "Выберите сайт для проверки IP, сети и репутации текущего подключения.",
+    ),
+    "ipToolsTitle": MessageLookupByLibrary.simpleMessage("Диагностика IP"),
     "ipType": MessageLookupByLibrary.simpleMessage("Тип"),
     "ipTypeBusiness": MessageLookupByLibrary.simpleMessage("Бизнес"),
     "ipTypeHosting": MessageLookupByLibrary.simpleMessage("Дата-центр"),
