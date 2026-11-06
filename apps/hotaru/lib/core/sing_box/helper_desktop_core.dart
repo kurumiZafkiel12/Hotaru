@@ -3,20 +3,18 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import '../../common/constant.dart';
-import '../config/profile.dart';
 import '../desktop/helper_client.dart';
 import '../desktop/core_manifest.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 import '../desktop/transport.dart';
-import 'config_builder.dart';
+import 'config_preparation.dart';
 import 'controller_connection.dart';
 import 'desktop_core.dart';
 import 'pipe_connection.dart';
 
 Future<SingBoxDesktopCore> createSingBoxHelperCore({
-  required CoreProfileSpec profile,
-  required CoreListenerSpec listeners,
+  required AcceptedSingBoxConfig configuration,
   String? bundleDirectory,
   DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(
     connection: Duration(seconds: 20),
@@ -38,9 +36,7 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
     readCoreSha256: () async => digest,
     expectedHelperPath: () => p.join(directory, '$appHelperService.exe'),
   );
-  final built = await SingBoxConfigBuilder().build(profile, listeners);
-  final config = built.json;
-  if (config == null) throw StateError('Invalid sing-box profile');
+  final listeners = configuration.listeners;
   final endpoint = Uri.parse('http://127.0.0.1:${listeners.controllerPort}');
   late SingBoxPipeConnection connection;
   SingBoxPipeConnection transportFactory() {
@@ -52,7 +48,7 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
         endpoint: endpoint,
         secret: listeners.secret,
       ),
-      compiledConfig: config,
+      bootstrap: configuration.bootstrap,
     );
   }
 

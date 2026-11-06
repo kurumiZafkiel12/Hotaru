@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:io';
 
 import '../config/profile.dart';
+import '../config/encoding.dart';
 import '../config/ip_prefix.dart';
 import 'dns_config.dart';
 
@@ -296,8 +297,8 @@ final class SingBoxConfigBuilder {
     }
     issues.addAll(validateDns(profile, listeners));
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
-    return CoreConfigBuildResult(
-      json: jsonEncode({
+    try {
+      final encoded = CoreConfigEncoding.encode({
         if (profile.dns case final dns?) 'dns': compileDns(dns),
         'inbounds': [
           if (listeners.dnsPort != null)
@@ -392,9 +393,18 @@ final class SingBoxConfigBuilder {
             'secret': listeners.secret,
           },
         },
-      }),
-      issues: const [],
-    );
+      });
+      return CoreConfigBuildResult(
+        json: utf8.decode(encoded),
+        issues: const [],
+      );
+    } on CoreConfigSizeException {
+      return CoreConfigBuildResult(
+        issues: [
+          const CoreConfigIssue('compiled_config_too_large', 'document'),
+        ],
+      );
+    }
   }
 
   static Map<String, Object?> _node(CoreNodeSpec node) {

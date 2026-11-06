@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'profile.dart';
+import 'encoding.dart';
 import 'ip_prefix.dart';
 
 final class CoreRuleProviderRequest {
@@ -377,11 +378,31 @@ final class _RuleImport {
       }
     }
     final rules = <String>[];
+    var expandedBytes = 0;
+    bool appendParts(List<String> parts, String path) {
+      var bytes = parts.length;
+      for (final part in parts) {
+        if (part.length > CoreConfigEncoding.maxBytes - expandedBytes - bytes) {
+          issue('expanded_rule_size_exceeded', path);
+          return false;
+        }
+        bytes += utf8.encode(part).length;
+        if (bytes > CoreConfigEncoding.maxBytes - expandedBytes) {
+          issue('expanded_rule_size_exceeded', path);
+          return false;
+        }
+      }
+      expandedBytes += bytes;
+      rules.add(parts.join(','));
+      return true;
+    }
+
     final input = plan.document['rules'];
     var finalSeen = false;
     if (input is! List) {
       issue('invalid_rules', 'rules');
     } else {
+      rulesLoop:
       for (var index = 0; index < input.length; index++) {
         final path = 'rules.$index';
         try {
@@ -416,9 +437,16 @@ final class _RuleImport {
                   issue('ip_rule_resolution_not_migrated', path);
                   break;
                 }
-                rules.add('${parts[0]},${parts[1]},${fields[2]},no-resolve');
+                if (!appendParts([
+                  parts[0],
+                  parts[1],
+                  fields[2],
+                  'no-resolve',
+                ], path)) {
+                  break rulesLoop;
+                }
               } else {
-                rules.add('$entry,${fields[2]}');
+                if (!appendParts([entry, fields[2]], path)) break rulesLoop;
               }
             }
           } else {
@@ -426,7 +454,7 @@ final class _RuleImport {
               issue('expanded_rule_limit_exceeded', path);
               break;
             }
-            rules.add(rule);
+            if (!appendParts([rule], path)) break rulesLoop;
           }
         } on FormatException {
           issue('invalid_rule', path);

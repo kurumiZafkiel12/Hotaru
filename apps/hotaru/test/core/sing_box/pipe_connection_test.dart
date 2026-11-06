@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/desktop/transport.dart';
 import 'package:hotaru/core/sing_box/pipe_connection.dart';
+import 'package:hotaru/core/sing_box/bootstrap.dart';
 
 final class _Pipe implements DesktopCoreTransport {
   final _events = StreamController<DesktopTransportEvent>.broadcast();
@@ -123,7 +124,9 @@ void main() {
     connection = SingBoxPipeConnection(
       pipe: pipe,
       controller: controller,
-      compiledConfig: '{"experimental":{"clash_api":{"secret":"fixture"}}}',
+      bootstrap: await SingBoxBootstrap.prepare(
+        '{"experimental":{"clash_api":{"secret":"fixture"}}}',
+      ),
     );
     lease = SingBoxPipeLease(process: process, connection: connection);
     await connection.open();
@@ -234,7 +237,7 @@ void main() {
     expect(process.stops, 0);
   });
 
-  test('cancelled startup cannot send a late isolate bootstrap', () async {
+  test('cancelled startup cannot send a prepared bootstrap', () async {
     connection.observeProcess(lease);
     pipe.connect(42);
     expect(

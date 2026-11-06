@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/clash_importer.dart';
+import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/desktop/process_probe.dart';
@@ -214,20 +216,27 @@ void main() {
       });
       final imported = await importer.import(source);
       expect(imported.issues, isEmpty);
+      final listeners = CoreListenerSpec(
+        mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
+        controllerPort: int.parse(_environment['HOTARU_NATIVE_API_PORT']!),
+        secret: 'native-fixture-secret',
+        tun: CoreTunSpec(
+          interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
+          addresses: ['198.18.8.1/30'],
+          autoRoute: false,
+          hijackDns: true,
+        ),
+      );
+      final preparation = SingBoxConfigPreparer();
+      final initial = await preparation.prepare(
+        import: () async => imported,
+        listeners: listeners,
+      );
+      expect(initial.status, SingBoxPreparationStatus.ready);
+      final accepted = preparation.approve(initial.candidate!);
       final service = await createSingBoxHelperCore(
         bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
-        profile: imported.profile!,
-        listeners: CoreListenerSpec(
-          mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
-          controllerPort: int.parse(_environment['HOTARU_NATIVE_API_PORT']!),
-          secret: 'native-fixture-secret',
-          tun: CoreTunSpec(
-            interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
-            addresses: ['198.18.8.1/30'],
-            autoRoute: false,
-            hijackDns: true,
-          ),
-        ),
+        configuration: accepted,
       );
       final pids = <int>[];
       final client = HttpClient()..findProxy = (_) => 'DIRECT';
@@ -291,6 +300,74 @@ void main() {
         } finally {
           ruleClient.close(force: true);
         }
+
+        final invalid = await preparation.prepare(
+          import: () async => CoreConfigImportResult(
+            profile: CoreProfileSpec(
+              nodes: const [
+                CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
+              ],
+              selectors: [],
+              finalOutbound: 'missing',
+            ),
+            issues: const [],
+          ),
+          listeners: listeners,
+        );
+        expect(invalid.status, SingBoxPreparationStatus.invalid);
+        final hugeTag = 'n' * 32768;
+        final oversized = await preparation.prepare(
+          import: () async => CoreConfigImportResult(
+            profile: CoreProfileSpec(
+              nodes: [
+                CoreNodeSpec(tag: hugeTag, protocol: CoreNodeProtocol.direct),
+              ],
+              selectors: [],
+              finalOutbound: hugeTag,
+              rules: List.generate(
+                600,
+                (index) => CoreRouteRule(
+                  kind: CoreRuleKind.domain,
+                  value: 'r$index.invalid',
+                  outbound: hugeTag,
+                ),
+              ),
+            ),
+            issues: const [],
+          ),
+          listeners: listeners,
+        );
+        expect(oversized.status, SingBoxPreparationStatus.invalid);
+        expect(
+          oversized.issues.map((issue) => issue.code),
+          contains('compiled_config_too_large'),
+        );
+        final review = await preparation.prepare(
+          import: () => ClashProfileImporter().import(
+            'mixed-port: 12345\nrules: ["MATCH,DIRECT"]',
+          ),
+          listeners: CoreListenerSpec(
+            mixedPort: listeners.mixedPort,
+            controllerPort: listeners.controllerPort,
+            secret: listeners.secret,
+          ),
+        );
+        expect(review.status, SingBoxPreparationStatus.ready);
+        expect(
+          review.candidate!.warnings.single.code,
+          'app_owned_setting_replaced',
+        );
+        expect(() => preparation.approve(review.candidate!), throwsStateError);
+        expect(
+          (service.lifecycle.state as DesktopCoreRunning).session.pid,
+          first.session.pid,
+        );
+        expect(
+          (await service.adapter.outbounds()).any(
+            (node) => node.name == 'rule-proof',
+          ),
+          isTrue,
+        );
 
         providerAvailable = false;
         final failedRefresh = await importer.import(source);
@@ -368,14 +445,20 @@ void main() {
           await File(
             '${badBundle.path}/manifest.json',
           ).writeAsString(jsonEncode(manifest));
-          final denied = await createSingBoxHelperCore(
-            bundleDirectory: badBundle.path,
-            profile: CoreProfileSpec(
-              nodes: const [
-                CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
-              ],
-              selectors: [],
-              finalOutbound: 'direct',
+          final deniedPreparer = SingBoxConfigPreparer();
+          final deniedConfig = await deniedPreparer.prepare(
+            import: () async => CoreConfigImportResult(
+              profile: CoreProfileSpec(
+                nodes: const [
+                  CoreNodeSpec(
+                    tag: 'direct',
+                    protocol: CoreNodeProtocol.direct,
+                  ),
+                ],
+                selectors: [],
+                finalOutbound: 'direct',
+              ),
+              issues: const [],
             ),
             listeners: CoreListenerSpec(
               mixedPort: int.parse(_environment['HOTARU_NATIVE_MIXED_PORT']!),
@@ -384,6 +467,10 @@ void main() {
               ),
               secret: 'denied-fixture-secret',
             ),
+          );
+          final denied = await createSingBoxHelperCore(
+            bundleDirectory: badBundle.path,
+            configuration: deniedPreparer.approve(deniedConfig.candidate!),
           );
           try {
             await expectLater(
@@ -403,6 +490,9 @@ void main() {
         await File(_environment['HOTARU_NATIVE_HELPER_RESULT']!).writeAsString(
           jsonEncode({
             'native_ipc': true,
+            'configuration_preflight': true,
+            'oversized_config_keeps_session': true,
+            'unacknowledged_warning_keeps_session': true,
             'provider_import': true,
             'rule_provider_import': true,
             'ip_rule_provider_import': true,

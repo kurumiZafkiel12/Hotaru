@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 
 import '../desktop/model.dart';
 import '../desktop/transport.dart';
 import 'host_events.dart';
+import 'bootstrap.dart';
 
 final class SingBoxPipeConnection
     implements DesktopCoreConnection, DesktopCoreProcessObserver {
   final DesktopCoreTransport _pipe;
   final DesktopCoreConnection _controller;
-  final String _config;
+  final SingBoxBootstrap _bootstrapConfig;
   final StreamController<DesktopTransportEvent> _events =
       StreamController<DesktopTransportEvent>.broadcast();
   final List<StreamSubscription<Object?>> _subscriptions = [];
@@ -28,10 +28,10 @@ final class SingBoxPipeConnection
   SingBoxPipeConnection({
     required DesktopCoreTransport pipe,
     required DesktopCoreConnection controller,
-    required String compiledConfig,
+    required SingBoxBootstrap bootstrap,
   }) : _pipe = pipe,
        _controller = controller,
-       _config = compiledConfig;
+       _bootstrapConfig = bootstrap;
 
   @override
   String get address => _pipe.address;
@@ -155,18 +155,7 @@ final class SingBoxPipeConnection
   }
 
   Future<void> _bootstrap(CoreProcessLease process) async {
-    final config = _config;
-    final payload = await Isolate.run(() {
-      final decoded = jsonDecode(config);
-      if (decoded is! Map<String, dynamic>) throw const FormatException();
-      final bytes = utf8.encode(
-        jsonEncode({'protocol': 'hotaru-bootstrap-v1', 'config': decoded}),
-      );
-      if (bytes.length > 16 * 1024 * 1024) {
-        throw const FormatException('Host bootstrap exceeds frame limit');
-      }
-      return bytes;
-    });
+    final payload = _bootstrapConfig.bytes;
     if (_terminal || _stopping) return;
     _sentConfig = true;
     _pipe.send(payload);
