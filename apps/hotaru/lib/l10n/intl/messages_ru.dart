@@ -1580,6 +1580,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "Не удалось определить адрес сервера. Проверьте правильность URL и работу DNS",
     ),
+    "networkLatencyRating": MessageLookupByLibrary.simpleMessage(
+      "Оценка задержки",
+    ),
     "networkName": MessageLookupByLibrary.simpleMessage("Имя сети"),
     "networkNotFoundError": m56,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(

@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/enum/enum.dart';
+import 'network_quality.dart';
 import 'package:hotaru/ui/icons/icons.dart';
 import 'package:hotaru/ui/speed_dial.dart';
 import 'package:hotaru/widgets/widgets.dart';
@@ -8,7 +10,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SpeedTestView extends ConsumerStatefulWidget {
-  const SpeedTestView({super.key});
+  const SpeedTestView({super.key, this.platform});
+
+  final SupportPlatform? platform;
 
   @override
   ConsumerState<SpeedTestView> createState() => _SpeedTestViewState();
@@ -188,8 +192,19 @@ class _SpeedTestViewState extends ConsumerState<SpeedTestView> {
         );
       },
     );
-    return BaseScaffold(
+    return CommonScaffold(
       title: appLocalizations.speedTest,
+      iconActions: [
+        if ((widget.platform ?? SupportPlatform.currentPlatform) ==
+            SupportPlatform.Windows)
+          IconButtonData(
+            glyph: AppGlyphs.clock,
+            tooltip: appLocalizations.networkLatencyRating,
+            onPressed: _running
+                ? null
+                : () => showNetworkQualitySheet(context, latencyName: true),
+          ),
+      ],
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(

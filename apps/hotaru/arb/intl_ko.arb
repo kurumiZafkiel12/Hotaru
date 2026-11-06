@@ -1185,5 +1185,6 @@
   "ipFactsScore": "{level} (Scamalytics {score}점)",
   "ipFactsOriginEvidence": "위치 국가: {geo}; IP 블록 등록 국가: {registered} (RDAP)",
   "ipFactsScope": "IP 출처는 IP 블록 등록 국가와 위치 국가를 비교합니다. 유형은 iplocate, 품질은 Scamalytics 점수만 사용합니다. 데이터가 없으면 알 수 없음으로 표시합니다.",
-  "ipFactsNoData": "유효한 데이터 없음"
+  "ipFactsNoData": "유효한 데이터 없음",
+  "networkLatencyRating": "지연 평가"
 }

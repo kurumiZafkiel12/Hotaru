@@ -10077,6 +10077,16 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Latency rating`
+  String get networkLatencyRating {
+    return Intl.message(
+      'Latency rating',
+      name: 'networkLatencyRating',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

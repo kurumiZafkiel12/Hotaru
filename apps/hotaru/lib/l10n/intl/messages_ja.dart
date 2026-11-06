@@ -1279,6 +1279,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "サーバーのアドレスを解決できませんでした。URL が正しいこと、DNS が使えることを確認してください",
     ),
+    "networkLatencyRating": MessageLookupByLibrary.simpleMessage("遅延評価"),
     "networkName": MessageLookupByLibrary.simpleMessage("ネットワーク名"),
     "networkNotFoundError": m56,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(

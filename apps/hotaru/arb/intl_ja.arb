@@ -1185,5 +1185,6 @@
   "ipFactsScore": "{level}（Scamalytics {score} 点）",
   "ipFactsOriginEvidence": "位置情報の国：{geo}、IP ブロック登録国：{registered}（RDAP）",
   "ipFactsScope": "IP 由来は IP ブロック登録国と位置情報を比較します。種別は iplocate、品質は Scamalytics のスコアのみを使用します。データがなければ不明と表示します。",
-  "ipFactsNoData": "有効なデータなし"
+  "ipFactsNoData": "有効なデータなし",
+  "networkLatencyRating": "遅延評価"
 }

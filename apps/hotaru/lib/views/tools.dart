@@ -79,7 +79,7 @@ class _ToolMatrix extends StatelessWidget {
         l10n.speedTest,
         l10n.networkSpeed,
         AppGlyphs.speed,
-        () => BaseNavigator.push(context, const SpeedTestView()),
+        () => BaseNavigator.push(context, SpeedTestView(platform: platform)),
       ),
       (
         l10n.toolsPrivacy,

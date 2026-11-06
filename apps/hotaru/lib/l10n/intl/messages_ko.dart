@@ -1260,6 +1260,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "서버 주소를 확인할 수 없습니다. URL이 올바른지, DNS가 정상인지 확인하세요",
     ),
+    "networkLatencyRating": MessageLookupByLibrary.simpleMessage("지연 평가"),
     "networkName": MessageLookupByLibrary.simpleMessage("네트워크 이름"),
     "networkNotFoundError": m56,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(

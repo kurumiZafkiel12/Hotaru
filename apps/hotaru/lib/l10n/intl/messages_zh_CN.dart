@@ -1160,6 +1160,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "无法解析服务器地址，请确认链接正确且 DNS 可用",
     ),
+    "networkLatencyRating": MessageLookupByLibrary.simpleMessage("延迟评级"),
     "networkName": MessageLookupByLibrary.simpleMessage("网络名称"),
     "networkNotFoundError": m56,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
