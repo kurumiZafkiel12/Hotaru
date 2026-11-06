@@ -68,6 +68,7 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
     return SingBoxClashApiAdapter(
       endpoint: Uri.parse('http://127.0.0.1:${listeners.controllerPort}'),
       secret: listeners.secret,
+      telemetry: (lifecycle.activePlan as _HelperPlan).connection().telemetry,
       probe: listeners.probe,
       probeOutbounds: [
         ...configuration.profile.nodes.map((node) => node.tag),
@@ -83,9 +84,11 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
 
 final class _HelperPlan extends DesktopCoreLaunchPlan {
   final AcceptedSingBoxConfig configuration;
+  final SingBoxPipeConnection Function() connection;
 
   const _HelperPlan._({
     required this.configuration,
+    required this.connection,
     required super.transportFactory,
     required super.launcherResolver,
   });
@@ -123,6 +126,7 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
         );
     return _HelperPlan._(
       configuration: configuration,
+      connection: () => connection,
       transportFactory: transportFactory,
       launcherResolver: _HelperResolver(helper, () => connection),
     );

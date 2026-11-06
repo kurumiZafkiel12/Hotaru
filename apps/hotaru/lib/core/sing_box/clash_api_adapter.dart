@@ -6,13 +6,16 @@ import 'dart:isolate';
 import '../adapter.dart';
 import '../config/probe_listener.dart';
 import '../outbound_http.dart';
+import '../telemetry.dart';
 import 'outbound_http.dart';
 
-final class SingBoxClashApiAdapter implements CoreAdapter, CoreOutboundHttp {
+final class SingBoxClashApiAdapter
+    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry {
   final Uri endpoint;
   final String _secret;
   final HttpClient _client;
   final SingBoxOutboundHttp _outboundHttp;
+  final Future<CoreTelemetrySnapshot> Function()? _telemetry;
   bool _closed = false;
 
   SingBoxClashApiAdapter({
@@ -20,7 +23,9 @@ final class SingBoxClashApiAdapter implements CoreAdapter, CoreOutboundHttp {
     required String secret,
     CoreProbeListenerSpec? probe,
     Iterable<String> probeOutbounds = const [],
+    Future<CoreTelemetrySnapshot> Function()? telemetry,
   }) : _secret = secret,
+       _telemetry = telemetry,
        _outboundHttp = SingBoxOutboundHttp(
          listener: probe,
          outbounds: probeOutbounds,
@@ -212,6 +217,16 @@ final class SingBoxClashApiAdapter implements CoreAdapter, CoreOutboundHttp {
   @override
   Future<void> closeConnection(String id) async {
     await _request('DELETE', ['connections', id]);
+  }
+
+  @override
+  Future<CoreTelemetrySnapshot> telemetry() async {
+    if (_closed) throw const CoreAdapterException('closed');
+    final read = _telemetry;
+    if (read == null) throw const CoreAdapterException('telemetry_unavailable');
+    final result = await read();
+    if (_closed) throw const CoreAdapterException('closed');
+    return result;
   }
 
   @override

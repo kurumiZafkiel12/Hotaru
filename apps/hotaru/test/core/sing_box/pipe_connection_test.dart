@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/desktop/model.dart';
+import 'package:hotaru/core/adapter.dart';
+import 'support/telemetry_fixture.dart';
 import 'package:hotaru/core/desktop/transport.dart';
 import 'package:hotaru/core/sing_box/pipe_connection.dart';
 import 'package:hotaru/core/sing_box/bootstrap.dart';
@@ -14,6 +16,7 @@ final class _Pipe implements DesktopCoreTransport {
   final sent = <List<int>>[];
   final configured = Completer<void>();
   void Function()? onStop;
+  void Function(Map<String, dynamic>)? onRequest;
   @override
   DesktopTransportState state = DesktopTransportState.idle;
   @override
@@ -43,6 +46,28 @@ final class _Pipe implements DesktopCoreTransport {
     );
   }
 
+  void telemetry(
+    int id, {
+    Map<String, dynamic>? data,
+    String? error,
+    int pid = 42,
+  }) {
+    _frames.add(
+      Uint8List.fromList(
+        utf8.encode(
+          jsonEncode({
+            'protocol': 'hotaru-stdio-v1',
+            'event': 'telemetry',
+            'pid': pid,
+            'request_id': id,
+            'data': ?data,
+            'error': ?error,
+          }),
+        ),
+      ),
+    );
+  }
+
   @override
   void send(List<int> frame) {
     if (state == DesktopTransportState.closed) throw StateError('Closed');
@@ -51,6 +76,8 @@ final class _Pipe implements DesktopCoreTransport {
       onStop?.call();
     } else if (!configured.isCompleted) {
       configured.complete();
+    } else {
+      onRequest?.call(jsonDecode(utf8.decode(frame)) as Map<String, dynamic>);
     }
   }
 
@@ -138,6 +165,165 @@ void main() {
     pipe.connect(process.pid);
     await pipe.configured.future.timeout(const Duration(seconds: 2));
   }
+
+  Future<void> connect() async {
+    await bootstrap();
+    pipe.host('ready');
+    await connection.waitUntilConnected(const Duration(seconds: 2));
+  }
+
+  test(
+    'telemetry before an owned connected session sends no request',
+    () async {
+      await expectLater(
+        connection.telemetry(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'core_not_running',
+          ),
+        ),
+      );
+      expect(pipe.sent, isEmpty);
+    },
+  );
+
+  test(
+    'concurrent read-only replies are matched by request ID, including reverse arrival',
+    () async {
+      await connect();
+      final ids = <int>[];
+      pipe.onRequest = (request) {
+        expect(request['method'], 'telemetry');
+        ids.add(request['id'] as int);
+        if (ids.length == 2) {
+          pipe.telemetry(ids[1], data: telemetryFixture(upload: 2));
+          pipe.telemetry(ids[0], data: telemetryFixture(upload: 1));
+        }
+      };
+      final results = await Future.wait([
+        connection.telemetry(),
+        connection.telemetry(),
+      ]);
+      expect(results.map((value) => value.uploadTotal), [1, 2]);
+      expect(connection.state, DesktopTransportState.connected);
+      expect(pipe.sent, hasLength(3));
+    },
+  );
+
+  test(
+    'unavailable native telemetry is explicit and does not kill the core',
+    () async {
+      await connect();
+      pipe.onRequest = (request) =>
+          pipe.telemetry(request['id'] as int, error: 'telemetry_unavailable');
+      await expectLater(
+        connection.telemetry(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'telemetry_unavailable',
+          ),
+        ),
+      );
+      expect(connection.state, DesktopTransportState.connected);
+    },
+  );
+
+  test(
+    'wrong reply PID cancels pending data instead of accepting another core',
+    () async {
+      await connect();
+      pipe.onRequest = (request) => pipe.telemetry(
+        request['id'] as int,
+        data: telemetryFixture(),
+        pid: 99,
+      );
+      await expectLater(
+        connection.telemetry(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      expect(connection.state, DesktopTransportState.failed);
+    },
+  );
+
+  test(
+    'stop cancels telemetry but queued cleanup acknowledgement still releases the lease',
+    () async {
+      await connect();
+      final pending = expectLater(
+        connection.telemetry(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      pipe.onStop = () {
+        pipe.host('stopped', clean: true);
+        pipe.disconnect();
+      };
+      expect(
+        (await lease.stop(const Duration(seconds: 2))).exitConfirmed,
+        isTrue,
+      );
+      await pending;
+      expect(process.stops, 1);
+    },
+  );
+
+  test(
+    'controller failure still consumes a valid host cleanup acknowledgement',
+    () async {
+      await connect();
+      controller._events.add(
+        TransportFailed(StateError('Controller lost'), StackTrace.current),
+      );
+      await pumpEventQueue();
+      expect(connection.state, DesktopTransportState.failed);
+      pipe.onStop = () {
+        pipe.host('stopped', clean: true);
+        pipe.disconnect();
+      };
+      expect(
+        (await lease.stop(const Duration(seconds: 2))).exitConfirmed,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'control data after stopped cannot preserve a clean acknowledgement',
+    () async {
+      await connect();
+      var id = 0;
+      pipe.onRequest = (request) {
+        id = request['id'] as int;
+        pipe.telemetry(id, data: telemetryFixture());
+      };
+      await connection.telemetry();
+      pipe.onStop = () {
+        pipe.host('stopped', clean: true);
+        pipe.telemetry(id, data: telemetryFixture());
+        pipe.disconnect();
+      };
+      expect(
+        (await lease.stop(const Duration(seconds: 2))).exitConfirmed,
+        isFalse,
+      );
+      expect(process.stops, 0);
+    },
+  );
 
   test(
     'does not send credentials to a peer before acquiring its lease',

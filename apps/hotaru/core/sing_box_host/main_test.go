@@ -106,7 +106,7 @@ func TestStopDuringStartupClosesPartialInstance(t *testing.T) {
 
 func TestInvalidControlFailsClosed(t *testing.T) {
 	for _, input := range []string{"restart\n", strings.Repeat("x", 1024)} {
-		if readStop(strings.NewReader(input)) == nil {
+		if readControl(strings.NewReader(input), io.Discard, func() telemetrySource { return nil }) == nil {
 			t.Fatal("invalid control was accepted")
 		}
 	}

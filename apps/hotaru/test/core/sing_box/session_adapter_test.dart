@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
+import 'package:hotaru/core/telemetry.dart';
+import 'support/telemetry_fixture.dart';
 import 'package:hotaru/core/sing_box/outbound_http.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
 import 'package:hotaru/core/desktop/model.dart';
@@ -16,6 +18,9 @@ import '../desktop/fakes.dart';
 final class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
 final class _Adapter extends Mock implements CoreAdapter {}
+
+final class _TelemetryAdapter extends Mock
+    implements CoreAdapter, CoreTelemetry {}
 
 final class _HttpAdapter extends Mock implements CoreAdapter, CoreOutboundHttp {
   final transport = SingBoxOutboundHttp(
@@ -134,6 +139,40 @@ void main() {
       );
       pending.complete(42);
       await rejected;
+    },
+  );
+
+  test(
+    'observed counters from an old session cannot be credited to its replacement',
+    () async {
+      final underlying = _TelemetryAdapter();
+      final pending = Completer<CoreTelemetrySnapshot>();
+      when(() => underlying.telemetry()).thenAnswer((_) => pending.future);
+      when(() => underlying.close()).thenAnswer((_) async {});
+      final scoped = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => underlying,
+      );
+      addTearDown(scoped.close);
+      final result = scoped.telemetry();
+      state = _running('replacement');
+      events.add(state);
+      await pumpEventQueue();
+      final rejected = expectLater(
+        result,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      pending.complete(
+        CoreTelemetrySnapshot.fromJson(telemetryFixture(upload: 123456)),
+      );
+      await rejected;
+      verify(() => underlying.close()).called(1);
     },
   );
 

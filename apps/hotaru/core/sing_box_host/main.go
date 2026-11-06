@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,9 +13,11 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"strings"
+	"sync/atomic"
 	"syscall"
 
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/common/trafficcontrol"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/include"
@@ -46,14 +49,26 @@ func emit(output io.Writer, event string, clean bool) error {
 	})
 }
 
-func readStop(input io.Reader) error {
+func readControl(input io.Reader, output io.Writer, source func() telemetrySource) error {
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(make([]byte, 64), 512)
-	if scanner.Scan() {
-		if scanner.Text() != "stop" {
+	for scanner.Scan() {
+		if scanner.Text() == "stop" {
+			return nil
+		}
+		var command struct {
+			Method string `json:"method"`
+			ID     uint32 `json:"id"`
+		}
+		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&command) != nil || decoder.Decode(new(any)) != io.EOF ||
+			command.Method != "telemetry" || command.ID == 0 || output == nil {
 			return errors.New("invalid host control command")
 		}
-		return nil
+		if err := emitTelemetry(output, command.ID, source()); err != nil {
+			return err
+		}
 	}
 	return scanner.Err()
 }
@@ -61,20 +76,31 @@ func readStop(input io.Reader) error {
 func serve(parent context.Context, configPath string, input io.Reader, output io.Writer, create engineFactory) (result error) {
 	ctx, cancel := context.WithCancel(parent)
 	defer cancel()
+	output = &synchronizedWriter{Writer: output}
+	var running atomic.Bool
+	var instance engine
 	clean := false
 	defer func() { result = errors.Join(result, emit(output, "stopped", clean)) }()
 	control := make(chan error, 1)
 	go func() {
-		err := readStop(input)
+		err := readControl(input, output, func() telemetrySource {
+			if !running.Load() {
+				return nil
+			}
+			source, _ := instance.(telemetrySource)
+			return source
+		})
 		control <- err
 		cancel()
 	}()
-	instance, err := create(ctx, configPath)
+	var err error
+	instance, err = create(ctx, configPath)
 	if err != nil {
 		clean = true
 		return err
 	}
 	defer func() {
+		running.Store(false)
 		clean = false
 		err := instance.Close()
 		clean = err == nil
@@ -84,6 +110,7 @@ func serve(parent context.Context, configPath string, input io.Reader, output io
 		return err
 	}
 	if ctx.Err() == nil {
+		running.Store(true)
 		if err = emit(output, "ready", false); err != nil {
 			return err
 		}
@@ -114,7 +141,11 @@ func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	if options.Log != nil && options.Log.Output != "" {
 		return nil, errors.New("host logging is managed by the client")
 	}
-	return box.New(box.Options{Context: ctx, Options: options})
+	instance, err := box.New(box.Options{Context: ctx, Options: options})
+	if err != nil {
+		return nil, err
+	}
+	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx)}, nil
 }
 
 func pinnedVersion() (string, error) {

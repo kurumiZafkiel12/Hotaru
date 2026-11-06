@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import '../desktop/model.dart';
+import '../adapter.dart';
+import '../telemetry.dart';
 import '../desktop/transport.dart';
 import 'host_events.dart';
 import 'bootstrap.dart';
@@ -22,6 +26,10 @@ final class SingBoxPipeConnection
   SingBoxHostEvents? _host;
   Future<void>? _bootstrapping;
   Future<void>? _closing;
+  Future<void> _frames = Future.value();
+  Future<void>? _outputEnd;
+  final Map<int, Completer<CoreTelemetrySnapshot>> _pendingTelemetry = {};
+  int _requestId = 0;
   bool _sentConfig = false;
   bool _stopping = false;
 
@@ -52,18 +60,13 @@ final class SingBoxPipeConnection
     _subscriptions.addAll([
       _pipe.events.listen(_pipeEvent, onError: _fail),
       _pipe.frames.listen((frame) {
-        final host = _host;
-        if (host == null || !_sentConfig) {
-          _fail(StateError('Host output preceded verified bootstrap'));
-          return;
-        }
-        try {
-          host.add(utf8.decode(frame));
-          if (host.failed) _fail(StateError('Invalid host control event'));
-        } on FormatException {
-          host.fail();
-          _fail(StateError('Invalid host frame'));
-        }
+        _frames = _frames.then((_) => _handleFrame(frame)).catchError((
+          Object error,
+          StackTrace trace,
+        ) {
+          _host?.fail();
+          _fail(error, trace);
+        });
       }, onError: _fail),
       _controller.events.listen((event) {
         if (_terminal) return;
@@ -98,9 +101,91 @@ final class SingBoxPipeConnection
     }
   }
 
+  Future<void> _handleFrame(Uint8List frame) async {
+    if (_state == DesktopTransportState.closed) return;
+    final host = _host;
+    if (host == null || !_sentConfig) {
+      _fail(StateError('Host output preceded verified bootstrap'));
+      return;
+    }
+    final decoded = await Isolate.run(() => _decodeControlFrame(frame));
+    if (_state == DesktopTransportState.closed) return;
+    final value = decoded.value;
+    if (value is Map<String, dynamic> && value['event'] == 'telemetry') {
+      if (!host.acceptsTelemetry) {
+        host.fail();
+        _fail(StateError('Telemetry outside the ready host lifetime'));
+        return;
+      }
+      if (_terminal) return;
+      final id = value['request_id'];
+      if (value['protocol'] != 'hotaru-stdio-v1' ||
+          value['pid'] != _process?.pid ||
+          id is! int ||
+          id < 1 ||
+          id > _requestId) {
+        _fail(StateError('Invalid host telemetry identity'));
+        return;
+      }
+      final pending = _pendingTelemetry.remove(id);
+      if (pending == null) return;
+      final data = decoded.snapshot;
+      if (value['error'] case final String error) {
+        pending.completeError(
+          CoreAdapterException(
+            error == 'telemetry_too_large' ? error : 'telemetry_unavailable',
+          ),
+        );
+      } else if (data != null) {
+        pending.complete(data);
+      } else {
+        pending.completeError(const CoreAdapterException('invalid_response'));
+      }
+      return;
+    }
+    host.addValue(value);
+    if (host.failed) _fail(StateError('Invalid host control event'));
+  }
+
+  Future<CoreTelemetrySnapshot> telemetry() async {
+    if (_terminal || _stopping || _state != DesktopTransportState.connected) {
+      throw const CoreAdapterException('core_not_running');
+    }
+    if (_pendingTelemetry.length >= 8 || _requestId >= 0xffffffff) {
+      throw const CoreAdapterException('busy');
+    }
+    final id = ++_requestId;
+    final pending = Completer<CoreTelemetrySnapshot>();
+    _pendingTelemetry[id] = pending;
+    final result = pending.future
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            throw const CoreAdapterException('timeout');
+          },
+        )
+        .whenComplete(() => _pendingTelemetry.remove(id));
+    try {
+      _pipe.send(
+        utf8.encode('${jsonEncode({'method': 'telemetry', 'id': id})}\n'),
+      );
+    } catch (error, trace) {
+      _pendingTelemetry.remove(id);
+      pending.completeError(error, trace);
+    }
+    return result;
+  }
+
+  void _cancelTelemetry() {
+    for (final pending in _pendingTelemetry.values) {
+      pending.completeError(const CoreAdapterException('session_changed'));
+    }
+    _pendingTelemetry.clear();
+  }
+
   void _pipeEvent(DesktopTransportEvent event) {
     if (event is TransportDisconnected || event is TransportFailed) {
-      _host?.finish();
+      _outputEnd ??= _finishOutput();
     }
     if (_terminal) return;
     switch (event) {
@@ -118,6 +203,14 @@ final class SingBoxPipeConnection
       case TransportReady():
         break;
     }
+  }
+
+  Future<void> _finishOutput() async {
+    // Frames and lifecycle events use separate broadcast streams. Drain their
+    // queued deliveries before committing EOF behind the decode queue.
+    await Future<void>.delayed(Duration.zero);
+    await _frames;
+    _host?.finish();
   }
 
   @override
@@ -171,6 +264,7 @@ final class SingBoxPipeConnection
 
   Future<bool> gracefulStop(Duration timeout) async {
     _stopping = true;
+    _cancelTelemetry();
     if (!_sentConfig) {
       await _pipe.close();
       _host?.finish();
@@ -195,6 +289,7 @@ final class SingBoxPipeConnection
     final failure = TransportFailed(error, trace ?? StackTrace.current);
     _failure = failure;
     _state = DesktopTransportState.failed;
+    _cancelTelemetry();
     _events.add(failure);
   }
 
@@ -223,6 +318,7 @@ final class SingBoxPipeConnection
   Future<void> _close() async {
     _state = DesktopTransportState.closed;
     _stopping = true;
+    _cancelTelemetry();
     try {
       await _pipe.close();
     } finally {
@@ -234,6 +330,8 @@ final class SingBoxPipeConnection
         for (final subscription in _subscriptions) {
           await subscription.cancel();
         }
+        await _frames;
+        await _outputEnd;
         await _events.close();
       }
     }
@@ -275,4 +373,21 @@ final class SingBoxPipeLease implements CoreProcessLease {
     final remaining = timeout - elapsed.elapsed;
     return process.stop(remaining.isNegative ? Duration.zero : remaining);
   }
+}
+
+({Object? value, CoreTelemetrySnapshot? snapshot}) _decodeControlFrame(
+  Uint8List frame,
+) {
+  final value = jsonDecode(utf8.decode(frame));
+  CoreTelemetrySnapshot? snapshot;
+  if (value is Map<String, dynamic> && value['event'] == 'telemetry') {
+    final data = value.remove('data');
+    if (data != null) {
+      if (data is! Map<String, dynamic>) {
+        throw const FormatException('Invalid telemetry payload');
+      }
+      snapshot = CoreTelemetrySnapshot.fromJson(data);
+    }
+  }
+  return (value: value, snapshot: snapshot);
 }

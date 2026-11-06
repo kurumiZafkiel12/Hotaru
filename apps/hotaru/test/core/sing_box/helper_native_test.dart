@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
+import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
@@ -534,6 +535,27 @@ void main() {
               });
           expect(probePayload, 'restored-configuration-proof');
           expect(restoredRequests, 2);
+          CoreTelemetrySnapshot? observed;
+          for (var attempt = 0; attempt < 100; attempt++) {
+            observed = await (service.adapter as CoreTelemetry).telemetry();
+            if (observed.closed.any(
+              (entry) => entry.inbound == 'hotaru-probe',
+            )) {
+              break;
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+          expect(
+            observed!.closed.any(
+              (entry) =>
+                  entry.inbound == 'hotaru-probe' &&
+                  entry.outbound == 'direct' &&
+                  entry.closedAt != null &&
+                  entry.download > 0,
+            ),
+            isTrue,
+          );
+          expect(observed.downloadTotal, greaterThan(0));
         } finally {
           restoredClient.close(force: true);
           await origin.close(force: true);
@@ -628,6 +650,7 @@ void main() {
             'route_preview_no_dial': true,
             'route_preview_recovered_configuration': true,
             'node_http_recovered_configuration': true,
+            'native_closed_telemetry': true,
             'failed_activation_restored': true,
             'restored_configuration_payload': true,
             'oversized_config_keeps_session': true,

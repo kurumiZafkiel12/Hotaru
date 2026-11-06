@@ -17,6 +17,8 @@ final class SingBoxHostEvents {
   Future<void> get finished => _finished.future;
   bool get clean => _clean && !_failed;
   bool get failed => _failed;
+  bool get acceptsTelemetry =>
+      _ready.isCompleted && !_stopped && !_failed && !_finished.isCompleted;
 
   void fail() {
     _failed = true;
@@ -28,34 +30,37 @@ final class SingBoxHostEvents {
 
   void add(String line) {
     try {
-      final value = jsonDecode(line);
-      if (_finished.isCompleted ||
-          _stopped ||
-          value is! Map<String, dynamic> ||
-          value['pid'] is! int ||
-          value['protocol'] != 'hotaru-stdio-v1' ||
-          value['pid'] != pid) {
-        fail();
-        return;
-      }
-      switch (value['event']) {
-        case 'ready':
-          if (_ready.isCompleted) {
-            fail();
-          } else {
-            _ready.complete();
-          }
-        case 'stopped':
-          _stopped = true;
-          _clean = !_failed && value['clean'] == true;
-          if (!_ready.isCompleted) {
-            _ready.completeError(StateError('Host stopped before ready'));
-          }
-        default:
-          fail();
-      }
+      addValue(jsonDecode(line));
     } on FormatException {
       fail();
+    }
+  }
+
+  void addValue(Object? value) {
+    if (_finished.isCompleted ||
+        _stopped ||
+        value is! Map<String, dynamic> ||
+        value['pid'] is! int ||
+        value['protocol'] != 'hotaru-stdio-v1' ||
+        value['pid'] != pid) {
+      fail();
+      return;
+    }
+    switch (value['event']) {
+      case 'ready':
+        if (_ready.isCompleted) {
+          fail();
+        } else {
+          _ready.complete();
+        }
+      case 'stopped':
+        _stopped = true;
+        _clean = !_failed && value['clean'] == true;
+        if (!_ready.isCompleted) {
+          _ready.completeError(StateError('Host stopped before ready'));
+        }
+      default:
+        fail();
     }
   }
 

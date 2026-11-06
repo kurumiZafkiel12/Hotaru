@@ -3,10 +3,12 @@ import 'dart:io';
 
 import '../adapter.dart';
 import '../outbound_http.dart';
+import '../telemetry.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 
-final class SessionCoreAdapter implements CoreAdapter, CoreOutboundHttp {
+final class SessionCoreAdapter
+    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry {
   final DesktopCoreLifecycleController lifecycle;
   final CoreAdapter Function() _factory;
   late final StreamSubscription<DesktopCoreState> _subscription;
@@ -92,6 +94,14 @@ final class SessionCoreAdapter implements CoreAdapter, CoreOutboundHttp {
   @override
   Future<void> closeConnection(String id) =>
       _invoke((adapter) => adapter.closeConnection(id));
+
+  @override
+  Future<CoreTelemetrySnapshot> telemetry() => _invoke((adapter) {
+    if (adapter is! CoreTelemetry) {
+      throw const CoreAdapterException('telemetry_unavailable');
+    }
+    return (adapter as CoreTelemetry).telemetry();
+  });
 
   @override
   Future<T> withOutboundClient<T>(

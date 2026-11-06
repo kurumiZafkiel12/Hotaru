@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/sing_box/clash_api_adapter.dart';
@@ -246,15 +247,50 @@ void main() {
         return code;
       });
       final output = <String>[];
+      final pendingSnapshots = <int, Completer<CoreTelemetrySnapshot>>{};
+      var requestId = 0;
       final readers = [
-        process.stdout.transform(utf8.decoder).forEach(output.add),
+        process.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) {
+              output.add('$line\n');
+              if (!line.startsWith('{')) return;
+              final message = jsonDecode(line);
+              if (message['event'] != 'telemetry') return;
+              expect(message['pid'], process.pid);
+              final pending = pendingSnapshots.remove(message['request_id']);
+              expect(pending, isNotNull);
+              if (message['error'] != null) {
+                pending!.completeError(StateError(message['error'] as String));
+              } else {
+                pending!.complete(
+                  CoreTelemetrySnapshot.fromJson(
+                    message['data'] as Map<String, dynamic>,
+                  ),
+                );
+              }
+            }),
         process.stderr.transform(utf8.decoder).forEach(output.add),
       ];
+      Future<CoreTelemetrySnapshot> readTelemetry() async {
+        final id = ++requestId;
+        final pending = Completer<CoreTelemetrySnapshot>();
+        pendingSnapshots[id] = pending;
+        final result = pending.future
+            .timeout(const Duration(seconds: 5))
+            .whenComplete(() => pendingSnapshots.remove(id));
+        process.stdin.writeln(jsonEncode({'method': 'telemetry', 'id': id}));
+        await process.stdin.flush();
+        return result;
+      }
+
       final adapter = SingBoxClashApiAdapter(
         endpoint: Uri.parse('http://127.0.0.1:$controller'),
         secret: 'controller',
         probe: probe,
         probeOutbounds: ['日本 / A', 'B', 'selected'],
+        telemetry: controlled ? readTelemetry : null,
       );
       try {
         var ready = false;
@@ -303,6 +339,31 @@ void main() {
               .selected,
           'B',
         );
+        if (controlled) {
+          CoreTelemetrySnapshot? observed;
+          for (var attempt = 0; attempt < 100; attempt++) {
+            observed = await adapter.telemetry();
+            if (observed.closed
+                    .where((entry) => entry.inbound == 'hotaru-probe')
+                    .length >=
+                2) {
+              break;
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+          expect(
+            observed!.closed.map((entry) => entry.outbound).toSet(),
+            containsAll(['日本 / A', 'B']),
+          );
+          expect(observed.uploadTotal, greaterThan(0));
+          expect(observed.downloadTotal, greaterThan(0));
+          expect(
+            observed.closed.every(
+              (entry) => entry.sourcePort > 0 && entry.closedAt != null,
+            ),
+            isTrue,
+          );
+        }
         final unauthenticated = await Socket.connect(
           InternetAddress.loopbackIPv4,
           probe.port,
@@ -354,6 +415,7 @@ void main() {
           jsonEncode({
             'scope': 'Owned loopback proxies only; no OS proxy or TUN',
             'controlled_host': controlled,
+            'native_closed_telemetry': controlled,
             'http_node_receipts': first.receipts,
             'https_node_receipts': second.receipts,
             'selected_unchanged': 'B',
