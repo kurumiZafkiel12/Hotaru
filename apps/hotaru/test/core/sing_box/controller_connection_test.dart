@@ -65,24 +65,41 @@ void main() {
     },
   );
 
-  test(
-    'rejects an authenticated controller with a different listener PID',
-    () async {
-      final current = create(peerPid: () async => process.pid + 1);
-      await current.open();
-      final rejected = expectLater(
-        current.waitUntilConnected(const Duration(seconds: 2)),
-        throwsA(
-          isA<StateError>().having(
-            (error) => error.message,
-            'message',
-            contains('PID'),
-          ),
+  test('rejects a different listener PID before sending credentials', () async {
+    final current = create(peerPid: () async => process.pid + 1);
+    await current.open();
+    final rejected = expectLater(
+      current.waitUntilConnected(const Duration(seconds: 2)),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('PID'),
         ),
+      ),
+    );
+    current.observeProcess(process);
+    await rejected;
+    expect(current.state, DesktopTransportState.failed);
+    expect(requests, 0);
+  });
+
+  test(
+    'missing listener ownership never sends an authenticated request',
+    () async {
+      var checks = 0;
+      final checked = Completer<void>();
+      final current = create(
+        peerPid: () async {
+          if (++checks == 2) checked.complete();
+          return null;
+        },
       );
+      await current.open();
       current.observeProcess(process);
-      await rejected;
-      expect(current.state, DesktopTransportState.failed);
+      await checked.future.timeout(const Duration(seconds: 2));
+      expect(requests, 0);
+      expect(current.state, DesktopTransportState.ready);
     },
   );
 
@@ -129,6 +146,7 @@ void main() {
       await closing;
       expect(connected, isEmpty);
       expect(current.state, DesktopTransportState.closed);
+      expect(requests, 0);
       await subscription.cancel();
     },
   );

@@ -108,6 +108,17 @@ final class SingBoxControllerConnection
 
   Future<void> _poll() async {
     try {
+      int? pid;
+      if (_connection == null && verifyPeerPid) {
+        pid = await _peerPid();
+        if (_terminal || pid == null) return;
+        if (pid != _process!.pid) {
+          _fail(
+            StateError('Controller listener PID does not match owned core'),
+          );
+          return;
+        }
+      }
       final version = await _api.version();
       if (_terminal) return;
       if (version != 'sing-box 1.14.4') {
@@ -116,13 +127,6 @@ final class SingBoxControllerConnection
       }
       _failures = 0;
       if (_connection != null) return;
-      final pid = verifyPeerPid ? await _peerPid() : null;
-      if (_terminal) return;
-      if (verifyPeerPid && pid == null) return;
-      if (verifyPeerPid && pid != _process!.pid) {
-        _fail(StateError('Controller listener PID does not match owned core'));
-        return;
-      }
       final connected = TransportConnected(pid: pid, generation: ++_generation);
       _connection = connected;
       _state = DesktopTransportState.connected;
@@ -140,6 +144,7 @@ final class SingBoxControllerConnection
     _state = DesktopTransportState.failed;
     _timer?.cancel();
     _connection = null;
+    unawaited(_api.close());
     _events.add(failure);
   }
 
