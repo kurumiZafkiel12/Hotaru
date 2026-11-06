@@ -8,6 +8,7 @@ import 'package:drift/native.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
+import 'package:hotaru/models/ip_facts.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 part 'clash_providers.dart';
@@ -18,6 +19,7 @@ part 'generated/database.g.dart';
 part 'groups.dart';
 part 'icons.dart';
 part 'ip_qualities.dart';
+part 'ip_facts.dart';
 part 'profiles.dart';
 part 'rules.dart';
 part 'scripts.dart';
@@ -35,6 +37,7 @@ part 'scripts.dart';
     CustomProxies,
     ProxyDialers,
     IpQualities,
+    IpFactRecords,
   ],
   daos: [
     ProfilesDao,
@@ -47,13 +50,14 @@ part 'scripts.dart';
     CustomProxiesDao,
     ProxyDialersDao,
     IpQualitiesDao,
+    IpFactsDao,
   ],
 )
 class Database extends _$Database {
   Database([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
@@ -113,6 +117,9 @@ class Database extends _$Database {
             customProxies,
             customProxies.emptyOptions,
           );
+        }
+        if (from < 22) {
+          await _createTableIfMissing(m, ipFactRecords);
         }
         if (from < 21) {
           await _createTableIfMissing(m, ipQualities);

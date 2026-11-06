@@ -8,6 +8,7 @@ on:
       - apps/hotaru/tool/ip_source_contract.py
       - apps/hotaru/lib/common/ip_facts.dart
       - apps/hotaru/lib/models/ip_facts.dart
+      - apps/hotaru/test/common/ip_facts_live_test.dart
 
 permissions:
   contents: read
@@ -28,3 +29,29 @@ jobs:
           name: ip-source-contract-observations
           path: ${{ runner.temp }}/ip-sources.json
           retention-days: 14
+  production-parser:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.6'
+          cache: true
+      - name: Prepare data-only provider verification
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          $source = Get-Content -Raw pubspec.yaml
+          $source = $source.Replace('build_assets: true', 'build_assets: false')
+          if ($source.Contains('build_assets: true')) { throw 'Native hooks are not disabled for the data-only check' }
+          Set-Content -NoNewline -Encoding utf8 pubspec.yaml $source
+          flutter pub get
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify production parsing against public provider samples
+        working-directory: apps/hotaru
+        shell: pwsh
+        run: |
+          flutter test test/common/ip_facts_live_test.dart --dart-define=IP_SOURCE_CONTRACT_LIVE=true --reporter expanded
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

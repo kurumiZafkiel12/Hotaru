@@ -1172,5 +1172,18 @@
   "browserDnsServers": "Серверы DNS",
   "browserSessionDescription": "Описание сеанса",
   "browserMediaDevices": "Медиаустройства",
-  "browserPermissions": "Разрешения"
+  "browserPermissions": "Разрешения",
+  "ipFactsOrigin": "Происхождение IP",
+  "ipFactsAttribute": "Тип IP",
+  "ipFactsQuality": "Качество IP",
+  "ipFactsNative": "Нативный",
+  "ipFactsBroadcast": "Перенесённый",
+  "ipFactsLow": "Низкий риск",
+  "ipFactsMedium": "Средний",
+  "ipFactsElevated": "Повышенный",
+  "ipFactsHigh": "Высокий риск",
+  "ipFactsScore": "{level} (Scamalytics: {score})",
+  "ipFactsOriginEvidence": "Страна геолокации: {geo}; страна регистрации блока IP: {registered} (RDAP)",
+  "ipFactsScope": "Происхождение IP определяется сравнением страны регистрации блока и геолокации. Тип предоставляет iplocate, оценку качества — только Scamalytics. При отсутствии данных показано «Неизвестно».",
+  "ipFactsNoData": "Нет пригодных данных"
 }

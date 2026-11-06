@@ -9972,6 +9972,111 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `IP origin`
+  String get ipFactsOrigin {
+    return Intl.message('IP origin', name: 'ipFactsOrigin', desc: '', args: []);
+  }
+
+  /// `IP type`
+  String get ipFactsAttribute {
+    return Intl.message(
+      'IP type',
+      name: 'ipFactsAttribute',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP quality`
+  String get ipFactsQuality {
+    return Intl.message(
+      'IP quality',
+      name: 'ipFactsQuality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Native`
+  String get ipFactsNative {
+    return Intl.message('Native', name: 'ipFactsNative', desc: '', args: []);
+  }
+
+  /// `Broadcast`
+  String get ipFactsBroadcast {
+    return Intl.message(
+      'Broadcast',
+      name: 'ipFactsBroadcast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low risk`
+  String get ipFactsLow {
+    return Intl.message('Low risk', name: 'ipFactsLow', desc: '', args: []);
+  }
+
+  /// `Medium`
+  String get ipFactsMedium {
+    return Intl.message('Medium', name: 'ipFactsMedium', desc: '', args: []);
+  }
+
+  /// `Elevated`
+  String get ipFactsElevated {
+    return Intl.message(
+      'Elevated',
+      name: 'ipFactsElevated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High risk`
+  String get ipFactsHigh {
+    return Intl.message('High risk', name: 'ipFactsHigh', desc: '', args: []);
+  }
+
+  /// `{level} (Scamalytics {score})`
+  String ipFactsScore(Object level, Object score) {
+    return Intl.message(
+      '$level (Scamalytics $score)',
+      name: 'ipFactsScore',
+      desc: '',
+      args: [level, score],
+    );
+  }
+
+  /// `Location country: {geo}; IP block registration country: {registered} (RDAP)`
+  String ipFactsOriginEvidence(Object geo, Object registered) {
+    return Intl.message(
+      'Location country: $geo; IP block registration country: $registered (RDAP)',
+      name: 'ipFactsOriginEvidence',
+      desc: '',
+      args: [geo, registered],
+    );
+  }
+
+  /// `IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.`
+  String get ipFactsScope {
+    return Intl.message(
+      'IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.',
+      name: 'ipFactsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No usable data provided`
+  String get ipFactsNoData {
+    return Intl.message(
+      'No usable data provided',
+      name: 'ipFactsNoData',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

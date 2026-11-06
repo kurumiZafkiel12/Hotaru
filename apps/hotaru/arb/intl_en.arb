@@ -1172,5 +1172,18 @@
   "browserDnsServers": "DNS servers",
   "browserSessionDescription": "Session description",
   "browserMediaDevices": "Media devices",
-  "browserPermissions": "Permissions"
+  "browserPermissions": "Permissions",
+  "ipFactsOrigin": "IP origin",
+  "ipFactsAttribute": "IP type",
+  "ipFactsQuality": "IP quality",
+  "ipFactsNative": "Native",
+  "ipFactsBroadcast": "Broadcast",
+  "ipFactsLow": "Low risk",
+  "ipFactsMedium": "Medium",
+  "ipFactsElevated": "Elevated",
+  "ipFactsHigh": "High risk",
+  "ipFactsScore": "{level} (Scamalytics {score})",
+  "ipFactsOriginEvidence": "Location country: {geo}; IP block registration country: {registered} (RDAP)",
+  "ipFactsScope": "IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.",
+  "ipFactsNoData": "No usable data provided"
 }

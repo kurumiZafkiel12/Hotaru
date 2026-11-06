@@ -1172,5 +1172,18 @@
   "browserDnsServers": "DNS サーバー",
   "browserSessionDescription": "セッションの説明",
   "browserMediaDevices": "メディアデバイス",
-  "browserPermissions": "権限"
+  "browserPermissions": "権限",
+  "ipFactsOrigin": "IP由来",
+  "ipFactsAttribute": "IP種別",
+  "ipFactsQuality": "IP品質",
+  "ipFactsNative": "ネイティブ",
+  "ipFactsBroadcast": "ブロードキャスト",
+  "ipFactsLow": "低リスク",
+  "ipFactsMedium": "中程度",
+  "ipFactsElevated": "やや高い",
+  "ipFactsHigh": "高リスク",
+  "ipFactsScore": "{level}（Scamalytics {score} 点）",
+  "ipFactsOriginEvidence": "位置情報の国：{geo}、IP ブロック登録国：{registered}（RDAP）",
+  "ipFactsScope": "IP 由来は IP ブロック登録国と位置情報を比較します。種別は iplocate、品質は Scamalytics のスコアのみを使用します。データがなければ不明と表示します。",
+  "ipFactsNoData": "有効なデータなし"
 }

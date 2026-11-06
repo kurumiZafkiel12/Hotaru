@@ -4597,6 +4597,268 @@ class IpQualitiesCompanion extends UpdateCompanion<IpQualityRecord> {
   }
 }
 
+class $IpFactRecordsTable extends IpFactRecords
+    with TableInfo<$IpFactRecordsTable, IpFactsRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IpFactRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ipMeta = const VerificationMeta('ip');
+  @override
+  late final GeneratedColumn<String> ip = GeneratedColumn<String>(
+    'ip',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<IpFacts, String> facts =
+      GeneratedColumn<String>(
+        'facts',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<IpFacts>($IpFactRecordsTable.$converterfacts);
+  static const VerificationMeta _checkedAtMeta = const VerificationMeta(
+    'checkedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> checkedAt = GeneratedColumn<DateTime>(
+    'checked_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [ip, facts, checkedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ip_fact_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IpFactsRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('ip')) {
+      context.handle(_ipMeta, ip.isAcceptableOrUnknown(data['ip']!, _ipMeta));
+    } else if (isInserting) {
+      context.missing(_ipMeta);
+    }
+    if (data.containsKey('checked_at')) {
+      context.handle(
+        _checkedAtMeta,
+        checkedAt.isAcceptableOrUnknown(data['checked_at']!, _checkedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_checkedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {ip};
+  @override
+  IpFactsRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IpFactsRecord(
+      ip: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ip'],
+      )!,
+      facts: $IpFactRecordsTable.$converterfacts.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}facts'],
+        )!,
+      ),
+      checkedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}checked_at'],
+      )!,
+    );
+  }
+
+  @override
+  $IpFactRecordsTable createAlias(String alias) {
+    return $IpFactRecordsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<IpFacts, String> $converterfacts =
+      const IpFactsConverter();
+}
+
+class IpFactsRecord extends DataClass implements Insertable<IpFactsRecord> {
+  final String ip;
+  final IpFacts facts;
+  final DateTime checkedAt;
+  const IpFactsRecord({
+    required this.ip,
+    required this.facts,
+    required this.checkedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['ip'] = Variable<String>(ip);
+    {
+      map['facts'] = Variable<String>(
+        $IpFactRecordsTable.$converterfacts.toSql(facts),
+      );
+    }
+    map['checked_at'] = Variable<DateTime>(checkedAt);
+    return map;
+  }
+
+  IpFactRecordsCompanion toCompanion(bool nullToAbsent) {
+    return IpFactRecordsCompanion(
+      ip: Value(ip),
+      facts: Value(facts),
+      checkedAt: Value(checkedAt),
+    );
+  }
+
+  factory IpFactsRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IpFactsRecord(
+      ip: serializer.fromJson<String>(json['ip']),
+      facts: serializer.fromJson<IpFacts>(json['facts']),
+      checkedAt: serializer.fromJson<DateTime>(json['checkedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'ip': serializer.toJson<String>(ip),
+      'facts': serializer.toJson<IpFacts>(facts),
+      'checkedAt': serializer.toJson<DateTime>(checkedAt),
+    };
+  }
+
+  IpFactsRecord copyWith({String? ip, IpFacts? facts, DateTime? checkedAt}) =>
+      IpFactsRecord(
+        ip: ip ?? this.ip,
+        facts: facts ?? this.facts,
+        checkedAt: checkedAt ?? this.checkedAt,
+      );
+  IpFactsRecord copyWithCompanion(IpFactRecordsCompanion data) {
+    return IpFactsRecord(
+      ip: data.ip.present ? data.ip.value : this.ip,
+      facts: data.facts.present ? data.facts.value : this.facts,
+      checkedAt: data.checkedAt.present ? data.checkedAt.value : this.checkedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IpFactsRecord(')
+          ..write('ip: $ip, ')
+          ..write('facts: $facts, ')
+          ..write('checkedAt: $checkedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(ip, facts, checkedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IpFactsRecord &&
+          other.ip == this.ip &&
+          other.facts == this.facts &&
+          other.checkedAt == this.checkedAt);
+}
+
+class IpFactRecordsCompanion extends UpdateCompanion<IpFactsRecord> {
+  final Value<String> ip;
+  final Value<IpFacts> facts;
+  final Value<DateTime> checkedAt;
+  final Value<int> rowid;
+  const IpFactRecordsCompanion({
+    this.ip = const Value.absent(),
+    this.facts = const Value.absent(),
+    this.checkedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IpFactRecordsCompanion.insert({
+    required String ip,
+    required IpFacts facts,
+    required DateTime checkedAt,
+    this.rowid = const Value.absent(),
+  }) : ip = Value(ip),
+       facts = Value(facts),
+       checkedAt = Value(checkedAt);
+  static Insertable<IpFactsRecord> custom({
+    Expression<String>? ip,
+    Expression<String>? facts,
+    Expression<DateTime>? checkedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (ip != null) 'ip': ip,
+      if (facts != null) 'facts': facts,
+      if (checkedAt != null) 'checked_at': checkedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IpFactRecordsCompanion copyWith({
+    Value<String>? ip,
+    Value<IpFacts>? facts,
+    Value<DateTime>? checkedAt,
+    Value<int>? rowid,
+  }) {
+    return IpFactRecordsCompanion(
+      ip: ip ?? this.ip,
+      facts: facts ?? this.facts,
+      checkedAt: checkedAt ?? this.checkedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (ip.present) {
+      map['ip'] = Variable<String>(ip.value);
+    }
+    if (facts.present) {
+      map['facts'] = Variable<String>(
+        $IpFactRecordsTable.$converterfacts.toSql(facts.value),
+      );
+    }
+    if (checkedAt.present) {
+      map['checked_at'] = Variable<DateTime>(checkedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IpFactRecordsCompanion(')
+          ..write('ip: $ip, ')
+          ..write('facts: $facts, ')
+          ..write('checkedAt: $checkedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
@@ -4611,6 +4873,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final $CustomProxiesTable customProxies = $CustomProxiesTable(this);
   late final $ProxyDialersTable proxyDialers = $ProxyDialersTable(this);
   late final $IpQualitiesTable ipQualities = $IpQualitiesTable(this);
+  late final $IpFactRecordsTable ipFactRecords = $IpFactRecordsTable(this);
   late final Index idxRuleTarget = Index(
     'idx_rule_target',
     'CREATE INDEX idx_rule_target ON rules (rule_target)',
@@ -4643,6 +4906,7 @@ abstract class _$Database extends GeneratedDatabase {
     this as Database,
   );
   late final IpQualitiesDao ipQualitiesDao = IpQualitiesDao(this as Database);
+  late final IpFactsDao ipFactsDao = IpFactsDao(this as Database);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4659,6 +4923,7 @@ abstract class _$Database extends GeneratedDatabase {
     customProxies,
     proxyDialers,
     ipQualities,
+    ipFactRecords,
     idxRuleTarget,
     idxRulesProfileOrder,
     idxProxyGroupsProfileOrder,
@@ -8434,6 +8699,178 @@ typedef $$IpQualitiesTableProcessedTableManager =
       IpQualityRecord,
       PrefetchHooks Function()
     >;
+typedef $$IpFactRecordsTableCreateCompanionBuilder =
+    IpFactRecordsCompanion Function({
+      required String ip,
+      required IpFacts facts,
+      required DateTime checkedAt,
+      Value<int> rowid,
+    });
+typedef $$IpFactRecordsTableUpdateCompanionBuilder =
+    IpFactRecordsCompanion Function({
+      Value<String> ip,
+      Value<IpFacts> facts,
+      Value<DateTime> checkedAt,
+      Value<int> rowid,
+    });
+
+class $$IpFactRecordsTableFilterComposer
+    extends Composer<_$Database, $IpFactRecordsTable> {
+  $$IpFactRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get ip => $composableBuilder(
+    column: $table.ip,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<IpFacts, IpFacts, String> get facts =>
+      $composableBuilder(
+        column: $table.facts,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get checkedAt => $composableBuilder(
+    column: $table.checkedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$IpFactRecordsTableOrderingComposer
+    extends Composer<_$Database, $IpFactRecordsTable> {
+  $$IpFactRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get ip => $composableBuilder(
+    column: $table.ip,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get facts => $composableBuilder(
+    column: $table.facts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get checkedAt => $composableBuilder(
+    column: $table.checkedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$IpFactRecordsTableAnnotationComposer
+    extends Composer<_$Database, $IpFactRecordsTable> {
+  $$IpFactRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get ip =>
+      $composableBuilder(column: $table.ip, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<IpFacts, String> get facts =>
+      $composableBuilder(column: $table.facts, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get checkedAt =>
+      $composableBuilder(column: $table.checkedAt, builder: (column) => column);
+}
+
+class $$IpFactRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          $IpFactRecordsTable,
+          IpFactsRecord,
+          $$IpFactRecordsTableFilterComposer,
+          $$IpFactRecordsTableOrderingComposer,
+          $$IpFactRecordsTableAnnotationComposer,
+          $$IpFactRecordsTableCreateCompanionBuilder,
+          $$IpFactRecordsTableUpdateCompanionBuilder,
+          (
+            IpFactsRecord,
+            BaseReferences<_$Database, $IpFactRecordsTable, IpFactsRecord>,
+          ),
+          IpFactsRecord,
+          PrefetchHooks Function()
+        > {
+  $$IpFactRecordsTableTableManager(_$Database db, $IpFactRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$IpFactRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$IpFactRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$IpFactRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> ip = const Value.absent(),
+                Value<IpFacts> facts = const Value.absent(),
+                Value<DateTime> checkedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => IpFactRecordsCompanion(
+                ip: ip,
+                facts: facts,
+                checkedAt: checkedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String ip,
+                required IpFacts facts,
+                required DateTime checkedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => IpFactRecordsCompanion.insert(
+                ip: ip,
+                facts: facts,
+                checkedAt: checkedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$IpFactRecordsTable, IpFactsRecord>(table),
+                  BaseReferences<
+                    _$Database,
+                    $IpFactRecordsTable,
+                    IpFactsRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$IpFactRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      $IpFactRecordsTable,
+      IpFactsRecord,
+      $$IpFactRecordsTableFilterComposer,
+      $$IpFactRecordsTableOrderingComposer,
+      $$IpFactRecordsTableAnnotationComposer,
+      $$IpFactRecordsTableCreateCompanionBuilder,
+      $$IpFactRecordsTableUpdateCompanionBuilder,
+      (
+        IpFactsRecord,
+        BaseReferences<_$Database, $IpFactRecordsTable, IpFactsRecord>,
+      ),
+      IpFactsRecord,
+      PrefetchHooks Function()
+    >;
 
 class $DatabaseManager {
   final _$Database _db;
@@ -8460,6 +8897,8 @@ class $DatabaseManager {
       $$ProxyDialersTableTableManager(_db, _db.proxyDialers);
   $$IpQualitiesTableTableManager get ipQualities =>
       $$IpQualitiesTableTableManager(_db, _db.ipQualities);
+  $$IpFactRecordsTableTableManager get ipFactRecords =>
+      $$IpFactRecordsTableTableManager(_db, _db.ipFactRecords);
 }
 
 mixin _$ProfilesDaoMixin on DatabaseAccessor<Database> {
@@ -8598,4 +9037,16 @@ class IpQualitiesDaoManager {
   IpQualitiesDaoManager(this._db);
   $$IpQualitiesTableTableManager get ipQualities =>
       $$IpQualitiesTableTableManager(_db.attachedDatabase, _db.ipQualities);
+}
+
+mixin _$IpFactsDaoMixin on DatabaseAccessor<Database> {
+  $IpFactRecordsTable get ipFactRecords => attachedDatabase.ipFactRecords;
+  IpFactsDaoManager get managers => IpFactsDaoManager(this);
+}
+
+class IpFactsDaoManager {
+  final _$IpFactsDaoMixin _db;
+  IpFactsDaoManager(this._db);
+  $$IpFactRecordsTableTableManager get ipFactRecords =>
+      $$IpFactRecordsTableTableManager(_db.attachedDatabase, _db.ipFactRecords);
 }

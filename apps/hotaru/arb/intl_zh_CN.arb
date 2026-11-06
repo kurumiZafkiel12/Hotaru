@@ -1172,5 +1172,18 @@
   "browserDnsServers": "DNS 服务器",
   "browserSessionDescription": "会话描述",
   "browserMediaDevices": "媒体设备",
-  "browserPermissions": "权限"
+  "browserPermissions": "权限",
+  "ipFactsOrigin": "IP来源",
+  "ipFactsAttribute": "IP属性",
+  "ipFactsQuality": "IP质量",
+  "ipFactsNative": "原生",
+  "ipFactsBroadcast": "广播",
+  "ipFactsLow": "低风险",
+  "ipFactsMedium": "中等",
+  "ipFactsElevated": "较高",
+  "ipFactsHigh": "高风险",
+  "ipFactsScore": "{level}（Scamalytics {score} 分）",
+  "ipFactsOriginEvidence": "定位国家：{geo}；IP 段注册国家：{registered}（RDAP）",
+  "ipFactsScope": "IP 来源由 IP 段注册国家与定位国家对照；IP 属性来自 iplocate，IP 质量仅使用 Scamalytics 分数。未取得数据的项目显示未知。",
+  "ipFactsNoData": "未提供有效数据"
 }
