@@ -17,6 +17,7 @@ on:
       - apps/hotaru/test/core/sing_box/clash_rule_sets_test.dart
       - apps/hotaru/test/core/sing_box/ip_rule_test.dart
       - apps/hotaru/test/core/sing_box/config_preparation_test.dart
+      - apps/hotaru/test/core/desktop/configuration_lifecycle_test.dart
       - apps/hotaru/test/core/sing_box/pipe_connection_test.dart
       - apps/hotaru/test/core/sing_box/dns_config_test.dart
       - apps/hotaru/test/core/sing_box/dns_wire_test.dart
@@ -141,7 +142,7 @@ jobs:
           }
           Expand-Archive $asset -DestinationPath (Join-Path $env:RUNNER_TEMP 'sing-box-dns')
           $env:HOTARU_TEST_SING_BOX = Join-Path $env:RUNNER_TEMP 'sing-box-dns/sing-box-1.14.4-windows-amd64/sing-box.exe'
-          flutter test test/core/sing_box/config_preparation_test.dart test/core/sing_box/pipe_connection_test.dart test/core/sing_box/ip_rule_test.dart test/core/sing_box/clash_rule_sets_test.dart test/core/sing_box/clash_subscription_test.dart test/core/sing_box/clash_importer_test.dart test/core/sing_box/config_builder_test.dart test/core/sing_box/dns_config_test.dart test/core/sing_box/dns_wire_test.dart --reporter expanded
+          flutter test test/core/desktop/configuration_lifecycle_test.dart test/core/desktop/lifecycle_test.dart test/core/sing_box/config_preparation_test.dart test/core/sing_box/pipe_connection_test.dart test/core/sing_box/ip_rule_test.dart test/core/sing_box/clash_rule_sets_test.dart test/core/sing_box/clash_subscription_test.dart test/core/sing_box/clash_importer_test.dart test/core/sing_box/config_builder_test.dart test/core/sing_box/dns_config_test.dart test/core/sing_box/dns_wire_test.dart --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify real Flutter Rust IPC through SYSTEM Helper
         working-directory: apps/hotaru

@@ -5,10 +5,36 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"net"
 	"strings"
 	"testing"
 )
+
+func TestRealListenerConflictAcknowledgesCleanup(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+	configuration := []byte(fmt.Sprintf(`{"log":{"disabled":true},"inbounds":[{"type":"mixed","listen":"127.0.0.1","listen_port":%d}],"outbounds":[{"type":"direct","tag":"direct"}],"route":{"final":"direct"}}`, port))
+	input, writer := io.Pipe()
+	defer input.Close()
+	defer writer.Close()
+	var output bytes.Buffer
+	err = serve(context.Background(), "fixture", input, &output, func(ctx context.Context, _ string) (engine, error) {
+		return newEngineConfig(ctx, configuration)
+	})
+	if err == nil {
+		t.Fatal("occupied listener was accepted")
+	}
+	var event hostEvent
+	if json.NewDecoder(&output).Decode(&event) != nil || event.Event != "stopped" || !event.Clean {
+		t.Fatalf("failed startup did not confirm cleanup: %s", output.String())
+	}
+}
 
 type testEngine struct {
 	start func() error

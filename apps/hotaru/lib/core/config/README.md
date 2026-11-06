@@ -36,4 +36,13 @@ A candidate exposes structured conversion warnings and the encoded size for pres
 
 The 16 MiB limit covers UTF-8 JSON plus the protocol envelope, excluding the transport's length prefix. Chunked encoding stops at the limit rather than first allocating arbitrarily large repeated JSON. Rule-set expansion has a separate 16 MiB text budget before joining repeated targets, in addition to its rule-count bounds. The preparation result contains no raw exception text or configuration dump.
 
-Preparation/approval does not apply, reload, stop or replace a running session. It does not establish complete upstream engine validation, port availability, successful startup or rollback after activation failure. Runtime replacement must remain with the single desktop lifecycle owner; ordinary GUI application and its localized review screen remain to be integrated. Callers must not stop the existing core merely to prepare a replacement.
+Preparation/approval does not apply, reload, stop or replace a running session. It does not establish complete upstream engine validation, port availability or successful startup. Callers must not stop the existing core merely to prepare a replacement. Ordinary GUI application and its localized review screen remain to be integrated.
+
+
+## Runtime activation and recovery
+
+The Windows Helper composition accepts a reviewed configuration through `SingBoxDesktopCore.applyConfiguration`. Its launch plan binds bootstrap, pipe, listeners and controller credentials together. The existing `DesktopCoreLifecycle` serializes replacement with start/stop/restart/close, confirms the old lease has exited, and commits a plan only after the new process and its controller have passed ownership checks. Session-scoped API clients are recreated with the active plan's endpoint and secret.
+
+If activation fails while replacing a running configuration, the same owner attempts to restore the last committed plan after confirming failed-process cleanup. A successful recovery leaves the core running and rejects the apply request with `configuration_rejected_previous_restored`; the rejected configuration is not committed. A failed or unconfirmed cleanup blocks recovery instead of starting a second core. Recovery failure leaves an explicit failed state and permits an explicit retry. Replacement cuts existing connections; this is a controlled restart, not seamless hot reload.
+
+Stop/close preempt activation and recovery. A later explicit start/restart uses the last committed plan and supersedes a pending replacement; a newer apply uses its new plan. Requests for the same plan may coalesce, but different plans do not. Superseded late processes are cleaned without publishing a running session. Applying from idle starts the requested plan, but a failure does not unexpectedly start a previously stopped plan. No GUI or provider owns a separate recovery loop.

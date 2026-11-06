@@ -408,6 +408,92 @@ void main() {
         );
         expect(rulesRequests, greaterThanOrEqualTo(3));
 
+        final replacementResult = await preparation.prepare(
+          import: () async => imported,
+          listeners: CoreListenerSpec(
+            mixedPort: listeners.mixedPort,
+            controllerPort: listeners.controllerPort,
+            secret: 'replacement-fixture-secret',
+            tun: listeners.tun,
+          ),
+        );
+        final replacement = preparation.approve(replacementResult.candidate!);
+        final applied = await service.applyConfiguration(replacement);
+        final replacedSession = applied.session!;
+        pids.add(replacedSession.pid);
+        expect(await isProcessAlive(first.session.pid), isFalse);
+        expect(service.configuration, same(replacement));
+        expect(
+          (await service.adapter.outbounds()).any(
+            (node) => node.name == 'proof',
+          ),
+          isTrue,
+        );
+        await _expectSystem(replacedSession.pid);
+
+        final occupied = await ServerSocket.bind(
+          InternetAddress.loopbackIPv4,
+          0,
+        );
+        try {
+          final rejectedResult = await preparation.prepare(
+            import: () async => imported,
+            listeners: CoreListenerSpec(
+              mixedPort: occupied.port,
+              controllerPort: listeners.controllerPort,
+              secret: 'rejected-fixture-secret',
+              tun: listeners.tun,
+            ),
+          );
+          expect(rejectedResult.status, SingBoxPreparationStatus.ready);
+          final rejected = preparation.approve(rejectedResult.candidate!);
+          await expectLater(
+            service.applyConfiguration(rejected),
+            throwsA(
+              isA<DesktopCoreFailure>().having(
+                (failure) => failure.code,
+                'code',
+                'configuration_rejected_previous_restored',
+              ),
+            ),
+          );
+        } finally {
+          await occupied.close();
+        }
+        final restored =
+            (service.lifecycle.state as DesktopCoreRunning).session;
+        pids.add(restored.pid);
+        expect(await isProcessAlive(replacedSession.pid), isFalse);
+        expect(service.configuration, same(replacement));
+        await _expectSystem(restored.pid);
+        await service.adapter.selectOutbound('selected', 'direct');
+        final origin = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        var restoredRequests = 0;
+        origin.listen((request) async {
+          expect(request.uri.path, '/restored');
+          restoredRequests++;
+          request.response.write('restored-configuration-proof');
+          await request.response.close();
+        });
+        final restoredClient = HttpClient()
+          ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
+        try {
+          final request = await restoredClient.getUrl(
+            Uri.parse('http://127.0.0.1:${origin.port}/restored'),
+          );
+          final response = await request.close().timeout(
+            const Duration(seconds: 10),
+          );
+          expect(
+            await utf8.decoder.bind(response).join(),
+            'restored-configuration-proof',
+          );
+          expect(restoredRequests, 1);
+        } finally {
+          restoredClient.close(force: true);
+          await origin.close(force: true);
+        }
+
         await service.restart();
         final second = service.lifecycle.state as DesktopCoreRunning;
         pids.add(second.session.pid);
@@ -492,6 +578,9 @@ void main() {
           jsonEncode({
             'native_ipc': true,
             'configuration_preflight': true,
+            'configuration_replacement': true,
+            'failed_activation_restored': true,
+            'restored_configuration_payload': true,
             'oversized_config_keeps_session': true,
             'unacknowledged_warning_keeps_session': true,
             'provider_import': true,

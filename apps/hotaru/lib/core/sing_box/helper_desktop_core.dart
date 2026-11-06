@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import '../../common/constant.dart';
+import '../adapter.dart';
 import '../desktop/helper_client.dart';
 import '../desktop/core_manifest.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 import '../desktop/transport.dart';
+import 'clash_api_adapter.dart';
 import 'config_preparation.dart';
 import 'controller_connection.dart';
 import 'desktop_core.dart';
@@ -36,33 +38,76 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
     readCoreSha256: () async => digest,
     expectedHelperPath: () => p.join(directory, '$appHelperService.exe'),
   );
-  final listeners = configuration.listeners;
-  final endpoint = Uri.parse('http://127.0.0.1:${listeners.controllerPort}');
-  late SingBoxPipeConnection connection;
-  SingBoxPipeConnection transportFactory() {
-    return connection = SingBoxPipeConnection(
-      pipe: IpcCoreTransport(
-        address: '\\\\.\\pipe\\HotaruCore_${createCoreSessionId()}',
-      ),
-      controller: SingBoxControllerConnection(
-        endpoint: endpoint,
-        secret: listeners.secret,
-      ),
-      bootstrap: configuration.bootstrap,
-    );
-  }
-
-  final lifecycle = DesktopCoreLifecycle(
-    transportFactory: transportFactory,
-    launcherResolver: _HelperResolver(helper, () => connection),
+  final plan = _HelperPlan(helper, configuration);
+  final lifecycle = DesktopCoreLifecycle.withPlan(
+    plan: plan,
     verifyPeerPid: true,
     timeouts: timeouts,
   );
-  return SingBoxDesktopCore.withLifecycle(
+  return SingBoxDesktopCore.withConfiguration(
     lifecycle: lifecycle,
-    endpoint: endpoint,
-    secret: listeners.secret,
+    configuration: _HelperConfiguration(lifecycle, helper),
   );
+}
+
+final class _HelperConfiguration implements SingBoxConfigurationBinding {
+  final DesktopCoreLifecycle lifecycle;
+  final HelperClient helper;
+
+  const _HelperConfiguration(this.lifecycle, this.helper);
+
+  @override
+  AcceptedSingBoxConfig get current =>
+      (lifecycle.committedPlan as _HelperPlan).configuration;
+
+  @override
+  CoreAdapter createAdapter() {
+    final configuration = (lifecycle.activePlan as _HelperPlan).configuration;
+    final listeners = configuration.listeners;
+    return SingBoxClashApiAdapter(
+      endpoint: Uri.parse('http://127.0.0.1:${listeners.controllerPort}'),
+      secret: listeners.secret,
+    );
+  }
+
+  @override
+  Future<CoreLifecycleResult> apply(AcceptedSingBoxConfig configuration) =>
+      lifecycle.applyConfiguration(_HelperPlan(helper, configuration));
+}
+
+final class _HelperPlan extends DesktopCoreLaunchPlan {
+  final AcceptedSingBoxConfig configuration;
+
+  const _HelperPlan._({
+    required this.configuration,
+    required super.transportFactory,
+    required super.launcherResolver,
+  });
+
+  factory _HelperPlan(
+    HelperClient helper,
+    AcceptedSingBoxConfig configuration,
+  ) {
+    final listeners = configuration.listeners;
+    final endpoint = Uri.parse('http://127.0.0.1:${listeners.controllerPort}');
+    late SingBoxPipeConnection connection;
+    SingBoxPipeConnection transportFactory() =>
+        connection = SingBoxPipeConnection(
+          pipe: IpcCoreTransport(
+            address: r'\\.\pipe\HotaruCore_' + createCoreSessionId(),
+          ),
+          controller: SingBoxControllerConnection(
+            endpoint: endpoint,
+            secret: listeners.secret,
+          ),
+          bootstrap: configuration.bootstrap,
+        );
+    return _HelperPlan._(
+      configuration: configuration,
+      transportFactory: transportFactory,
+      launcherResolver: _HelperResolver(helper, () => connection),
+    );
+  }
 }
 
 final class _HelperResolver implements DesktopCoreLauncherResolver {
