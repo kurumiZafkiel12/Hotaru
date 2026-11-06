@@ -1,0 +1,30 @@
+name: IP source contract survey
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/ip-source-contract.yaml
+      - apps/hotaru/tool/ip_source_contract.py
+      - apps/hotaru/lib/common/ip_facts.dart
+      - apps/hotaru/lib/models/ip_facts.dart
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Observe approved public IP data sources
+        run: python apps/hotaru/tool/ip_source_contract.py "$RUNNER_TEMP/ip-sources.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ip-source-contract-observations
+          path: ${{ runner.temp }}/ip-sources.json
+          retention-days: 14
