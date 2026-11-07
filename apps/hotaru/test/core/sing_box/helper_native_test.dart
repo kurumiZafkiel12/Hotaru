@@ -21,11 +21,11 @@ import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/desktop/model.dart';
-import 'package:hotaru/core/desktop/process_probe.dart';
 import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
 import '../../plugins/code_forge/support.dart' show initEditorNative;
 import 'support/dns_fixture.dart';
+import 'support/windows_process_witness.dart';
 import 'loopback_proxy_fixture.dart' show freeLoopbackPort;
 
 final _environment = Platform.environment;
@@ -280,6 +280,17 @@ void main() {
         onError: (error, _) => trafficErrors.add(error),
       );
       final pids = <int>[];
+      final processes = <int, WindowsProcessWitness>{};
+      void recordProcess(int pid) {
+        processes[pid] = WindowsProcessWitness.open(pid);
+        pids.add(pid);
+      }
+
+      addTearDown(() {
+        for (final process in processes.values) {
+          process.close();
+        }
+      });
       late CoreOutboundClients recoveredClients;
       final client = HttpClient()..findProxy = (_) => 'DIRECT';
       client.connectionTimeout = const Duration(seconds: 10);
@@ -289,7 +300,7 @@ void main() {
         expect(starts.map((result) => result.session!.pid).toSet().length, 1);
         final first = service.lifecycle.state as DesktopCoreRunning;
         expect(first.session.owner, CoreProcessOwner.helper);
-        pids.add(first.session.pid);
+        recordProcess(first.session.pid);
         await _expectSystem(first.session.pid);
         final initialChoice = (await service.adapter.outbounds())
             .singleWhere((node) => node.name == 'selected')
@@ -544,8 +555,8 @@ void main() {
         final replacement = preparation.approve(replacementResult.candidate!);
         final applied = await service.applyConfiguration(replacement);
         final replacedSession = applied.session!;
-        pids.add(replacedSession.pid);
-        expect(await isProcessAlive(first.session.pid), isFalse);
+        recordProcess(replacedSession.pid);
+        expect(processes[first.session.pid]!.hasExited, isTrue);
         expect(service.configuration, same(replacement));
         expect(
           (await service.adapter.outbounds()).any(
@@ -586,8 +597,8 @@ void main() {
         }
         final restored =
             (service.lifecycle.state as DesktopCoreRunning).session;
-        pids.add(restored.pid);
-        expect(await isProcessAlive(replacedSession.pid), isFalse);
+        recordProcess(restored.pid);
+        expect(processes[replacedSession.pid]!.hasExited, isTrue);
         expect(service.configuration, same(replacement));
         await _expectSystem(restored.pid);
         await service.adapter.selectOutbound('selected', 'direct');
@@ -685,10 +696,10 @@ void main() {
           ),
         );
         final second = service.lifecycle.state as DesktopCoreRunning;
-        pids.add(second.session.pid);
+        recordProcess(second.session.pid);
         expect(second.session.sessionId, isNot(first.session.sessionId));
         expect(second.session.pid, isNot(first.session.pid));
-        expect(await isProcessAlive(first.session.pid), isFalse);
+        expect(processes[first.session.pid]!.hasExited, isTrue);
         expect(
           (await service.adapter.outbounds()).any(
             (node) => node.name == 'proof',
@@ -698,14 +709,14 @@ void main() {
 
         await service.stop();
         expect(service.lifecycle.state, isA<DesktopCoreIdle>());
-        expect(await isProcessAlive(second.session.pid), isFalse);
+        expect(processes[second.session.pid]!.hasExited, isTrue);
         await service.start();
         final third = service.lifecycle.state as DesktopCoreRunning;
-        pids.add(third.session.pid);
+        recordProcess(third.session.pid);
         await service.close();
         await service.close();
         expect(service.lifecycle.state, isA<DesktopCoreClosed>());
-        expect(await isProcessAlive(third.session.pid), isFalse);
+        expect(processes[third.session.pid]!.hasExited, isTrue);
         await trafficRecorder.flush();
         final finalSources = [
           first.session,
@@ -912,9 +923,12 @@ void main() {
         configuration: accepted,
       );
       late int pid;
+      WindowsProcessWitness? process;
       try {
         final started = await core.start();
         pid = started.session!.pid;
+        process = WindowsProcessWitness.open(pid);
+        addTearDown(process.close);
         expect(started.session!.owner, CoreProcessOwner.helper);
         await _expectSystem(pid);
         await core.adapter.selectOutbound('selected', 'direct');
@@ -953,13 +967,15 @@ void main() {
       } finally {
         await core.close();
       }
-      expect(await isProcessAlive(pid), isFalse);
+      expect(process.hasExited, isTrue);
       final path = File(_environment['HOTARU_NATIVE_HELPER_RESULT']!);
-      final report = Map<String, dynamic>.from(
-        jsonDecode(await path.readAsString()) as Map,
-      );
+      final report = await path.exists()
+          ? Map<String, dynamic>.from(
+              jsonDecode(await path.readAsString()) as Map,
+            )
+          : <String, dynamic>{};
       report['control_only_helper'] = true;
-      (report['pids'] as List).add(pid);
+      (report.putIfAbsent('pids', () => <int>[]) as List).add(pid);
       await path.writeAsString(jsonEncode(report));
     },
     skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
