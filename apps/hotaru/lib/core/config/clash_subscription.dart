@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 import 'clash_importer.dart';
 import 'clash_rule_sets.dart';
 import 'profile.dart';
+import 'yaml_document.dart';
 
 enum CoreProxyProviderKind { http, file }
 
@@ -242,7 +243,7 @@ final class _ProviderImport {
           utf8.encode(source).length > payloadLimit) {
         throw const FormatException();
       }
-      root = map(loadYaml(source));
+      root = map(decodeCoreYaml(source));
       final providers = map(root['proxy-providers'] ?? <String, dynamic>{});
       if (providers.length > 64) throw const FormatException();
       var index = 0;
@@ -427,7 +428,7 @@ final class _ProviderImport {
             entries = plan._inline[name]!;
           } else {
             final content = payloads[name]!;
-            final document = map(loadYaml(content));
+            final document = map(decodeCoreYaml(content));
             if (document.keys.any((key) => key != 'proxies')) {
               issue('unexpected_provider_payload_fields', path);
             }

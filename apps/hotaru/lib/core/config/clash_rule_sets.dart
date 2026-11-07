@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 import 'profile.dart';
 import 'encoding.dart';
 import 'ip_prefix.dart';
+import 'yaml_document.dart';
 
 final class CoreRuleProviderRequest {
   final String name;
@@ -306,7 +307,7 @@ final class _RuleImport {
           );
           final payload = payloads[name]!;
           if (request.format == 'yaml') {
-            final parsed = map(loadYaml(payload));
+            final parsed = map(decodeCoreYaml(payload));
             if (parsed.length != 1 || parsed['payload'] is! List) {
               throw const FormatException();
             }

@@ -5,6 +5,7 @@ import 'package:yaml/yaml.dart';
 import 'clash_dns.dart';
 import 'ip_prefix.dart';
 import 'profile.dart';
+import 'yaml_document.dart';
 
 final class ClashProfileImporter {
   Future<CoreConfigImportResult> import(String source) {
@@ -51,6 +52,10 @@ final class _ClashImport {
   String? optionalText(Object? value) => value == null ? null : text(value);
 
   int number(Object? value) {
+    if (value is String && RegExp(r'^[0-9]+$').hasMatch(value)) {
+      final parsed = int.tryParse(value);
+      if (parsed != null) return parsed;
+    }
     if (value is! int) throw const FormatException();
     return value;
   }
@@ -69,7 +74,7 @@ final class _ClashImport {
 
   CoreConfigImportResult read(String source) {
     try {
-      return readDocument(map(loadYaml(source)));
+      return readDocument(map(decodeCoreYaml(source)));
     } on YamlException {
       issue('invalid_yaml', 'document');
     } on FormatException {
@@ -81,6 +86,10 @@ final class _ClashImport {
   CoreConfigImportResult readDocument(Map<String, dynamic> input) {
     try {
       for (final key in input.keys) {
+        if (key.startsWith('x-')) {
+          issue('metadata_field_ignored', 'document.$key', warning: true);
+          continue;
+        }
         if (key == 'dns') continue;
         if (const ['proxies', 'proxy-groups', 'rules'].contains(key)) continue;
         if (const [
