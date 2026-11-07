@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 import threading
 import time
+import traceback
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -555,4 +556,10 @@ if __name__ == '__main__':
     parser.add_argument('--stdio-host', action='store_true')
     parser.add_argument('--tun', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(run(str(pathlib.Path(args.binary).resolve()), args.dart, args.stdio_host, args.tun), indent=2))
+    try:
+        print(json.dumps(run(str(pathlib.Path(args.binary).resolve()), args.dart, args.stdio_host, args.tun), indent=2))
+    except Exception:
+        diagnostic = traceback.format_exc()[-6000:]
+        diagnostic = diagnostic.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print('::error title=Sing-box controlled fixture failed::' + diagnostic, flush=True)
+        raise
