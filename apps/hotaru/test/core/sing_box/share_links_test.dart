@@ -27,6 +27,16 @@ void main() {
     'vless://$_uuid@127.0.0.1:443?security=reality&fp=chrome&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&sid=0123#Reality',
   ];
 
+  test('VMess JSON names remain literal rather than being URI decoded', () async {
+    for (final name in ['literal%40', 'literal%', '日本, %20']) {
+      final link =
+          'vmess://${_b64(jsonEncode({'v': '2', 'ps': name, 'add': '127.0.0.1', 'port': '443', 'id': _uuid, 'net': 'tcp'}))}';
+      final result = await CoreShareLinks.decode(link);
+      expect(result.issues, isEmpty);
+      expect(result.nodes.single['name'], name);
+    }
+  });
+
   test(
     'common link families retain credentials, TLS, transport and node order',
     () async {

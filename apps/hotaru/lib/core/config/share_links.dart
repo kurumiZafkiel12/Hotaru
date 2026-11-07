@@ -367,13 +367,10 @@ Map<String, dynamic> _vmess(String payload) {
       ? value['port'] as int
       : int.tryParse('${value['port']}');
   if (value['add'] is! String || port == null) throw const FormatException();
-  final uri = Uri(
-    scheme: 'vmess',
-    host: value['add'] as String,
-    port: port,
-    fragment: value['ps'] as String?,
-  );
+  final uri = Uri(scheme: 'vmess', host: value['add'] as String, port: port);
   final node = _endpoint(uri, 'vmess', port);
+  final name = value['ps'] as String?;
+  if (name != null && name.isNotEmpty) node['name'] = name;
   final aid = value['aid'] is int
       ? value['aid']
       : int.tryParse('${value['aid'] ?? 0}');
