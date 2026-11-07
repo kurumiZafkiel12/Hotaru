@@ -7,6 +7,7 @@ import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
 import 'outbound_http.dart';
 import 'routing_mode.dart';
+import 'profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -350,8 +351,9 @@ class CoreController {
 
   Future<Map<String, dynamic>> _readConfig(String path) async {
     final data = Map<String, dynamic>.from(await _interface.getConfig(path));
-    data['rules'] = data['rule'];
-    data.remove('rule');
+    if (data.containsKey('rule')) {
+      data['rules'] = data.remove('rule');
+    }
     return data;
   }
 
@@ -366,6 +368,10 @@ class CoreController {
   }
 
   Future<String> buildProfile(SetupBase base) async {
+    final source = _interface;
+    if (source is CoreProfileTextBuilder) {
+      return (source as CoreProfileTextBuilder).buildProfileText(base);
+    }
     return readSpilledText(await _interface.buildProfile(base));
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
@@ -12,7 +13,7 @@ import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/enum/enum.dart';
-import 'package:hotaru/models/models.dart' show CoreEvent;
+import 'package:hotaru/models/models.dart' show CoreEvent, SetupBase;
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -105,6 +106,32 @@ void main() {
     await events.close();
     await crashes.close();
   });
+
+  test(
+    'file preparation uses Dart without sending a legacy kernel RPC',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'hotaru-ui-profile-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final file = await File(
+        '${directory.path}/profile.yaml',
+      ).writeAsString('proxies: [{name: A, type: direct}]\nrules: ["MATCH,A"]');
+      expect((await handler.getConfig(file.path))['rules'], ['MATCH,A']);
+      final base = await handler.getProfileBase(file.path);
+      expect((base.proxies, base.rules), (1, 1));
+      expect((await handler.getProfileOutbounds(file.path))['proxies'], [
+        {'name': 'A', 'type': 'direct'},
+      ]);
+      expect(
+        await controller.buildProfile(
+          SetupBase(path: file.path, overlay: '{}'),
+        ),
+        contains('MATCH,A'),
+      );
+      verifyZeroInteractions(adapter);
+    },
+  );
 
   test(
     'crash events carry a stable code and stop after terminal close',

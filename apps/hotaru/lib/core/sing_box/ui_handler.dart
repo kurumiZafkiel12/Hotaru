@@ -14,11 +14,15 @@ import '../outbound_http.dart';
 import '../telemetry.dart';
 import '../event.dart';
 import '../routing_mode.dart';
+import '../profile_documents.dart';
 import 'desktop_core.dart';
 import 'ui_routes.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
-    implements CoreOutboundHttpClients, CoreRoutingModes {
+    implements
+        CoreOutboundHttpClients,
+        CoreRoutingModes,
+        CoreProfileTextBuilder {
   final SingBoxDesktopCore core;
   late final SingBoxUiRoutes _routes;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
@@ -107,6 +111,22 @@ final class SingBoxUiHandler extends CoreHandlerInterface
 
   @override
   Future<bool> init(InitParams params) => isInit;
+
+  @override
+  Future<Map<String, dynamic>> getConfig(String path) =>
+      CoreProfileDocuments.read(path);
+
+  @override
+  Future<ProfileBase> getProfileBase(String path) =>
+      CoreProfileDocuments.base(path);
+
+  @override
+  Future<Map<String, dynamic>> getProfileOutbounds(String path) =>
+      CoreProfileDocuments.outbounds(path);
+
+  @override
+  Future<String> buildProfileText(SetupBase base) =>
+      CoreProfileDocuments.build(base);
 
   @override
   Future<ProxiesData> getProxies() async {
