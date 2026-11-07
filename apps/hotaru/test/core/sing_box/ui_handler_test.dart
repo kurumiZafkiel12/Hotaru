@@ -358,6 +358,11 @@ void main() {
       ).writeAsString(link);
       final decoded = await controller.decodeShareLinks([link, '$link\n$link']);
       expect(decoded.map((nodes) => nodes.length), [1, 2]);
+      final encoded = await controller.encodeShareLinks([
+        decoded.first.single,
+        {'name': 'direct', 'type': 'direct'},
+      ]);
+      expect(encoded, [link, '']);
       expect((await handler.convertProxies(file.path)).single['name'], 'Node');
       expect(await file.readAsString(), link);
       await expectLater(

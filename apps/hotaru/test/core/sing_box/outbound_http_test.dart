@@ -8,6 +8,7 @@ import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/share_links.dart';
+import 'package:hotaru/core/config/share_link_encoder.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/sing_box/clash_api_adapter.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
@@ -239,9 +240,13 @@ void main() {
         secret: _secret,
       );
       final original = _profile(first.server.port, second.server.port);
-      final decoded = await CoreShareLinks.import(
+      final sourceLinks = await CoreShareLinks.decode(
         '${Uri(scheme: 'http', host: '127.0.0.1', port: first.server.port, fragment: '日本 / A')}\n${Uri(scheme: 'http', host: '127.0.0.1', port: second.server.port, fragment: 'B')}',
       );
+      expect(sourceLinks.issues, isEmpty);
+      final encoded = await CoreShareLinkEncoder.encode(sourceLinks.nodes);
+      expect(encoded.every((link) => link.isNotEmpty), isTrue);
+      final decoded = await CoreShareLinks.import(encoded.join('\n'));
       expect(decoded.issues, isEmpty);
       final built = await SingBoxConfigBuilder().build(
         CoreProfileSpec(
@@ -472,6 +477,7 @@ void main() {
             'selected_unchanged': 'B',
             'factory_pinned_while_group_changed': true,
             'share_links_generated_nodes': true,
+            'share_export_reimport_receipts': true,
             'unauthenticated_origin_requests': 0,
           }),
         );

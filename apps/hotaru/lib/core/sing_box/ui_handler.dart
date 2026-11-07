@@ -10,6 +10,7 @@ import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
 import '../config/proxy_definitions.dart';
 import '../config/node_definition.dart';
+import '../config/share_link_encoder.dart';
 import '../desktop/model.dart';
 import '../interface.dart';
 import '../method.dart';
@@ -159,6 +160,10 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<List<String>> validateProxies(List<Map<String, dynamic>> proxies) =>
       CoreProxyDefinitions.validate(proxies);
+
+  @override
+  Future<List<String>> encodeShareLinks(List<Map<String, dynamic>> proxies) =>
+      CoreShareLinkEncoder.encode(proxies);
 
   @override
   Future<Map<String, dynamic>?> getProxyDefinition(String name) async {
