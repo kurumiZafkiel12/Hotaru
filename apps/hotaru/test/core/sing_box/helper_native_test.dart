@@ -3,6 +3,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/controller.dart';
+import 'package:hotaru/core/routing_mode.dart';
+import 'package:hotaru/core/sing_box/ui_handler.dart';
+import 'package:hotaru/enum/enum.dart' show CoreEventType;
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
@@ -254,6 +258,9 @@ void main() {
         configuration: accepted,
       );
       final trafficDatabase = db.Database(NativeDatabase.memory());
+      final uiEvents = <CoreEvent>[];
+      final uiHandler = SingBoxUiHandler(service, onEvent: uiEvents.add);
+      final controller = CoreController.scoped(uiHandler);
       await trafficDatabase.profilesDao.setAll([
         Profile.normal().copyWith(id: 1),
         Profile.normal().copyWith(id: 2),
@@ -283,7 +290,40 @@ void main() {
         expect(first.session.owner, CoreProcessOwner.helper);
         pids.add(first.session.pid);
         await _expectSystem(first.session.pid);
-        await service.adapter.selectOutbound('selected', 'direct');
+        final initialChoice = (await service.adapter.outbounds())
+            .singleWhere((node) => node.name == 'selected')
+            .selected;
+        final initialRoute = await controller.watchRoute(true);
+        final selection = await controller.changeProxy(
+          const ChangeProxyParams(groupName: 'selected', proxyName: 'direct'),
+        );
+        expect(selection.changed, initialChoice != 'direct');
+        expect(selection.coreEpoch, initialRoute!.coreEpoch);
+        expect(await controller.routingMode(), CoreRoutingMode.rule);
+        await controller.setRoutingMode(CoreRoutingMode.global);
+        expect(await controller.routingMode(), CoreRoutingMode.global);
+        await controller.setRoutingMode(CoreRoutingMode.rule);
+        expect(await controller.routingMode(), CoreRoutingMode.rule);
+        final changedRoutes = uiEvents
+            .where((event) => event.type == CoreEventType.routeChanged)
+            .map(
+              (event) => RouteSnapshot.fromJson(
+                Map<String, Object?>.from(event.data as Map),
+              ),
+            )
+            .toList();
+        expect(changedRoutes.length, greaterThanOrEqualTo(3));
+        expect(
+          changedRoutes.every(
+            (snapshot) => snapshot.coreEpoch == initialRoute.coreEpoch,
+          ),
+          isTrue,
+        );
+        expect(
+          changedRoutes.last.routeVersion,
+          greaterThan(selection.routeVersion),
+        );
+        await controller.watchRoute(false);
         expect(
           (await service.adapter.outbounds())
               .singleWhere((node) => node.name == 'selected')
@@ -536,6 +576,9 @@ void main() {
         );
         expect(recoveredPreview.status, CoreRoutePreviewStatus.resolved);
         expect(recoveredPreview.chain, ['selected', 'direct']);
+        final recoveredRoute = await controller.watchRoute(true);
+        expect(recoveredRoute!.coreEpoch, greaterThan(initialRoute.coreEpoch));
+        await controller.watchRoute(false);
         final restoredClient = HttpClient()
           ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
         try {
@@ -736,6 +779,8 @@ void main() {
             'route_preview_recovered_configuration': true,
             'node_http_recovered_configuration': true,
             'node_http_factory_recovered_configuration': true,
+            'ui_controller_selection_and_modes': true,
+            'ui_route_epoch_recovered': true,
             'native_closed_telemetry': true,
             'profile_traffic_final_persisted': true,
             'failed_activation_restored': true,
@@ -761,6 +806,7 @@ void main() {
       } finally {
         client.close(force: true);
         await service.close();
+        await uiHandler.close();
         await trafficRecorder.close();
         await trafficDatabase.close();
       }

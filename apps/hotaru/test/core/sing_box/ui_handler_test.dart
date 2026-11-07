@@ -12,6 +12,7 @@ import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/enum/enum.dart';
+import 'package:hotaru/models/models.dart' show CoreEvent;
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -40,12 +41,16 @@ void main() {
   late CoreController controller;
   late SingBoxUiHandler handler;
   late StreamController<DesktopCoreState> events;
+  late StreamController<DesktopCoreFailure> crashes;
+  late List<CoreEvent> published;
   late DesktopCoreState state;
 
   setUp(() async {
     lifecycle = _Lifecycle();
     adapter = _Adapter();
     events = StreamController.broadcast();
+    crashes = StreamController.broadcast();
+    published = [];
     state = DesktopCoreRunning(
       DesktopCoreSession(
         sessionId: 'one',
@@ -59,6 +64,7 @@ void main() {
     );
     when(() => lifecycle.state).thenAnswer((_) => state);
     when(() => lifecycle.states).thenAnswer((_) => events.stream);
+    when(() => lifecycle.crashEvents).thenAnswer((_) => crashes.stream);
     when(() => lifecycle.close()).thenAnswer(
       (_) async => const CoreLifecycleResult(
         revision: 1,
@@ -91,13 +97,41 @@ void main() {
       lifecycle: lifecycle,
       configuration: _Binding(preparer.approve(result.candidate!), adapter),
     );
-    handler = SingBoxUiHandler(core);
+    handler = SingBoxUiHandler(core, onEvent: published.add);
     controller = CoreController.scoped(handler);
   });
   tearDown(() async {
     await controller.close();
     await events.close();
+    await crashes.close();
   });
+
+  test(
+    'crash events carry a stable code and stop after terminal close',
+    () async {
+      crashes.add(
+        DesktopCoreFailure(
+          code: 'transport_disconnected',
+          phase: DesktopCorePhase.running,
+          revision: 1,
+          cause: StateError('private fixture detail'),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(published.single.type, CoreEventType.crash);
+      expect(published.single.data, 'transport_disconnected');
+      await controller.close();
+      crashes.add(
+        const DesktopCoreFailure(
+          code: 'late',
+          phase: DesktopCorePhase.closed,
+          revision: 2,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(published, hasLength(1));
+    },
+  );
 
   test(
     'ordinary controller group conversion uses real native groups instead of the synthetic API GLOBAL',

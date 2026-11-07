@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import '../../models/models.dart';
+import '../../common/common.dart';
+import '../../enum/enum.dart';
 import '../adapter.dart';
 import '../config/mode_outbounds.dart';
 import '../desktop/model.dart';
@@ -10,16 +12,37 @@ import '../interface.dart';
 import '../method.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
+import '../event.dart';
+import '../routing_mode.dart';
 import 'desktop_core.dart';
+import 'ui_routes.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
-    implements CoreOutboundHttpClients {
+    implements CoreOutboundHttpClients, CoreRoutingModes {
   final SingBoxDesktopCore core;
+  late final SingBoxUiRoutes _routes;
+  late final StreamSubscription<DesktopCoreFailure> _crashes;
+  Future<CoreLifecycleResult>? _closing;
 
-  SingBoxUiHandler(this.core) {
+  SingBoxUiHandler(this.core, {void Function(CoreEvent)? onEvent}) {
     if (core.configuration == null) {
       throw ArgumentError('A prepared sing-box configuration is required');
     }
+    final publish = onEvent ?? coreEventManager.sendEvent;
+    _routes = SingBoxUiRoutes(
+      core: core,
+      onChange: (snapshot) => publish(
+        CoreEvent(type: CoreEventType.routeChanged, data: snapshot.toJson()),
+      ),
+      onError: (error, _) => commonPrint.log(
+        'sing-box route watch failed: ${error is CoreAdapterException ? error.code : 'failed'}',
+        logLevel: LogLevel.debug,
+      ),
+    );
+    _crashes = core.lifecycle.crashEvents.listen(
+      (failure) =>
+          publish(CoreEvent(type: CoreEventType.crash, data: failure.code)),
+    );
   }
 
   String _session() {
@@ -43,7 +66,41 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<CoreLifecycleResult> stop() => core.stop();
   @override
-  Future<CoreLifecycleResult> close() => core.close();
+  Future<CoreLifecycleResult> close() => _closing ??= _close();
+
+  Future<CoreLifecycleResult> _close() async {
+    try {
+      return await core.close();
+    } finally {
+      await _routes.close();
+      await _crashes.cancel();
+    }
+  }
+
+  @override
+  Future<RouteSnapshot> watchRoute(bool watch) => _routes.watch(watch);
+
+  @override
+  Future<ChangeProxyResult> changeProxy(ChangeProxyParams changeProxyParams) {
+    if (changeProxyParams.forSpeedTest) {
+      return Future.error(
+        const CoreMethodException(
+          code: 'scoped_client_required',
+          message: 'Node speed tests require scoped HTTP clients',
+        ),
+      );
+    }
+    return _routes.select(
+      changeProxyParams.groupName,
+      changeProxyParams.proxyName,
+    );
+  }
+
+  @override
+  Future<CoreRoutingMode> routingMode() => _routes.mode();
+
+  @override
+  Future<void> setRoutingMode(CoreRoutingMode mode) => _routes.setMode(mode);
 
   @override
   Future<bool> get isInit async => core.lifecycle.state is DesktopCoreRunning;
