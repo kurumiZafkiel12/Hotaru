@@ -7,6 +7,7 @@ import '../../common/common.dart';
 import '../../enum/enum.dart';
 import '../adapter.dart';
 import '../config/mode_outbounds.dart';
+import '../config/share_links.dart';
 import '../desktop/model.dart';
 import '../interface.dart';
 import '../method.dart';
@@ -127,6 +128,47 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<String> buildProfileText(SetupBase base) =>
       CoreProfileDocuments.build(base);
+
+  @override
+  Future<List<Map<String, dynamic>>> convertProxies(String path) async =>
+      _shareNodes(
+        await CoreShareLinks.decode(await CoreProfileDocuments.readText(path)),
+      );
+
+  @override
+  Future<List<List<Map<String, dynamic>>>> decodeShareLinks(
+    List<String> lines,
+  ) async => _shareBatchNodes(await CoreShareLinks.decodeMany(lines));
+
+  static Future<List<List<Map<String, dynamic>>>> _shareBatchNodes(
+    List<CoreShareLinkBatch> batches,
+  ) => Isolate.run(
+    () => [
+      for (var index = 0; index < batches.length; index++)
+        _shareNodes(batches[index], inputIndex: index),
+    ],
+  );
+
+  static List<Map<String, dynamic>> _shareNodes(
+    CoreShareLinkBatch batch, {
+    int? inputIndex,
+  }) {
+    if (batch.issues.isNotEmpty) {
+      throw CoreMethodException(
+        code: 'share_link_conversion_failed',
+        message: 'Input contains unsupported or invalid share links',
+        details: {
+          'input': ?inputIndex,
+          'count': batch.issues.length,
+          'issues': [
+            for (final issue in batch.issues.take(32))
+              {'code': issue.code, 'path': issue.path},
+          ],
+        },
+      );
+    }
+    return batch.nodes;
+  }
 
   @override
   Future<ProxiesData> getProxies() async {

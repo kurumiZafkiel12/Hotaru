@@ -7,6 +7,7 @@ import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/share_links.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/sing_box/clash_api_adapter.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
@@ -237,8 +238,18 @@ void main() {
         port: await freeLoopbackPort(),
         secret: _secret,
       );
+      final original = _profile(first.server.port, second.server.port);
+      final decoded = await CoreShareLinks.import(
+        '${Uri(scheme: 'http', host: '127.0.0.1', port: first.server.port, fragment: '日本 / A')}\n${Uri(scheme: 'http', host: '127.0.0.1', port: second.server.port, fragment: 'B')}',
+      );
+      expect(decoded.issues, isEmpty);
       final built = await SingBoxConfigBuilder().build(
-        _profile(first.server.port, second.server.port),
+        CoreProfileSpec(
+          nodes: decoded.profile!.nodes,
+          selectors: original.selectors,
+          finalOutbound: original.finalOutbound,
+          rules: original.rules,
+        ),
         CoreListenerSpec(
           mixedPort: mixed,
           controllerPort: controller,
@@ -460,6 +471,7 @@ void main() {
             'https_node_receipts': second.receipts,
             'selected_unchanged': 'B',
             'factory_pinned_while_group_changed': true,
+            'share_links_generated_nodes': true,
             'unauthenticated_origin_requests': 0,
           }),
         );

@@ -161,6 +161,40 @@ void main() {
   );
 
   test(
+    'share links decode and file conversion use Dart and reject lossy options',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'hotaru-ui-links-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      const link = 'http://127.0.0.1:1080#Node';
+      final file = await File(
+        '${directory.path}/links.txt',
+      ).writeAsString(link);
+      final decoded = await controller.decodeShareLinks([link, '$link\n$link']);
+      expect(decoded.map((nodes) => nodes.length), [1, 2]);
+      expect((await handler.convertProxies(file.path)).single['name'], 'Node');
+      expect(await file.readAsString(), link);
+      await expectLater(
+        controller.decodeShareLinks([
+          link,
+          'trojan://fixture@127.0.0.1:443?pinSHA256=unsupported',
+        ]),
+        throwsA(
+          isA<CoreMethodException>()
+              .having(
+                (error) => error.code,
+                'code',
+                'share_link_conversion_failed',
+              )
+              .having((error) => (error.details as Map)['input'], 'input', 1),
+        ),
+      );
+      verifyZeroInteractions(adapter);
+    },
+  );
+
+  test(
     'ordinary controller group conversion uses real native groups instead of the synthetic API GLOBAL',
     () async {
       when(() => adapter.outbounds()).thenAnswer(

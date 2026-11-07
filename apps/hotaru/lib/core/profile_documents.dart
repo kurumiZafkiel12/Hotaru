@@ -14,6 +14,9 @@ abstract interface class CoreProfileTextBuilder {
 }
 
 final class CoreProfileDocuments {
+  static Future<String> readText(String path) =>
+      Isolate.run(() async => utf8.decode(await _readBytes(path)));
+
   static Future<Map<String, dynamic>> read(String path) =>
       Isolate.run(() async => _mapping(await _readBytes(path)));
 
