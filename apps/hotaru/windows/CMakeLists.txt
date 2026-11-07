@@ -124,6 +124,7 @@ install(FILES
   "${CORE_ARTIFACTS_DIR}/HotaruCore.exe"
   "${CORE_ARTIFACTS_DIR}/HotaruHelperService.exe"
   "${CORE_ARTIFACTS_DIR}/manifest.json"
+  "${CORE_ARTIFACTS_DIR}/sing-box.exe"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
