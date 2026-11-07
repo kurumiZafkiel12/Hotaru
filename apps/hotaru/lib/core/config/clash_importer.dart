@@ -3,11 +3,32 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'clash_dns.dart';
+import 'encoding.dart';
 import 'ip_prefix.dart';
 import 'profile.dart';
 import 'yaml_document.dart';
 
 final class ClashProfileImporter {
+  Future<List<CoreNodeImportResult>> importNodes(
+    List<Map<String, dynamic>> nodes,
+  ) => Isolate.run(() {
+    if (nodes.length > 100000) throw const CoreConfigSizeException();
+    CoreConfigEncoding.encode(nodes);
+    return [
+      for (var index = 0; index < nodes.length; index++)
+        _importNode(nodes[index], 'proxies.$index'),
+    ];
+  });
+
+  static CoreNodeImportResult _importNode(
+    Map<String, dynamic> node,
+    String path,
+  ) {
+    final reader = _ClashImport();
+    final result = reader.tryReadNode(node, path);
+    return CoreNodeImportResult(result, reader.issues);
+  }
+
   Future<CoreConfigImportResult> import(String source) {
     return Isolate.run(() => _ClashImport().read(source));
   }
@@ -121,12 +142,8 @@ final class _ClashImport {
       final rawNodes = list(input['proxies'] ?? []);
       for (var index = 0; index < rawNodes.length; index++) {
         final path = 'proxies.$index';
-        try {
-          final node = readNode(map(rawNodes[index]), path);
-          if (node != null) nodes.add(node);
-        } on FormatException {
-          issue('invalid_node_value', path);
-        }
+        final node = tryReadNode(rawNodes[index], path);
+        if (node != null) nodes.add(node);
       }
       final selectors = <CoreSelectorSpec>[];
       final rawGroups = list(input['proxy-groups'] ?? []);
@@ -247,6 +264,15 @@ final class _ClashImport {
       issue('invalid_document_value', 'document');
     }
     return CoreConfigImportResult(issues: issues);
+  }
+
+  CoreNodeSpec? tryReadNode(Object? value, String path) {
+    try {
+      return readNode(map(value), path);
+    } on FormatException {
+      issue('invalid_node_value', path);
+      return null;
+    }
   }
 
   CoreNodeSpec? readNode(Map<String, dynamic> node, String path) {

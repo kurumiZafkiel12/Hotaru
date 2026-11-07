@@ -405,6 +405,30 @@ void main() {
   );
 
   test(
+    'proxy field validation uses shared Dart rules without contacting the running core',
+    () async {
+      final values = await controller.validateProxies([
+        {
+          'name': 'good',
+          'type': 'http',
+          'server': 'proxy.invalid',
+          'port': 8080,
+        },
+        {
+          'name': 'bad',
+          'type': 'vless',
+          'server': '127.0.0.1',
+          'port': 443,
+          'uuid': 'invalid',
+        },
+      ]);
+      expect(values.first, isEmpty);
+      expect(values.last, contains('invalid_uuid'));
+      verifyZeroInteractions(adapter);
+    },
+  );
+
+  test(
     'ordinary connection rows retain observed start, process and raw chain',
     () async {
       when(() => adapter.telemetry()).thenAnswer(

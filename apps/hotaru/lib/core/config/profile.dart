@@ -201,6 +201,14 @@ final class CoreListenerSpec {
 
 enum CoreConfigIssueSeverity { error, warning }
 
+final class CoreNodeImportResult {
+  final CoreNodeSpec? node;
+  final List<CoreConfigIssue> issues;
+
+  CoreNodeImportResult(this.node, List<CoreConfigIssue> issues)
+    : issues = List.unmodifiable(issues);
+}
+
 final class CoreConfigIssue {
   final String code;
   final String path;
