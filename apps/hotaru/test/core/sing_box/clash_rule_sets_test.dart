@@ -95,9 +95,10 @@ void main() {
         ),
       );
       expect(built.issues, isEmpty);
-      expect(jsonDecode(built.json!)['route']['rules'][2]['domain_suffix'], [
-        'example.invalid',
-      ]);
+      final profileRules = (jsonDecode(built.json!)['route']['rules'] as List)
+          .where((dynamic rule) => rule['clash_mode'] == null)
+          .toList();
+      expect(profileRules[2]['domain_suffix'], ['example.invalid']);
     },
   );
 

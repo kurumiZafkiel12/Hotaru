@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../adapter.dart';
+import '../routing_mode.dart';
 import '../config/route_preview.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
@@ -54,6 +55,12 @@ final class SingBoxDesktopCore {
       }
     }
 
+    final modes = adapter;
+    if (modes is! CoreRoutingModes) {
+      throw const CoreAdapterException('routing_modes_unavailable');
+    }
+    final mode = await (modes as CoreRoutingModes).routingMode();
+    checkSnapshot();
     final outbounds = await adapter.outbounds();
     checkSnapshot();
     final selections = {
@@ -64,6 +71,7 @@ final class SingBoxDesktopCore {
       applied.profile,
       target,
       selections: selections,
+      mode: mode,
     );
     checkSnapshot();
     final usedGroups = preview.selectedOutbounds.keys.toList();
@@ -77,6 +85,10 @@ final class SingBoxDesktopCore {
         throw const CoreAdapterException('route_changed');
       }
     }
+    if (await (modes as CoreRoutingModes).routingMode() != mode) {
+      throw const CoreAdapterException('route_changed');
+    }
+    checkSnapshot();
     return preview;
   }
 

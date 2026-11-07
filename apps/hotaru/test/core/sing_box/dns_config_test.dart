@@ -183,7 +183,12 @@ void main() {
       expect(result.issues, isEmpty);
       final config = jsonDecode(result.json!);
       expect(config['route']['default_domain_resolver'], 'dns-main');
-      expect(config['outbounds'][1]['domain_resolver'], 'dns-proxy');
+      expect(
+        (config['outbounds'] as List).singleWhere(
+          (dynamic node) => node['tag'] == 'proxy',
+        )['domain_resolver'],
+        'dns-proxy',
+      );
       expect(config['dns']['servers'][1]['domain_resolver'], 'dns-bootstrap');
       expect(config['inbounds'][0]['listen'], '127.0.0.1');
     },

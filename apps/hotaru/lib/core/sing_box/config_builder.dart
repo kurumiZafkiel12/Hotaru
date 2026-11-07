@@ -6,6 +6,7 @@ import '../config/profile.dart';
 import '../config/encoding.dart';
 import '../config/ip_prefix.dart';
 import '../config/probe_listener.dart';
+import '../config/mode_outbounds.dart';
 import 'dns_config.dart';
 
 final class SingBoxConfigBuilder {
@@ -328,6 +329,7 @@ final class SingBoxConfigBuilder {
       );
     }
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
+    final modes = CoreModeOutbounds(profile);
     try {
       final encoded = CoreConfigEncoding.encode({
         if (profile.dns case final dns?) 'dns': compileDns(dns),
@@ -370,6 +372,13 @@ final class SingBoxConfigBuilder {
             },
         ],
         'outbounds': [
+          _node(modes.direct),
+          {
+            'type': 'selector',
+            'tag': modes.global.tag,
+            'outbounds': modes.global.members,
+            'default': modes.global.selected,
+          },
           for (final node in profile.nodes)
             {
               ..._node(node),
@@ -395,61 +404,68 @@ final class SingBoxConfigBuilder {
           if (profile.dns != null)
             'default_domain_resolver': profile.dns!.finalServer,
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
-          if (profile.rules.isNotEmpty ||
-              probe != null ||
-              listeners.dnsPort != null ||
-              tun?.hijackDns == true)
-            'rules': [
-              if (probe != null) ...[
-                for (final tag in tags)
-                  {
-                    'inbound': ['hotaru-probe'],
-                    'auth_user': [CoreProbeListenerSpec.username(tag)],
-                    'action': 'route',
-                    'outbound': tag,
-                  },
+          'rules': [
+            if (probe != null) ...[
+              for (final tag in tags)
                 {
                   'inbound': ['hotaru-probe'],
-                  'action': 'reject',
+                  'auth_user': [CoreProbeListenerSpec.username(tag)],
+                  'action': 'route',
+                  'outbound': tag,
                 },
-              ],
-              if (listeners.dnsPort != null)
-                {
-                  'inbound': ['dns-in'],
-                  'action': 'hijack-dns',
-                },
-              if (tun?.hijackDns == true)
-                {
-                  'inbound': ['tun'],
-                  'port': [53],
-                  'action': 'hijack-dns',
-                },
-              for (final rule in profile.rules)
-                {
-                  if (rule.kind != CoreRuleKind.always)
-                    switch (rule.kind) {
-                      CoreRuleKind.domain => 'domain',
-                      CoreRuleKind.domainSuffix => 'domain_suffix',
-                      CoreRuleKind.domainKeyword => 'domain_keyword',
-                      CoreRuleKind.ipCidr => 'ip_cidr',
-                      CoreRuleKind.always => throw StateError(
-                        'Unreachable rule kind',
-                      ),
-                    }: [
-                      rule.value,
-                    ],
-                  'action': rule.action == CoreRuleAction.route
-                      ? 'route'
-                      : 'reject',
-                  if (rule.action == CoreRuleAction.drop) 'method': 'drop',
-                  if (rule.outbound != null) 'outbound': rule.outbound,
-                },
+              {
+                'inbound': ['hotaru-probe'],
+                'action': 'reject',
+              },
             ],
+            if (listeners.dnsPort != null)
+              {
+                'inbound': ['dns-in'],
+                'action': 'hijack-dns',
+              },
+            if (tun?.hijackDns == true)
+              {
+                'inbound': ['tun'],
+                'port': [53],
+                'action': 'hijack-dns',
+              },
+            {
+              'clash_mode': 'direct',
+              'action': 'route',
+              'outbound': modes.direct.tag,
+            },
+            {
+              'clash_mode': 'global',
+              'action': 'route',
+              'outbound': modes.global.tag,
+            },
+            for (final rule in profile.rules)
+              {
+                if (rule.kind != CoreRuleKind.always)
+                  switch (rule.kind) {
+                    CoreRuleKind.domain => 'domain',
+                    CoreRuleKind.domainSuffix => 'domain_suffix',
+                    CoreRuleKind.domainKeyword => 'domain_keyword',
+                    CoreRuleKind.ipCidr => 'ip_cidr',
+                    CoreRuleKind.always => throw StateError(
+                      'Unreachable rule kind',
+                    ),
+                  }: [
+                    rule.value,
+                  ],
+                'action': rule.action == CoreRuleAction.route
+                    ? 'route'
+                    : 'reject',
+                if (rule.action == CoreRuleAction.drop) 'method': 'drop',
+                if (rule.outbound != null) 'outbound': rule.outbound,
+              },
+          ],
         },
         'experimental': {
           'clash_api': {
             'external_controller': '127.0.0.1:${listeners.controllerPort}',
             'secret': listeners.secret,
+            'default_mode': 'rule',
           },
         },
       });

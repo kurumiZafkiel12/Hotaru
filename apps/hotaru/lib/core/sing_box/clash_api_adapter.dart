@@ -7,10 +7,11 @@ import '../adapter.dart';
 import '../config/probe_listener.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
+import '../routing_mode.dart';
 import 'outbound_http.dart';
 
 final class SingBoxClashApiAdapter
-    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry {
+    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry, CoreRoutingModes {
   final Uri endpoint;
   final String _secret;
   final HttpClient _client;
@@ -121,6 +122,24 @@ final class SingBoxClashApiAdapter
       await _request('GET', ['version'], timeout: timeout),
     );
     return _string(result['version']);
+  }
+
+  @override
+  Future<CoreRoutingMode> routingMode() async {
+    final result = _object(await _request('GET', ['configs']));
+    final name = _string(result['mode']);
+    for (final mode in CoreRoutingMode.values) {
+      if (mode.name == name) return mode;
+    }
+    throw const CoreAdapterException('unsupported_routing_mode');
+  }
+
+  @override
+  Future<void> setRoutingMode(CoreRoutingMode mode) async {
+    await _request('PATCH', ['configs'], body: {'mode': mode.name});
+    if (await routingMode() != mode) {
+      throw const CoreAdapterException('route_changed');
+    }
   }
 
   @override

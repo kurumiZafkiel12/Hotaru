@@ -85,7 +85,10 @@ void main() {
         {'type': 'salamander', 'password': 'fixture'},
       );
       expect(config['outbounds'].last['interval'], '180s');
-      expect(config['route']['rules'][2]['action'], 'reject');
+      final profileRules = (config['route']['rules'] as List)
+          .where((dynamic rule) => rule['clash_mode'] == null)
+          .toList();
+      expect(profileRules[2]['action'], 'reject');
       expect(config['route']['final'], 'Selected');
     },
   );
@@ -117,7 +120,9 @@ void main() {
       final imported = await importer.import(source);
       expect(imported.issues, isEmpty);
       final built = await builder.build(imported.profile!, listeners);
-      final node = (jsonDecode(built.json!)['outbounds'] as List).single;
+      final node = (jsonDecode(built.json!)['outbounds'] as List).singleWhere(
+        (dynamic node) => node['tag'] == 'Reality',
+      );
       expect(node['flow'], 'xtls-rprx-vision');
       expect(node['tls']['reality']['short_id'], '01234567');
       expect(node['tls']['utls']['fingerprint'], 'chrome');
@@ -229,7 +234,9 @@ rules: ["DOMAIN,example.com,REJECT", "MATCH,REJECT-DROP"]
 ''');
       expect(imported.issues, isEmpty);
       final built = await builder.build(imported.profile!, listeners);
-      final rules = jsonDecode(built.json!)['route']['rules'] as List;
+      final rules = (jsonDecode(built.json!)['route']['rules'] as List)
+          .where((dynamic rule) => rule['clash_mode'] == null)
+          .toList();
       expect(rules.last, {'action': 'reject', 'method': 'drop'});
       expect(rules.first.containsKey('outbound'), isFalse);
     },

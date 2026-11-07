@@ -6,6 +6,7 @@ import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/telemetry.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'support/telemetry_fixture.dart';
 import 'package:hotaru/core/sing_box/outbound_http.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
@@ -21,6 +22,9 @@ final class _Adapter extends Mock implements CoreAdapter {}
 
 final class _TelemetryAdapter extends Mock
     implements CoreAdapter, CoreTelemetry {}
+
+final class _RoutingAdapter extends Mock
+    implements CoreAdapter, CoreRoutingModes {}
 
 final class _HttpAdapter extends Mock implements CoreAdapter, CoreOutboundHttp {
   final transport = SingBoxOutboundHttp(
@@ -104,6 +108,50 @@ void main() {
     );
     expect(invoked, isFalse);
   });
+
+  test('missing mode capability cannot pretend a mode was applied', () async {
+    await expectLater(
+      adapter.setRoutingMode(CoreRoutingMode.global),
+      throwsA(
+        isA<CoreAdapterException>().having(
+          (error) => error.code,
+          'code',
+          'routing_modes_unavailable',
+        ),
+      ),
+    );
+  });
+
+  test(
+    'a late mode acknowledgement from a replaced session is rejected',
+    () async {
+      final inner = _RoutingAdapter();
+      final pending = Completer<void>();
+      when(
+        () => inner.setRoutingMode(CoreRoutingMode.direct),
+      ).thenAnswer((_) => pending.future);
+      when(() => inner.close()).thenAnswer((_) async {});
+      final scoped = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => inner,
+      );
+      addTearDown(scoped.close);
+      final change = scoped.setRoutingMode(CoreRoutingMode.direct);
+      final checked = expectLater(
+        change,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      state = _running('replacement');
+      pending.complete();
+      await checked;
+    },
+  );
 
   test(
     'session replacement closes the probe client and rejects its late result',

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
@@ -14,7 +15,7 @@ import '../desktop/fakes.dart';
 
 class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
-class _Adapter extends Mock implements CoreAdapter {}
+class _Adapter extends Mock implements CoreAdapter, CoreRoutingModes {}
 
 class _Binding implements SingBoxConfigurationBinding {
   @override
@@ -105,6 +106,9 @@ void main() {
       ),
     );
     when(() => adapter.close()).thenAnswer((_) async {});
+    when(
+      () => adapter.routingMode(),
+    ).thenAnswer((_) async => CoreRoutingMode.rule);
     when(() => adapter.outbounds()).thenAnswer((_) async => _outbounds);
     core = SingBoxDesktopCore.withConfiguration(
       lifecycle: lifecycle,
@@ -124,6 +128,7 @@ void main() {
       expect(preview.chain, ['group', 'b']);
       expect(preview.ruleIndex, 0);
       verify(() => adapter.outbounds()).called(2);
+      verify(() => adapter.routingMode()).called(2);
       verifyNever(() => lifecycle.start());
       verifyNoMoreInteractions(adapter);
     },
@@ -136,6 +141,50 @@ void main() {
     expect(preview.rule, isNull);
     verify(() => adapter.outbounds()).called(1);
   });
+
+  test(
+    'mode changes invalidate a preview from the same process and selectors',
+    () async {
+      var reads = 0;
+      when(() => adapter.routingMode()).thenAnswer(
+        (_) async =>
+            ++reads == 1 ? CoreRoutingMode.rule : CoreRoutingMode.direct,
+      );
+      await expectLater(
+        core.previewRoute('example.org'),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'route_changed',
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'a mode change during the final selector read invalidates the preview',
+    () async {
+      var mode = CoreRoutingMode.rule;
+      var reads = 0;
+      when(() => adapter.routingMode()).thenAnswer((_) async => mode);
+      when(() => adapter.outbounds()).thenAnswer((_) async {
+        if (++reads == 2) mode = CoreRoutingMode.direct;
+        return _outbounds;
+      });
+      await expectLater(
+        core.previewRoute('example.org'),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'route_changed',
+          ),
+        ),
+      );
+    },
+  );
 
   test(
     'selector change during preview is never shown as the current route',

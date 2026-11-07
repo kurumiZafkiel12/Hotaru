@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/clash_api_adapter.dart';
 
 void main() {
@@ -58,6 +59,66 @@ void main() {
     };
     await adapter.selectOutbound('香港 / AI', '日本 / 01');
   });
+
+  test('mode writes use PATCH and require a matching readback', () async {
+    var mode = 'rule';
+    var writes = 0;
+    handler = (request) async {
+      expect(request.uri.path, '/configs');
+      if (request.method == 'PATCH') {
+        writes++;
+        mode =
+            (jsonDecode(await utf8.decoder.bind(request).join()) as Map)['mode']
+                as String;
+        request.response.statusCode = 204;
+      } else {
+        expect(request.method, 'GET');
+        request.response.write(jsonEncode({'mode': mode}));
+      }
+      await request.response.close();
+    };
+    for (final value in CoreRoutingMode.values) {
+      await adapter.setRoutingMode(value);
+      expect(await adapter.routingMode(), value);
+    }
+    expect(writes, 3);
+    mode = 'unsupported';
+    await expectLater(
+      adapter.routingMode(),
+      throwsA(
+        isA<CoreAdapterException>().having(
+          (error) => error.code,
+          'code',
+          'unsupported_routing_mode',
+        ),
+      ),
+    );
+  });
+
+  test(
+    'a successful mode response without applied state is not accepted',
+    () async {
+      handler = (request) async {
+        if (request.method == 'PATCH') {
+          await utf8.decoder.bind(request).join();
+          request.response.statusCode = 204;
+        } else {
+          request.response.write('{"mode":"rule"}');
+        }
+        await request.response.close();
+      };
+      await expectLater(
+        adapter.setRoutingMode(CoreRoutingMode.global),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'route_changed',
+          ),
+        ),
+      );
+    },
+  );
 
   test('rejects HTTP delay before sending any request', () async {
     await expectLater(

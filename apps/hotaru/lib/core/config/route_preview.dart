@@ -3,6 +3,8 @@ import 'dart:isolate';
 
 import 'profile.dart';
 import 'ip_prefix.dart';
+import 'mode_outbounds.dart';
+import '../routing_mode.dart';
 
 enum CoreRoutePreviewStatus {
   resolved,
@@ -42,22 +44,24 @@ final class CoreRoutePreviewer {
     CoreProfileSpec profile,
     String target, {
     Map<String, String> selections = const {},
+    CoreRoutingMode mode = CoreRoutingMode.rule,
   }) {
     final snapshot = Map<String, String>.of(selections);
-    final nodes = profile.nodes;
-    final selectors = profile.selectors;
-    final rules = profile.rules;
-    final finalOutbound = profile.finalOutbound;
-    return Isolate.run(
-      () => _preview(
+    return Isolate.run(() {
+      final modes = CoreModeOutbounds(profile);
+      return _preview(
         target,
-        nodes: nodes,
-        selectors: selectors,
-        rules: rules,
-        finalOutbound: finalOutbound,
+        nodes: [...profile.nodes, modes.direct],
+        selectors: [...profile.selectors, modes.global],
+        rules: mode == CoreRoutingMode.rule ? profile.rules : const [],
+        finalOutbound: switch (mode) {
+          CoreRoutingMode.rule => profile.finalOutbound,
+          CoreRoutingMode.global => modes.global.tag,
+          CoreRoutingMode.direct => modes.direct.tag,
+        },
         selections: snapshot,
-      ),
-    );
+      );
+    });
   }
 
   static CoreRoutePreview _preview(

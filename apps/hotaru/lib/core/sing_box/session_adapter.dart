@@ -4,11 +4,12 @@ import 'dart:io';
 import '../adapter.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
+import '../routing_mode.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 
 final class SessionCoreAdapter
-    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry {
+    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry, CoreRoutingModes {
   final DesktopCoreLifecycleController lifecycle;
   final CoreAdapter Function() _factory;
   late final StreamSubscription<DesktopCoreState> _subscription;
@@ -94,6 +95,22 @@ final class SessionCoreAdapter
   @override
   Future<void> closeConnection(String id) =>
       _invoke((adapter) => adapter.closeConnection(id));
+
+  @override
+  Future<CoreRoutingMode> routingMode() => _invoke((adapter) {
+    if (adapter is! CoreRoutingModes) {
+      throw const CoreAdapterException('routing_modes_unavailable');
+    }
+    return (adapter as CoreRoutingModes).routingMode();
+  });
+
+  @override
+  Future<void> setRoutingMode(CoreRoutingMode mode) => _invoke((adapter) {
+    if (adapter is! CoreRoutingModes) {
+      throw const CoreAdapterException('routing_modes_unavailable');
+    }
+    return (adapter as CoreRoutingModes).setRoutingMode(mode);
+  });
 
   @override
   Future<CoreTelemetrySnapshot> telemetry() => _invoke((adapter) {
