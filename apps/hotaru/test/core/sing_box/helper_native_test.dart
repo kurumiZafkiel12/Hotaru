@@ -1089,6 +1089,10 @@ void main() {
           const ChangeProxyParams(groupName: 'Hotaru GLOBAL', proxyName: 'B'),
         );
         await controller.setRoutingMode(CoreRoutingMode.global);
+        final memory = await controller.getMemoryStats();
+        expect(memory, isNotNull);
+        expect(memory!.rss, greaterThan(0));
+        expect(memory.heapInuse, greaterThan(0));
         await payload();
         expect(await controller.stopListener(), isTrue);
         expect(processes.last.hasExited, isTrue);
@@ -1132,6 +1136,7 @@ void main() {
             )
           : <String, dynamic>{};
       report['ui_listener_policy_retained'] = true;
+      report['ui_native_memory'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await path.writeAsString(jsonEncode(report));
     },

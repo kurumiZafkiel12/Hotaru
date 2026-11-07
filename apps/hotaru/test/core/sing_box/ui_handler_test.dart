@@ -13,7 +13,8 @@ import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/enum/enum.dart';
-import 'package:hotaru/models/models.dart' show CoreEvent, SetupBase, Traffic;
+import 'package:hotaru/models/models.dart'
+    show CoreEvent, SetupBase, Traffic, CoreMemoryStatsExt;
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -112,6 +113,43 @@ void main() {
     await events.close();
     await crashes.close();
   });
+
+  test(
+    'memory cards use the owned host observation and reject late sessions',
+    () async {
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(
+          telemetryFixture()..['memory'] = observedMemoryFixture(),
+        ),
+      );
+      final memory = await controller.getMemoryStats();
+      expect(memory!.rss, 1000);
+      expect(memory.runtimeTotal, 600);
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(telemetryFixture()),
+      );
+      expect(await controller.getMemoryStats(), isNull);
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(
+          telemetryFixture()
+            ..['memory'] = {...observedMemoryFixture(), 'rss': 0},
+        ),
+      );
+      expect(await controller.getMemoryStats(), isNull);
+      final pending = Completer<CoreTelemetrySnapshot>();
+      when(() => adapter.telemetry()).thenAnswer((_) => pending.future);
+      final read = controller.getMemoryStats();
+      final checked = expectLater(read, throwsA(isA<CoreAdapterException>()));
+      await Future<void>.delayed(Duration.zero);
+      state = const DesktopCoreIdle();
+      pending.complete(
+        CoreTelemetrySnapshot.fromJson(
+          telemetryFixture()..['memory'] = observedMemoryFixture(),
+        ),
+      );
+      await checked;
+    },
+  );
 
   test(
     'node editing reads the applied profile and never treats a selector as a node',

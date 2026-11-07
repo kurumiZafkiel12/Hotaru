@@ -5,6 +5,34 @@ import 'support/telemetry_fixture.dart';
 
 void main() {
   test(
+    'memory is optional but present observations require complete nonnegative counters',
+    () {
+      expect(CoreTelemetrySnapshot.fromJson(telemetryFixture()).memory, isNull);
+      final sample = CoreTelemetrySnapshot.fromJson(
+        telemetryFixture()..['memory'] = observedMemoryFixture(),
+      );
+      expect(sample.memory!.rss, 1000);
+      expect(sample.memory!.heapInuse, 400);
+      expect(sample.memory!.heapIdle, 100);
+      expect(sample.memory!.stackInuse, 80);
+      expect(sample.memory!.runtimeOther, 20);
+      for (final invalid in <Object>[
+        false,
+        {'rss': 10},
+        {...observedMemoryFixture(), 'heap_idle': -1},
+        {...observedMemoryFixture(), 'rss': 1.5},
+      ]) {
+        expect(
+          () => CoreTelemetrySnapshot.fromJson(
+            telemetryFixture()..['memory'] = invalid,
+          ),
+          throwsFormatException,
+        );
+      }
+    },
+  );
+
+  test(
     'observations retain process identity, physical API chain and closed counters',
     () {
       final value = telemetryFixture()

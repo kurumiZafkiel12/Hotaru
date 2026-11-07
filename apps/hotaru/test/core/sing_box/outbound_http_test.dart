@@ -410,6 +410,9 @@ void main() {
             observed!.closed.map((entry) => entry.outbound).toSet(),
             containsAll(['日本 / A', 'B']),
           );
+          expect(observed.memory, isNotNull);
+          expect(observed.memory!.rss, greaterThan(0));
+          expect(observed.memory!.heapInuse, greaterThan(0));
           expect(observed.uploadTotal, greaterThan(0));
           expect(observed.downloadTotal, greaterThan(0));
           lastObservation = observed;
@@ -472,6 +475,7 @@ void main() {
             'scope': 'Owned loopback proxies only; no OS proxy or TUN',
             'controlled_host': controlled,
             'native_closed_telemetry': controlled,
+            'native_memory_observation': controlled,
             'http_node_receipts': first.receipts,
             'https_node_receipts': second.receipts,
             'selected_unchanged': 'B',

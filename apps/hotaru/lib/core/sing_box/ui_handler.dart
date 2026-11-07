@@ -147,6 +147,26 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   Future<void> resetTraffic() => _traffic.reset();
 
   @override
+  Future<CoreMemoryStats?> getMemoryStats() async {
+    final session = _session();
+    final source = core.adapter;
+    if (source is! CoreTelemetry) {
+      throw const CoreAdapterException('telemetry_unavailable');
+    }
+    final sample = await (source as CoreTelemetry).telemetry();
+    _checkSession(session);
+    final memory = sample.memory;
+    if (memory == null || memory.rss == 0) return null;
+    return CoreMemoryStats(
+      rss: memory.rss,
+      heapInuse: memory.heapInuse,
+      heapIdle: memory.heapIdle,
+      stackInuse: memory.stackInuse,
+      runtimeOther: memory.runtimeOther,
+    );
+  }
+
+  @override
   Future<Map<String, dynamic>> getConfig(String path) =>
       CoreProfileDocuments.read(path);
 

@@ -28,6 +28,7 @@ final class CoreTelemetrySnapshot {
   final bool activeTruncated;
   final List<CoreObservedConnection> active;
   final List<CoreObservedConnection> closed;
+  final CoreObservedMemory? memory;
 
   CoreTelemetrySnapshot({
     required this.sampledAt,
@@ -37,6 +38,7 @@ final class CoreTelemetrySnapshot {
     required this.activeTruncated,
     required List<CoreObservedConnection> active,
     required List<CoreObservedConnection> closed,
+    this.memory,
   }) : active = List.unmodifiable(active),
        closed = List.unmodifiable(closed);
 
@@ -71,8 +73,40 @@ final class CoreTelemetrySnapshot {
       activeTruncated: truncated,
       active: entries('active', closed: false),
       closed: entries('closed', closed: true),
+      memory: switch (value['memory']) {
+        null => null,
+        final Map<String, dynamic> memory => CoreObservedMemory.fromJson(
+          memory,
+        ),
+        _ => throw const FormatException('Invalid memory observation'),
+      },
     );
   }
+}
+
+final class CoreObservedMemory {
+  final int rss;
+  final int heapInuse;
+  final int heapIdle;
+  final int stackInuse;
+  final int runtimeOther;
+
+  const CoreObservedMemory({
+    required this.rss,
+    required this.heapInuse,
+    required this.heapIdle,
+    required this.stackInuse,
+    required this.runtimeOther,
+  });
+
+  factory CoreObservedMemory.fromJson(Map<String, dynamic> value) =>
+      CoreObservedMemory(
+        rss: _integer(value, 'rss'),
+        heapInuse: _integer(value, 'heap_inuse'),
+        heapIdle: _integer(value, 'heap_idle'),
+        stackInuse: _integer(value, 'stack_inuse'),
+        runtimeOther: _integer(value, 'runtime_other'),
+      );
 }
 
 final class CoreObservedConnection {

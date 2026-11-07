@@ -28,3 +28,11 @@ Map<String, dynamic> observedConnectionFixture({bool closed = false}) => {
   'outbound': 'exit',
   'outbound_type': 'http',
 };
+
+Map<String, dynamic> observedMemoryFixture() => {
+  'rss': 1000,
+  'heap_inuse': 400,
+  'heap_idle': 100,
+  'stack_inuse': 80,
+  'runtime_other': 20,
+};

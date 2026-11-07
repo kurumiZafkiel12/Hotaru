@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -239,4 +240,31 @@ func TestNativeTelemetryHistoryCapRetainsEvictedTotals(t *testing.T) {
 		t.Fatal("final counters lost evicted traffic")
 	}
 
+}
+
+func TestMemoryObservationReportsTheHostProcessAndRuntime(t *testing.T) {
+	observed := readMemorySnapshot()
+	if observed == nil {
+		if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+			t.Fatal("native resident memory missing")
+		}
+		t.Skip("resident memory is unavailable on this platform")
+	}
+	if observed.RSS == 0 || observed.HeapInuse == 0 || observed.StackInuse == 0 {
+		t.Fatalf("incomplete live memory observation: %+v", observed)
+	}
+	source := telemetryTestEngine{snapshot: func() (telemetrySnapshot, error) {
+		return telemetrySnapshot{Upload: 7, Download: 13, Memory: observed}, nil
+	}}
+	var output bytes.Buffer
+	if err := emitTelemetry(&output, 3, source); err != nil {
+		t.Fatal(err)
+	}
+	var event telemetryEvent
+	if err := json.Unmarshal(output.Bytes(), &event); err != nil {
+		t.Fatal(err)
+	}
+	if event.Data == nil || event.Data.Memory == nil || *event.Data.Memory != *observed || event.Data.Upload != 7 || event.Data.Download != 13 {
+		t.Fatalf("memory or traffic changed in transport: %s", output.String())
+	}
 }

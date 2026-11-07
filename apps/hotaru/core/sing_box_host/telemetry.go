@@ -6,11 +6,13 @@ import (
 	"errors"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
+	"github.com/sagernet/sing/common/memory"
 )
 
 const telemetryConnectionLimit = 1000
@@ -68,6 +70,7 @@ func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 		HistoryCapacity: telemetryConnectionLimit, ActiveTruncated: truncated,
 		Active: make([]observedConnection, 0, len(active)),
 		Closed: make([]observedConnection, 0, len(closed)),
+		Memory: readMemorySnapshot(),
 	}
 	budget := maxControlFrame - 4096
 	appendConnection := func(c *trafficcontrol.TrackerMetadata, closed bool) error {
@@ -113,6 +116,29 @@ type telemetrySnapshot struct {
 	ActiveTruncated bool                 `json:"active_truncated"`
 	Active          []observedConnection `json:"active"`
 	Closed          []observedConnection `json:"closed"`
+	Memory          *observedMemory      `json:"memory,omitempty"`
+}
+
+type observedMemory struct {
+	RSS          uint64 `json:"rss"`
+	HeapInuse    uint64 `json:"heap_inuse"`
+	HeapIdle     uint64 `json:"heap_idle"`
+	StackInuse   uint64 `json:"stack_inuse"`
+	RuntimeOther uint64 `json:"runtime_other"`
+}
+
+func readMemorySnapshot() *observedMemory {
+	rss := memory.Total()
+	if rss == 0 {
+		return nil
+	}
+	var stats runtime.MemStats
+	runtime.ReadMemStats(&stats)
+	return &observedMemory{
+		RSS: rss, HeapInuse: stats.HeapInuse, HeapIdle: stats.HeapIdle - stats.HeapReleased,
+		StackInuse:   stats.StackInuse,
+		RuntimeOther: stats.MSpanInuse + stats.MCacheInuse + stats.BuckHashSys + stats.GCSys + stats.OtherSys,
+	}
 }
 
 type observedConnection struct {
