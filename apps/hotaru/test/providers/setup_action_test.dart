@@ -5,6 +5,7 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/method.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/spill.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/l10n/l10n.dart';
@@ -30,6 +31,9 @@ import '../helpers/preferences.dart';
 import '../helpers/test_profiles.dart';
 
 class _MockCoreHandlerInterface extends Mock implements CoreHandlerInterface {}
+
+class _GlobalOutboundHandler extends Mock
+    implements CoreHandlerInterface, CoreGlobalOutbound {}
 
 // checkAndUpdateAndCopy checks the file system before it refreshes, so its
 // failure tests need appPath to resolve to a real, writable directory.
@@ -942,6 +946,50 @@ void main() {
   });
 
   group('changeMode', () {
+    test(
+      'uses the actual global group and discards late mode results',
+      () async {
+        final profile = Profile.normal(
+          label: 'p',
+        ).copyWith(id: 1, currentGroupName: 'Manual');
+        final core = _GlobalOutboundHandler();
+        var result = Completer<String>();
+        when(() => core.globalOutbound()).thenAnswer((_) => result.future);
+        final scoped = ProviderContainer(
+          overrides: [
+            profilesProvider.overrideWith(() => TestProfiles([profile])),
+            currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+            setupActionProvider.overrideWith(TestSetupAction.new),
+            coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+          ],
+        );
+        addTearDown(scoped.dispose);
+        final setup = scoped.read(setupActionProvider.notifier);
+        setup.changeMode(Mode.global);
+        setup.changeMode(Mode.direct);
+        result.complete('Hotaru GLOBAL (1)');
+        await Future<void>.delayed(Duration.zero);
+        expect(scoped.read(currentProfileProvider)?.currentGroupName, 'Manual');
+        result = Completer<String>();
+        setup.changeMode(Mode.global);
+        result.complete('Hotaru GLOBAL (1)');
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          scoped.read(currentProfileProvider)?.currentGroupName,
+          'Hotaru GLOBAL (1)',
+        );
+        result = Completer<String>();
+        setup.changeMode(Mode.global);
+        scoped.read(currentProfileIdProvider.notifier).value = null;
+        result.complete('stale-group');
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          scoped.read(profilesProvider).single.currentGroupName,
+          'Hotaru GLOBAL (1)',
+        );
+      },
+    );
+
     test('records the requested mode', () {
       container.read(setupActionProvider.notifier).changeMode(Mode.direct);
 
@@ -975,6 +1023,9 @@ void main() {
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupActionProvider.overrideWith(TestSetupAction.new),
+          coreHandlerProvider.overrideWithValue(
+            CoreController.scoped(_MockCoreHandlerInterface()),
+          ),
         ],
       );
       addTearDown(scoped.dispose);

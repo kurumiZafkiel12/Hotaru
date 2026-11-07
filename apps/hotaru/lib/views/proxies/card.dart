@@ -444,6 +444,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
   bool _routeChanged = false;
   bool _watchingRoute = false;
   bool _cancelRequested = false;
+  bool _boundRoute = false;
 
   @override
   void initState() {
@@ -451,6 +452,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
     _routeTracker = ref.read(routeTrackerProvider.notifier);
     ref.listenManual(routeTrackerProvider, (before, after) {
       if (_running &&
+          !_boundRoute &&
           ((!after.proxied) ||
               (_runEpoch != null &&
                   after.synced &&
@@ -515,10 +517,27 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       _cancelRequested = false;
     });
     try {
+      final core = ref.read(coreHandlerProvider);
+      if (core.supportsOutboundClients) {
+        _boundRoute = true;
+        final result = await core.withOutboundClients(widget.proxyName, (
+          clients,
+        ) async {
+          if (!mounted || _cancelRequested) {
+            return const SpeedTestResult(cancelled: true);
+          }
+          setState(() => _chain = clients.chain);
+          return _runRunner(
+            SpeedTestRunner.withClientFactory(clients.createClient),
+            token,
+          );
+        });
+        _acceptResult(result);
+        return;
+      }
       _watchingRoute = true;
       _routeTracker.attach();
       final startRoute = ref.read(routeTrackerProvider);
-      final core = ref.read(coreHandlerProvider);
       final proxiesData = await core.getProxies();
       if (!mounted || _cancelRequested) return;
       final chain = resolveProxyChain(proxiesData.proxies, widget.proxyName);
@@ -559,34 +578,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       _runEpoch = result.coreEpoch;
       _runVersion = result.routeVersion;
       final runner = SpeedTestRunner(findProxy: (_) => result.speedTestProxy);
-      _runner = runner;
-      final testResult = await runner.run(
-        provider: SpeedTestProvider.apple,
-        durationSeconds: _testDurationSeconds,
-        downloadOnly: true,
-        onProgress: (phase, liveBps, progress) {
-          if (!mounted ||
-              !NodeSpeedTestGate.isActive(token) ||
-              phase != SpeedTestPhase.download) {
-            return;
-          }
-          setState(() {
-            _liveBps = liveBps;
-          });
-        },
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        if (testResult.cancelled) {
-          _error = _routeChanged ? context.appLocalizations.auditStale : null;
-        } else if (testResult.error != null) {
-          _error = testResult.error;
-        } else {
-          _downloadBps = testResult.downloadBps;
-        }
-      });
+      _acceptResult(await _runRunner(runner, token));
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -598,6 +590,7 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
       _runner = null;
       _runEpoch = null;
       _runVersion = null;
+      _boundRoute = false;
       _releaseRoute();
       if (mounted) {
         setState(() {
@@ -605,6 +598,40 @@ class _NodeSpeedTestState extends ConsumerState<_NodeSpeedTest> {
         });
       }
     }
+  }
+
+  Future<SpeedTestResult> _runRunner(SpeedTestRunner runner, int token) async {
+    _runner = runner;
+    return runner.run(
+      provider: SpeedTestProvider.apple,
+      durationSeconds: _testDurationSeconds,
+      downloadOnly: true,
+      onProgress: (phase, liveBps, progress) {
+        if (!mounted ||
+            !NodeSpeedTestGate.isActive(token) ||
+            phase != SpeedTestPhase.download) {
+          return;
+        }
+        setState(() {
+          _liveBps = liveBps;
+        });
+      },
+    );
+  }
+
+  void _acceptResult(SpeedTestResult testResult) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      if (testResult.cancelled) {
+        _error = _routeChanged ? context.appLocalizations.auditStale : null;
+      } else if (testResult.error != null) {
+        _error = testResult.error;
+      } else {
+        _downloadBps = testResult.downloadBps;
+      }
+    });
   }
 
   @override

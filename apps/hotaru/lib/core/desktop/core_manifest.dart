@@ -7,11 +7,22 @@ import 'package:path/path.dart' as p;
 final class CoreManifest {
   const CoreManifest._();
 
-  static Future<String?> readCoreSha256({String? path}) async {
+  static Future<String?> readCoreSha256({String? path}) => _read(path: path);
+
+  static Future<String?> readSingBoxHostSha256({String? path}) =>
+      _read(path: path, requireHost: true);
+
+  static Future<String?> _read({String? path, bool requireHost = false}) async {
     try {
       final file = File(path ?? _defaultPath());
       final value = jsonDecode(await file.readAsString());
       if (value is! Map) return null;
+      if (requireHost &&
+          (value['engine'] != 'sing-box' ||
+              value['coreVersion'] != '1.14.4' ||
+              value['hostProtocol'] != 'hotaru-bootstrap-v1')) {
+        return null;
+      }
       final coreSha256 = value['coreSha256'];
       if (coreSha256 is! String ||
           !RegExp(r'^[0-9a-f]{64}$').hasMatch(coreSha256)) {

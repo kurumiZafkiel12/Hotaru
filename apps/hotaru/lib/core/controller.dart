@@ -5,6 +5,9 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/core/core.dart';
 import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
+import 'outbound_http.dart';
+import 'routing_mode.dart';
+import 'profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -30,6 +33,55 @@ class CoreController {
 
   @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsOutboundClients => _interface is CoreOutboundHttpClients;
+
+  bool get supportsRoutingModes => _interface is CoreRoutingModes;
+
+  bool get supportsGlobalOutbound => _interface is CoreGlobalOutbound;
+
+  Future<String> globalOutbound() {
+    final source = _interface;
+    if (source is CoreGlobalOutbound) {
+      return (source as CoreGlobalOutbound).globalOutbound();
+    }
+    return Future.value(GroupName.GLOBAL.name);
+  }
+
+  CoreRoutingModes get _routingModes {
+    final source = _interface;
+    if (source is! CoreRoutingModes) {
+      throw const CoreMethodException(
+        code: 'routing_modes_unavailable',
+        message: 'Routing modes are unavailable',
+      );
+    }
+    return source as CoreRoutingModes;
+  }
+
+  Future<CoreRoutingMode> routingMode() => _routingModes.routingMode();
+
+  Future<void> setRoutingMode(CoreRoutingMode mode) =>
+      _routingModes.setRoutingMode(mode);
+
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) {
+    final source = _interface;
+    if (source is! CoreOutboundHttpClients) {
+      throw const CoreMethodException(
+        code: 'outbound_http_unavailable',
+        message: 'Scoped outbound clients are unavailable',
+      );
+    }
+    return (source as CoreOutboundHttpClients).withOutboundClients(
+      outbound,
+      action,
+      timeout: timeout,
+    );
+  }
 
   @visibleForTesting
   static void resetInstance() {
@@ -309,8 +361,9 @@ class CoreController {
 
   Future<Map<String, dynamic>> _readConfig(String path) async {
     final data = Map<String, dynamic>.from(await _interface.getConfig(path));
-    data['rules'] = data['rule'];
-    data.remove('rule');
+    if (data.containsKey('rule')) {
+      data['rules'] = data.remove('rule');
+    }
     return data;
   }
 
@@ -325,6 +378,10 @@ class CoreController {
   }
 
   Future<String> buildProfile(SetupBase base) async {
+    final source = _interface;
+    if (source is CoreProfileTextBuilder) {
+      return (source as CoreProfileTextBuilder).buildProfileText(base);
+    }
     return readSpilledText(await _interface.buildProfile(base));
   }
 
@@ -348,7 +405,14 @@ class CoreController {
   }
 
   void resetTraffic() {
-    _interface.resetTraffic();
+    unawaited(
+      Future<void>.sync(() => _interface.resetTraffic()).onError((error, _) {
+        commonPrint.log(
+          'resetTraffic failed: $error',
+          logLevel: coreFailureLogLevel(error),
+        );
+      }),
+    );
   }
 
   void startLog() {

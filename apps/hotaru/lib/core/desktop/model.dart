@@ -1,6 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 
+abstract interface class CoreProcessLauncher {
+  Future<CoreProcessLease> start({
+    required String sessionId,
+    required String address,
+  });
+}
+
+abstract interface class DesktopCoreLauncherResolver {
+  Future<CoreProcessLauncher> resolve();
+}
+
 enum CoreProcessOwner { direct, helper }
 
 enum CoreLifecycleOutcome { applied, coalesced, superseded }
@@ -59,6 +70,15 @@ abstract interface class CoreProcessLease {
   int get pid;
 
   Future<CoreProcessStopResult> stop(Duration timeout);
+}
+
+abstract interface class CoreProcessExitSource implements CoreProcessLease {
+  Future<int> get exitCode;
+}
+
+abstract interface class CoreProcessReadySource
+    implements CoreProcessExitSource {
+  Future<void> get ready;
 }
 
 final class DesktopCoreSession {

@@ -9708,10 +9708,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Page egress IP`
+  /// `Your remote IP`
   String get browserRemoteIp {
     return Intl.message(
-      'Page egress IP',
+      'Your remote IP',
       name: 'browserRemoteIp',
       desc: '',
       args: [],
@@ -9728,9 +9728,14 @@ class AppLocalizations {
     );
   }
 
-  /// `Local IP`
+  /// `Local IP address`
   String get browserLocalIp {
-    return Intl.message('Local IP', name: 'browserLocalIp', desc: '', args: []);
+    return Intl.message(
+      'Local IP address',
+      name: 'browserLocalIp',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `No identifiable local address exposed`
@@ -9738,6 +9743,366 @@ class AppLocalizations {
     return Intl.message(
       'No identifiable local address exposed',
       name: 'browserLocalNotExposed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Page requests use Hotaru’s current proxy. The website performs the test.`
+  String get embeddedToolScope {
+    return Intl.message(
+      'Page requests use Hotaru’s current proxy. The website performs the test.',
+      name: 'embeddedToolScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connect Hotaru to open this tool.`
+  String get embeddedToolNeedCore {
+    return Intl.message(
+      'Connect Hotaru to open this tool.',
+      name: 'embeddedToolNeedCore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The page could not load. Check the connection and WebView2, then retry.`
+  String get embeddedToolUnavailable {
+    return Intl.message(
+      'The page could not load. Check the connection and WebView2, then retry.',
+      name: 'embeddedToolUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reload page`
+  String get embeddedToolReload {
+    return Intl.message(
+      'Reload page',
+      name: 'embeddedToolReload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP diagnostics`
+  String get ipToolsTitle {
+    return Intl.message(
+      'IP diagnostics',
+      name: 'ipToolsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose a site to view the current connection’s IP, network and reputation.`
+  String get ipToolsScope {
+    return Intl.message(
+      'Choose a site to view the current connection’s IP, network and reputation.',
+      name: 'ipToolsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location and network details`
+  String get ipToolsDetails {
+    return Intl.message(
+      'Location and network details',
+      name: 'ipToolsDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP reputation and risk`
+  String get ipToolsReputation {
+    return Intl.message(
+      'IP reputation and risk',
+      name: 'ipToolsReputation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP and browser privacy`
+  String get ipToolsPrivacy {
+    return Intl.message(
+      'IP and browser privacy',
+      name: 'ipToolsPrivacy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IPv4 address`
+  String get browserIpv4 {
+    return Intl.message(
+      'IPv4 address',
+      name: 'browserIpv4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IPv6 address`
+  String get browserIpv6 {
+    return Intl.message(
+      'IPv6 address',
+      name: 'browserIpv6',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Country`
+  String get browserCountry {
+    return Intl.message('Country', name: 'browserCountry', desc: '', args: []);
+  }
+
+  /// `Region`
+  String get browserRegion {
+    return Intl.message('Region', name: 'browserRegion', desc: '', args: []);
+  }
+
+  /// `City`
+  String get browserCity {
+    return Intl.message('City', name: 'browserCity', desc: '', args: []);
+  }
+
+  /// `Organization`
+  String get browserOrganization {
+    return Intl.message(
+      'Organization',
+      name: 'browserOrganization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Public IP address`
+  String get browserPublicIp {
+    return Intl.message(
+      'Public IP address',
+      name: 'browserPublicIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebRTC support`
+  String get browserSupport {
+    return Intl.message(
+      'WebRTC support',
+      name: 'browserSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No leak detected in this test`
+  String get browserNoLeak {
+    return Intl.message(
+      'No leak detected in this test',
+      name: 'browserNoLeak',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leak detected`
+  String get browserLeakDetected {
+    return Intl.message(
+      'Leak detected',
+      name: 'browserLeakDetected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potential leak`
+  String get browserPotentialLeak {
+    return Intl.message(
+      'Potential leak',
+      name: 'browserPotentialLeak',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS servers`
+  String get browserDnsServers {
+    return Intl.message(
+      'DNS servers',
+      name: 'browserDnsServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Session description`
+  String get browserSessionDescription {
+    return Intl.message(
+      'Session description',
+      name: 'browserSessionDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Media devices`
+  String get browserMediaDevices {
+    return Intl.message(
+      'Media devices',
+      name: 'browserMediaDevices',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Permissions`
+  String get browserPermissions {
+    return Intl.message(
+      'Permissions',
+      name: 'browserPermissions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP origin`
+  String get ipFactsOrigin {
+    return Intl.message('IP origin', name: 'ipFactsOrigin', desc: '', args: []);
+  }
+
+  /// `IP type`
+  String get ipFactsAttribute {
+    return Intl.message(
+      'IP type',
+      name: 'ipFactsAttribute',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP quality`
+  String get ipFactsQuality {
+    return Intl.message(
+      'IP quality',
+      name: 'ipFactsQuality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Native`
+  String get ipFactsNative {
+    return Intl.message('Native', name: 'ipFactsNative', desc: '', args: []);
+  }
+
+  /// `Broadcast`
+  String get ipFactsBroadcast {
+    return Intl.message(
+      'Broadcast',
+      name: 'ipFactsBroadcast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low risk`
+  String get ipFactsLow {
+    return Intl.message('Low risk', name: 'ipFactsLow', desc: '', args: []);
+  }
+
+  /// `Medium`
+  String get ipFactsMedium {
+    return Intl.message('Medium', name: 'ipFactsMedium', desc: '', args: []);
+  }
+
+  /// `Elevated`
+  String get ipFactsElevated {
+    return Intl.message(
+      'Elevated',
+      name: 'ipFactsElevated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High risk`
+  String get ipFactsHigh {
+    return Intl.message('High risk', name: 'ipFactsHigh', desc: '', args: []);
+  }
+
+  /// `{level} (Scamalytics {score})`
+  String ipFactsScore(Object level, Object score) {
+    return Intl.message(
+      '$level (Scamalytics $score)',
+      name: 'ipFactsScore',
+      desc: '',
+      args: [level, score],
+    );
+  }
+
+  /// `Location country: {geo}; IP block registration country: {registered} (RDAP)`
+  String ipFactsOriginEvidence(Object geo, Object registered) {
+    return Intl.message(
+      'Location country: $geo; IP block registration country: $registered (RDAP)',
+      name: 'ipFactsOriginEvidence',
+      desc: '',
+      args: [geo, registered],
+    );
+  }
+
+  /// `IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.`
+  String get ipFactsScope {
+    return Intl.message(
+      'IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.',
+      name: 'ipFactsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No usable data provided`
+  String get ipFactsNoData {
+    return Intl.message(
+      'No usable data provided',
+      name: 'ipFactsNoData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latency rating`
+  String get networkLatencyRating {
+    return Intl.message(
+      'Latency rating',
+      name: 'networkLatencyRating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total {traffic}`
+  String profileTrafficTotal(String traffic) {
+    return Intl.message(
+      'Total $traffic',
+      name: 'profileTrafficTotal',
+      desc: '',
+      args: [traffic],
+    );
+  }
+
+  /// `Upload and download while this profile was active, accumulated since import`
+  String get profileTrafficSinceImport {
+    return Intl.message(
+      'Upload and download while this profile was active, accumulated since import',
+      name: 'profileTrafficSinceImport',
       desc: '',
       args: [],
     );

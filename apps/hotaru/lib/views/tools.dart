@@ -8,6 +8,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'speed_test.dart';
+import 'embedded_tool.dart';
+import 'ip_tools.dart';
+import '../features/browser_diagnostics/tool_site.dart';
 import 'service_audit.dart';
 import 'network_diagnostics.dart';
 import 'node_geo.dart';
@@ -76,7 +79,7 @@ class _ToolMatrix extends StatelessWidget {
         l10n.speedTest,
         l10n.networkSpeed,
         AppGlyphs.speed,
-        () => BaseNavigator.push(context, const SpeedTestView()),
+        () => BaseNavigator.push(context, SpeedTestView(platform: platform)),
       ),
       (
         l10n.toolsPrivacy,
@@ -85,7 +88,9 @@ class _ToolMatrix extends StatelessWidget {
         AppGlyphs.devices,
         () => BaseNavigator.push(
           context,
-          const NetworkDiagnosticsView(kind: NetworkDiagnostic.dns),
+          platform == SupportPlatform.Windows
+              ? const EmbeddedToolView(site: ToolSite.dns)
+              : const NetworkDiagnosticsView(kind: NetworkDiagnostic.dns),
         ),
       ),
       (
@@ -95,23 +100,35 @@ class _ToolMatrix extends StatelessWidget {
         AppGlyphs.vpn,
         () => BaseNavigator.push(
           context,
-          const NetworkDiagnosticsView(kind: NetworkDiagnostic.stun),
+          platform == SupportPlatform.Windows
+              ? const EmbeddedToolView(site: ToolSite.webrtc)
+              : const NetworkDiagnosticsView(kind: NetworkDiagnostic.stun),
         ),
       ),
       (
         l10n.toolsIp,
-        l10n.ipPortraitTitle,
-        l10n.ipPortraitSubtitle,
+        platform == SupportPlatform.Windows
+            ? l10n.ipToolsTitle
+            : l10n.ipPortraitTitle,
+        platform == SupportPlatform.Windows
+            ? l10n.ipToolsScope
+            : l10n.ipPortraitSubtitle,
         AppGlyphs.status,
-        () => BaseNavigator.push(context, const IpPortraitView()),
+        () => BaseNavigator.push(
+          context,
+          platform == SupportPlatform.Windows
+              ? const IpToolsView()
+              : const IpPortraitView(),
+        ),
       ),
-      (
-        l10n.toolsIp,
-        l10n.nodeGlobeTitle,
-        l10n.nodeGeoEstimate,
-        AppGlyphs.proxies,
-        () => BaseNavigator.push(context, const NodeGeoView()),
-      ),
+      if (platform != SupportPlatform.Windows)
+        (
+          l10n.toolsIp,
+          l10n.nodeGlobeTitle,
+          l10n.nodeGeoEstimate,
+          AppGlyphs.proxies,
+          () => BaseNavigator.push(context, const NodeGeoView()),
+        ),
       if (platform == SupportPlatform.Android)
         (
           l10n.toolsMaintenance,

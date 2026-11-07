@@ -25,6 +25,10 @@ void main() {
           (args['settings'] as Map)['userDataFolder'],
           '/temporary/isolated',
         );
+        expect(
+          (args['settings'] as Map)['additionalBrowserArguments'],
+          '--proxy-server=http://127.0.0.1:17890',
+        );
         created = MethodChannel('${factory.name}_$createdId');
         messenger.setMockMethodCallHandler(created!, (call) async {
           disposedMethod = call.method;
@@ -38,6 +42,7 @@ void main() {
       });
       final environment = await createLeakWebViewEnvironment(
         '/temporary/isolated',
+        browserArguments: '--proxy-server=http://127.0.0.1:17890',
       );
       expect(environment.id, createdId);
       expect(environment.channel?.name, created!.name);

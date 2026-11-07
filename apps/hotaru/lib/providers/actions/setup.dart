@@ -44,6 +44,7 @@ class SetupAction extends _$SetupAction {
   _SetupInputs? _appliedInputs;
   var _lastPushDuration = Duration.zero;
   var _pendingForceApply = false;
+  int _modeSelectionRevision = 0;
 
   bool get _isRunning => _startTime != null && _startTime!.isBeforeNow;
 
@@ -367,13 +368,41 @@ class SetupAction extends _$SetupAction {
   }
 
   void changeMode(Mode mode) {
+    final revision = ++_modeSelectionRevision;
     ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
     if (mode == Mode.global) {
+      final core = _core;
+      if (core.supportsGlobalOutbound) {
+        unawaited(_selectGlobalOutbound(core, revision));
+        return;
+      }
       ref
           .read(proxiesActionProvider.notifier)
           .updateCurrentGroupName(GroupName.GLOBAL.name);
+    }
+  }
+
+  Future<void> _selectGlobalOutbound(CoreController core, int revision) async {
+    final profileId = ref.read(currentProfileProvider)?.id;
+    try {
+      final name = await core.globalOutbound();
+      if (!ref.mounted ||
+          revision != _modeSelectionRevision ||
+          ref.read(currentProfileProvider)?.id != profileId ||
+          ref.read(patchClashConfigProvider).mode != Mode.global ||
+          !identical(core, _core)) {
+        return;
+      }
+      ref.read(proxiesActionProvider.notifier).updateCurrentGroupName(name);
+    } catch (error) {
+      if (ref.mounted && revision == _modeSelectionRevision) {
+        commonPrint.log(
+          'global outbound selection failed: ${compactError(error)}',
+          logLevel: coreFailureLogLevel(error),
+        );
+      }
     }
   }
 

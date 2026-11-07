@@ -98,3 +98,14 @@ class IpQualityConverter extends TypeConverter<IpQuality, String> {
     return json.encode(value.toJson());
   }
 }
+
+class IpFactsConverter extends TypeConverter<IpFacts, String> {
+  const IpFactsConverter();
+
+  @override
+  IpFacts fromSql(String fromDb) =>
+      IpFacts.fromJson(Map<String, Object?>.from(json.decode(fromDb)));
+
+  @override
+  String toSql(IpFacts value) => json.encode(value.toJson());
+}

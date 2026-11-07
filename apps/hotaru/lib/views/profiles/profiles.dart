@@ -358,7 +358,7 @@ class ProfileItem extends ConsumerWidget {
         children: [...previousChildren, ?currentChild],
       ),
       child: isUpdating
-          ? const CommonCircleLoading(key: ValueKey('updating'), size: 24)
+          ? const CommonCircleLoading(key: ValueKey('updating'), size: 16)
           : LastUpdateTimeText(
               key: const ValueKey('lastUpdate'),
               lastUpdateDate: profile.lastUpdateDate,
@@ -510,6 +510,10 @@ class ProfileItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isUpdating = ref.watch(isUpdatingProvider(profile.updatingKey));
     final subscriptionInfo = _subscriptionInfo;
+    final traffic = ref.watch(profileTrafficProvider(profile.id)).value;
+    final cumulativeBytes = traffic == null
+        ? null
+        : traffic.upload + traffic.download;
     final isSelected = profile.id == groupValue;
     return ContextMenuRegion(
       menuItems: isUpdating ? null : _menuItems(context, ref),
@@ -528,10 +532,21 @@ class ProfileItem extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
-              if (profile.type == ProfileType.custom)
-                _GroupsCountChip(profileId: profile.id)
-              else
-                _buildTrailing(context, isUpdating: isUpdating),
+              if (profile.type == ProfileType.custom) ...[
+                if (cumulativeBytes != null)
+                  _ProfileTrafficLabel(bytes: cumulativeBytes),
+                _GroupsCountChip(profileId: profile.id),
+              ] else
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  spacing: 2,
+                  children: [
+                    if (cumulativeBytes != null)
+                      _ProfileTrafficLabel(bytes: cumulativeBytes),
+                    _buildTrailing(context, isUpdating: isUpdating),
+                  ],
+                ),
               if (isSelected) const SelectionBadge(size: 24),
             ],
           ),
@@ -544,6 +559,23 @@ class ProfileItem extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _ProfileTrafficLabel extends StatelessWidget {
+  final int bytes;
+
+  const _ProfileTrafficLabel({required this.bytes});
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: context.appLocalizations.profileTrafficSinceImport,
+    child: Text(
+      context.appLocalizations.profileTrafficTotal(bytes.traffic.show),
+      style: AppTextStyle.caption2.of(context).toLighter,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+  );
 }
 
 class _ProfileCardTitle extends StatelessWidget {
