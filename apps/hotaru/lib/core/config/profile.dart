@@ -166,6 +166,7 @@ final class CoreTunSpec {
 }
 
 final class CoreListenerSpec {
+  final bool inboundsEnabled;
   final int mixedPort;
   final int controllerPort;
   final String secret;
@@ -177,10 +178,25 @@ final class CoreListenerSpec {
     required this.mixedPort,
     required this.controllerPort,
     required this.secret,
+    this.inboundsEnabled = true,
     this.tun,
     this.dnsPort,
     this.probe,
   });
+
+  CoreProbeListenerSpec? get activeProbe => inboundsEnabled ? probe : null;
+  CoreTunSpec? get activeTun => inboundsEnabled ? tun : null;
+  int? get activeDnsPort => inboundsEnabled ? dnsPort : null;
+
+  CoreListenerSpec withInbounds(bool enabled) => CoreListenerSpec(
+    mixedPort: mixedPort,
+    controllerPort: controllerPort,
+    secret: secret,
+    inboundsEnabled: enabled,
+    tun: tun,
+    dnsPort: dnsPort,
+    probe: probe,
+  );
 }
 
 enum CoreConfigIssueSeverity { error, warning }

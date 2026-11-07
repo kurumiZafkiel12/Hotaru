@@ -8,6 +8,7 @@ import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/enum/enum.dart' show CoreEventType;
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/dns.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/telemetry.dart';
@@ -845,5 +846,123 @@ void main() {
     },
     skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
     timeout: const Timeout(Duration(minutes: 3)),
+  );
+
+  test(
+    'real SYSTEM Helper retains control without listeners or a TUN in idle mode',
+    () async {
+      await initEditorNative();
+      final mixed = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      final probe = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      final dns = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      var connections = 0;
+      for (final socket in [mixed, probe, dns]) {
+        addTearDown(socket.close);
+        socket.listen((client) {
+          connections++;
+          client.destroy();
+        });
+      }
+      final listeners = CoreListenerSpec(
+        mixedPort: mixed.port,
+        controllerPort: await freeLoopbackPort(),
+        secret: 'control-only-native-fixture',
+        inboundsEnabled: false,
+        probe: CoreProbeListenerSpec(
+          port: probe.port,
+          secret: 'idle-native-probe-1234567890123456789012345',
+        ),
+        dnsPort: dns.port,
+        tun: CoreTunSpec(
+          interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
+          addresses: ['198.18.8.1/30'],
+          autoRoute: false,
+          hijackDns: true,
+        ),
+      );
+      final profile = CoreProfileSpec(
+        nodes: const [
+          CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
+        ],
+        selectors: [
+          CoreSelectorSpec(tag: 'selected', members: ['direct']),
+        ],
+        finalOutbound: 'selected',
+        dns: CoreDnsSpec(
+          servers: const [
+            CoreDnsServerSpec(tag: 'local', protocol: CoreDnsProtocol.local),
+          ],
+          finalServer: 'local',
+        ),
+      );
+      final preparer = SingBoxConfigPreparer();
+      final result = await preparer.prepare(
+        import: () async =>
+            CoreConfigImportResult(profile: profile, issues: []),
+        listeners: listeners,
+      );
+      expect(result.status, SingBoxPreparationStatus.ready);
+      final accepted = preparer.approve(result.candidate!);
+      expect(
+        jsonDecode(utf8.decode(accepted.bootstrap.bytes))['config']['inbounds'],
+        isEmpty,
+      );
+      final core = await createSingBoxHelperCore(
+        bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
+        configuration: accepted,
+      );
+      late int pid;
+      try {
+        final started = await core.start();
+        pid = started.session!.pid;
+        expect(started.session!.owner, CoreProcessOwner.helper);
+        await _expectSystem(pid);
+        await core.adapter.selectOutbound('selected', 'direct');
+        expect(
+          (await core.adapter.outbounds())
+              .singleWhere((entry) => entry.name == 'selected')
+              .selected,
+          'direct',
+        );
+        var called = false;
+        await expectLater(
+          (core.adapter as CoreOutboundHttpClients).withOutboundClient(
+            'direct',
+            (_) async {
+              called = true;
+            },
+          ),
+          throwsA(
+            isA<CoreAdapterException>().having(
+              (error) => error.code,
+              'code',
+              'outbound_http_unavailable',
+            ),
+          ),
+        );
+        expect(called, isFalse);
+        expect(connections, 0);
+        final interfaces = await NetworkInterface.list(includeLoopback: true);
+        expect(
+          interfaces
+              .expand((entry) => entry.addresses)
+              .any((address) => address.address == '198.18.8.1'),
+          isFalse,
+        );
+        expect(core.lifecycle.state, isA<DesktopCoreRunning>());
+      } finally {
+        await core.close();
+      }
+      expect(await isProcessAlive(pid), isFalse);
+      final path = File(_environment['HOTARU_NATIVE_HELPER_RESULT']!);
+      final report = Map<String, dynamic>.from(
+        jsonDecode(await path.readAsString()) as Map,
+      );
+      report['control_only_helper'] = true;
+      (report['pids'] as List).add(pid);
+      await path.writeAsString(jsonEncode(report));
+    },
+    skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
+    timeout: const Timeout(Duration(minutes: 1)),
   );
 }

@@ -292,14 +292,14 @@ final class SingBoxConfigBuilder {
         const CoreConfigIssue('invalid_controller_secret', 'listeners'),
       );
     }
-    final tun = listeners.tun;
-    if (tun != null) {
-      if (tun.interfaceName.trim().isEmpty ||
-          tun.interfaceName.contains(RegExp(r'[\r\n]')) ||
-          tun.addresses.isEmpty) {
+    final requestedTun = listeners.tun;
+    if (requestedTun != null) {
+      if (requestedTun.interfaceName.trim().isEmpty ||
+          requestedTun.interfaceName.contains(RegExp(r'[\r\n]')) ||
+          requestedTun.addresses.isEmpty) {
         issues.add(const CoreConfigIssue('invalid_tun', 'listeners.tun'));
       }
-      for (final address in tun.addresses) {
+      for (final address in requestedTun.addresses) {
         final parts = address.split('/');
         final ip = InternetAddress.tryParse(parts.first);
         final prefix = parts.length == 2 ? int.tryParse(parts.last) : null;
@@ -317,20 +317,22 @@ final class SingBoxConfigBuilder {
       }
     }
     issues.addAll(validateDns(profile, listeners));
-    final probe = listeners.probe;
-    if (probe != null &&
-        (!probe.isValid ||
+    final requestedProbe = listeners.probe;
+    if (requestedProbe != null &&
+        (!requestedProbe.isValid ||
             [
               listeners.mixedPort,
               listeners.controllerPort,
               listeners.dnsPort,
-            ].contains(probe.port))) {
+            ].contains(requestedProbe.port))) {
       issues.add(
         const CoreConfigIssue('invalid_probe_listener', 'listeners.probe'),
       );
     }
     if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     final modes = CoreModeOutbounds(profile);
+    final probe = listeners.activeProbe;
+    final tun = listeners.activeTun;
     try {
       final encoded = CoreConfigEncoding.encode({
         if (profile.dns case final dns?) 'dns': compileDns(dns),
@@ -349,19 +351,20 @@ final class SingBoxConfigBuilder {
                   },
               ],
             },
-          if (listeners.dnsPort != null)
+          if (listeners.activeDnsPort != null)
             {
               'type': 'direct',
               'tag': 'dns-in',
               'listen': '127.0.0.1',
-              'listen_port': listeners.dnsPort,
+              'listen_port': listeners.activeDnsPort,
             },
-          {
-            'type': 'mixed',
-            'tag': 'mixed',
-            'listen': '127.0.0.1',
-            'listen_port': listeners.mixedPort,
-          },
+          if (listeners.inboundsEnabled)
+            {
+              'type': 'mixed',
+              'tag': 'mixed',
+              'listen': '127.0.0.1',
+              'listen_port': listeners.mixedPort,
+            },
           if (tun != null)
             {
               'type': 'tun',
@@ -419,7 +422,7 @@ final class SingBoxConfigBuilder {
                 'action': 'reject',
               },
             ],
-            if (listeners.dnsPort != null)
+            if (listeners.activeDnsPort != null)
               {
                 'inbound': ['dns-in'],
                 'action': 'hijack-dns',

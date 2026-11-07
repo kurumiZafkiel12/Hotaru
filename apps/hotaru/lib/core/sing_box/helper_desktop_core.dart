@@ -69,7 +69,7 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
       endpoint: Uri.parse('http://127.0.0.1:${listeners.controllerPort}'),
       secret: listeners.secret,
       telemetry: (lifecycle.activePlan as _HelperPlan).connection().telemetry,
-      probe: listeners.probe,
+      probe: listeners.activeProbe,
       probeOutbounds: [
         ...configuration.profile.nodes.map((node) => node.tag),
         ...configuration.profile.selectors.map((group) => group.tag),
@@ -111,7 +111,7 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
             peerPid: () async {
               final owners = await Future.wait([
                 windowsListenerOwner(endpoint),
-                if (listeners.probe case final probe?)
+                if (listeners.activeProbe case final probe?)
                   windowsListenerOwner(
                     Uri.parse('http://127.0.0.1:${probe.port}'),
                   ),
