@@ -81,18 +81,30 @@ void main() {
   });
 
   test(
-    'plain IP rules require explicit no-resolve instead of silently changing DNS semantics',
+    'plain IP rules retain resolution intent separately from no-resolve',
     () async {
       for (final type in ['IP-CIDR', 'IP-CIDR6']) {
         final source =
             '$type,${type.endsWith('6') ? '2001:db8::/32' : '192.0.2.0/24'},DIRECT';
-        final rejected = await ClashProfileImporter().import(
+        final resolving = await ClashProfileImporter().import(
           jsonEncode({
             'rules': [source, 'MATCH,DIRECT'],
           }),
         );
-        expect(rejected.profile, isNull);
-        expect(rejected.issues.single.code, 'ip_rule_resolution_not_migrated');
+        expect(resolving.issues.single.code, 'ip_resolution_semantics_changed');
+        expect(
+          resolving.issues.single.severity,
+          CoreConfigIssueSeverity.warning,
+        );
+        expect(resolving.profile!.rules.single.noResolve, isFalse);
+        final built = await SingBoxConfigBuilder().build(
+          resolving.profile!,
+          listeners,
+        );
+        expect(built.issues, isEmpty);
+        final rules = jsonDecode(built.json!)['route']['rules'] as List;
+        expect(rules[2], {'action': 'resolve'});
+        expect(rules[3]['ip_cidr'], [source.split(',')[1]]);
         final accepted = await ClashProfileImporter().import(
           jsonEncode({
             'rules': ['$source,no-resolve', 'MATCH,DIRECT'],
@@ -112,9 +124,9 @@ void main() {
   );
 
   test(
-    'builder also rejects implicit DNS resolution and unused no-resolve fields',
+    'builder resolves IP rules at their position and rejects unused no-resolve fields',
     () async {
-      final invalid = await SingBoxConfigBuilder().build(
+      final resolving = await SingBoxConfigBuilder().build(
         profile(const [
           CoreRouteRule(
             kind: CoreRuleKind.ipCidr,
@@ -124,8 +136,10 @@ void main() {
         ]),
         listeners,
       );
-      expect(invalid.json, isNull);
-      expect(invalid.issues.single.code, 'ip_rule_resolution_not_migrated');
+      expect(resolving.issues, isEmpty);
+      expect(jsonDecode(resolving.json!)['route']['rules'][2], {
+        'action': 'resolve',
+      });
       final unused = await SingBoxConfigBuilder().build(
         profile(const [
           CoreRouteRule(

@@ -199,8 +199,7 @@ final class _ClashImport {
           continue;
         }
         if (ip && !noResolve) {
-          issue('ip_rule_resolution_not_migrated', path);
-          continue;
+          issue('ip_resolution_semantics_changed', path, warning: true);
         }
         if (ip && CoreIpPrefix.parse(fields[1]) == null) {
           issue('invalid_ip_prefix', path);

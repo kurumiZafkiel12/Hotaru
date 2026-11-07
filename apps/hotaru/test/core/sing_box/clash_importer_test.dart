@@ -218,7 +218,6 @@ rules: ["MATCH,SS"]
       'rules: ["DOMAIN,example.com,DIRECT"]',
       'rules: ["MATCH,DIRECT", "DOMAIN,example.com,DIRECT"]',
       'rules: ["GEOIP,CN,DIRECT", "MATCH,DIRECT"]',
-      'rules: ["IP-CIDR,192.0.2.0/24,DIRECT", "MATCH,DIRECT"]',
     ]) {
       final imported = await importer.import(source);
       expect(imported.profile, isNull);

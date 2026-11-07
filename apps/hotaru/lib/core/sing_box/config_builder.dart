@@ -80,11 +80,6 @@ final class SingBoxConfigBuilder {
     for (var index = 0; index < profile.rules.length; index++) {
       final rule = profile.rules[index];
       if (rule.kind == CoreRuleKind.ipCidr) {
-        if (!rule.noResolve) {
-          issues.add(
-            CoreConfigIssue('ip_rule_resolution_not_migrated', 'rules.$index'),
-          );
-        }
         if (CoreIpPrefix.parse(rule.value) == null) {
           issues.add(CoreConfigIssue('invalid_ip_prefix', 'rules.$index'));
         }
@@ -319,7 +314,9 @@ final class SingBoxConfigBuilder {
               'action': 'route',
               'outbound': modes.global.tag,
             },
-            for (final rule in profile.rules)
+            for (final rule in profile.rules) ...[
+              if (rule.kind == CoreRuleKind.ipCidr && !rule.noResolve)
+                {'action': 'resolve'},
               {
                 if (rule.kind != CoreRuleKind.always)
                   switch (rule.kind) {
@@ -339,6 +336,7 @@ final class SingBoxConfigBuilder {
                 if (rule.action == CoreRuleAction.drop) 'method': 'drop',
                 if (rule.outbound != null) 'outbound': rule.outbound,
               },
+            ],
             {
               'clash_mode': 'rule',
               'action': 'route',

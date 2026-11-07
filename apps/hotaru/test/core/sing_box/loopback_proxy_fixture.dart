@@ -10,11 +10,16 @@ Future<int> freeLoopbackPort() async {
 }
 
 class LoopbackProxyFixture {
-  LoopbackProxyFixture(this.server, this.targetPort) {
+  LoopbackProxyFixture(
+    this.server,
+    this.targetPort, {
+    this.allowedHosts = const ['127.0.0.1'],
+  }) {
     server.listen(_connect);
   }
   final ServerSocket server;
   final int targetPort;
+  final List<String> allowedHosts;
   final receipts = <int>[];
   final cleanups = <Future<void> Function()>[];
 
@@ -38,9 +43,10 @@ class LoopbackProxyFixture {
             .split('\r\n')
             .first;
         final target = RegExp(
-          r'^CONNECT 127\.0\.0\.1:(\d+) HTTP/1\.1$',
+          r'^CONNECT ([^:\s]+):(\d+) HTTP/1\.1$',
         ).firstMatch(line);
-        if (int.tryParse(target?.group(1) ?? '') != targetPort) {
+        if (!allowedHosts.contains(target?.group(1)) ||
+            int.tryParse(target?.group(2) ?? '') != targetPort) {
           await cleanup();
           return;
         }

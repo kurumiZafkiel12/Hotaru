@@ -50,6 +50,30 @@ final class _ManyReferences extends ListBase<Object?> {
 
 void main() {
   test(
+    'resolving Clash IP rules require review of native DNS semantic changes',
+    () async {
+      final preparation = SingBoxConfigPreparer();
+      final result = await preparation.prepare(
+        import: () => ClashProfileImporter().import(
+          'rules: ["IP-CIDR,127.0.0.0/8,DIRECT", "MATCH,DIRECT"]',
+        ),
+        listeners: listeners,
+      );
+      expect(result.status, SingBoxPreparationStatus.ready);
+      final candidate = result.candidate!;
+      expect(candidate.warnings.single.code, 'ip_resolution_semantics_changed');
+      expect(() => preparation.approve(candidate), throwsStateError);
+      final accepted = preparation.approve(
+        candidate,
+        acknowledgment: preparation.acknowledge(candidate),
+      );
+      final rules = decoded(accepted)['config']['route']['rules'] as List;
+      expect(rules[2], {'action': 'resolve'});
+      expect(rules[3]['ip_cidr'], ['127.0.0.0/8']);
+    },
+  );
+
+  test(
     'profile identity is client-owned metadata bound to the accepted candidate',
     () async {
       final preparation = SingBoxConfigPreparer();
