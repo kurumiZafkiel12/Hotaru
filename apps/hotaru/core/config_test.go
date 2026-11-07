@@ -21,7 +21,6 @@ import (
 	"github.com/metacubex/mihomo/hub/route"
 	authStore "github.com/metacubex/mihomo/listener/auth"
 	"github.com/metacubex/mihomo/log"
-	"github.com/metacubex/mihomo/tunnel"
 )
 
 func withCurrentConfig(t *testing.T, cfg *config.Config) {
@@ -463,38 +462,37 @@ func TestCurrentTestURLFallsBackToTheBuiltInProbe(t *testing.T) {
 	}
 }
 
-func TestDelayTestSlotsBoundConcurrency(t *testing.T) {
-	if cap(delayTestSlots) != delayTestConcurrency {
-		t.Fatalf("delayTestSlots capacity = %d, want %d", cap(delayTestSlots), delayTestConcurrency)
-	}
+func TestSlotsBoundConcurrency(t *testing.T) {
+	const capacity = 3
+	s := make(slots, capacity)
 
-	for i := 0; i < delayTestConcurrency; i++ {
-		if !delayTestSlots.acquire(context.Background()) {
+	for i := 0; i < capacity; i++ {
+		if !s.acquire(context.Background()) {
 			t.Fatalf("slot %d was refused while the semaphore still had room", i)
 		}
 	}
 
 	blocked := make(chan struct{})
 	go func() {
-		delayTestSlots.acquire(context.Background())
+		s.acquire(context.Background())
 		close(blocked)
 	}()
 
 	select {
 	case <-blocked:
-		t.Fatal("delayTestSlots handed out more slots than the configured concurrency")
+		t.Fatal("slots handed out more slots than the configured concurrency")
 	case <-time.After(20 * time.Millisecond):
 	}
 
-	delayTestSlots.release()
+	s.release()
 	select {
 	case <-blocked:
 	case <-time.After(time.Second):
 		t.Fatal("a released slot never reached the waiting caller")
 	}
 
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots.release()
+	for i := 0; i < capacity; i++ {
+		s.release()
 	}
 }
 
@@ -524,31 +522,6 @@ func TestSetTestURLIgnoresAnEmptyValue(t *testing.T) {
 	}
 	if got := currentTestURL(); got != configured {
 		t.Errorf("currentTestURL() = %q, want %q", got, configured)
-	}
-}
-
-func TestTestDelayRejectsAnUnknownProxyWithoutWaitingForASlot(t *testing.T) {
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots <- struct{}{}
-	}
-	t.Cleanup(func() {
-		for i := 0; i < delayTestConcurrency; i++ {
-			<-delayTestSlots
-		}
-	})
-
-	done := make(chan *Delay, 1)
-	go func() {
-		done <- handleTestDelay(&TestDelayParams{ProxyName: "missing", Timeout: 1})
-	}()
-
-	select {
-	case delay := <-done:
-		if delay.Value != delayFailed {
-			t.Errorf("value = %d, want %d", delay.Value, delayFailed)
-		}
-	case <-time.After(time.Second):
-		t.Fatal("an unknown proxy queued behind a saturated delay-test semaphore")
 	}
 }
 
@@ -813,20 +786,14 @@ func TestHandleSetupConfigLeavesTheListenerAloneOnSuccess(t *testing.T) {
 }
 
 func TestSlotsAcquireGivesUpOnTheDeadline(t *testing.T) {
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots <- struct{}{}
-	}
-	t.Cleanup(func() {
-		for i := 0; i < delayTestConcurrency; i++ {
-			<-delayTestSlots
-		}
-	})
+	s := make(slots, 1)
+	s <- struct{}{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
 	defer cancel()
 
 	refused := make(chan bool, 1)
-	go func() { refused <- delayTestSlots.acquire(ctx) }()
+	go func() { refused <- s.acquire(ctx) }()
 
 	select {
 	case granted := <-refused:
@@ -846,48 +813,6 @@ func TestTimeoutFromMillisFallsBackWhenUnset(t *testing.T) {
 		if got := timeoutFromMillis(unset, defaultDelayTestTimeout); got != defaultDelayTestTimeout {
 			t.Errorf("timeoutFromMillis(%d) = %v, want the default %v", unset, got, defaultDelayTestTimeout)
 		}
-	}
-}
-
-func TestTestDelayQueuesWhenTheTimeoutIsUnset(t *testing.T) {
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots <- struct{}{}
-	}
-	t.Cleanup(func() {
-		for i := 0; i < delayTestConcurrency; i++ {
-			<-delayTestSlots
-		}
-	})
-
-	tunnel.UpdateProxies(map[string]constant.Proxy{"queued": namedProxy("queued")}, nil)
-	t.Cleanup(func() { tunnel.UpdateProxies(nil, nil) })
-
-	done := make(chan *Delay, 1)
-	go func() {
-		// A refused port rather than the default URL: the probe this is proving
-		// will eventually happen should not leave the machine.
-		done <- handleTestDelay(&TestDelayParams{
-			ProxyName: "queued",
-			TestUrl:   "http://127.0.0.1:1",
-		})
-	}()
-
-	select {
-	case <-done:
-		t.Fatal("handleTestDelay gave up immediately on an unset timeout, want it queueing for the default")
-	case <-time.After(200 * time.Millisecond):
-	}
-
-	// Hand over a slot and join, so nothing is still reading the tunnel when
-	// the cleanup below replaces it. tunnel.Proxies and tunnel.Providers are
-	// unsynchronised reads of maps UpdateProxies writes, so an unjoined reader
-	// is a reported race whatever the timing.
-	<-delayTestSlots
-	delay := <-done
-	delayTestSlots <- struct{}{}
-
-	if delay.Value != delayFailed {
-		t.Errorf("value = %d, want %d for a probe against a refused port", delay.Value, delayFailed)
 	}
 }
 
@@ -928,95 +853,13 @@ func blackHoleServer(t *testing.T) net.Addr {
 	return listener.Addr()
 }
 
-// Queueing for a slot and probing the node must not share one deadline: a node
-// that waited out most of its timeout behind a saturated semaphore would have
-// only the remainder to connect in and report Timeout while perfectly healthy -
-// which is what a bulk test of a large subscription does to everything at the
-// back of the queue.
-func TestTestDelayDoesNotSpendTheProbeBudgetQueueing(t *testing.T) {
-	const (
-		timeout  = 200 * time.Millisecond
-		queueFor = 150 * time.Millisecond
-	)
-
-	addr := blackHoleServer(t)
-
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots <- struct{}{}
+func TestTestDelayFailsFastWhenSingBoxIsDown(t *testing.T) {
+	stopSingBox()
+	delay := handleTestDelay(&TestDelayParams{ProxyName: "anything", Timeout: 20})
+	if delay == nil {
+		t.Fatal("handleTestDelay returned nil, want an explicit failure")
 	}
-	t.Cleanup(func() {
-		for i := 0; i < delayTestConcurrency; i++ {
-			<-delayTestSlots
-		}
-	})
-
-	tunnel.UpdateProxies(map[string]constant.Proxy{"queued": namedProxy("queued")}, nil)
-	t.Cleanup(func() { tunnel.UpdateProxies(nil, nil) })
-
-	done := make(chan *Delay, 1)
-	start := time.Now()
-	go func() {
-		done <- handleTestDelay(&TestDelayParams{
-			ProxyName: "queued",
-			TestUrl:   "http://" + addr.String(),
-			Timeout:   timeout.Milliseconds(),
-		})
-	}()
-
-	time.Sleep(queueFor)
-	<-delayTestSlots
-
-	select {
-	case delay := <-done:
-		elapsed := time.Since(start)
-		if delay == nil {
-			t.Fatal("handleTestDelay gave up queueing even though a slot came free")
-		}
-		if elapsed < queueFor+timeout {
-			t.Errorf(
-				"handleTestDelay returned after %v, want at least %v: the probe inherited the deadline the wait had already spent",
-				elapsed,
-				queueFor+timeout,
-			)
-		}
-		if delay.Value != delayTimedOut {
-			t.Errorf("value = %d, want %d for a probe that waited out its deadline", delay.Value, delayTimedOut)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("handleTestDelay never returned")
-	}
-
-	// handleTestDelay released the slot it was handed; put it back so the
-	// cleanup above drains what it put in.
-	delayTestSlots <- struct{}{}
-}
-
-func TestTestDelayStopsQueueingOnceTheTimeoutIsSpent(t *testing.T) {
-	for i := 0; i < delayTestConcurrency; i++ {
-		delayTestSlots <- struct{}{}
-	}
-	t.Cleanup(func() {
-		for i := 0; i < delayTestConcurrency; i++ {
-			<-delayTestSlots
-		}
-	})
-
-	// A proxy the lookup actually resolves, so the call reaches the semaphore
-	// instead of bailing out on an unknown name.
-	tunnel.UpdateProxies(map[string]constant.Proxy{"queued": namedProxy("queued")}, nil)
-	t.Cleanup(func() { tunnel.UpdateProxies(nil, nil) })
-
-	done := make(chan *Delay, 1)
-	go func() {
-		done <- handleTestDelay(&TestDelayParams{ProxyName: "queued", Timeout: 20})
-	}()
-
-	select {
-	case delay := <-done:
-		if delay != nil {
-			t.Errorf("delay = %+v, want no result for a test that never got a slot", delay)
-		}
-	case <-time.After(time.Second):
-		t.Fatal("handleTestDelay outlived the timeout it was given, waiting for a slot")
+	if delay.Value != delayFailed || delay.Error != "sing-box-not-running" {
+		t.Errorf("delay = %+v, want value %d with error sing-box-not-running", delay, delayFailed)
 	}
 }

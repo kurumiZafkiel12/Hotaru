@@ -192,7 +192,7 @@ func handleChangeProxy(params *ChangeProxyParams) *ChangeProxyResult {
 		return &ChangeProxyResult{Message: err.Error()}
 	}
 	changed := selector.Now() != before
-	if changed && !params.ForSpeedTest && singBoxEnabled() && sbIsUp.Load() {
+	if changed && sbIsUp.Load() {
 		if err := sbChangeProxy(groupName, params.ProxyName); err != nil {
 			log.Warnln("[sing-box] mirror selection %s -> %s: %v", groupName, params.ProxyName, err)
 		}

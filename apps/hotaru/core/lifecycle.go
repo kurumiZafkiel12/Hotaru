@@ -7,12 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/metacubex/mihomo/adapter/inbound"
 	"github.com/metacubex/mihomo/component/resolver"
 	"github.com/metacubex/mihomo/component/updater"
 	"github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/constant"
-	"github.com/metacubex/mihomo/constant/features"
 	"github.com/metacubex/mihomo/hub/executor"
 	"github.com/metacubex/mihomo/listener"
 	"github.com/metacubex/mihomo/tunnel"
@@ -44,17 +42,20 @@ func handleStartListener() bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(true)
-	if singBoxEnabled() {
-		startSingBox()
-		if sbIsUp.Load() {
-			sbApplySelections(sbSelectionsFromState())
-		}
+	// A probe already out belongs to the previous attempt's routes, so its
+	// answer must not stand for this one — even if this attempt goes on to
+	// fail, which in this build it openly can.
+	bumpRouteEpoch()
+	startSingBox()
+	if !sbIsUp.Load() {
+		// No fallback: a failed sing-box start is a failed connection,
+		// reported as such instead of being covered by mihomo listeners.
+		isRunning.Store(false)
+		return false
 	}
+	sbApplySelections(sbSelectionsFromState())
 	updateListeners(currentConfig)
 	resolver.ResetConnection()
-	// A probe already out left before the TUN routes and over the DNS
-	// connections just dropped, so its answer must not stand for this route.
-	bumpRouteEpoch()
 	return true
 }
 
@@ -72,32 +73,8 @@ func updateListeners(cfg *config.Config) {
 	if cfg == nil || !isRunning.Load() {
 		return
 	}
-	if singBoxEnabled() && sbIsUp.Load() {
-		// sing-box owns the ports and the TUN device in beta mode; mihomo
-		// must not bind any of them itself. If sing-box failed to start,
-		// mihomo takes over so the app still works (the failure is logged).
-		return
-	}
-	general := cfg.General
-	listener.PatchInboundListeners(cfg.Listeners, tunnel.Tunnel, true)
-
-	listener.SetAllowLan(general.AllowLan)
-	inbound.SetSkipAuthPrefixes(general.SkipAuthPrefixes)
-	inbound.SetAllowedIPs(general.LanAllowedIPs)
-	inbound.SetDisAllowedIPs(general.LanDisAllowedIPs)
-
-	listener.SetBindAddress(general.BindAddress)
-	listener.ReCreateHTTP(general.Port, tunnel.Tunnel)
-	listener.ReCreateSocks(general.SocksPort, tunnel.Tunnel)
-	listener.ReCreateRedir(general.RedirPort, tunnel.Tunnel)
-	listener.ReCreateTProxy(general.TProxyPort, tunnel.Tunnel)
-	listener.ReCreateMixed(general.MixedPort, tunnel.Tunnel)
-	listener.ReCreateShadowSocks(general.ShadowSocksConfig, tunnel.Tunnel)
-	listener.ReCreateVmess(general.VmessConfig, tunnel.Tunnel)
-	listener.ReCreateTuic(general.TuicServer, tunnel.Tunnel)
-	if !features.Android {
-		listener.ReCreateTun(general.Tun, tunnel.Tunnel)
-	}
+	// Pure sing-box data plane: sing-box owns every port and the TUN
+	// device. Mihomo binds nothing here, ever — there is no fallback.
 }
 
 func handleShutdown() bool {

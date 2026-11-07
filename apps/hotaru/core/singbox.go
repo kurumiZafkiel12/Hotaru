@@ -25,11 +25,13 @@ import (
 	"github.com/metacubex/mihomo/tunnel"
 )
 
-// Beta data plane: when enabled, the listeners belong to a sing-box child
-// process configured from the same effective config the core applies to
-// mihomo. mihomo still owns profile parsing and the diagnostic surface;
-// selections, delay tests and traffic are mirrored to sing-box so what
-// the UI reports is what actually carries the user's traffic.
+// The data plane is sing-box, full stop: the listeners and the TUN device
+// belong to a sing-box child process configured from the same effective
+// config the core builds for profile parsing. Mihomo never binds a port
+// and never carries traffic in this build — if sing-box cannot start, the
+// connection fails openly instead of falling back. Selections, delay
+// tests and traffic all read from sing-box, so what the UI reports is
+// what actually carries the user's traffic.
 
 const (
 	sbControllerAddr = "127.0.0.1:19090"
@@ -46,16 +48,6 @@ var (
 	sbTotalUp  atomic.Int64
 	sbTotalDn  atomic.Int64
 )
-
-func singBoxEnabled() bool {
-	if !isInit.Load() {
-		return false
-	}
-	if _, err := os.Stat(filepath.Join(constant.Path.HomeDir(), "singbox-beta.off")); err == nil {
-		return false
-	}
-	return true
-}
 
 func sbConfigPath() string {
 	return filepath.Join(constant.Path.HomeDir(), "singbox.json")
@@ -237,7 +229,9 @@ func restartSingBox(selections map[string]string) {
 	startSingBox()
 	if sbIsUp.Load() {
 		sbApplySelections(selections)
+		return
 	}
+	logError("[sing-box] data plane is down after config apply — no listener is serving (there is no mihomo fallback)")
 }
 
 // The GLOBAL group is excluded: sing-box synthesizes its own, and the
@@ -263,10 +257,22 @@ func sbApplySelections(selections map[string]string) {
 	}
 }
 
+// sbOutboundName maps the two mihomo built-ins to the tags the translator
+// gives them in the sing-box document; every other name is already a tag.
+func sbOutboundName(name string) string {
+	switch name {
+	case "DIRECT":
+		return "direct"
+	case "REJECT":
+		return "block"
+	}
+	return name
+}
+
 func sbChangeProxy(group, name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	payload, _ := json.Marshal(map[string]string{"name": name})
+	payload, _ := json.Marshal(map[string]string{"name": sbOutboundName(name)})
 	resp, err := sbRequest(ctx, http.MethodPut,
 		"/proxies/"+url.PathEscape(group), strings.NewReader(string(payload)))
 	if err != nil {
@@ -290,7 +296,7 @@ func sbTestDelay(name, testURL string, timeout time.Duration) (int32, error) {
 		"timeout": {fmt.Sprintf("%d", timeout.Milliseconds())},
 	}
 	resp, err := sbRequest(ctx, http.MethodGet,
-		"/proxies/"+url.PathEscape(name)+"/delay?"+query.Encode(), nil)
+		"/proxies/"+url.PathEscape(sbOutboundName(name))+"/delay?"+query.Encode(), nil)
 	if err != nil {
 		return 0, err
 	}

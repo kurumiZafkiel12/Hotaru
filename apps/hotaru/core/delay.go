@@ -9,23 +9,15 @@ import (
 	"time"
 
 	"github.com/metacubex/mihomo/adapter"
-	"github.com/metacubex/mihomo/common/utils"
 	"github.com/metacubex/mihomo/constant"
 )
 
 const (
-	delayTestConcurrency    = 50
 	defaultTestURL          = "https://www.gstatic.com/generate_204"
 	defaultDelayTestTimeout = 5 * time.Second
 )
 
-var (
-	delayTestSlots     = make(slots, delayTestConcurrency)
-	anyDelayTestStatus utils.IntRanges[uint16]
-
-	testURL                 atomic.Pointer[string]
-	missingDelayTestProxyAt atomic.Int64
-)
+var testURL atomic.Pointer[string]
 
 func setTestURL(url string) {
 	if url == "" {
@@ -58,21 +50,6 @@ func delayValue(delay uint16, timedOut bool) int32 {
 	}
 }
 
-// A name the tunnel does not know is what an apply that fell back to the
-// default config looks like: every node of the profile fails its test. Say so
-// once a second, not once per node, so the log names the real failure.
-func reportMissingDelayTestProxy(name string) {
-	now := time.Now().UnixNano()
-	last := missingDelayTestProxyAt.Load()
-	if last != 0 && now-last < int64(time.Second) {
-		return
-	}
-	if !missingDelayTestProxyAt.CompareAndSwap(last, now) {
-		return
-	}
-	logError("delay test: %q is not part of the applied config", name)
-}
-
 // A nil answer means the test never got a slot, which says nothing about the proxy.
 func handleTestDelay(params *TestDelayParams) *Delay {
 	url := params.TestUrl
@@ -81,47 +58,24 @@ func handleTestDelay(params *TestDelayParams) *Delay {
 	}
 	result := &Delay{Name: params.ProxyName, Url: url, Value: delayFailed, UnifiedDelay: adapter.UnifiedDelay.Load()}
 
-	if singBoxEnabled() && sbIsUp.Load() {
-		timeout := timeoutFromMillis(params.Timeout, defaultDelayTestTimeout)
-		start := time.Now()
-		delay, err := sbTestDelay(params.ProxyName, url, timeout)
-		result.ElapsedMs = time.Since(start).Milliseconds()
-		switch {
-		case err == nil && delay > 0:
-			result.Value = delay
-		case errors.Is(err, errSBTimeout):
-			result.Value = delayTimedOut
-			result.Error = "timeout"
-		default:
-			result.Value = delayFailed
-			result.Error = delayErrorCategory(err)
-		}
+	if !sbIsUp.Load() {
+		result.Error = "sing-box-not-running"
 		return result
 	}
-
-	proxy := lookupProxy(params.ProxyName)
-	if proxy == nil {
-		result.Error = "missing-proxy"
-		reportMissingDelayTestProxy(params.ProxyName)
-		return result
-	}
-
 	timeout := timeoutFromMillis(params.Timeout, defaultDelayTestTimeout)
-	if !delayTestSlots.acquireWithin(context.Background(), timeout) {
-		return nil
-	}
-	defer delayTestSlots.release()
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 	start := time.Now()
-	delay, err := proxy.URLTest(ctx, url, anyDelayTestStatus)
+	delay, err := sbTestDelay(params.ProxyName, url, timeout)
 	result.ElapsedMs = time.Since(start).Milliseconds()
-	if err != nil {
-		delay = 0
+	switch {
+	case err == nil && delay > 0:
+		result.Value = delay
+	case errors.Is(err, errSBTimeout):
+		result.Value = delayTimedOut
+		result.Error = "timeout"
+	default:
+		result.Value = delayFailed
 		result.Error = delayErrorCategory(err)
 	}
-	result.Value = delayValue(delay, ctx.Err() != nil)
 	return result
 }
 

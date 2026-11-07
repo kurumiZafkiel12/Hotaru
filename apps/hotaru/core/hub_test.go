@@ -24,7 +24,6 @@ import (
 	"github.com/metacubex/mihomo/adapter/outbound"
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
 	"github.com/metacubex/mihomo/adapter/provider"
-	"github.com/metacubex/mihomo/common/utils"
 	"github.com/metacubex/mihomo/component/age"
 	"github.com/metacubex/mihomo/component/resolver"
 	"github.com/metacubex/mihomo/config"
@@ -571,24 +570,6 @@ func TestPatchSelectGroupSerialisesWithProxyChanges(t *testing.T) {
 	case <-patched:
 	case <-time.After(time.Second):
 		t.Fatal("patchSelectGroup never ran after selectMu was released")
-	}
-}
-
-// The hoisted constant has to keep meaning what the call meant, so a change to
-// mihomo's parser cannot silently narrow which HTTP statuses a delay test
-// accepts.
-func TestAnyDelayTestStatusMatchesTheEmptyRange(t *testing.T) {
-	built, err := utils.NewUnsignedRanges[uint16]("")
-	if err != nil {
-		t.Fatalf("NewUnsignedRanges(\"\") error: %v", err)
-	}
-	if len(built) != len(anyDelayTestStatus) {
-		t.Fatalf("anyDelayTestStatus = %v, want %v", anyDelayTestStatus, built)
-	}
-	for _, status := range []uint16{0, 200, 204, 302, 404, 503} {
-		if !anyDelayTestStatus.Check(status) {
-			t.Errorf("status %d was rejected, so a reachable proxy reports as unreachable", status)
-		}
 	}
 }
 

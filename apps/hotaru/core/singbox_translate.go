@@ -270,6 +270,12 @@ func sbGroup(g map[string]any, valid map[string]bool, w *sbWarnings) map[string]
 	dropped := make([]string, 0)
 	for _, m := range sbStrList(g["proxies"]) {
 		if valid[m] {
+			switch m {
+			case "DIRECT":
+				m = "direct"
+			case "REJECT":
+				m = "block"
+			}
 			members = append(members, m)
 		} else {
 			dropped = append(dropped, m)
@@ -392,6 +398,22 @@ func sbRules(rawRules []any, valid map[string]bool, w *sbWarnings) (rules []any,
 	return rules, ruleSets, final
 }
 
+func sbListenerUsers(v any) []any {
+	items, _ := v.([]any)
+	users := make([]any, 0, len(items))
+	for _, item := range items {
+		u := sbMap(item)
+		if u == nil {
+			continue
+		}
+		users = append(users, map[string]any{
+			"username": sbStr(u["username"]),
+			"password": sbStr(u["password"]),
+		})
+	}
+	return users
+}
+
 func parseNumber(s string) any {
 	var n int
 	_, err := fmt.Sscanf(s, "%d", &n)
@@ -486,6 +508,9 @@ func translateSingBoxConfig(raw []byte) (map[string]any, []string, error) {
 			continue
 		}
 		if detour := sbStr(p["dialer-proxy"]); detour != "" {
+			if detour == "DIRECT" {
+				detour = "direct"
+			}
 			o["detour"] = detour
 		}
 		outbounds = append(outbounds, o)
@@ -511,12 +536,68 @@ func translateSingBoxConfig(raw []byte) (map[string]any, []string, error) {
 	)
 	out["outbounds"] = outbounds
 
+	listenerRules := []any{}
+	listeners, _ := cfg["listeners"].([]any)
+	for _, item := range listeners {
+		l := sbMap(item)
+		if l == nil {
+			continue
+		}
+		ltype := sbStr(l["type"])
+		name := sbStr(l["name"])
+		if ltype != "mixed" && ltype != "socks" && ltype != "http" {
+			w.add("listener %s: type %q not translated in beta — skipped", name, ltype)
+			continue
+		}
+		if name == "" {
+			name = "listener-" + ltype
+		}
+		listen := sbStr(l["listen"])
+		if listen == "" {
+			listen = "127.0.0.1"
+		}
+		port := sbInt(l["port"])
+		if port == 0 {
+			port = sbInt(parseNumber(sbStr(l["port"])))
+		}
+		inbound := map[string]any{
+			"type": ltype, "tag": name,
+			"listen": listen, "listen_port": port,
+		}
+		if users := sbListenerUsers(l["users"]); len(users) > 0 {
+			inbound["users"] = users
+		}
+		inbounds = append(inbounds, inbound)
+		target := sbStr(l["proxy"])
+		if target == "" {
+			continue
+		}
+		resolved, known := target, true
+		switch target {
+		case "DIRECT":
+			resolved = "direct"
+		case "REJECT":
+			resolved = "block"
+		default:
+			known = valid[target]
+		}
+		if !known {
+			w.add("listener %s: proxy %q unknown — inbound kept without a forced route", name, target)
+			continue
+		}
+		listenerRules = append(listenerRules, map[string]any{
+			"inbound": []string{name}, "outbound": resolved,
+		})
+	}
+	out["inbounds"] = inbounds
+
 	rawRules, _ := cfg["rules"].([]any)
 	rules, ruleSets, final := sbRules(rawRules, valid, w)
 	routeRules := []any{
 		map[string]any{"action": "sniff"},
 		map[string]any{"protocol": "dns", "action": "hijack-dns"},
 	}
+	routeRules = append(routeRules, listenerRules...)
 	routeRules = append(routeRules, rules...)
 	route := map[string]any{"rules": routeRules, "auto_detect_interface": true}
 	if len(ruleSets) > 0 {
