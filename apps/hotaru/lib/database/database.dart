@@ -21,6 +21,7 @@ part 'icons.dart';
 part 'ip_qualities.dart';
 part 'ip_facts.dart';
 part 'profiles.dart';
+part 'profile_traffic.dart';
 part 'rules.dart';
 part 'scripts.dart';
 
@@ -38,6 +39,8 @@ part 'scripts.dart';
     ProxyDialers,
     IpQualities,
     IpFactRecords,
+    ProfileTrafficTotals,
+    ProfileTrafficSessions,
   ],
   daos: [
     ProfilesDao,
@@ -51,13 +54,14 @@ part 'scripts.dart';
     ProxyDialersDao,
     IpQualitiesDao,
     IpFactsDao,
+    ProfileTrafficDao,
   ],
 )
 class Database extends _$Database {
   Database([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
@@ -118,8 +122,10 @@ class Database extends _$Database {
             customProxies.emptyOptions,
           );
         }
-        if (from < 22) {
+        if (from < 23) {
           await _createTableIfMissing(m, ipFactRecords);
+          await _createTableIfMissing(m, profileTrafficTotals);
+          await _createTableIfMissing(m, profileTrafficSessions);
         }
         if (from < 21) {
           await _createTableIfMissing(m, ipQualities);

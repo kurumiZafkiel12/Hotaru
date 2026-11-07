@@ -6,6 +6,10 @@ import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/telemetry.dart';
+import 'package:drift/native.dart';
+import 'package:hotaru/database/database.dart' as db;
+import 'package:hotaru/features/profile_traffic/recorder.dart';
+import 'package:hotaru/models/models.dart';
 import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
@@ -238,6 +242,7 @@ void main() {
       );
       final preparation = SingBoxConfigPreparer();
       final initial = await preparation.prepare(
+        profileId: 1,
         import: () async => imported,
         listeners: listeners,
       );
@@ -246,6 +251,24 @@ void main() {
       final service = await createSingBoxHelperCore(
         bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
         configuration: accepted,
+      );
+      final trafficDatabase = db.Database(NativeDatabase.memory());
+      await trafficDatabase.profilesDao.setAll([
+        Profile.normal().copyWith(id: 1),
+        Profile.normal().copyWith(id: 2),
+      ]);
+      final trafficErrors = <Object>[];
+      final trafficRecorder = ProfileTrafficRecorder(
+        core: service,
+        persist: (sample) async {
+          await trafficDatabase.profileTrafficDao.record(
+            profileId: sample.profileId,
+            sessionId: sample.sessionId,
+            upload: sample.upload,
+            download: sample.download,
+          );
+        },
+        onError: (error, _) => trafficErrors.add(error),
       );
       final pids = <int>[];
       final client = HttpClient()..findProxy = (_) => 'DIRECT';
@@ -435,6 +458,7 @@ void main() {
         expect(rulesRequests, greaterThanOrEqualTo(3));
 
         final replacementResult = await preparation.prepare(
+          profileId: 2,
           import: () async => imported,
           listeners: CoreListenerSpec(
             mixedPort: listeners.mixedPort,
@@ -584,6 +608,44 @@ void main() {
         await service.close();
         expect(service.lifecycle.state, isA<DesktopCoreClosed>());
         expect(await isProcessAlive(third.session.pid), isFalse);
+        await trafficRecorder.flush();
+        final finalSources = [
+          first.session,
+          replacedSession,
+          restored,
+          second.session,
+          third.session,
+        ];
+        final finalTotals = await Future.wait([
+          for (final session in finalSources)
+            (session.lease as CoreFinalTrafficSource).finalTraffic.timeout(
+              const Duration(seconds: 2),
+            ),
+        ]);
+        expect(finalTotals.every((totals) => totals != null), isTrue);
+        final firstTraffic = await trafficDatabase.profileTrafficDao
+            .query(1)
+            .getSingle();
+        final secondTraffic = await trafficDatabase.profileTrafficDao
+            .query(2)
+            .getSingle();
+        expect(firstTraffic.upload, finalTotals.first!.upload);
+        expect(firstTraffic.download, finalTotals.first!.download);
+        expect(firstTraffic.download, greaterThan(0));
+        expect(
+          secondTraffic.upload,
+          finalTotals.skip(1).fold(0, (sum, totals) => sum + totals!.upload),
+        );
+        expect(
+          secondTraffic.download,
+          finalTotals.skip(1).fold(0, (sum, totals) => sum + totals!.download),
+        );
+        expect(secondTraffic.download, greaterThan(0));
+        expect(
+          await trafficDatabase.profileTrafficSessions.count.getSingle(),
+          5,
+        );
+        expect(trafficErrors, isEmpty);
         final badBundle = await Directory.systemTemp.createTemp(
           'hotaru_bad_digest_',
         );
@@ -651,6 +713,7 @@ void main() {
             'route_preview_recovered_configuration': true,
             'node_http_recovered_configuration': true,
             'native_closed_telemetry': true,
+            'profile_traffic_final_persisted': true,
             'failed_activation_restored': true,
             'restored_configuration_payload': true,
             'oversized_config_keeps_session': true,
@@ -674,6 +737,8 @@ void main() {
       } finally {
         client.close(force: true);
         await service.close();
+        await trafficRecorder.close();
+        await trafficDatabase.close();
       }
     },
     skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',

@@ -186,6 +186,11 @@ func TestNativeTelemetryRetainsClosedTrafficAndSerializesClose(t *testing.T) {
 	if _, err := source.Telemetry(); err == nil {
 		t.Fatal("closed engine returned observations")
 	}
+	final := instance.(*observedEngine).FinalTraffic()
+	if final == nil || final.Download < closed.Download || final.Upload < closed.Upload {
+		t.Fatal("final counters lost closed traffic")
+	}
+
 }
 
 func TestNativeTelemetryHistoryCapRetainsEvictedTotals(t *testing.T) {
@@ -227,6 +232,11 @@ func TestNativeTelemetryHistoryCapRetainsEvictedTotals(t *testing.T) {
 	cleared, err := engine.Telemetry()
 	if err != nil || len(cleared.Closed) != 0 || cleared.Upload != telemetryConnectionLimit+1 {
 		t.Fatalf("cleared history lost totals: %v", err)
+	}
+	_ = instance.Close()
+	final := engine.FinalTraffic()
+	if final == nil || final.Upload != telemetryConnectionLimit+1 {
+		t.Fatal("final counters lost evicted traffic")
 	}
 
 }

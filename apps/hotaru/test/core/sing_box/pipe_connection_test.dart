@@ -31,7 +31,12 @@ final class _Pipe implements DesktopCoreTransport {
   void connect(int pid) =>
       _events.add(TransportConnected(pid: pid, generation: 1));
   void disconnect() => _events.add(const TransportDisconnected(1));
-  void host(String event, {bool clean = false, int pid = 42}) {
+  void host(
+    String event, {
+    bool clean = false,
+    int pid = 42,
+    Map<String, dynamic>? totals,
+  }) {
     _frames.add(
       Uint8List.fromList(
         utf8.encode(
@@ -40,6 +45,7 @@ final class _Pipe implements DesktopCoreTransport {
             'event': event,
             'pid': pid,
             if (clean) 'clean': true,
+            'totals': ?totals,
           }),
         ),
       ),
@@ -322,6 +328,51 @@ void main() {
         isFalse,
       );
       expect(process.stops, 0);
+    },
+  );
+
+  test(
+    'final traffic is available only after verified cleanup and drained EOF',
+    () async {
+      await connect();
+      var finished = false;
+      final finalTraffic = lease.finalTraffic.then((totals) {
+        finished = true;
+        return totals;
+      });
+      pipe.onStop = () => pipe.host(
+        'stopped',
+        clean: true,
+        totals: {'upload': 15, 'download': 35},
+      );
+      final stopping = lease.stop(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(finished, isFalse);
+      pipe.disconnect();
+      expect((await stopping).exitConfirmed, isTrue);
+      final totals = await finalTraffic;
+      expect(totals!.upload, 15);
+      expect(totals.download, 35);
+    },
+  );
+
+  test(
+    'malformed final traffic cannot preserve a clean shutdown receipt',
+    () async {
+      await connect();
+      pipe.onStop = () {
+        pipe.host(
+          'stopped',
+          clean: true,
+          totals: {'upload': -1, 'download': 35},
+        );
+        pipe.disconnect();
+      };
+      expect(
+        (await lease.stop(const Duration(seconds: 2))).exitConfirmed,
+        isFalse,
+      );
+      expect(await lease.finalTraffic, isNull);
     },
   );
 

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import '../telemetry.dart';
+
 final class SingBoxHostEvents {
   final int pid;
   final Completer<void> _ready = Completer<void>();
@@ -8,6 +10,7 @@ final class SingBoxHostEvents {
   bool _clean = false;
   bool _failed = false;
   bool _stopped = false;
+  CoreTrafficTotals? _totals;
 
   SingBoxHostEvents(this.pid) {
     _ready.future.ignore();
@@ -17,6 +20,7 @@ final class SingBoxHostEvents {
   Future<void> get finished => _finished.future;
   bool get clean => _clean && !_failed;
   bool get failed => _failed;
+  CoreTrafficTotals? get totals => clean ? _totals : null;
   bool get acceptsTelemetry =>
       _ready.isCompleted && !_stopped && !_failed && !_finished.isCompleted;
 
@@ -54,6 +58,15 @@ final class SingBoxHostEvents {
           _ready.complete();
         }
       case 'stopped':
+        final totals = value['totals'];
+        if (totals != null) {
+          try {
+            if (totals is! Map<String, dynamic>) throw const FormatException();
+            _totals = CoreTrafficTotals.fromJson(totals);
+          } on FormatException {
+            fail();
+          }
+        }
         _stopped = true;
         _clean = !_failed && value['clean'] == true;
         if (!_ready.isCompleted) {

@@ -128,7 +128,11 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
       configuration: configuration,
       connection: () => connection,
       transportFactory: transportFactory,
-      launcherResolver: _HelperResolver(helper, () => connection),
+      launcherResolver: _HelperResolver(
+        helper,
+        () => connection,
+        configuration.profileId,
+      ),
     );
   }
 }
@@ -137,14 +141,16 @@ final class _HelperResolver implements DesktopCoreLauncherResolver {
   final HelperClient helper;
   final SingBoxPipeConnection Function() connection;
 
-  const _HelperResolver(this.helper, this.connection);
+  final int? profileId;
+
+  const _HelperResolver(this.helper, this.connection, this.profileId);
 
   @override
   Future<CoreProcessLauncher> resolve() async {
     if (await helper.readiness() != HelperReadiness.ready) {
       throw StateError('Matching privileged sing-box Helper is unavailable');
     }
-    return _HelperLauncher(HelperLauncher(helper), connection());
+    return _HelperLauncher(HelperLauncher(helper), connection(), profileId);
   }
 }
 
@@ -152,7 +158,9 @@ final class _HelperLauncher implements CoreProcessLauncher {
   final CoreProcessLauncher launcher;
   final SingBoxPipeConnection connection;
 
-  const _HelperLauncher(this.launcher, this.connection);
+  final int? profileId;
+
+  const _HelperLauncher(this.launcher, this.connection, this.profileId);
 
   @override
   Future<CoreProcessLease> start({
@@ -164,6 +172,10 @@ final class _HelperLauncher implements CoreProcessLauncher {
       sessionId: sessionId,
       address: address,
     );
-    return SingBoxPipeLease(process: process, connection: connection);
+    return SingBoxPipeLease(
+      process: process,
+      connection: connection,
+      profileId: profileId,
+    );
   }
 }

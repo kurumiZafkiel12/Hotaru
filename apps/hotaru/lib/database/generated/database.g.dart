@@ -4859,6 +4859,586 @@ class IpFactRecordsCompanion extends UpdateCompanion<IpFactsRecord> {
   }
 }
 
+class $ProfileTrafficTotalsTable extends ProfileTrafficTotals
+    with TableInfo<$ProfileTrafficTotalsTable, ProfileTrafficTotal> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProfileTrafficTotalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<int> profileId = GeneratedColumn<int>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _uploadMeta = const VerificationMeta('upload');
+  @override
+  late final GeneratedColumn<int> upload = GeneratedColumn<int>(
+    'upload',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _downloadMeta = const VerificationMeta(
+    'download',
+  );
+  @override
+  late final GeneratedColumn<int> download = GeneratedColumn<int>(
+    'download',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [profileId, upload, download];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'profile_traffic_totals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProfileTrafficTotal> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    }
+    if (data.containsKey('upload')) {
+      context.handle(
+        _uploadMeta,
+        upload.isAcceptableOrUnknown(data['upload']!, _uploadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uploadMeta);
+    }
+    if (data.containsKey('download')) {
+      context.handle(
+        _downloadMeta,
+        download.isAcceptableOrUnknown(data['download']!, _downloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_downloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {profileId};
+  @override
+  ProfileTrafficTotal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProfileTrafficTotal(
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      upload: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}upload'],
+      )!,
+      download: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}download'],
+      )!,
+    );
+  }
+
+  @override
+  $ProfileTrafficTotalsTable createAlias(String alias) {
+    return $ProfileTrafficTotalsTable(attachedDatabase, alias);
+  }
+}
+
+class ProfileTrafficTotal extends DataClass
+    implements Insertable<ProfileTrafficTotal> {
+  final int profileId;
+  final int upload;
+  final int download;
+  const ProfileTrafficTotal({
+    required this.profileId,
+    required this.upload,
+    required this.download,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['profile_id'] = Variable<int>(profileId);
+    map['upload'] = Variable<int>(upload);
+    map['download'] = Variable<int>(download);
+    return map;
+  }
+
+  ProfileTrafficTotalsCompanion toCompanion(bool nullToAbsent) {
+    return ProfileTrafficTotalsCompanion(
+      profileId: Value(profileId),
+      upload: Value(upload),
+      download: Value(download),
+    );
+  }
+
+  factory ProfileTrafficTotal.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProfileTrafficTotal(
+      profileId: serializer.fromJson<int>(json['profileId']),
+      upload: serializer.fromJson<int>(json['upload']),
+      download: serializer.fromJson<int>(json['download']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'profileId': serializer.toJson<int>(profileId),
+      'upload': serializer.toJson<int>(upload),
+      'download': serializer.toJson<int>(download),
+    };
+  }
+
+  ProfileTrafficTotal copyWith({int? profileId, int? upload, int? download}) =>
+      ProfileTrafficTotal(
+        profileId: profileId ?? this.profileId,
+        upload: upload ?? this.upload,
+        download: download ?? this.download,
+      );
+  ProfileTrafficTotal copyWithCompanion(ProfileTrafficTotalsCompanion data) {
+    return ProfileTrafficTotal(
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      upload: data.upload.present ? data.upload.value : this.upload,
+      download: data.download.present ? data.download.value : this.download,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileTrafficTotal(')
+          ..write('profileId: $profileId, ')
+          ..write('upload: $upload, ')
+          ..write('download: $download')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(profileId, upload, download);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProfileTrafficTotal &&
+          other.profileId == this.profileId &&
+          other.upload == this.upload &&
+          other.download == this.download);
+}
+
+class ProfileTrafficTotalsCompanion
+    extends UpdateCompanion<ProfileTrafficTotal> {
+  final Value<int> profileId;
+  final Value<int> upload;
+  final Value<int> download;
+  const ProfileTrafficTotalsCompanion({
+    this.profileId = const Value.absent(),
+    this.upload = const Value.absent(),
+    this.download = const Value.absent(),
+  });
+  ProfileTrafficTotalsCompanion.insert({
+    this.profileId = const Value.absent(),
+    required int upload,
+    required int download,
+  }) : upload = Value(upload),
+       download = Value(download);
+  static Insertable<ProfileTrafficTotal> custom({
+    Expression<int>? profileId,
+    Expression<int>? upload,
+    Expression<int>? download,
+  }) {
+    return RawValuesInsertable({
+      if (profileId != null) 'profile_id': profileId,
+      if (upload != null) 'upload': upload,
+      if (download != null) 'download': download,
+    });
+  }
+
+  ProfileTrafficTotalsCompanion copyWith({
+    Value<int>? profileId,
+    Value<int>? upload,
+    Value<int>? download,
+  }) {
+    return ProfileTrafficTotalsCompanion(
+      profileId: profileId ?? this.profileId,
+      upload: upload ?? this.upload,
+      download: download ?? this.download,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (profileId.present) {
+      map['profile_id'] = Variable<int>(profileId.value);
+    }
+    if (upload.present) {
+      map['upload'] = Variable<int>(upload.value);
+    }
+    if (download.present) {
+      map['download'] = Variable<int>(download.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileTrafficTotalsCompanion(')
+          ..write('profileId: $profileId, ')
+          ..write('upload: $upload, ')
+          ..write('download: $download')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProfileTrafficSessionsTable extends ProfileTrafficSessions
+    with TableInfo<$ProfileTrafficSessionsTable, ProfileTrafficSession> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProfileTrafficSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<int> profileId = GeneratedColumn<int>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _uploadMeta = const VerificationMeta('upload');
+  @override
+  late final GeneratedColumn<int> upload = GeneratedColumn<int>(
+    'upload',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _downloadMeta = const VerificationMeta(
+    'download',
+  );
+  @override
+  late final GeneratedColumn<int> download = GeneratedColumn<int>(
+    'download',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    sessionId,
+    profileId,
+    upload,
+    download,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'profile_traffic_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ProfileTrafficSession> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('upload')) {
+      context.handle(
+        _uploadMeta,
+        upload.isAcceptableOrUnknown(data['upload']!, _uploadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uploadMeta);
+    }
+    if (data.containsKey('download')) {
+      context.handle(
+        _downloadMeta,
+        download.isAcceptableOrUnknown(data['download']!, _downloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_downloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sessionId};
+  @override
+  ProfileTrafficSession map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProfileTrafficSession(
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      upload: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}upload'],
+      )!,
+      download: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}download'],
+      )!,
+    );
+  }
+
+  @override
+  $ProfileTrafficSessionsTable createAlias(String alias) {
+    return $ProfileTrafficSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class ProfileTrafficSession extends DataClass
+    implements Insertable<ProfileTrafficSession> {
+  final String sessionId;
+  final int profileId;
+  final int upload;
+  final int download;
+  const ProfileTrafficSession({
+    required this.sessionId,
+    required this.profileId,
+    required this.upload,
+    required this.download,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['session_id'] = Variable<String>(sessionId);
+    map['profile_id'] = Variable<int>(profileId);
+    map['upload'] = Variable<int>(upload);
+    map['download'] = Variable<int>(download);
+    return map;
+  }
+
+  ProfileTrafficSessionsCompanion toCompanion(bool nullToAbsent) {
+    return ProfileTrafficSessionsCompanion(
+      sessionId: Value(sessionId),
+      profileId: Value(profileId),
+      upload: Value(upload),
+      download: Value(download),
+    );
+  }
+
+  factory ProfileTrafficSession.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProfileTrafficSession(
+      sessionId: serializer.fromJson<String>(json['sessionId']),
+      profileId: serializer.fromJson<int>(json['profileId']),
+      upload: serializer.fromJson<int>(json['upload']),
+      download: serializer.fromJson<int>(json['download']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'sessionId': serializer.toJson<String>(sessionId),
+      'profileId': serializer.toJson<int>(profileId),
+      'upload': serializer.toJson<int>(upload),
+      'download': serializer.toJson<int>(download),
+    };
+  }
+
+  ProfileTrafficSession copyWith({
+    String? sessionId,
+    int? profileId,
+    int? upload,
+    int? download,
+  }) => ProfileTrafficSession(
+    sessionId: sessionId ?? this.sessionId,
+    profileId: profileId ?? this.profileId,
+    upload: upload ?? this.upload,
+    download: download ?? this.download,
+  );
+  ProfileTrafficSession copyWithCompanion(
+    ProfileTrafficSessionsCompanion data,
+  ) {
+    return ProfileTrafficSession(
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      upload: data.upload.present ? data.upload.value : this.upload,
+      download: data.download.present ? data.download.value : this.download,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileTrafficSession(')
+          ..write('sessionId: $sessionId, ')
+          ..write('profileId: $profileId, ')
+          ..write('upload: $upload, ')
+          ..write('download: $download')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(sessionId, profileId, upload, download);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProfileTrafficSession &&
+          other.sessionId == this.sessionId &&
+          other.profileId == this.profileId &&
+          other.upload == this.upload &&
+          other.download == this.download);
+}
+
+class ProfileTrafficSessionsCompanion
+    extends UpdateCompanion<ProfileTrafficSession> {
+  final Value<String> sessionId;
+  final Value<int> profileId;
+  final Value<int> upload;
+  final Value<int> download;
+  final Value<int> rowid;
+  const ProfileTrafficSessionsCompanion({
+    this.sessionId = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.upload = const Value.absent(),
+    this.download = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProfileTrafficSessionsCompanion.insert({
+    required String sessionId,
+    required int profileId,
+    required int upload,
+    required int download,
+    this.rowid = const Value.absent(),
+  }) : sessionId = Value(sessionId),
+       profileId = Value(profileId),
+       upload = Value(upload),
+       download = Value(download);
+  static Insertable<ProfileTrafficSession> custom({
+    Expression<String>? sessionId,
+    Expression<int>? profileId,
+    Expression<int>? upload,
+    Expression<int>? download,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (sessionId != null) 'session_id': sessionId,
+      if (profileId != null) 'profile_id': profileId,
+      if (upload != null) 'upload': upload,
+      if (download != null) 'download': download,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProfileTrafficSessionsCompanion copyWith({
+    Value<String>? sessionId,
+    Value<int>? profileId,
+    Value<int>? upload,
+    Value<int>? download,
+    Value<int>? rowid,
+  }) {
+    return ProfileTrafficSessionsCompanion(
+      sessionId: sessionId ?? this.sessionId,
+      profileId: profileId ?? this.profileId,
+      upload: upload ?? this.upload,
+      download: download ?? this.download,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<int>(profileId.value);
+    }
+    if (upload.present) {
+      map['upload'] = Variable<int>(upload.value);
+    }
+    if (download.present) {
+      map['download'] = Variable<int>(download.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileTrafficSessionsCompanion(')
+          ..write('sessionId: $sessionId, ')
+          ..write('profileId: $profileId, ')
+          ..write('upload: $upload, ')
+          ..write('download: $download, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
@@ -4874,6 +5454,10 @@ abstract class _$Database extends GeneratedDatabase {
   late final $ProxyDialersTable proxyDialers = $ProxyDialersTable(this);
   late final $IpQualitiesTable ipQualities = $IpQualitiesTable(this);
   late final $IpFactRecordsTable ipFactRecords = $IpFactRecordsTable(this);
+  late final $ProfileTrafficTotalsTable profileTrafficTotals =
+      $ProfileTrafficTotalsTable(this);
+  late final $ProfileTrafficSessionsTable profileTrafficSessions =
+      $ProfileTrafficSessionsTable(this);
   late final Index idxRuleTarget = Index(
     'idx_rule_target',
     'CREATE INDEX idx_rule_target ON rules (rule_target)',
@@ -4907,6 +5491,9 @@ abstract class _$Database extends GeneratedDatabase {
   );
   late final IpQualitiesDao ipQualitiesDao = IpQualitiesDao(this as Database);
   late final IpFactsDao ipFactsDao = IpFactsDao(this as Database);
+  late final ProfileTrafficDao profileTrafficDao = ProfileTrafficDao(
+    this as Database,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4924,6 +5511,8 @@ abstract class _$Database extends GeneratedDatabase {
     proxyDialers,
     ipQualities,
     ipFactRecords,
+    profileTrafficTotals,
+    profileTrafficSessions,
     idxRuleTarget,
     idxRulesProfileOrder,
     idxProxyGroupsProfileOrder,
@@ -4972,6 +5561,22 @@ abstract class _$Database extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('proxy_dialers', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('profile_traffic_totals', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('profile_traffic_sessions', kind: UpdateKind.delete),
+      ],
     ),
   ]);
 }
@@ -5089,6 +5694,56 @@ final class $$ProfilesTableReferences
     ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_proxyDialersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ProfileTrafficTotalsTable,
+    List<ProfileTrafficTotal>
+  >
+  _profileTrafficTotalsRefsTable(_$Database db) =>
+      MultiTypedResultKey.fromTable(
+        db.profileTrafficTotals,
+        aliasName: 'profiles__id__profile_traffic_totals__profile_id',
+      );
+
+  $$ProfileTrafficTotalsTableProcessedTableManager
+  get profileTrafficTotalsRefs {
+    final manager = $$ProfileTrafficTotalsTableTableManager(
+      $_db,
+      $_db.profileTrafficTotals,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _profileTrafficTotalsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ProfileTrafficSessionsTable,
+    List<ProfileTrafficSession>
+  >
+  _profileTrafficSessionsRefsTable(_$Database db) =>
+      MultiTypedResultKey.fromTable(
+        db.profileTrafficSessions,
+        aliasName: 'profiles__id__profile_traffic_sessions__profile_id',
+      );
+
+  $$ProfileTrafficSessionsTableProcessedTableManager
+  get profileTrafficSessionsRefs {
+    final manager = $$ProfileTrafficSessionsTableTableManager(
+      $_db,
+      $_db.profileTrafficSessions,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _profileTrafficSessionsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5296,6 +5951,57 @@ class $$ProfilesTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> profileTrafficTotalsRefs(
+    Expression<bool> Function($$ProfileTrafficTotalsTableFilterComposer f) f,
+  ) {
+    final $$ProfileTrafficTotalsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.profileTrafficTotals,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfileTrafficTotalsTableFilterComposer(
+            $db: $db,
+            $table: $db.profileTrafficTotals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> profileTrafficSessionsRefs(
+    Expression<bool> Function($$ProfileTrafficSessionsTableFilterComposer f) f,
+  ) {
+    final $$ProfileTrafficSessionsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.profileTrafficSessions,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ProfileTrafficSessionsTableFilterComposer(
+                $db: $db,
+                $table: $db.profileTrafficSessions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -5575,6 +6281,58 @@ class $$ProfilesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> profileTrafficTotalsRefs<T extends Object>(
+    Expression<T> Function($$ProfileTrafficTotalsTableAnnotationComposer a) f,
+  ) {
+    final $$ProfileTrafficTotalsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.profileTrafficTotals,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ProfileTrafficTotalsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.profileTrafficTotals,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> profileTrafficSessionsRefs<T extends Object>(
+    Expression<T> Function($$ProfileTrafficSessionsTableAnnotationComposer a) f,
+  ) {
+    final $$ProfileTrafficSessionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.profileTrafficSessions,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ProfileTrafficSessionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.profileTrafficSessions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ProfilesTableTableManager
@@ -5595,6 +6353,8 @@ class $$ProfilesTableTableManager
             bool disabledRulesRefs,
             bool proxyGroupsRefs,
             bool proxyDialersRefs,
+            bool profileTrafficTotalsRefs,
+            bool profileTrafficSessionsRefs,
           })
         > {
   $$ProfilesTableTableManager(_$Database db, $ProfilesTable table)
@@ -5700,6 +6460,8 @@ class $$ProfilesTableTableManager
                 disabledRulesRefs = false,
                 proxyGroupsRefs = false,
                 proxyDialersRefs = false,
+                profileTrafficTotalsRefs = false,
+                profileTrafficSessionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -5708,6 +6470,8 @@ class $$ProfilesTableTableManager
                     if (disabledRulesRefs) db.disabledRules,
                     if (proxyGroupsRefs) db.proxyGroups,
                     if (proxyDialersRefs) db.proxyDialers,
+                    if (profileTrafficTotalsRefs) db.profileTrafficTotals,
+                    if (profileTrafficSessionsRefs) db.profileTrafficSessions,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5796,6 +6560,48 @@ class $$ProfilesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (profileTrafficTotalsRefs)
+                        await $_getPrefetchedData<
+                          RawProfile,
+                          $ProfilesTable,
+                          ProfileTrafficTotal
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProfilesTableReferences
+                              ._profileTrafficTotalsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).profileTrafficTotalsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (profileTrafficSessionsRefs)
+                        await $_getPrefetchedData<
+                          RawProfile,
+                          $ProfilesTable,
+                          ProfileTrafficSession
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProfilesTableReferences
+                              ._profileTrafficSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).profileTrafficSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5821,6 +6627,8 @@ typedef $$ProfilesTableProcessedTableManager =
         bool disabledRulesRefs,
         bool proxyGroupsRefs,
         bool proxyDialersRefs,
+        bool profileTrafficTotalsRefs,
+        bool profileTrafficSessionsRefs,
       })
     >;
 typedef $$ScriptsTableCreateCompanionBuilder =
@@ -8871,6 +9679,623 @@ typedef $$IpFactRecordsTableProcessedTableManager =
       IpFactsRecord,
       PrefetchHooks Function()
     >;
+typedef $$ProfileTrafficTotalsTableCreateCompanionBuilder =
+    ProfileTrafficTotalsCompanion Function({
+      Value<int> profileId,
+      required int upload,
+      required int download,
+    });
+typedef $$ProfileTrafficTotalsTableUpdateCompanionBuilder =
+    ProfileTrafficTotalsCompanion Function({
+      Value<int> profileId,
+      Value<int> upload,
+      Value<int> download,
+    });
+
+final class $$ProfileTrafficTotalsTableReferences
+    extends
+        BaseReferences<
+          _$Database,
+          $ProfileTrafficTotalsTable,
+          ProfileTrafficTotal
+        > {
+  $$ProfileTrafficTotalsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ProfilesTable _profileIdTable(_$Database db) => db.profiles
+      .createAlias('profile_traffic_totals__profile_id__profiles__id');
+
+  $$ProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<int>('profile_id')!;
+
+    final manager = $$ProfilesTableTableManager(
+      $_db,
+      $_db.profiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ProfileTrafficTotalsTableFilterComposer
+    extends Composer<_$Database, $ProfileTrafficTotalsTable> {
+  $$ProfileTrafficTotalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get upload => $composableBuilder(
+    column: $table.upload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProfilesTableFilterComposer get profileId {
+    final $$ProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficTotalsTableOrderingComposer
+    extends Composer<_$Database, $ProfileTrafficTotalsTable> {
+  $$ProfileTrafficTotalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get upload => $composableBuilder(
+    column: $table.upload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProfilesTableOrderingComposer get profileId {
+    final $$ProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficTotalsTableAnnotationComposer
+    extends Composer<_$Database, $ProfileTrafficTotalsTable> {
+  $$ProfileTrafficTotalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get upload =>
+      $composableBuilder(column: $table.upload, builder: (column) => column);
+
+  GeneratedColumn<int> get download =>
+      $composableBuilder(column: $table.download, builder: (column) => column);
+
+  $$ProfilesTableAnnotationComposer get profileId {
+    final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficTotalsTableTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          $ProfileTrafficTotalsTable,
+          ProfileTrafficTotal,
+          $$ProfileTrafficTotalsTableFilterComposer,
+          $$ProfileTrafficTotalsTableOrderingComposer,
+          $$ProfileTrafficTotalsTableAnnotationComposer,
+          $$ProfileTrafficTotalsTableCreateCompanionBuilder,
+          $$ProfileTrafficTotalsTableUpdateCompanionBuilder,
+          (ProfileTrafficTotal, $$ProfileTrafficTotalsTableReferences),
+          ProfileTrafficTotal,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$ProfileTrafficTotalsTableTableManager(
+    _$Database db,
+    $ProfileTrafficTotalsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProfileTrafficTotalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProfileTrafficTotalsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ProfileTrafficTotalsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> profileId = const Value.absent(),
+                Value<int> upload = const Value.absent(),
+                Value<int> download = const Value.absent(),
+              }) => ProfileTrafficTotalsCompanion(
+                profileId: profileId,
+                upload: upload,
+                download: download,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> profileId = const Value.absent(),
+                required int upload,
+                required int download,
+              }) => ProfileTrafficTotalsCompanion.insert(
+                profileId: profileId,
+                upload: upload,
+                download: download,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ProfileTrafficTotalsTable, ProfileTrafficTotal>(
+                    table,
+                  ),
+                  $$ProfileTrafficTotalsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({profileId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (profileId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.profileId,
+                                referencedTable:
+                                    $$ProfileTrafficTotalsTableReferences
+                                        ._profileIdTable(db),
+                                referencedColumn:
+                                    $$ProfileTrafficTotalsTableReferences
+                                        ._profileIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ProfileTrafficTotalsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      $ProfileTrafficTotalsTable,
+      ProfileTrafficTotal,
+      $$ProfileTrafficTotalsTableFilterComposer,
+      $$ProfileTrafficTotalsTableOrderingComposer,
+      $$ProfileTrafficTotalsTableAnnotationComposer,
+      $$ProfileTrafficTotalsTableCreateCompanionBuilder,
+      $$ProfileTrafficTotalsTableUpdateCompanionBuilder,
+      (ProfileTrafficTotal, $$ProfileTrafficTotalsTableReferences),
+      ProfileTrafficTotal,
+      PrefetchHooks Function({bool profileId})
+    >;
+typedef $$ProfileTrafficSessionsTableCreateCompanionBuilder =
+    ProfileTrafficSessionsCompanion Function({
+      required String sessionId,
+      required int profileId,
+      required int upload,
+      required int download,
+      Value<int> rowid,
+    });
+typedef $$ProfileTrafficSessionsTableUpdateCompanionBuilder =
+    ProfileTrafficSessionsCompanion Function({
+      Value<String> sessionId,
+      Value<int> profileId,
+      Value<int> upload,
+      Value<int> download,
+      Value<int> rowid,
+    });
+
+final class $$ProfileTrafficSessionsTableReferences
+    extends
+        BaseReferences<
+          _$Database,
+          $ProfileTrafficSessionsTable,
+          ProfileTrafficSession
+        > {
+  $$ProfileTrafficSessionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ProfilesTable _profileIdTable(_$Database db) => db.profiles
+      .createAlias('profile_traffic_sessions__profile_id__profiles__id');
+
+  $$ProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<int>('profile_id')!;
+
+    final manager = $$ProfilesTableTableManager(
+      $_db,
+      $_db.profiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ProfileTrafficSessionsTableFilterComposer
+    extends Composer<_$Database, $ProfileTrafficSessionsTable> {
+  $$ProfileTrafficSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get upload => $composableBuilder(
+    column: $table.upload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProfilesTableFilterComposer get profileId {
+    final $$ProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficSessionsTableOrderingComposer
+    extends Composer<_$Database, $ProfileTrafficSessionsTable> {
+  $$ProfileTrafficSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get upload => $composableBuilder(
+    column: $table.upload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProfilesTableOrderingComposer get profileId {
+    final $$ProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficSessionsTableAnnotationComposer
+    extends Composer<_$Database, $ProfileTrafficSessionsTable> {
+  $$ProfileTrafficSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<int> get upload =>
+      $composableBuilder(column: $table.upload, builder: (column) => column);
+
+  GeneratedColumn<int> get download =>
+      $composableBuilder(column: $table.download, builder: (column) => column);
+
+  $$ProfilesTableAnnotationComposer get profileId {
+    final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ProfileTrafficSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          $ProfileTrafficSessionsTable,
+          ProfileTrafficSession,
+          $$ProfileTrafficSessionsTableFilterComposer,
+          $$ProfileTrafficSessionsTableOrderingComposer,
+          $$ProfileTrafficSessionsTableAnnotationComposer,
+          $$ProfileTrafficSessionsTableCreateCompanionBuilder,
+          $$ProfileTrafficSessionsTableUpdateCompanionBuilder,
+          (ProfileTrafficSession, $$ProfileTrafficSessionsTableReferences),
+          ProfileTrafficSession,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$ProfileTrafficSessionsTableTableManager(
+    _$Database db,
+    $ProfileTrafficSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProfileTrafficSessionsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ProfileTrafficSessionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ProfileTrafficSessionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> sessionId = const Value.absent(),
+                Value<int> profileId = const Value.absent(),
+                Value<int> upload = const Value.absent(),
+                Value<int> download = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ProfileTrafficSessionsCompanion(
+                sessionId: sessionId,
+                profileId: profileId,
+                upload: upload,
+                download: download,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String sessionId,
+                required int profileId,
+                required int upload,
+                required int download,
+                Value<int> rowid = const Value.absent(),
+              }) => ProfileTrafficSessionsCompanion.insert(
+                sessionId: sessionId,
+                profileId: profileId,
+                upload: upload,
+                download: download,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $ProfileTrafficSessionsTable,
+                    ProfileTrafficSession
+                  >(table),
+                  $$ProfileTrafficSessionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({profileId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (profileId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.profileId,
+                                referencedTable:
+                                    $$ProfileTrafficSessionsTableReferences
+                                        ._profileIdTable(db),
+                                referencedColumn:
+                                    $$ProfileTrafficSessionsTableReferences
+                                        ._profileIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ProfileTrafficSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      $ProfileTrafficSessionsTable,
+      ProfileTrafficSession,
+      $$ProfileTrafficSessionsTableFilterComposer,
+      $$ProfileTrafficSessionsTableOrderingComposer,
+      $$ProfileTrafficSessionsTableAnnotationComposer,
+      $$ProfileTrafficSessionsTableCreateCompanionBuilder,
+      $$ProfileTrafficSessionsTableUpdateCompanionBuilder,
+      (ProfileTrafficSession, $$ProfileTrafficSessionsTableReferences),
+      ProfileTrafficSession,
+      PrefetchHooks Function({bool profileId})
+    >;
 
 class $DatabaseManager {
   final _$Database _db;
@@ -8899,6 +10324,13 @@ class $DatabaseManager {
       $$IpQualitiesTableTableManager(_db, _db.ipQualities);
   $$IpFactRecordsTableTableManager get ipFactRecords =>
       $$IpFactRecordsTableTableManager(_db, _db.ipFactRecords);
+  $$ProfileTrafficTotalsTableTableManager get profileTrafficTotals =>
+      $$ProfileTrafficTotalsTableTableManager(_db, _db.profileTrafficTotals);
+  $$ProfileTrafficSessionsTableTableManager get profileTrafficSessions =>
+      $$ProfileTrafficSessionsTableTableManager(
+        _db,
+        _db.profileTrafficSessions,
+      );
 }
 
 mixin _$ProfilesDaoMixin on DatabaseAccessor<Database> {
@@ -9049,4 +10481,30 @@ class IpFactsDaoManager {
   IpFactsDaoManager(this._db);
   $$IpFactRecordsTableTableManager get ipFactRecords =>
       $$IpFactRecordsTableTableManager(_db.attachedDatabase, _db.ipFactRecords);
+}
+
+mixin _$ProfileTrafficDaoMixin on DatabaseAccessor<Database> {
+  $ProfilesTable get profiles => attachedDatabase.profiles;
+  $ProfileTrafficTotalsTable get profileTrafficTotals =>
+      attachedDatabase.profileTrafficTotals;
+  $ProfileTrafficSessionsTable get profileTrafficSessions =>
+      attachedDatabase.profileTrafficSessions;
+  ProfileTrafficDaoManager get managers => ProfileTrafficDaoManager(this);
+}
+
+class ProfileTrafficDaoManager {
+  final _$ProfileTrafficDaoMixin _db;
+  ProfileTrafficDaoManager(this._db);
+  $$ProfilesTableTableManager get profiles =>
+      $$ProfilesTableTableManager(_db.attachedDatabase, _db.profiles);
+  $$ProfileTrafficTotalsTableTableManager get profileTrafficTotals =>
+      $$ProfileTrafficTotalsTableTableManager(
+        _db.attachedDatabase,
+        _db.profileTrafficTotals,
+      );
+  $$ProfileTrafficSessionsTableTableManager get profileTrafficSessions =>
+      $$ProfileTrafficSessionsTableTableManager(
+        _db.attachedDatabase,
+        _db.profileTrafficSessions,
+      );
 }

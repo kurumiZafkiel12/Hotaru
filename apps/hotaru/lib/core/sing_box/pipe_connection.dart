@@ -262,6 +262,13 @@ final class SingBoxPipeConnection
     }
   }
 
+  Future<CoreTrafficTotals?> get finalTraffic async {
+    final host = _host;
+    if (host == null) return null;
+    await host.finished;
+    return host.totals;
+  }
+
   Future<bool> gracefulStop(Duration timeout) async {
     _stopping = true;
     _cancelTelemetry();
@@ -338,12 +345,22 @@ final class SingBoxPipeConnection
   }
 }
 
-final class SingBoxPipeLease implements CoreProcessLease {
+final class SingBoxPipeLease
+    implements CoreProcessLease, CoreFinalTrafficSource {
   final CoreProcessLease process;
   final SingBoxPipeConnection connection;
+  @override
+  final int? profileId;
   Future<CoreProcessStopResult>? _stopping;
 
-  SingBoxPipeLease({required this.process, required this.connection});
+  SingBoxPipeLease({
+    required this.process,
+    required this.connection,
+    this.profileId,
+  });
+
+  @override
+  Future<CoreTrafficTotals?> get finalTraffic => connection.finalTraffic;
 
   @override
   String get sessionId => process.sessionId;

@@ -37,16 +37,25 @@ type engine interface {
 type engineFactory func(context.Context, string) (engine, error)
 
 type hostEvent struct {
-	Protocol string `json:"protocol"`
-	Event    string `json:"event"`
-	PID      int    `json:"pid"`
-	Clean    bool   `json:"clean,omitempty"`
+	Protocol string         `json:"protocol"`
+	Event    string         `json:"event"`
+	PID      int            `json:"pid"`
+	Clean    bool           `json:"clean,omitempty"`
+	Totals   *trafficTotals `json:"totals,omitempty"`
 }
 
 func emit(output io.Writer, event string, clean bool) error {
 	return json.NewEncoder(output).Encode(hostEvent{
 		Protocol: controlProtocol, Event: event, PID: os.Getpid(), Clean: clean,
 	})
+}
+
+func emitStopped(output io.Writer, clean bool, instance engine) error {
+	event := hostEvent{Protocol: controlProtocol, Event: "stopped", PID: os.Getpid(), Clean: clean}
+	if source, ok := instance.(interface{ FinalTraffic() *trafficTotals }); clean && ok {
+		event.Totals = source.FinalTraffic()
+	}
+	return json.NewEncoder(output).Encode(event)
 }
 
 func readControl(input io.Reader, output io.Writer, source func() telemetrySource) error {
@@ -80,7 +89,7 @@ func serve(parent context.Context, configPath string, input io.Reader, output io
 	var running atomic.Bool
 	var instance engine
 	clean := false
-	defer func() { result = errors.Join(result, emit(output, "stopped", clean)) }()
+	defer func() { result = errors.Join(result, emitStopped(output, clean, instance)) }()
 	control := make(chan error, 1)
 	go func() {
 		err := readControl(input, output, func() telemetrySource {

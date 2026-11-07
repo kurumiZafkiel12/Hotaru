@@ -10087,6 +10087,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Total {traffic}`
+  String profileTrafficTotal(String traffic) {
+    return Intl.message(
+      'Total $traffic',
+      name: 'profileTrafficTotal',
+      desc: '',
+      args: [traffic],
+    );
+  }
+
+  /// `Upload and download while this profile was active, accumulated since import`
+  String get profileTrafficSinceImport {
+    return Intl.message(
+      'Upload and download while this profile was active, accumulated since import',
+      name: 'profileTrafficSinceImport',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

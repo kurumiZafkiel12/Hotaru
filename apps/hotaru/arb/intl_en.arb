@@ -1186,5 +1186,14 @@
   "ipFactsOriginEvidence": "Location country: {geo}; IP block registration country: {registered} (RDAP)",
   "ipFactsScope": "IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.",
   "ipFactsNoData": "No usable data provided",
-  "networkLatencyRating": "Latency rating"
+  "networkLatencyRating": "Latency rating",
+  "profileTrafficTotal": "Total {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "Upload and download while this profile was active, accumulated since import"
 }

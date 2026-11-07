@@ -292,6 +292,7 @@ void main() {
         probeOutbounds: ['日本 / A', 'B', 'selected'],
         telemetry: controlled ? readTelemetry : null,
       );
+      CoreTelemetrySnapshot? lastObservation;
       try {
         var ready = false;
         for (var attempt = 0; attempt < 100; attempt++) {
@@ -357,6 +358,7 @@ void main() {
           );
           expect(observed.uploadTotal, greaterThan(0));
           expect(observed.downloadTotal, greaterThan(0));
+          lastObservation = observed;
           expect(
             observed.closed.every(
               (entry) => entry.sourcePort > 0 && entry.closedAt != null,
@@ -437,6 +439,18 @@ void main() {
           if (controlled) {
             expect(code, 0);
             expect(output.join(), contains('"clean":true'));
+            final stopped = output
+                .where((line) => line.startsWith('{'))
+                .map(jsonDecode)
+                .lastWhere((value) => value['event'] == 'stopped');
+            expect(
+              stopped['totals']['upload'],
+              greaterThanOrEqualTo(lastObservation!.uploadTotal),
+            );
+            expect(
+              stopped['totals']['download'],
+              greaterThanOrEqualTo(lastObservation.downloadTotal),
+            );
           }
         } finally {
           if (!exited) {

@@ -13,6 +13,7 @@ final class SingBoxConfigCandidate {
   final CoreListenerSpec _listeners;
   final SingBoxBootstrap _bootstrap;
   final CoreProfileSpec _profile;
+  final int? _profileId;
 
   const SingBoxConfigCandidate._(
     this.revision,
@@ -20,6 +21,7 @@ final class SingBoxConfigCandidate {
     this._listeners,
     this._bootstrap,
     this._profile,
+    this._profileId,
   );
 
   int get bootstrapBytes => _bootstrap.length;
@@ -41,6 +43,7 @@ final class AcceptedSingBoxConfig {
   CoreListenerSpec get listeners => _candidate._listeners;
   SingBoxBootstrap get bootstrap => _candidate._bootstrap;
   CoreProfileSpec get profile => _candidate._profile;
+  int? get profileId => _candidate._profileId;
 }
 
 final class SingBoxPreparationResult {
@@ -62,9 +65,18 @@ final class SingBoxConfigPreparer {
   Future<SingBoxPreparationResult> prepare({
     required Future<CoreConfigImportResult> Function() import,
     required CoreListenerSpec listeners,
+    int? profileId,
   }) async {
     final revision = ++_revision;
     _current = null;
+    if (profileId != null && profileId < 0) {
+      return const SingBoxPreparationResult._(
+        SingBoxPreparationStatus.invalid,
+        issues: [
+          CoreConfigIssue('invalid_profile_identity', 'application.profileId'),
+        ],
+      );
+    }
     try {
       final imported = await import();
       if (revision != _revision) return _superseded();
@@ -83,6 +95,7 @@ final class SingBoxConfigPreparer {
         listeners,
         bootstrap,
         imported.profile!,
+        profileId,
       );
       _current = candidate;
       return SingBoxPreparationResult._(

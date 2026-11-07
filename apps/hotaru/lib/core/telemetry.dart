@@ -1,3 +1,21 @@
+abstract interface class CoreFinalTrafficSource {
+  int? get profileId;
+  Future<CoreTrafficTotals?> get finalTraffic;
+}
+
+final class CoreTrafficTotals {
+  final int upload;
+  final int download;
+
+  const CoreTrafficTotals({required this.upload, required this.download});
+
+  factory CoreTrafficTotals.fromJson(Map<String, dynamic> value) =>
+      CoreTrafficTotals(
+        upload: _integer(value, 'upload'),
+        download: _integer(value, 'download'),
+      );
+}
+
 abstract interface class CoreTelemetry {
   Future<CoreTelemetrySnapshot> telemetry();
 }

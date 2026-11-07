@@ -35,6 +35,21 @@ func (e *observedEngine) Close() error {
 	return e.Box.Close()
 }
 
+type trafficTotals struct {
+	Upload   int64 `json:"upload"`
+	Download int64 `json:"download"`
+}
+
+func (e *observedEngine) FinalTraffic() *trafficTotals {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	if !e.closed || e.traffic == nil {
+		return nil
+	}
+	up, down := e.traffic.Total()
+	return &trafficTotals{Upload: up, Download: down}
+}
+
 func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()

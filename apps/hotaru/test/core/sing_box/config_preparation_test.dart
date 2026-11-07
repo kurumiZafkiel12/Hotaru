@@ -50,6 +50,48 @@ final class _ManyReferences extends ListBase<Object?> {
 
 void main() {
   test(
+    'profile identity is client-owned metadata bound to the accepted candidate',
+    () async {
+      final preparation = SingBoxConfigPreparer();
+      var imports = 0;
+      Future<CoreConfigImportResult> import() async {
+        imports++;
+        return CoreConfigImportResult(
+          profile: CoreProfileSpec(
+            nodes: const [
+              CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct),
+            ],
+            selectors: [],
+            finalOutbound: 'direct',
+          ),
+          issues: [],
+        );
+      }
+
+      const listeners = CoreListenerSpec(
+        mixedPort: 17890,
+        controllerPort: 19090,
+        secret: 'fixture',
+      );
+      final result = await preparation.prepare(
+        import: import,
+        listeners: listeners,
+        profileId: 7,
+      );
+      final accepted = preparation.approve(result.candidate!);
+      expect(accepted.profileId, 7);
+      final invalid = await preparation.prepare(
+        import: import,
+        listeners: listeners,
+        profileId: -1,
+      );
+      expect(invalid.status, SingBoxPreparationStatus.invalid);
+      expect(imports, 1);
+      expect(accepted.profileId, 7);
+    },
+  );
+
+  test(
     'bounded encoder measures UTF-8 and escaping without traversing huge fan-out',
     () {
       final value = {'v': '中文😀\\\n"'};
