@@ -16,6 +16,7 @@ CoreDnsImportResult importClashDns(Object? value) => _ClashDns().read(value);
 final class _ClashDns {
   final List<CoreConfigIssue> issues = [];
   final List<CoreDnsServerSpec> servers = [];
+  final List<CoreDnsGroupSpec> groups = [];
 
   void issue(String code, String path, {bool warning = false}) => issues.add(
     CoreConfigIssue(
@@ -33,13 +34,24 @@ final class _ClashDns {
     return value;
   }
 
-  String single(Object? value, String path) {
-    if (value is! List || value.isEmpty) throw const FormatException();
-    if (value.length != 1) issue('dns_parallel_servers_not_migrated', path);
-    if (value.first is! String || (value.first as String).isEmpty) {
+  String pool(Object? value, String tag, String? bootstrap) {
+    if (value is! List ||
+        value.isEmpty ||
+        value.length > 16 ||
+        value.any((entry) => entry is! String || entry.isEmpty)) {
       throw const FormatException();
     }
-    return value.first as String;
+    if (value.length == 1) return add(value.single as String, tag, bootstrap);
+    groups.add(
+      CoreDnsGroupSpec(
+        tag: tag,
+        members: [
+          for (var i = 0; i < value.length; i++)
+            add(value[i] as String, '$tag-$i', bootstrap),
+        ],
+      ),
+    );
+    return tag;
   }
 
   CoreDnsImportResult read(Object? value) {
@@ -114,27 +126,12 @@ final class _ClashDns {
       }
       String? bootstrap;
       if (value['default-nameserver'] != null) {
-        bootstrap = add(
-          single(value['default-nameserver'], 'dns.default-nameserver'),
-          'dns-bootstrap',
-          null,
-        );
+        bootstrap = pool(value['default-nameserver'], 'dns-bootstrap', null);
       }
-      final main = add(
-        single(value['nameserver'], 'dns.nameserver'),
-        'dns-main',
-        bootstrap,
-      );
+      final main = pool(value['nameserver'], 'dns-main', bootstrap);
       String? proxy;
       if (value['proxy-server-nameserver'] != null) {
-        proxy = add(
-          single(
-            value['proxy-server-nameserver'],
-            'dns.proxy-server-nameserver',
-          ),
-          'dns-proxy',
-          bootstrap,
-        );
+        proxy = pool(value['proxy-server-nameserver'], 'dns-proxy', bootstrap);
       }
       final capacity = value['cache-size'];
       if (capacity != null &&
@@ -143,6 +140,7 @@ final class _ClashDns {
       }
       final spec = CoreDnsSpec(
         servers: servers,
+        groups: groups,
         finalServer: main,
         proxyServer: proxy,
         ipv6: flag(value['ipv6'], false),

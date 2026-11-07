@@ -173,6 +173,7 @@ final class CoreListenerSpec {
   final String secret;
   final CoreTunSpec? tun;
   final int? dnsPort;
+  final CoreDnsGroupListeners? dnsGroups;
   final CoreProbeListenerSpec? probe;
   final CoreRoutingMode initialMode;
   final String? globalSelection;
@@ -184,6 +185,7 @@ final class CoreListenerSpec {
     this.inboundsEnabled = true,
     this.tun,
     this.dnsPort,
+    this.dnsGroups,
     this.probe,
     this.initialMode = CoreRoutingMode.rule,
     this.globalSelection,
@@ -200,6 +202,7 @@ final class CoreListenerSpec {
     inboundsEnabled: enabled,
     tun: tun,
     dnsPort: dnsPort,
+    dnsGroups: dnsGroups,
     probe: probe,
     initialMode: initialMode,
     globalSelection: globalSelection,
@@ -216,6 +219,7 @@ final class CoreListenerSpec {
     inboundsEnabled: enabled,
     tun: tun,
     dnsPort: dnsPort,
+    dnsGroups: dnsGroups,
     probe: probe,
     initialMode: mode,
     globalSelection: globalSelection,

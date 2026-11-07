@@ -20,8 +20,24 @@ final class CoreDnsServerSpec {
   });
 }
 
+final class CoreDnsGroupSpec {
+  final String tag;
+  final List<String> members;
+
+  CoreDnsGroupSpec({required this.tag, required List<String> members})
+    : members = List.unmodifiable(members);
+}
+
+final class CoreDnsGroupListeners {
+  final Map<String, int> ports;
+
+  CoreDnsGroupListeners(Map<String, int> ports)
+    : ports = Map.unmodifiable(ports);
+}
+
 final class CoreDnsSpec {
   final List<CoreDnsServerSpec> servers;
+  final List<CoreDnsGroupSpec> groups;
   final String finalServer;
   final String? proxyServer;
   final bool ipv6;
@@ -29,9 +45,11 @@ final class CoreDnsSpec {
 
   CoreDnsSpec({
     required List<CoreDnsServerSpec> servers,
+    List<CoreDnsGroupSpec> groups = const [],
     required this.finalServer,
     this.proxyServer,
     this.ipv6 = false,
     this.cacheCapacity,
-  }) : servers = List.unmodifiable(servers);
+  }) : servers = List.unmodifiable(servers),
+       groups = List.unmodifiable(groups);
 }

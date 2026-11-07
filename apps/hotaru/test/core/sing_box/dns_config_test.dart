@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/clash_dns.dart';
 import 'package:hotaru/core/config/dns.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
 
 Map<String, Object?> settings(String server) => {
@@ -73,9 +74,7 @@ void main() {
         {'enhanced-mode': 'fake-ip'},
         {'respect-rules': true},
         {'prefer-h3': true},
-        {
-          'nameserver': ['192.0.2.1', '192.0.2.2'],
-        },
+        {'nameserver': List.filled(17, '192.0.2.1')},
         {'unknown-option': <String, Object?>{}},
         {
           'nameserver': ['https://dns.invalid/dns-query'],
@@ -100,6 +99,77 @@ void main() {
         importClashDns({...settings('192.0.2.1'), 'enable': false}).dns,
         isNull,
       );
+    },
+  );
+
+  test(
+    'parallel pools retain every upstream and require distinct owned listeners',
+    () async {
+      final imported = importClashDns({
+        ...settings('192.0.2.1'),
+        'nameserver': [
+          'https://one.invalid/dns-query',
+          'https://two.invalid/dns-query',
+        ],
+        'default-nameserver': ['192.0.2.3', '192.0.2.4'],
+        'proxy-server-nameserver': ['192.0.2.5', '192.0.2.6'],
+      });
+      expect(imported.issues, isEmpty);
+      final dns = imported.dns!;
+      expect(dns.servers, hasLength(6));
+      expect(dns.groups.map((group) => group.tag), [
+        'dns-bootstrap',
+        'dns-main',
+        'dns-proxy',
+      ]);
+      final ports = {
+        'dns-bootstrap': 15400,
+        'dns-main': 15401,
+        'dns-proxy': 15402,
+      };
+      CoreListenerSpec config(Map<String, int> ports, {bool enabled = true}) =>
+          CoreListenerSpec(
+            mixedPort: 17890,
+            controllerPort: 19090,
+            secret: 'fixture',
+            inboundsEnabled: enabled,
+            dnsGroups: CoreDnsGroupListeners(ports),
+          );
+      for (final invalid in [
+        <String, int>{},
+        {...ports, 'dns-main': 15400},
+        {...ports, 'dns-main': 17890},
+        {...ports, 'dns-main': 0},
+        {...ports, 'unexpected': 15500},
+      ]) {
+        final built = await SingBoxConfigBuilder().build(
+          profile(dns),
+          config(invalid),
+        );
+        expect(built.json, isNull);
+      }
+      final built = await SingBoxConfigBuilder().build(
+        profile(dns),
+        config(ports, enabled: false),
+      );
+      expect(built.issues, isEmpty);
+      final document = jsonDecode(built.json!);
+      final inbounds = document['inbounds'] as List;
+      expect(inbounds, hasLength(3));
+      expect(
+        inbounds.every((dynamic inbound) => inbound['listen'] == '127.0.0.1'),
+        isTrue,
+      );
+      expect(document['dns']['servers'], hasLength(9));
+      expect(document['route']['default_domain_resolver'], 'dns-main');
+      final modes = config(ports)
+          .withInbounds(false)
+          .withRuntime(
+            enabled: true,
+            mode: CoreRoutingMode.global,
+            globalSelection: null,
+          );
+      expect(modes.dnsGroups!.ports, ports);
     },
   );
 

@@ -199,8 +199,15 @@ final class SingBoxConfigBuilder {
     final tun = listeners.activeTun;
     try {
       final encoded = CoreConfigEncoding.encode({
-        if (profile.dns case final dns?) 'dns': compileDns(dns),
+        if (profile.dns case final dns?) 'dns': compileDns(dns, listeners),
         'inbounds': [
+          for (final group in profile.dns?.groups ?? const [])
+            {
+              'type': 'direct',
+              'tag': dnsGroupInboundTag(group.tag),
+              'listen': '127.0.0.1',
+              'listen_port': listeners.dnsGroups!.ports[group.tag],
+            },
           if (probe != null)
             {
               'type': 'http',
@@ -273,6 +280,11 @@ final class SingBoxConfigBuilder {
             'default_domain_resolver': profile.dns!.finalServer,
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
           'rules': [
+            for (final group in profile.dns?.groups ?? const [])
+              {
+                'inbound': [dnsGroupInboundTag(group.tag)],
+                'action': 'hijack-dns',
+              },
             if (probe != null) ...[
               for (final tag in tags)
                 {
