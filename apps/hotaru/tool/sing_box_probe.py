@@ -402,7 +402,8 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                                   if 'node-b' in entry['chains']]
                         assert len(active) == 1
                         entry = active[0]
-                        assert entry['rule'] == 'final'
+                        expected_rule = 'final' if dart is None else 'clash_mode=rule => route(selected)'
+                        assert entry['rule'] == expected_rule, entry['rule']
                         assert entry['metadata']['destinationPort'] == str(origin.server_port)
                         assert entry['upload'] > 0 and entry['download'] > 0
                         assert isinstance(entry['metadata']['processPath'], str)
