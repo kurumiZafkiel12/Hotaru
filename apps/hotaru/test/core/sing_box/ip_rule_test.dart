@@ -168,7 +168,7 @@ void main() {
   );
 
   test(
-    'ipcidr sets preserve IPv4/IPv6 and require reference no-resolve even when empty',
+    'ipcidr sets preserve no-resolve or require review of native resolution',
     () async {
       final provider = {
         'type': 'inline',
@@ -185,20 +185,31 @@ void main() {
         '2001:db8::/32',
       ]);
       expect(accepted.profile!.rules.every((rule) => rule.noResolve), isTrue);
-      for (final payload in [
-        provider,
+      final resolving = await importRules(provider, [
+        'RULE-SET,ips,DIRECT',
+        'MATCH,DIRECT',
+      ]);
+      expect(resolving.profile, isNotNull);
+      expect(resolving.issues.map((issue) => issue.code), [
+        'ip_resolution_semantics_changed',
+        'ip_resolution_semantics_changed',
+      ]);
+      final built = await SingBoxConfigBuilder().build(
+        resolving.profile!,
+        listeners,
+      );
+      expect(built.issues, isEmpty);
+      final native = jsonDecode(built.json!)['route']['rules'] as List;
+      expect(
+        native.where((dynamic rule) => rule['action'] == 'resolve'),
+        hasLength(1),
+      );
+      final empty = await importRules(
         {'type': 'inline', 'behavior': 'ipcidr', 'payload': []},
-      ]) {
-        final rejected = await importRules(payload, [
-          'RULE-SET,ips,DIRECT',
-          'MATCH,DIRECT',
-        ]);
-        expect(rejected.profile, isNull);
-        expect(
-          rejected.issues.map((issue) => issue.code),
-          contains('ip_rule_resolution_not_migrated'),
-        );
-      }
+        ['RULE-SET,ips,DIRECT', 'MATCH,DIRECT'],
+      );
+      expect(empty.profile, isNull);
+      expect(empty.issues.single.code, 'empty_resolving_rule_set_not_migrated');
     },
   );
 
@@ -235,7 +246,7 @@ void main() {
           isTrue,
         );
       }
-      final ambiguous = await importRules(
+      final resolving = await importRules(
         {
           'type': 'inline',
           'behavior': 'classical',
@@ -243,7 +254,9 @@ void main() {
         },
         ['RULE-SET,ips,DIRECT', 'MATCH,DIRECT'],
       );
-      expect(ambiguous.profile, isNull);
+      expect(resolving.profile, isNotNull);
+      expect(resolving.issues.single.code, 'ip_resolution_semantics_changed');
+      expect(resolving.profile!.rules.single.noResolve, isFalse);
     },
   );
 

@@ -207,7 +207,6 @@ void main() {
         'DOMAIN,example.invalid,DIRECT',
         'MATCH',
         'AND,((DOMAIN,a.invalid))',
-        'IP-CIDR,192.0.2.0/24',
         'DOMAIN-KEYWORD,',
       ]) {
         final result = await convert(

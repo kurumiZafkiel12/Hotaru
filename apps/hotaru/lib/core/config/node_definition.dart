@@ -6,8 +6,13 @@ final class CoreNodeDefinition {
   static Future<Map<String, dynamic>?> find(
     CoreProfileSpec profile,
     String name,
+  ) => _find(profile.nodes, name);
+
+  static Future<Map<String, dynamic>?> _find(
+    List<CoreNodeSpec> nodes,
+    String name,
   ) => Isolate.run(() {
-    for (final node in profile.nodes) {
+    for (final node in nodes) {
       if (node.tag == name) return fromNode(node);
     }
     return null;

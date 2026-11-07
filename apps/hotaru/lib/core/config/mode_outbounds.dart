@@ -5,10 +5,20 @@ final class CoreModeOutbounds {
   final CoreSelectorSpec global;
 
   CoreModeOutbounds(CoreProfileSpec profile)
-    : this._({
-        for (final node in profile.nodes) node.tag,
-        for (final group in profile.selectors) group.tag,
-      }, profile.finalOutbound);
+    : this.fromOutbounds(
+        profile.nodes,
+        profile.selectors,
+        profile.finalOutbound,
+      );
+
+  CoreModeOutbounds.fromOutbounds(
+    List<CoreNodeSpec> nodes,
+    List<CoreSelectorSpec> selectors,
+    String finalOutbound,
+  ) : this._({
+        for (final node in nodes) node.tag,
+        for (final group in selectors) group.tag,
+      }, finalOutbound);
 
   CoreModeOutbounds._(Set<String> tags, String finalOutbound)
     : direct = CoreNodeSpec(

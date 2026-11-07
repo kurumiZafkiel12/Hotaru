@@ -4,11 +4,13 @@ import 'dart:isolate';
 import 'profile.dart';
 import 'ip_prefix.dart';
 import 'mode_outbounds.dart';
+import 'rule_set.dart';
 import '../routing_mode.dart';
 
 enum CoreRoutePreviewStatus {
   resolved,
   addressRequired,
+  contextRequired,
   selectionRequired,
   invalidTarget,
   invalidProfile,
@@ -54,6 +56,7 @@ final class CoreRoutePreviewer {
         nodes: [...profile.nodes, modes.direct],
         selectors: [...profile.selectors, modes.global],
         rules: mode == CoreRoutingMode.rule ? profile.rules : const [],
+        ruleSets: profile.ruleSets,
         finalOutbound: switch (mode) {
           CoreRoutingMode.rule => profile.finalOutbound,
           CoreRoutingMode.global => modes.global.tag,
@@ -69,6 +72,7 @@ final class CoreRoutePreviewer {
     required List<CoreNodeSpec> nodes,
     required List<CoreSelectorSpec> selectors,
     required List<CoreRouteRule> rules,
+    required List<CoreRuleSetSpec> ruleSets,
     required String finalOutbound,
     required Map<String, String> selections,
   }) {
@@ -85,7 +89,9 @@ final class CoreRoutePreviewer {
     }
     final nodeMap = {for (final node in nodes) node.tag: node};
     final groups = {for (final group in selectors) group.tag: group};
+    final sets = {for (final set in ruleSets) set.tag: set};
     if (nodeMap.length != nodes.length ||
+        sets.length != ruleSets.length ||
         groups.length != selectors.length ||
         groups.keys.any(nodeMap.containsKey)) {
       return CoreRoutePreview(
@@ -98,6 +104,14 @@ final class CoreRoutePreviewer {
     CoreRouteRule? matched;
     for (var index = 0; index < rules.length; index++) {
       final rule = rules[index];
+      if (rule.invert && rule.kind != CoreRuleKind.ruleSet) {
+        return CoreRoutePreview(
+          status: CoreRoutePreviewStatus.invalidProfile,
+          target: target,
+          ruleIndex: index,
+          rule: rule,
+        );
+      }
       final value = rule.value;
       bool matches;
       switch (rule.kind) {
@@ -133,6 +147,62 @@ final class CoreRoutePreviewer {
             );
           }
           matches = cidr.contains(address);
+        case CoreRuleKind.ruleSet:
+          final set = sets[value];
+          if (set == null) {
+            return CoreRoutePreview(
+              status: CoreRoutePreviewStatus.invalidProfile,
+              target: target,
+              ruleIndex: index,
+              rule: rule,
+            );
+          }
+          if (address != null && set.kind == CoreRuleSetKind.domain ||
+              address == null &&
+                  set.kind == CoreRuleSetKind.ipCidr &&
+                  rule.noResolve) {
+            continue;
+          }
+          if (address == null && set.requiresAddress && !rule.noResolve) {
+            return CoreRoutePreview(
+              status: CoreRoutePreviewStatus.addressRequired,
+              target: target,
+              ruleIndex: index,
+              rule: rule,
+            );
+          }
+          if (address != null) {
+            matches = false;
+            for (final prefix in set.prefixes) {
+              final parsed = CoreIpPrefix.parse(prefix);
+              if (parsed == null) {
+                return CoreRoutePreview(
+                  status: CoreRoutePreviewStatus.invalidProfile,
+                  target: target,
+                  ruleIndex: index,
+                  rule: rule,
+                );
+              }
+              if (parsed.contains(address)) matches = true;
+            }
+          } else {
+            matches =
+                set.domains.contains(target) ||
+                set.suffixes.any(
+                  (suffix) => suffix.startsWith('.')
+                      ? target.endsWith(suffix)
+                      : target == suffix || target.endsWith('.$suffix'),
+                ) ||
+                set.keywords.any(target.contains);
+            if (!matches && set.regexes.isNotEmpty) {
+              return CoreRoutePreview(
+                status: CoreRoutePreviewStatus.contextRequired,
+                target: target,
+                ruleIndex: index,
+                rule: rule,
+              );
+            }
+          }
       }
       if (rule.kind != CoreRuleKind.always && value.isEmpty) {
         return CoreRoutePreview(
@@ -142,6 +212,7 @@ final class CoreRoutePreviewer {
           rule: rule,
         );
       }
+      if (rule.invert) matches = !matches;
       if (!matches) continue;
       ruleIndex = index;
       matched = rule;

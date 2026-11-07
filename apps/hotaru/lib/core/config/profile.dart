@@ -1,5 +1,6 @@
 import 'dns.dart';
 import 'probe_listener.dart';
+import 'rule_set.dart';
 import '../routing_mode.dart';
 
 enum CoreNodeProtocol {
@@ -114,7 +115,14 @@ final class CoreSelectorSpec {
   }) : members = List.unmodifiable(members);
 }
 
-enum CoreRuleKind { domain, domainSuffix, domainKeyword, ipCidr, always }
+enum CoreRuleKind {
+  domain,
+  domainSuffix,
+  domainKeyword,
+  ipCidr,
+  ruleSet,
+  always,
+}
 
 enum CoreRuleAction { route, reject, drop }
 
@@ -124,6 +132,7 @@ final class CoreRouteRule {
   final String? outbound;
   final CoreRuleAction action;
   final bool noResolve;
+  final bool invert;
 
   const CoreRouteRule({
     required this.kind,
@@ -131,6 +140,7 @@ final class CoreRouteRule {
     this.outbound,
     this.action = CoreRuleAction.route,
     this.noResolve = false,
+    this.invert = false,
   });
 }
 
@@ -139,6 +149,7 @@ final class CoreProfileSpec {
   final List<CoreSelectorSpec> selectors;
   final String finalOutbound;
   final List<CoreRouteRule> rules;
+  final List<CoreRuleSetSpec> ruleSets;
   final CoreDnsSpec? dns;
 
   CoreProfileSpec({
@@ -146,9 +157,11 @@ final class CoreProfileSpec {
     required List<CoreSelectorSpec> selectors,
     required this.finalOutbound,
     List<CoreRouteRule> rules = const [],
+    List<CoreRuleSetSpec> ruleSets = const [],
     this.dns,
   }) : nodes = List.unmodifiable(nodes),
        selectors = List.unmodifiable(selectors),
+       ruleSets = List.unmodifiable(ruleSets),
        rules = List.unmodifiable(rules);
 }
 

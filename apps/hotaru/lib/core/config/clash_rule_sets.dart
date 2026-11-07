@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'profile.dart';
+import 'geodata.dart';
 import 'encoding.dart';
 import 'ip_prefix.dart';
 import 'yaml_document.dart';
@@ -345,6 +346,23 @@ final class _RuleImport {
                   .toList();
               final ip =
                   fields.first == 'IP-CIDR' || fields.first == 'IP-CIDR6';
+              final geo = fields.first == 'GEOIP' || fields.first == 'GEOSITE';
+              if (geo) {
+                final geoIp = fields.first == 'GEOIP';
+                if ((fields.length != 2 &&
+                        !(geoIp &&
+                            fields.length == 3 &&
+                            fields.last == 'no-resolve')) ||
+                    CoreGeoRequest.parse(
+                          geoIp ? CoreGeoKind.ip : CoreGeoKind.site,
+                          fields[1],
+                        ) ==
+                        null) {
+                  throw const FormatException();
+                }
+                converted.add(fields.join(','));
+                continue;
+              }
               if (ip) {
                 if ((fields.length != 2 &&
                         !(fields.length == 3 && fields.last == 'no-resolve')) ||
@@ -426,23 +444,24 @@ final class _RuleImport {
               issue('expanded_rule_limit_exceeded', path);
               break;
             }
-            if (plan.behaviors[fields[1]] == 'ipcidr' && !noResolve) {
-              issue('ip_rule_resolution_not_migrated', path);
+            if (plan.behaviors[fields[1]] == 'ipcidr' &&
+                !noResolve &&
+                entries[fields[1]]!.isEmpty) {
+              issue('empty_resolving_rule_set_not_migrated', path);
               continue;
             }
             for (final entry in entries[fields[1]]!) {
               final parts = entry.split(',');
-              final ip = parts.first == 'IP-CIDR' || parts.first == 'IP-CIDR6';
+              final ip =
+                  parts.first == 'IP-CIDR' ||
+                  parts.first == 'IP-CIDR6' ||
+                  parts.first == 'GEOIP';
               if (ip) {
-                if (!noResolve && parts.length != 3) {
-                  issue('ip_rule_resolution_not_migrated', path);
-                  break;
-                }
                 if (!appendParts([
                   parts[0],
                   parts[1],
                   fields[2],
-                  'no-resolve',
+                  if (noResolve || parts.length == 3) 'no-resolve',
                 ], path)) {
                   break rulesLoop;
                 }

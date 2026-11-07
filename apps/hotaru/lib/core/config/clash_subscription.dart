@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 import 'clash_importer.dart';
 import 'clash_rule_sets.dart';
 import 'profile.dart';
+import 'geodata.dart';
 import 'yaml_document.dart';
 
 enum CoreProxyProviderKind { http, file }
@@ -64,12 +65,14 @@ final class ClashProviderPlan {
 final class ClashSubscriptionImporter {
   final CoreProxyProviderResolver resolve;
   final CoreRuleProviderResolver? resolveRules;
+  final CoreGeoResolver? resolveGeo;
   final int concurrency;
   final Duration timeout;
 
   ClashSubscriptionImporter({
     required this.resolve,
     this.resolveRules,
+    this.resolveGeo,
     this.concurrency = 4,
     this.timeout = const Duration(seconds: 20),
   }) {
@@ -138,7 +141,10 @@ final class ClashSubscriptionImporter {
       }
       document = ruleSets.document!;
     }
-    final imported = await ClashProfileImporter().importDocument(document);
+    final imported = await ClashProfileImporter().importDocument(
+      document,
+      resolveGeo: resolveGeo,
+    );
     for (final issue in imported.issues) {
       final match = RegExp(r'^proxies\.(\d+)(.*)$').firstMatch(issue.path);
       final index = match == null ? null : int.tryParse(match[1]!);

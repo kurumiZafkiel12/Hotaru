@@ -128,8 +128,16 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     if (configuration == null) {
       throw const CoreAdapterException('applied_profile_unavailable');
     }
-    final profile = configuration.profile;
-    final tag = await Isolate.run(() => CoreModeOutbounds(profile).global.tag);
+    final nodes = configuration.profile.nodes;
+    final groups = configuration.profile.selectors;
+    final finalOutbound = configuration.profile.finalOutbound;
+    final tag = await Isolate.run(
+      () => CoreModeOutbounds.fromOutbounds(
+        nodes,
+        groups,
+        finalOutbound,
+      ).global.tag,
+    );
     if (!identical(configuration, core.configuration)) {
       throw const CoreAdapterException('session_changed');
     }
@@ -305,12 +313,18 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     if (!identical(configuration, core.configuration)) {
       throw const CoreAdapterException('session_changed');
     }
-    final profile = configuration.profile;
+    final sourceNodes = configuration.profile.nodes;
+    final sourceGroups = configuration.profile.selectors;
+    final finalOutbound = configuration.profile.finalOutbound;
     final result = await Isolate.run(() {
-      final modes = CoreModeOutbounds(profile);
+      final modes = CoreModeOutbounds.fromOutbounds(
+        sourceNodes,
+        sourceGroups,
+        finalOutbound,
+      );
       final ownsGlobal =
-          profile.nodes.any((node) => node.tag == 'GLOBAL') ||
-          profile.selectors.any((group) => group.tag == 'GLOBAL');
+          sourceNodes.any((node) => node.tag == 'GLOBAL') ||
+          sourceGroups.any((group) => group.tag == 'GLOBAL');
       final shown = nodes
           .where((node) => node.name != 'GLOBAL' || ownsGlobal)
           .toList();

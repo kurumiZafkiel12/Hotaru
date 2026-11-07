@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hotaru/core/config/clash_dns.dart';
+import 'package:hotaru/core/config/clash_importer.dart';
+import 'package:hotaru/core/config/clash_subscription.dart';
+import 'package:hotaru/core/config/geodata.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
@@ -10,13 +13,24 @@ import 'package:hotaru/core/sing_box/host_events.dart';
 
 import 'loopback_proxy_fixture.dart';
 import 'support/dns_fixture.dart';
+import 'support/geodata_fixture.dart';
 
 void main() {
   final binary = Platform.environment['HOTARU_TEST_SING_BOX'];
   final controlled = Platform.environment['HOTARU_TEST_SING_BOX_HOST'] == '1';
-  for (final noResolve in [false, true]) {
+  for (final (withGeo, noResolve, invertIp, emptySite, withProviders) in const [
+    (false, false, false, false, false),
+    (false, true, false, false, false),
+    (true, false, false, false, false),
+    (true, true, false, false, false),
+    (true, true, true, false, false),
+    (true, true, false, true, false),
+    (false, false, false, false, true),
+    (true, true, false, false, true),
+    (true, false, false, false, true),
+  ]) {
     test(
-      'real engine IP rule no-resolve=$noResolve verifies DNS intent and preceding domain priority',
+      'real engine IP rule geodata=$withGeo no-resolve=$noResolve inverse=$invertIp empty=$emptySite providers=$withProviders verifies DNS intent and preceding domain priority',
       () async {
         final directory = await Directory.systemTemp.createTemp(
           'hotaru-ip-resolution-',
@@ -69,7 +83,12 @@ void main() {
             LoopbackProxyFixture(
               await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
               origin.port,
-              allowedHosts: ['127.0.0.1', 'prior.invalid', 'routed.invalid'],
+              allowedHosts: [
+                '127.0.0.1',
+                'prior.invalid',
+                'routed.invalid',
+                '192.0.2.100',
+              ],
             ),
         ];
         final reserved = <ServerSocket>[];
@@ -87,44 +106,97 @@ void main() {
 
           final mixed = await reserve();
           final controller = await reserve();
-          final imported = importClashDns({
-            'enable': true,
-            'nameserver': ['udp://127.0.0.1:${dns.port}'],
-            'use-hosts': false,
-            'use-system-hosts': false,
-          });
-          final profile = CoreProfileSpec(
-            nodes: [
-              for (var i = 0; i < proxies.length; i++)
-                CoreNodeSpec(
-                  tag: 'node-$i',
-                  protocol: CoreNodeProtocol.http,
-                  server: '127.0.0.1',
-                  port: proxies[i].server.port,
-                ),
-            ],
-            selectors: [],
-            finalOutbound: 'node-1',
-            dns: imported.dns,
-            rules: [
-              const CoreRouteRule(
-                kind: CoreRuleKind.domain,
-                value: 'prior.invalid',
-                outbound: 'node-1',
-              ),
-              CoreRouteRule(
-                kind: CoreRuleKind.ipCidr,
-                value: '127.0.0.0/8',
-                outbound: 'node-0',
-                noResolve: noResolve,
-              ),
-              const CoreRouteRule(
-                kind: CoreRuleKind.domain,
-                value: 'routed.invalid',
-                outbound: 'node-1',
-              ),
-            ],
+          final inputRules = [
+            withGeo
+                ? 'GEOSITE,${emptySite ? '!empty' : 'prior'},node-1'
+                : 'DOMAIN,prior.invalid,node-1',
+            '${withGeo ? 'GEOIP,${invertIp ? '!' : ''}local' : 'IP-CIDR,127.0.0.0/8'},node-0${noResolve ? ',no-resolve' : ''}',
+            withGeo ? 'GEOSITE,routed,node-1' : 'DOMAIN,routed.invalid,node-1',
+            'MATCH,node-1',
+          ];
+          final members = inputRules
+              .take(3)
+              .map((rule) => rule.split(','))
+              .toList();
+          Future<CoreConfigImportResult> import(
+            String source, {
+            CoreGeoResolver? resolveGeo,
+          }) => withProviders
+              ? ClashSubscriptionImporter(
+                  resolve: (_) async => throw StateError('Inline only'),
+                  resolveGeo: resolveGeo,
+                ).import(source)
+              : ClashProfileImporter().import(source, resolveGeo: resolveGeo);
+          final imported = await import(
+            jsonEncode({
+              if (withGeo) 'geodata-mode': true,
+              'dns': {
+                'enable': true,
+                'nameserver': ['udp://127.0.0.1:${dns.port}'],
+                'use-hosts': false,
+                'use-system-hosts': false,
+              },
+              'proxies': [
+                for (var i = 0; i < proxies.length; i++)
+                  {
+                    'name': 'node-$i',
+                    'type': 'http',
+                    'server': '127.0.0.1',
+                    'port': proxies[i].server.port,
+                  },
+              ],
+              if (withProviders)
+                'rule-providers': {
+                  for (var i = 0; i < members.length; i++)
+                    'rules-$i': {
+                      'type': 'inline',
+                      'behavior': 'classical',
+                      'payload': ['${members[i][0]},${members[i][1]}'],
+                    },
+                },
+              'rules': withProviders
+                  ? [
+                      for (var i = 0; i < members.length; i++)
+                        'RULE-SET,rules-$i,${members[i][2]}${members[i].length == 4 ? ',no-resolve' : ''}',
+                      'MATCH,node-1',
+                    ]
+                  : inputRules,
+            }),
+            resolveGeo: withGeo
+                ? (requests) async {
+                    final result = <String, CoreGeoMatchData>{};
+                    for (final kind in CoreGeoKind.values) {
+                      final bytes = kind == CoreGeoKind.ip
+                          ? geoDatabase('LOCAL', [
+                              geoPrefix([127, 0, 0, 0], 8),
+                            ])
+                          : Uint8List.fromList([
+                              ...geoDatabase('EMPTY', []),
+                              ...geoDatabase('PRIOR', [
+                                geoDomain(3, 'prior.invalid'),
+                              ]),
+                              ...geoDatabase('ROUTED', [
+                                geoDomain(2, 'routed.invalid'),
+                              ]),
+                            ]);
+                      result.addAll(
+                        await CoreGeoDecoder.decode(
+                          bytes: bytes,
+                          requests: requests
+                              .where((request) => request.kind == kind)
+                              .toList(),
+                        ),
+                      );
+                    }
+                    return result;
+                  }
+                : null,
           );
+          expect(
+            imported.issues.map((issue) => issue.code),
+            noResolve ? isEmpty : ['ip_resolution_semantics_changed'],
+          );
+          final profile = imported.profile!;
           final preview = await CoreRoutePreviewer().preview(
             profile,
             'routed.invalid',
@@ -235,8 +307,34 @@ void main() {
           expect(proxies[1].receipts, hasLength(noResolve ? 2 : 1));
           await payload('127.0.0.1');
           expect(queries, noResolve ? 0 : 1);
-          expect(proxies[0].receipts, hasLength(noResolve ? 1 : 2));
+          expect(
+            proxies[0].receipts,
+            hasLength(
+              invertIp
+                  ? 0
+                  : noResolve
+                  ? 1
+                  : 2,
+            ),
+          );
+          expect(
+            proxies[1].receipts,
+            hasLength(
+              invertIp
+                  ? 3
+                  : noResolve
+                  ? 2
+                  : 1,
+            ),
+          );
           expect(originReceipts, 3);
+          if (invertIp) {
+            await payload('192.0.2.100');
+            expect(queries, 0);
+            expect(proxies[0].receipts, hasLength(1));
+            expect(proxies[1].receipts, hasLength(3));
+            expect(originReceipts, 4);
+          }
           if (!noResolve) {
             multipleAnswers = true;
             await payload('multi.invalid');

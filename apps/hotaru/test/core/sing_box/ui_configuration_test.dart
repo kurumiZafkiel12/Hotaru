@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/rule_set.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/routing_mode.dart';
@@ -50,6 +51,20 @@ Future<AcceptedSingBoxConfig> _configuration({
           CoreSelectorSpec(tag: 'group', members: ['A', 'B'], selected: 'A'),
         ],
         finalOutbound: 'group',
+        ruleSets: [
+          CoreRuleSetSpec(
+            tag: 'fixture-$id',
+            kind: CoreRuleSetKind.domain,
+            suffixes: ['profile-$id.invalid'],
+          ),
+        ],
+        rules: [
+          CoreRouteRule(
+            kind: CoreRuleKind.ruleSet,
+            value: 'fixture-$id',
+            outbound: 'group',
+          ),
+        ],
       ),
       issues: [],
     ),
@@ -215,10 +230,17 @@ void main() {
       )['config'];
       expect(quiet['inbounds'], isEmpty);
       expect(quiet['experimental']['clash_api']['default_mode'], 'global');
+      expect(
+        quiet['route']['rule_set'].single['rules'].single['domain_suffix'],
+        ['profile-1.invalid'],
+      );
       expect((selected, global, mode), ('B', 'B', CoreRoutingMode.global));
       expect(binding.current.profileId, original.profileId);
       expect(await routes.setInbounds(true), isTrue);
       expect(binding.current.listeners.inboundsEnabled, isTrue);
+      expect(binding.current.profile.ruleSets.single.suffixes, [
+        'profile-1.invalid',
+      ]);
       expect((selected, global, mode), ('B', 'B', CoreRoutingMode.global));
       expect(submitted, hasLength(2));
       verifyNever(() => lifecycle.stop());

@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:io';
 
 import '../config/profile.dart';
+import '../config/rule_set.dart';
 import '../config/node_validation.dart';
 import '../config/test_target.dart';
 import '../config/encoding.dart';
@@ -10,6 +11,7 @@ import '../config/ip_prefix.dart';
 import '../config/probe_listener.dart';
 import '../config/mode_outbounds.dart';
 import 'dns_config.dart';
+import 'rule_sets_config.dart';
 
 final class SingBoxConfigBuilder {
   Future<CoreConfigBuildResult> build(
@@ -24,6 +26,8 @@ final class SingBoxConfigBuilder {
     CoreListenerSpec listeners,
   ) {
     final issues = <CoreConfigIssue>[];
+    issues.addAll(validateRuleSets(profile));
+    final ruleSets = {for (final set in profile.ruleSets) set.tag: set};
     final tags = <String>{};
     void tag(String value, String path) {
       if (value.isEmpty || !tags.add(value)) {
@@ -79,9 +83,21 @@ final class SingBoxConfigBuilder {
     }
     for (var index = 0; index < profile.rules.length; index++) {
       final rule = profile.rules[index];
+      if (rule.invert && rule.kind != CoreRuleKind.ruleSet) {
+        issues.add(
+          CoreConfigIssue('unsupported_rule_inversion', 'rules.$index'),
+        );
+      }
       if (rule.kind == CoreRuleKind.ipCidr) {
         if (CoreIpPrefix.parse(rule.value) == null) {
           issues.add(CoreConfigIssue('invalid_ip_prefix', 'rules.$index'));
+        }
+      } else if (rule.kind == CoreRuleKind.ruleSet) {
+        final set = ruleSets[rule.value];
+        if (set == null) {
+          issues.add(CoreConfigIssue('unknown_rule_set', 'rules.$index'));
+        } else if (rule.noResolve && !set.requiresAddress) {
+          issues.add(CoreConfigIssue('unexpected_no_resolve', 'rules.$index'));
         }
       } else if (rule.noResolve) {
         issues.add(CoreConfigIssue('unexpected_no_resolve', 'rules.$index'));
@@ -271,6 +287,11 @@ final class SingBoxConfigBuilder {
         ],
         'route': {
           'final': profile.finalOutbound,
+          if (profile.ruleSets.any((set) => !set.isEmpty))
+            'rule_set': [
+              for (final set in profile.ruleSets)
+                if (!set.isEmpty) compileRuleSet(set),
+            ],
           if (profile.dns != null)
             'default_domain_resolver': profile.dns!.finalServer,
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
@@ -314,29 +335,7 @@ final class SingBoxConfigBuilder {
               'action': 'route',
               'outbound': modes.global.tag,
             },
-            for (final rule in profile.rules) ...[
-              if (rule.kind == CoreRuleKind.ipCidr && !rule.noResolve)
-                {'action': 'resolve'},
-              {
-                if (rule.kind != CoreRuleKind.always)
-                  switch (rule.kind) {
-                    CoreRuleKind.domain => 'domain',
-                    CoreRuleKind.domainSuffix => 'domain_suffix',
-                    CoreRuleKind.domainKeyword => 'domain_keyword',
-                    CoreRuleKind.ipCidr => 'ip_cidr',
-                    CoreRuleKind.always => throw StateError(
-                      'Unreachable rule kind',
-                    ),
-                  }: [
-                    rule.value,
-                  ],
-                'action': rule.action == CoreRuleAction.route
-                    ? 'route'
-                    : 'reject',
-                if (rule.action == CoreRuleAction.drop) 'method': 'drop',
-                if (rule.outbound != null) 'outbound': rule.outbound,
-              },
-            ],
+            ..._profileRules(profile.rules, ruleSets),
             {
               'clash_mode': 'rule',
               'action': 'route',
@@ -363,6 +362,58 @@ final class SingBoxConfigBuilder {
         ],
       );
     }
+  }
+
+  static List<Map<String, Object?>> _profileRules(
+    List<CoreRouteRule> rules,
+    Map<String, CoreRuleSetSpec> sets,
+  ) {
+    final result = <Map<String, Object?>>[];
+    var resolved = false;
+    for (final rule in rules) {
+      final needsAddress =
+          rule.kind == CoreRuleKind.ipCidr ||
+          rule.kind == CoreRuleKind.ruleSet &&
+              sets[rule.value]!.requiresAddress;
+      if (!resolved && !rule.noResolve && needsAddress) {
+        result.add({'action': 'resolve'});
+        resolved = true;
+      }
+      final native = _rule(rule, sets);
+      if (native != null) result.add(native);
+    }
+    return result;
+  }
+
+  static Map<String, Object?>? _rule(
+    CoreRouteRule rule,
+    Map<String, CoreRuleSetSpec> sets,
+  ) {
+    final Map<String, Object?>? match;
+    if (rule.kind == CoreRuleKind.ruleSet) {
+      match = compileRuleSetMatch(sets[rule.value]!, rule.invert);
+    } else {
+      match = {
+        if (rule.kind != CoreRuleKind.always)
+          switch (rule.kind) {
+            CoreRuleKind.domain => 'domain',
+            CoreRuleKind.domainSuffix => 'domain_suffix',
+            CoreRuleKind.domainKeyword => 'domain_keyword',
+            CoreRuleKind.ipCidr => 'ip_cidr',
+            _ => throw StateError('Unreachable rule kind'),
+          }: [
+            rule.value,
+          ],
+        if (rule.invert) 'invert': true,
+      };
+    }
+    if (match == null) return null;
+    return {
+      ...match,
+      'action': rule.action == CoreRuleAction.route ? 'route' : 'reject',
+      if (rule.action == CoreRuleAction.drop) 'method': 'drop',
+      if (rule.outbound != null) 'outbound': rule.outbound,
+    };
   }
 
   static Map<String, Object?> _node(CoreNodeSpec node) {

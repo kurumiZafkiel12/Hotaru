@@ -4,8 +4,10 @@ import 'package:yaml/yaml.dart';
 
 import 'clash_dns.dart';
 import 'encoding.dart';
+import 'geodata.dart';
 import 'ip_prefix.dart';
 import 'profile.dart';
+import 'rule_set.dart';
 import 'yaml_document.dart';
 
 final class ClashProfileImporter {
@@ -29,17 +31,93 @@ final class ClashProfileImporter {
     return CoreNodeImportResult(result, reader.issues);
   }
 
-  Future<CoreConfigImportResult> import(String source) {
+  Future<CoreConfigImportResult> import(
+    String source, {
+    CoreGeoResolver? resolveGeo,
+  }) {
+    if (resolveGeo != null) {
+      return _withGeo(
+        () => Isolate.run(() => _ClashImport().map(decodeCoreYaml(source))),
+        resolveGeo,
+      );
+    }
     return Isolate.run(() => _ClashImport().read(source));
   }
 
-  Future<CoreConfigImportResult> importDocument(Map<String, dynamic> document) {
+  Future<CoreConfigImportResult> importDocument(
+    Map<String, dynamic> document, {
+    CoreGeoResolver? resolveGeo,
+  }) {
+    if (resolveGeo != null) return _withGeo(() async => document, resolveGeo);
     return Isolate.run(() => _ClashImport().readDocument(document));
+  }
+}
+
+Future<CoreConfigImportResult> _withGeo(
+  Future<Map<String, dynamic>> Function() read,
+  CoreGeoResolver resolve,
+) async {
+  final Map<String, dynamic> document;
+  try {
+    document = await read();
+  } on YamlException {
+    return CoreConfigImportResult(
+      issues: [const CoreConfigIssue('invalid_yaml', 'document')],
+    );
+  } on Exception {
+    return CoreConfigImportResult(
+      issues: [const CoreConfigIssue('invalid_document_value', 'document')],
+    );
+  }
+  try {
+    final requests = await Isolate.run(() {
+      final requests = <String, CoreGeoRequest>{};
+      final rules = document['rules'];
+      if (rules is List) {
+        for (final rule in rules) {
+          if (rule is! String) continue;
+          final parts = rule.split(',').map((value) => value.trim()).toList();
+          if (parts.length < 3) continue;
+          final kind = switch (parts.first) {
+            'GEOIP' => CoreGeoKind.ip,
+            'GEOSITE' => CoreGeoKind.site,
+            _ => null,
+          };
+          if (kind == null) continue;
+          final request = CoreGeoRequest.parse(kind, parts[1]);
+          if (request != null && builtinCoreGeoMatch(request) == null) {
+            requests[request.key] = request;
+          }
+          if (requests.length > 1024) {
+            throw const FormatException('geo_request_limit');
+          }
+        }
+      }
+      return List<CoreGeoRequest>.unmodifiable(requests.values);
+    });
+    final data = requests.isEmpty
+        ? const <String, CoreGeoMatchData>{}
+        : await resolve(requests);
+    final expected = {for (final request in requests) request.key};
+    if (data.length > expected.length ||
+        data.keys.any((key) => !expected.contains(key))) {
+      throw const FormatException('invalid_geo_resolution');
+    }
+    return await Isolate.run(
+      () => _ClashImport(geodata: data).readDocument(document),
+    );
+  } catch (_) {
+    return CoreConfigImportResult(
+      issues: [const CoreConfigIssue('geo_data_resolution_failed', 'geodata')],
+    );
   }
 }
 
 final class _ClashImport {
   final List<CoreConfigIssue> issues = [];
+  final Map<String, CoreGeoMatchData> geodata;
+
+  _ClashImport({this.geodata = const {}});
 
   void issue(String code, String path, {bool warning = false}) {
     issues.add(
@@ -106,12 +184,22 @@ final class _ClashImport {
 
   CoreConfigImportResult readDocument(Map<String, dynamic> input) {
     try {
+      final geoMode = boolean(input['geodata-mode']);
       for (final key in input.keys) {
         if (key.startsWith('x-')) {
           issue('metadata_field_ignored', 'document.$key', warning: true);
           continue;
         }
         if (key == 'dns') continue;
+        if (key == 'geodata-mode') continue;
+        if (key == 'geodata-loader') {
+          if (!['standard', 'memconservative', 'memc'].contains(input[key])) {
+            issue('unsupported_geodata_loader', key);
+          } else {
+            issue('app_owned_setting_replaced', key, warning: true);
+          }
+          continue;
+        }
         if (const ['proxies', 'proxy-groups', 'rules'].contains(key)) continue;
         if (const [
           'mixed-port',
@@ -157,6 +245,7 @@ final class _ClashImport {
         }
       }
       final rules = <CoreRouteRule>[];
+      final ruleSets = <String, CoreRuleSetSpec>{};
       String? finalOutbound;
       final rawRules = list(input['rules'] ?? []);
       for (var index = 0; index < rawRules.length; index++) {
@@ -182,6 +271,61 @@ final class _ClashImport {
             );
             finalOutbound = 'DIRECT';
           }
+          continue;
+        }
+        if (fields.first == 'GEOIP' || fields.first == 'GEOSITE') {
+          final geoIp = fields.first == 'GEOIP';
+          final noResolve =
+              geoIp && fields.length == 4 && fields.last == 'no-resolve';
+          if (fields.length != 3 && !noResolve) {
+            issue('unsupported_rule', path);
+            continue;
+          }
+          final request = CoreGeoRequest.parse(
+            geoIp ? CoreGeoKind.ip : CoreGeoKind.site,
+            fields[1],
+          );
+          final builtin = request == null ? null : builtinCoreGeoMatch(request);
+          final data = request == null ? null : builtin ?? geodata[request.key];
+          if (data == null) {
+            issue(
+              request == null ? 'invalid_geo_selector' : 'geo_data_required',
+              path,
+            );
+            continue;
+          }
+          if (data.set.kind !=
+              (geoIp ? CoreRuleSetKind.ipCidr : CoreRuleSetKind.domain)) {
+            issue('invalid_geo_resolution', path);
+            continue;
+          }
+          final previous = ruleSets[data.set.tag];
+          if (previous != null && !identical(previous, data.set)) {
+            issue('conflicting_geo_rule_set', path);
+            continue;
+          }
+          ruleSets[data.set.tag] = data.set;
+          if (geoIp && !geoMode && builtin == null) {
+            issue('geoip_database_changed', path, warning: true);
+          }
+          if (geoIp && !noResolve) {
+            issue('ip_resolution_semantics_changed', path, warning: true);
+          }
+          final action = switch (fields[2]) {
+            'REJECT' => CoreRuleAction.reject,
+            'REJECT-DROP' => CoreRuleAction.drop,
+            _ => CoreRuleAction.route,
+          };
+          rules.add(
+            CoreRouteRule(
+              kind: CoreRuleKind.ruleSet,
+              value: data.set.tag,
+              outbound: action == CoreRuleAction.route ? fields[2] : null,
+              action: action,
+              noResolve: noResolve,
+              invert: data.inverted,
+            ),
+          );
           continue;
         }
         final kind = switch (fields.first) {
@@ -253,6 +397,7 @@ final class _ClashImport {
                 selectors: selectors,
                 finalOutbound: finalOutbound!,
                 rules: rules,
+                ruleSets: ruleSets.values.toList(),
                 dns: dns?.dns,
               ),
         issues: issues,
