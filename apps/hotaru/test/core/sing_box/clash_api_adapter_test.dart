@@ -32,6 +32,40 @@ void main() {
     await server.close(force: true);
   });
 
+  test(
+    'connection and DNS maintenance use authenticated native endpoints',
+    () async {
+      final calls = <String>[];
+      handler = (request) async {
+        calls.add('${request.method} ${request.uri.path}');
+        request.response.statusCode = 204;
+        await request.response.close();
+      };
+      await adapter.closeConnections();
+      await adapter.clearDnsCache();
+      expect(calls, ['DELETE /connections', 'POST /cache/dns/flush']);
+      await expectLater(
+        adapter.collectMemory(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      expect(calls, hasLength(2));
+      handler = (request) async {
+        request.response.statusCode = 503;
+        await request.response.close();
+      };
+      await expectLater(
+        adapter.clearDnsCache(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.status,
+            'status',
+            503,
+          ),
+        ),
+      );
+    },
+  );
+
   test('controller rejects non-loopback hosts and embedded credentials', () {
     for (final endpoint in [
       'http://example.com:9090',

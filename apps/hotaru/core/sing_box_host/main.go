@@ -12,11 +12,13 @@ import (
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"sort"
 	"strings"
 	"sync/atomic"
 	"syscall"
 
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
@@ -42,6 +44,23 @@ type hostEvent struct {
 	PID      int            `json:"pid"`
 	Clean    bool           `json:"clean,omitempty"`
 	Totals   *trafficTotals `json:"totals,omitempty"`
+	Features []string       `json:"features,omitempty"`
+}
+
+func emitReady(output io.Writer, instance engine) error {
+	event := hostEvent{Protocol: controlProtocol, Event: "ready", PID: os.Getpid()}
+	if _, ok := instance.(telemetrySource); ok {
+		event.Features = append(event.Features, "telemetry")
+	}
+	if _, ok := instance.(runtimeMaintenanceSource); ok {
+		methods := make([]string, 0, len(runtimeMaintenanceMethods))
+		for method := range runtimeMaintenanceMethods {
+			methods = append(methods, method)
+		}
+		sort.Strings(methods)
+		event.Features = append(event.Features, methods...)
+	}
+	return json.NewEncoder(output).Encode(event)
 }
 
 func emit(output io.Writer, event string, clean bool) error {
@@ -72,10 +91,14 @@ func readControl(input io.Reader, output io.Writer, source func() telemetrySourc
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&command) != nil || decoder.Decode(new(any)) != io.EOF ||
-			command.Method != "telemetry" || command.ID == 0 || output == nil {
+			(command.Method != "telemetry" && runtimeMaintenanceMethods[command.Method] == nil) || command.ID == 0 || output == nil {
 			return errors.New("invalid host control command")
 		}
-		if err := emitTelemetry(output, command.ID, source()); err != nil {
+		observed := source()
+		if command.Method != "telemetry" {
+			observed = maintenanceObservation{source: observed, method: command.Method}
+		}
+		if err := emitTelemetry(output, command.ID, observed); err != nil {
 			return err
 		}
 	}
@@ -120,7 +143,7 @@ func serve(parent context.Context, configPath string, input io.Reader, output io
 	}
 	if ctx.Err() == nil {
 		running.Store(true)
-		if err = emit(output, "ready", false); err != nil {
+		if err = emitReady(output, instance); err != nil {
 			return err
 		}
 	}
@@ -154,7 +177,7 @@ func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx)}, nil
+	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx)}, nil
 }
 
 func pinnedVersion() (string, error) {

@@ -1094,6 +1094,23 @@ void main() {
         expect(memory!.rss, greaterThan(0));
         expect(memory.heapInuse, greaterThan(0));
         await payload();
+        final beforeMaintenance = await controller.getTotalTraffic(false);
+        final maintenanceSession =
+            (core.lifecycle.state as DesktopCoreRunning).session.sessionId;
+        await controller.requestGc();
+        await controller.resetConnections();
+        expect(await controller.clearDnsCache(), isTrue);
+        final afterMaintenance = await controller.getTotalTraffic(false);
+        expect(afterMaintenance.up, greaterThanOrEqualTo(beforeMaintenance.up));
+        expect(
+          afterMaintenance.down,
+          greaterThanOrEqualTo(beforeMaintenance.down),
+        );
+        expect(
+          (core.lifecycle.state as DesktopCoreRunning).session.sessionId,
+          maintenanceSession,
+        );
+        await policy();
         expect(await controller.stopListener(), isTrue);
         expect(processes.last.hasExited, isTrue);
         await record();
@@ -1137,6 +1154,7 @@ void main() {
           : <String, dynamic>{};
       report['ui_listener_policy_retained'] = true;
       report['ui_native_memory'] = true;
+      report['ui_runtime_maintenance'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await path.writeAsString(jsonEncode(report));
     },

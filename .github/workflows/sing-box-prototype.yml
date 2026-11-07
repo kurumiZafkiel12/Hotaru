@@ -43,6 +43,7 @@ on:
       - apps/hotaru/lib/views/proxies/card.dart
       - apps/hotaru/test/widgets/node_speed_route_test.dart
       - apps/hotaru/lib/core/telemetry.dart
+      - apps/hotaru/lib/core/maintenance.dart
       - apps/hotaru/test/core/sing_box/telemetry_test.dart
       - apps/hotaru/test/core/desktop/configuration_lifecycle_test.dart
       - apps/hotaru/test/core/sing_box/pipe_connection_test.dart

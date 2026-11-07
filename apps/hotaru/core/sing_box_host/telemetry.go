@@ -7,10 +7,12 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
 
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	"github.com/sagernet/sing/common/memory"
 )
@@ -18,6 +20,7 @@ import (
 const telemetryConnectionLimit = 1000
 
 var errTelemetryTooLarge = errors.New("telemetry_too_large")
+var errRuntimeMaintenanceUnavailable = errors.New("runtime_maintenance_unavailable")
 
 type telemetrySource interface {
 	Telemetry() (telemetrySnapshot, error)
@@ -26,8 +29,60 @@ type telemetrySource interface {
 type observedEngine struct {
 	*box.Box
 	traffic *trafficcontrol.Manager
+	dns     adapter.DNSRouter
 	mu      sync.RWMutex
 	closed  bool
+}
+
+type runtimeMaintenanceSource interface {
+	telemetrySource
+	CollectMemory() error
+	ResetDNSConnections() error
+}
+
+var runtimeMaintenanceMethods = map[string]func(runtimeMaintenanceSource) error{
+	"collect_memory":        runtimeMaintenanceSource.CollectMemory,
+	"reset_dns_connections": runtimeMaintenanceSource.ResetDNSConnections,
+}
+
+type maintenanceObservation struct {
+	source telemetrySource
+	method string
+}
+
+func (o maintenanceObservation) Telemetry() (telemetrySnapshot, error) {
+	source, ok := o.source.(runtimeMaintenanceSource)
+	if !ok {
+		return telemetrySnapshot{}, errRuntimeMaintenanceUnavailable
+	}
+	operation := runtimeMaintenanceMethods[o.method]
+	if operation == nil {
+		return telemetrySnapshot{}, errRuntimeMaintenanceUnavailable
+	}
+	if err := operation(source); err != nil {
+		return telemetrySnapshot{}, err
+	}
+	return source.Telemetry()
+}
+
+func (e *observedEngine) CollectMemory() error {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	if e.closed {
+		return errRuntimeMaintenanceUnavailable
+	}
+	debug.FreeOSMemory()
+	return nil
+}
+
+func (e *observedEngine) ResetDNSConnections() error {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	if e.closed || e.dns == nil {
+		return errRuntimeMaintenanceUnavailable
+	}
+	e.dns.ResetNetwork()
+	return nil
 }
 
 func (e *observedEngine) Close() error {
@@ -217,6 +272,8 @@ func emitTelemetry(output io.Writer, id uint32, source telemetrySource) error {
 			event.Error = "telemetry_unavailable"
 			if errors.Is(err, errTelemetryTooLarge) {
 				event.Error = "telemetry_too_large"
+			} else if errors.Is(err, errRuntimeMaintenanceUnavailable) {
+				event.Error = "runtime_maintenance_unavailable"
 			}
 		}
 	}

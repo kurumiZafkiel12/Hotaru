@@ -16,6 +16,7 @@ import '../interface.dart';
 import '../method.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
+import '../maintenance.dart';
 import '../event.dart';
 import '../routing_mode.dart';
 import '../profile_documents.dart';
@@ -164,6 +165,30 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       stackInuse: memory.stackInuse,
       runtimeOther: memory.runtimeOther,
     );
+  }
+
+  @override
+  Future<bool> forceGc() async {
+    await (core.adapter as CoreRuntimeMaintenance).collectMemory();
+    return true;
+  }
+
+  @override
+  Future<bool> resetConnections() async {
+    await (core.adapter as CoreRuntimeMaintenance).resetDnsConnections();
+    return true;
+  }
+
+  @override
+  Future<bool> closeConnections() async {
+    await (core.adapter as CoreConnectionMaintenance).closeConnections();
+    return true;
+  }
+
+  @override
+  Future<bool> clearDnsCache() async {
+    await (core.adapter as CoreConnectionMaintenance).clearDnsCache();
+    return true;
   }
 
   @override

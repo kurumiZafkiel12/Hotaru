@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/maintenance.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/telemetry.dart';
@@ -19,6 +20,9 @@ import '../desktop/fakes.dart';
 final class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
 final class _Adapter extends Mock implements CoreAdapter {}
+
+final class _MaintenanceAdapter extends Mock
+    implements CoreAdapter, CoreRuntimeMaintenance, CoreConnectionMaintenance {}
 
 final class _TelemetryAdapter extends Mock
     implements CoreAdapter, CoreTelemetry {}
@@ -100,6 +104,59 @@ void main() {
     await adapter.close();
     await events.close();
   });
+
+  test(
+    'missing maintenance support fails before dispatch and never closes unrelated connections',
+    () async {
+      await expectLater(
+        adapter.collectMemory(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      await expectLater(
+        adapter.clearDnsCache(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      verifyNever(() => first.closeConnection(any()));
+    },
+  );
+
+  test(
+    'maintenance rejects an acknowledgement from a replaced session',
+    () async {
+      final native = _MaintenanceAdapter();
+      when(() => native.close()).thenAnswer((_) async {});
+      when(() => native.collectMemory()).thenAnswer((_) async {});
+      when(() => native.clearDnsCache()).thenAnswer((_) async {});
+      when(() => native.closeConnections()).thenAnswer((_) async {});
+      final pending = Completer<void>();
+      when(
+        () => native.resetDnsConnections(),
+      ).thenAnswer((_) => pending.future);
+      final subject = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => native,
+      );
+      addTearDown(subject.close);
+      await subject.collectMemory();
+      await subject.clearDnsCache();
+      await subject.closeConnections();
+      final read = subject.resetDnsConnections();
+      final checked = expectLater(
+        read,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      state = _running('second');
+      events.add(state);
+      pending.complete();
+      await checked;
+    },
+  );
 
   test('an adapter without node HTTP support refuses the callback', () async {
     var invoked = false;

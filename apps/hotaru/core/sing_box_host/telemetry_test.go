@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -266,5 +267,200 @@ func TestMemoryObservationReportsTheHostProcessAndRuntime(t *testing.T) {
 	}
 	if event.Data == nil || event.Data.Memory == nil || *event.Data.Memory != *observed || event.Data.Upload != 7 || event.Data.Download != 13 {
 		t.Fatalf("memory or traffic changed in transport: %s", output.String())
+	}
+}
+
+type maintenanceTestEngine struct {
+	telemetryTestEngine
+	collects int
+	resets   int
+}
+
+func (e *maintenanceTestEngine) CollectMemory() error       { e.collects++; return nil }
+func (e *maintenanceTestEngine) ResetDNSConnections() error { e.resets++; return nil }
+
+func TestFramedMaintenanceKeepsTrafficAndStopAcknowledgement(t *testing.T) {
+	parent, child := net.Pipe()
+	defer parent.Close()
+	defer child.Close()
+	_ = parent.SetDeadline(time.Now().Add(5 * time.Second))
+	instance := &maintenanceTestEngine{telemetryTestEngine: telemetryTestEngine{
+		testEngine: testEngine{start: func() error { return nil }, close: func() error { return nil }},
+		snapshot:   func() (telemetrySnapshot, error) { return telemetrySnapshot{Upload: 41, Download: 93}, nil },
+	}}
+	result := make(chan error, 1)
+	go func() {
+		result <- serveFramed(context.Background(), []byte("{}"), child, func(context.Context, []byte) (engine, error) { return instance, nil })
+	}()
+	ready, err := readFrame(parent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var event hostEvent
+	if json.Unmarshal(ready, &event) != nil || strings.Join(event.Features, ",") != "telemetry,collect_memory,reset_dns_connections" {
+		t.Fatalf("wrong capability declaration: %s", ready)
+	}
+	for index, method := range []string{"collect_memory", "reset_dns_connections", "telemetry"} {
+		if _, err := (frameWriter{parent}).Write([]byte(fmt.Sprintf("{\"method\":\"%s\",\"id\":%d}\n", method, index+1))); err != nil {
+			t.Fatal(err)
+		}
+		payload, err := readFrame(parent)
+		var response telemetryEvent
+		if err != nil || json.Unmarshal(payload, &response) != nil || response.RequestID != uint32(index+1) || response.Data == nil || response.Data.Upload != 41 || response.Data.Download != 93 || response.Error != "" {
+			t.Fatalf("maintenance acknowledgement: %s %v", payload, err)
+		}
+	}
+	if _, err := (frameWriter{parent}).Write([]byte("stop\n")); err != nil {
+		t.Fatal(err)
+	}
+	stopped, err := readFrame(parent)
+	if err != nil || !bytes.Contains(stopped, []byte(`"clean":true`)) {
+		t.Fatalf("stop: %s %v", stopped, err)
+	}
+	if err := <-result; err != nil || instance.collects != 1 || instance.resets != 1 {
+		t.Fatalf("operations: %v collects=%d resets=%d", err, instance.collects, instance.resets)
+	}
+}
+
+func TestNativeMaintenanceRetainsActiveTrackersAndCounters(t *testing.T) {
+	instance, err := newEngineConfig(context.Background(), []byte(`{"log":{"disabled":true},"outbounds":[{"type":"direct","tag":"direct"}],"experimental":{"clash_api":{}}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer instance.Close()
+	if err := instance.Start(); err != nil {
+		t.Fatal(err)
+	}
+	observed := instance.(*observedEngine)
+	outbound, _ := observed.Outbound().Outbound("direct")
+	left, right := net.Pipe()
+	defer right.Close()
+	tracked := observed.traffic.RoutedConnection(context.Background(), left, adapter.InboundContext{OutboundChain: []adapter.Outbound{outbound}}, nil, outbound)
+	defer tracked.Close()
+	connection := observed.traffic.Connections()[0]
+	connection.Upload.Add(41)
+	connection.Download.Add(93)
+	if err := observed.ResetDNSConnections(); err != nil {
+		t.Fatal(err)
+	}
+	if err := observed.CollectMemory(); err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := observed.Telemetry()
+	if err != nil || len(snapshot.Active) != 1 || snapshot.Upload != 41 || snapshot.Download != 93 {
+		t.Fatalf("maintenance disturbed active data: %+v %v", snapshot, err)
+	}
+	_ = instance.Close()
+	if !errors.Is(observed.CollectMemory(), errRuntimeMaintenanceUnavailable) || !errors.Is(observed.ResetDNSConnections(), errRuntimeMaintenanceUnavailable) {
+		t.Fatal("maintenance accepted after close")
+	}
+}
+
+func TestNativeMaintenancePreservesThenClosesRealProxyStreams(t *testing.T) {
+	freePort := func() int {
+		listener, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		port := listener.Addr().(*net.TCPAddr).Port
+		_ = listener.Close()
+		return port
+	}
+	mixed, api := freePort(), freePort()
+	config := []byte(fmt.Sprintf(`{"log":{"disabled":true},"inbounds":[{"type":"mixed","tag":"fixture","listen":"127.0.0.1","listen_port":%d}],"outbounds":[{"type":"direct","tag":"direct"}],"route":{"final":"direct"},"experimental":{"clash_api":{"external_controller":"127.0.0.1:%d","secret":"fixture"}}}`, mixed, api))
+	instance, err := newEngineConfig(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer instance.Close()
+	if err := instance.Start(); err != nil {
+		t.Fatal(err)
+	}
+	observed := instance.(*observedEngine)
+	proceed, release := make(chan struct{}), make(chan struct{})
+	var once sync.Once
+	advance := func() { once.Do(func() { close(proceed) }) }
+	origin := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		_, _ = io.WriteString(writer, "held")
+		writer.(http.Flusher).Flush()
+		<-proceed
+		_, _ = io.WriteString(writer, "more")
+		writer.(http.Flusher).Flush()
+		<-release
+	}))
+	defer origin.Close()
+	defer func() { advance(); close(release) }()
+	proxy, _ := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", mixed))
+	transport := &http.Transport{Proxy: http.ProxyURL(proxy)}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Transport: transport, Timeout: 5 * time.Second}
+	responses := make([]*http.Response, 0, 2)
+	for range 2 {
+		response, err := client.Get(origin.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer response.Body.Close()
+		prefix := make([]byte, 4)
+		if _, err := io.ReadFull(response.Body, prefix); err != nil || string(prefix) != "held" {
+			t.Fatalf("initial payload: %q %v", prefix, err)
+		}
+		responses = append(responses, response)
+	}
+	active := observed.traffic.Connections()
+	if len(active) != 2 {
+		t.Fatalf("active connections: %d", len(active))
+	}
+	control := &http.Client{Transport: &http.Transport{}, Timeout: 3 * time.Second}
+	defer control.CloseIdleConnections()
+	request := func(method, path string) {
+		req, _ := http.NewRequest(method, fmt.Sprintf("http://127.0.0.1:%d%s", api, path), nil)
+		req.Header.Set("Authorization", "Bearer fixture")
+		response, err := control.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, _ = io.Copy(io.Discard, response.Body)
+		_ = response.Body.Close()
+		if response.StatusCode != http.StatusNoContent {
+			t.Fatalf("maintenance status: %d", response.StatusCode)
+		}
+	}
+	request("POST", "/cache/dns/flush")
+	if err := observed.ResetDNSConnections(); err != nil {
+		t.Fatal(err)
+	}
+	if err := observed.CollectMemory(); err != nil {
+		t.Fatal(err)
+	}
+	advance()
+	for _, response := range responses {
+		payload := make([]byte, 4)
+		if _, err := io.ReadFull(response.Body, payload); err != nil || string(payload) != "more" {
+			t.Fatalf("maintenance closed data: %q %v", payload, err)
+		}
+	}
+	ended := make(chan struct{}, 2)
+	for _, response := range responses {
+		go func(response *http.Response) { _, _ = io.Copy(io.Discard, response.Body); ended <- struct{}{} }(response)
+	}
+	request("DELETE", "/connections/"+active[0].ID.String())
+	select {
+	case <-ended:
+	case <-time.After(3 * time.Second):
+		t.Fatal("selected connection did not terminate")
+	}
+	remaining := observed.traffic.Connections()
+	if len(remaining) != 1 || remaining[0].ID == active[0].ID {
+		t.Fatal("single close disturbed the wrong connection")
+	}
+	request("DELETE", "/connections")
+	select {
+	case <-ended:
+	case <-time.After(3 * time.Second):
+		t.Fatal("close-all did not terminate the other connection")
+	}
+	if len(observed.traffic.Connections()) != 0 {
+		t.Fatal("active connections survived close-all")
 	}
 }

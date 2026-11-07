@@ -8,6 +8,7 @@ import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/method.dart';
+import 'package:hotaru/core/maintenance.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
@@ -22,7 +23,12 @@ import 'support/telemetry_fixture.dart';
 
 class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
-class _Adapter extends Mock implements CoreAdapter, CoreTelemetry {}
+class _Adapter extends Mock
+    implements
+        CoreAdapter,
+        CoreTelemetry,
+        CoreRuntimeMaintenance,
+        CoreConnectionMaintenance {}
 
 class _Binding implements SingBoxConfigurationBinding {
   @override
@@ -113,6 +119,31 @@ void main() {
     await events.close();
     await crashes.close();
   });
+
+  test(
+    'ordinary maintenance methods await native acknowledgement and propagate failure',
+    () async {
+      when(() => adapter.collectMemory()).thenAnswer((_) async {});
+      when(() => adapter.resetDnsConnections()).thenAnswer((_) async {});
+      when(() => adapter.closeConnections()).thenAnswer((_) async {});
+      when(() => adapter.clearDnsCache()).thenAnswer((_) async {});
+      await controller.requestGc();
+      await controller.resetConnections();
+      await controller.closeConnections();
+      expect(await controller.clearDnsCache(), isTrue);
+      verify(() => adapter.collectMemory()).called(1);
+      verify(() => adapter.resetDnsConnections()).called(1);
+      verify(() => adapter.closeConnections()).called(1);
+      verify(() => adapter.clearDnsCache()).called(1);
+      when(() => adapter.collectMemory()).thenThrow(
+        const CoreAdapterException('runtime_maintenance_unavailable'),
+      );
+      await expectLater(
+        controller.requestGc(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+    },
+  );
 
   test(
     'memory cards use the owned host observation and reject late sessions',

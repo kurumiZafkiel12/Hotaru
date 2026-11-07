@@ -152,3 +152,9 @@ Pure-data profile projection and compilation run in isolates. No listener or con
 ## Native memory observation
 
 The owned host includes optional process RSS and Go runtime heap/stack counters in its private telemetry response. RSS comes from the pinned platform memory reader for that host process; retained idle heap excludes pages released to the OS. Unsupported/failed resident-memory reads omit the observation without invalidating connection or traffic data. Dart rejects malformed/negative counters, maps complete observations to the existing memory-card model, and discards responses after session replacement. An absent or zero-RSS sample stays unavailable rather than becoming a fabricated zero-memory reading. The host remains an observer; UI presentation and app/core composition remain in Dart.
+
+## Runtime and connection maintenance
+
+The existing facade now awaits native acknowledgements for DNS cache flush, closing connections, resetting only DNS transport pools, and collecting runtime memory. The authenticated Clash API supplies cache flush and close operations. The private owned-host protocol supplies the two runtime operations; they delegate to existing DNS-router/runtime APIs and do not implement application policy in Go. A ready event declares bounded capabilities, and Dart refuses unsupported commands before writing to an older host. Commands retain the telemetry channel's request bounds, PID/session correlation and stop cancellation; replacing a session rejects late acknowledgements.
+
+DNS transport reset does not substitute close-all. Native tests keep real HTTP proxy streams open, reset DNS/collect memory, receive more data on those same streams, then verify individual and all-connection termination through the authenticated API. Runtime collection preserves raw counters and does not promise resident memory must decrease. Missing capabilities and native failures are surfaced rather than converted to successful no-ops.

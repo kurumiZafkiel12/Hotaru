@@ -9,6 +9,7 @@ import 'support/telemetry_fixture.dart';
 import 'package:hotaru/core/desktop/transport.dart';
 import 'package:hotaru/core/sing_box/pipe_connection.dart';
 import 'package:hotaru/core/sing_box/bootstrap.dart';
+import 'package:hotaru/core/sing_box/host_events.dart';
 
 final class _Pipe implements DesktopCoreTransport {
   final _events = StreamController<DesktopTransportEvent>.broadcast();
@@ -36,6 +37,7 @@ final class _Pipe implements DesktopCoreTransport {
     bool clean = false,
     int pid = 42,
     Map<String, dynamic>? totals,
+    List<String>? features,
   }) {
     _frames.add(
       Uint8List.fromList(
@@ -46,6 +48,7 @@ final class _Pipe implements DesktopCoreTransport {
             'pid': pid,
             if (clean) 'clean': true,
             'totals': ?totals,
+            'features': ?features,
           }),
         ),
       ),
@@ -172,11 +175,73 @@ void main() {
     await pipe.configured.future.timeout(const Duration(seconds: 2));
   }
 
-  Future<void> connect() async {
+  Future<void> connect({List<String>? features}) async {
     await bootstrap();
-    pipe.host('ready');
+    pipe.host('ready', features: features);
     await connection.waitUntilConnected(const Duration(seconds: 2));
   }
+
+  test(
+    'old hosts refuse new maintenance commands before writing to their control stream',
+    () async {
+      await connect();
+      final sent = pipe.sent.length;
+      await expectLater(
+        connection.collectMemory(),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'runtime_maintenance_unavailable',
+          ),
+        ),
+      );
+      await expectLater(
+        connection.resetDnsConnections(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      expect(pipe.sent, hasLength(sent));
+      expect(connection.state, DesktopTransportState.connected);
+    },
+  );
+
+  test(
+    'declared maintenance shares bounded request correlation with telemetry',
+    () async {
+      await connect(features: ['collect_memory', 'reset_dns_connections']);
+      final methods = <String>[];
+      final ids = <int>[];
+      pipe.onRequest = (request) {
+        methods.add(request['method'] as String);
+        ids.add(request['id'] as int);
+        pipe.telemetry(ids.last, data: telemetryFixture());
+      };
+      await connection.collectMemory();
+      await connection.resetDnsConnections();
+      expect((await connection.telemetry()).uploadTotal, 10);
+      expect(methods, ['collect_memory', 'reset_dns_connections', 'telemetry']);
+      expect(ids.toSet(), hasLength(3));
+    },
+  );
+
+  test('malformed feature declarations never establish readiness', () {
+    for (final features in <Object>[
+      false,
+      ['collect_memory', 'collect_memory'],
+      ['bad feature'],
+      List.filled(17, 'telemetry'),
+    ]) {
+      final host = SingBoxHostEvents(42);
+      host.addValue({
+        'protocol': 'hotaru-stdio-v1',
+        'event': 'ready',
+        'pid': 42,
+        'features': features,
+      });
+      expect(host.failed, isTrue);
+      expect(host.supports('collect_memory'), isFalse);
+    }
+  });
 
   test(
     'telemetry before an owned connected session sends no request',

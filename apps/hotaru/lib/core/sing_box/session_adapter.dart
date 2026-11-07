@@ -5,6 +5,7 @@ import '../adapter.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
 import '../routing_mode.dart';
+import '../maintenance.dart';
 import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 
@@ -13,7 +14,9 @@ final class SessionCoreAdapter
         CoreAdapter,
         CoreOutboundHttpClients,
         CoreTelemetry,
-        CoreRoutingModes {
+        CoreRoutingModes,
+        CoreRuntimeMaintenance,
+        CoreConnectionMaintenance {
   final DesktopCoreLifecycleController lifecycle;
   final CoreAdapter Function() _factory;
   late final StreamSubscription<DesktopCoreState> _subscription;
@@ -122,6 +125,38 @@ final class SessionCoreAdapter
       throw const CoreAdapterException('telemetry_unavailable');
     }
     return (adapter as CoreTelemetry).telemetry();
+  });
+
+  @override
+  Future<void> closeConnections() => _invoke((adapter) {
+    if (adapter is! CoreConnectionMaintenance) {
+      throw const CoreAdapterException('connection_maintenance_unavailable');
+    }
+    return (adapter as CoreConnectionMaintenance).closeConnections();
+  });
+
+  @override
+  Future<void> clearDnsCache() => _invoke((adapter) {
+    if (adapter is! CoreConnectionMaintenance) {
+      throw const CoreAdapterException('connection_maintenance_unavailable');
+    }
+    return (adapter as CoreConnectionMaintenance).clearDnsCache();
+  });
+
+  @override
+  Future<void> collectMemory() => _invoke((adapter) {
+    if (adapter is! CoreRuntimeMaintenance) {
+      throw const CoreAdapterException('runtime_maintenance_unavailable');
+    }
+    return (adapter as CoreRuntimeMaintenance).collectMemory();
+  });
+
+  @override
+  Future<void> resetDnsConnections() => _invoke((adapter) {
+    if (adapter is! CoreRuntimeMaintenance) {
+      throw const CoreAdapterException('runtime_maintenance_unavailable');
+    }
+    return (adapter as CoreRuntimeMaintenance).resetDnsConnections();
   });
 
   @override

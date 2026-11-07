@@ -6,12 +6,16 @@ import 'dart:typed_data';
 import '../desktop/model.dart';
 import '../adapter.dart';
 import '../telemetry.dart';
+import '../maintenance.dart';
 import '../desktop/transport.dart';
 import 'host_events.dart';
 import 'bootstrap.dart';
 
 final class SingBoxPipeConnection
-    implements DesktopCoreConnection, DesktopCoreProcessObserver {
+    implements
+        DesktopCoreConnection,
+        DesktopCoreProcessObserver,
+        CoreRuntimeMaintenance {
   final DesktopCoreTransport _pipe;
   final DesktopCoreConnection _controller;
   final SingBoxBootstrap _bootstrapConfig;
@@ -132,9 +136,10 @@ final class SingBoxPipeConnection
       final data = decoded.snapshot;
       if (value['error'] case final String error) {
         pending.completeError(
-          CoreAdapterException(
-            error == 'telemetry_too_large' ? error : 'telemetry_unavailable',
-          ),
+          CoreAdapterException(switch (error) {
+            'telemetry_too_large' || 'runtime_maintenance_unavailable' => error,
+            _ => 'telemetry_unavailable',
+          }),
         );
       } else if (data != null) {
         pending.complete(data);
@@ -147,9 +152,24 @@ final class SingBoxPipeConnection
     if (host.failed) _fail(StateError('Invalid host control event'));
   }
 
-  Future<CoreTelemetrySnapshot> telemetry() async {
+  Future<CoreTelemetrySnapshot> telemetry() => _snapshot('telemetry');
+
+  @override
+  Future<void> collectMemory() async {
+    await _snapshot('collect_memory');
+  }
+
+  @override
+  Future<void> resetDnsConnections() async {
+    await _snapshot('reset_dns_connections');
+  }
+
+  Future<CoreTelemetrySnapshot> _snapshot(String method) async {
     if (_terminal || _stopping || _state != DesktopTransportState.connected) {
       throw const CoreAdapterException('core_not_running');
+    }
+    if (method != 'telemetry' && _host?.supports(method) != true) {
+      throw const CoreAdapterException('runtime_maintenance_unavailable');
     }
     if (_pendingTelemetry.length >= 8 || _requestId >= 0xffffffff) {
       throw const CoreAdapterException('busy');
@@ -166,9 +186,7 @@ final class SingBoxPipeConnection
         )
         .whenComplete(() => _pendingTelemetry.remove(id));
     try {
-      _pipe.send(
-        utf8.encode('${jsonEncode({'method': 'telemetry', 'id': id})}\n'),
-      );
+      _pipe.send(utf8.encode('${jsonEncode({'method': method, 'id': id})}\n'));
     } catch (error, trace) {
       _pendingTelemetry.remove(id);
       pending.completeError(error, trace);

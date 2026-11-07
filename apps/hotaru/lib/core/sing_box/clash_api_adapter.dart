@@ -9,6 +9,7 @@ import '../config/probe_listener.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
 import '../routing_mode.dart';
+import '../maintenance.dart';
 import 'outbound_http.dart';
 
 final class SingBoxClashApiAdapter
@@ -16,12 +17,15 @@ final class SingBoxClashApiAdapter
         CoreAdapter,
         CoreOutboundHttpClients,
         CoreTelemetry,
-        CoreRoutingModes {
+        CoreRoutingModes,
+        CoreRuntimeMaintenance,
+        CoreConnectionMaintenance {
   final Uri endpoint;
   final String _secret;
   final HttpClient _client;
   final SingBoxOutboundHttp _outboundHttp;
   final Future<CoreTelemetrySnapshot> Function()? _telemetry;
+  final CoreRuntimeMaintenance? _runtime;
   bool _closed = false;
 
   SingBoxClashApiAdapter({
@@ -30,8 +34,10 @@ final class SingBoxClashApiAdapter
     CoreProbeListenerSpec? probe,
     Iterable<String> probeOutbounds = const [],
     Future<CoreTelemetrySnapshot> Function()? telemetry,
+    CoreRuntimeMaintenance? runtime,
   }) : _secret = secret,
        _telemetry = telemetry,
+       _runtime = runtime,
        _outboundHttp = SingBoxOutboundHttp(
          listener: probe,
          outbounds: probeOutbounds,
@@ -145,6 +151,35 @@ final class SingBoxClashApiAdapter
     if (await routingMode() != mode) {
       throw const CoreAdapterException('route_changed');
     }
+  }
+
+  @override
+  Future<void> closeConnections() async {
+    await _request('DELETE', ['connections']);
+  }
+
+  @override
+  Future<void> clearDnsCache() async {
+    await _request('POST', ['cache', 'dns', 'flush']);
+  }
+
+  CoreRuntimeMaintenance get _maintenance {
+    if (_closed) throw const CoreAdapterException('closed');
+    final runtime = _runtime;
+    if (runtime == null) {
+      throw const CoreAdapterException('runtime_maintenance_unavailable');
+    }
+    return runtime;
+  }
+
+  @override
+  Future<void> collectMemory() async {
+    await _maintenance.collectMemory();
+  }
+
+  @override
+  Future<void> resetDnsConnections() async {
+    await _maintenance.resetDnsConnections();
   }
 
   @override
