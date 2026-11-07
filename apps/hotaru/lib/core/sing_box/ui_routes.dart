@@ -10,14 +10,22 @@ import '../desktop/model.dart';
 import '../routing_mode.dart';
 import 'config_preparation.dart';
 import 'desktop_core.dart';
+import 'runtime_configuration.dart';
 
 final class _Policy {
   final String sessionId;
   final CoreRoutingMode mode;
   final List<CoreOutbound> outbounds;
   final RouteSnapshot snapshot;
+  final AcceptedSingBoxConfig configuration;
 
-  const _Policy(this.sessionId, this.mode, this.outbounds, this.snapshot);
+  const _Policy(
+    this.sessionId,
+    this.mode,
+    this.outbounds,
+    this.snapshot,
+    this.configuration,
+  );
 }
 
 final class SingBoxUiRoutes {
@@ -37,6 +45,13 @@ final class SingBoxUiRoutes {
   String? _fingerprint;
   int _epoch = 0;
   int _version = 0;
+  _Policy? _lastPolicy;
+  AcceptedSingBoxConfig? _requestedConfiguration;
+  AcceptedSingBoxConfig? _lastSubmitted;
+  bool? _requestedInbounds;
+  int _configurationRevision = 0;
+  int _applyingConfigurations = 0;
+  final _configurationOperations = <Future<CoreLifecycleResult>>{};
 
   SingBoxUiRoutes({
     required this.core,
@@ -123,7 +138,152 @@ final class SingBoxUiRoutes {
         onError(error, trace);
       }
     }
-    return _Policy(session, mode, outbounds, snapshot);
+    final policy = _Policy(session, mode, outbounds, snapshot, configuration);
+    _lastPolicy = policy;
+    return policy;
+  }
+
+  Future<CoreLifecycleResult> applyConfiguration(
+    AcceptedSingBoxConfig configuration,
+  ) {
+    _requestedConfiguration = configuration;
+    return _requestConfiguration();
+  }
+
+  Future<bool> setInbounds(bool enabled) {
+    _adoptCommittedConfiguration();
+    _requestedInbounds = enabled;
+    final committed = core.configuration;
+    if (!_closed &&
+        core.lifecycle.state is DesktopCoreRunning &&
+        _configurationOperations.isEmpty &&
+        committed?.listeners.inboundsEnabled == enabled &&
+        (_requestedConfiguration == null ||
+            identical(_requestedConfiguration, committed))) {
+      return Future.value(true);
+    }
+    return _requestConfiguration().then((_) => true);
+  }
+
+  Future<CoreLifecycleResult> restart() {
+    _adoptCommittedConfiguration();
+    if (core.lifecycle.state is DesktopCoreRunning ||
+        _configurationOperations.isNotEmpty) {
+      return _requestConfiguration();
+    }
+    return core.restart();
+  }
+
+  void _adoptCommittedConfiguration() {
+    if (_configurationOperations.isEmpty) {
+      _requestedConfiguration = core.configuration;
+      _requestedInbounds = core.configuration?.listeners.inboundsEnabled;
+    }
+  }
+
+  Future<CoreLifecycleResult> _requestConfiguration() {
+    if (_closed) return Future.error(const CoreAdapterException('closed'));
+    final revision = ++_configurationRevision;
+    final operation = _configure(revision);
+    _configurationOperations.add(operation);
+    operation.then<void>(
+      (_) => _configurationOperations.remove(operation),
+      onError: (Object _, StackTrace _) =>
+          _configurationOperations.remove(operation),
+    );
+    return operation;
+  }
+
+  bool _configurationCurrent(int revision) =>
+      !_closed && revision == _configurationRevision;
+
+  CoreLifecycleResult _supersededConfiguration(int revision) =>
+      CoreLifecycleResult(
+        revision: revision,
+        outcome: CoreLifecycleOutcome.superseded,
+      );
+
+  Future<CoreLifecycleResult> _configure(int revision) async {
+    try {
+      final submitted = await _run(() async {
+        if (!_configurationCurrent(revision)) return null;
+        final before = _applyingConfigurations > 0 && _lastPolicy != null
+            ? _lastPolicy!
+            : await _read();
+        if (!_configurationCurrent(revision)) return null;
+        final base = _requestedConfiguration ?? before.configuration;
+        final enabled =
+            _requestedInbounds ??
+            before.configuration.listeners.inboundsEnabled;
+        final preserve = identical(base.profile, before.configuration.profile);
+        final prepared = await prepareSingBoxRuntime(
+          configuration: base,
+          enabled: enabled,
+          mode: preserve ? before.mode : base.listeners.initialMode,
+          outbounds: before.outbounds,
+          preserveSelections: preserve,
+        );
+        if (!_configurationCurrent(revision)) return null;
+        final committed = core.configuration;
+        if (!identical(committed, before.configuration) &&
+            !identical(committed, _lastSubmitted)) {
+          throw const CoreAdapterException('session_changed');
+        }
+        _lastSubmitted = prepared;
+        _applyingConfigurations++;
+        final completion = Future.sync(() => core.applyConfiguration(prepared))
+            .then<
+              ({CoreLifecycleResult? result, Object? error, StackTrace? trace})
+            >(
+              (result) => (result: result, error: null, trace: null),
+              onError: (Object error, StackTrace trace) =>
+                  (result: null, error: error, trace: trace),
+            );
+        return (before: before, prepared: prepared, completion: completion);
+      });
+      if (submitted == null) return _supersededConfiguration(revision);
+      final ({CoreLifecycleResult? result, Object? error, StackTrace? trace})
+      outcome;
+      try {
+        outcome = await submitted.completion;
+      } finally {
+        _applyingConfigurations--;
+      }
+      if (!_configurationCurrent(revision)) {
+        return _supersededConfiguration(revision);
+      }
+      if (outcome.error != null) {
+        Error.throwWithStackTrace(outcome.error!, outcome.trace!);
+      }
+      final applied = outcome.result!;
+      final prepared = submitted.prepared;
+      final before = submitted.before;
+      if (applied.outcome == CoreLifecycleOutcome.superseded) {
+        _requestedConfiguration = core.configuration;
+        _requestedInbounds = core.configuration?.listeners.inboundsEnabled;
+        return applied;
+      }
+      if (!identical(core.configuration, prepared)) {
+        throw const CoreAdapterException('session_changed');
+      }
+      _requestedConfiguration = prepared;
+      _requestedInbounds = prepared.listeners.inboundsEnabled;
+      final after = await snapshot();
+      if (!_configurationCurrent(revision)) {
+        return _supersededConfiguration(revision);
+      }
+      if (after.coreEpoch == before.snapshot.coreEpoch) {
+        throw const CoreAdapterException('session_changed');
+      }
+      return applied;
+    } catch (_) {
+      if (!_configurationCurrent(revision)) {
+        return _supersededConfiguration(revision);
+      }
+      _requestedConfiguration = core.configuration;
+      _requestedInbounds = core.configuration?.listeners.inboundsEnabled;
+      rethrow;
+    }
   }
 
   static Future<String> _policyFingerprint(
@@ -227,9 +387,14 @@ final class SingBoxUiRoutes {
   Future<void> close() => _closing ??= _close();
   Future<void> _close() async {
     _closed = true;
+    _configurationRevision++;
     _watching = false;
     _syncTimer();
     await _states.cancel();
     await _tail;
+    await Future.wait([
+      for (final operation in _configurationOperations.toList())
+        operation.then<void>((_) {}, onError: (Object _, StackTrace _) {}),
+    ]);
   }
 }

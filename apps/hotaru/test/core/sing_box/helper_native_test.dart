@@ -981,4 +981,161 @@ void main() {
     skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
     timeout: const Timeout(Duration(minutes: 1)),
   );
+  test(
+    'real SYSTEM Helper UI pause resume and restart retain policy across TUN sessions',
+    () async {
+      await initEditorNative();
+      final origin = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => origin.close(force: true));
+      var requests = 0;
+      origin.listen((request) async {
+        requests++;
+        request.response.write('ui-listener-proof');
+        await request.response.close();
+      });
+      final listeners = CoreListenerSpec(
+        mixedPort: await freeLoopbackPort(),
+        controllerPort: await freeLoopbackPort(),
+        secret: 'ui-listener-native-fixture',
+        probe: CoreProbeListenerSpec(
+          port: await freeLoopbackPort(),
+          secret: 'ui-listener-probe-1234567890123456789012345',
+        ),
+        tun: CoreTunSpec(
+          interfaceName: _environment['HOTARU_NATIVE_TUN_NAME']!,
+          addresses: ['198.18.9.1/30'],
+          autoRoute: false,
+        ),
+      );
+      final preparer = SingBoxConfigPreparer();
+      final prepared = await preparer.prepare(
+        import: () async => CoreConfigImportResult(
+          profile: CoreProfileSpec(
+            nodes: const [
+              CoreNodeSpec(tag: 'A', protocol: CoreNodeProtocol.direct),
+              CoreNodeSpec(tag: 'B', protocol: CoreNodeProtocol.direct),
+            ],
+            selectors: [
+              CoreSelectorSpec(
+                tag: 'selected',
+                members: ['A', 'B'],
+                selected: 'A',
+              ),
+            ],
+            finalOutbound: 'selected',
+          ),
+          issues: [],
+        ),
+        listeners: listeners,
+      );
+      expect(prepared.status, SingBoxPreparationStatus.ready);
+      final core = await createSingBoxHelperCore(
+        bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
+        configuration: preparer.approve(prepared.candidate!),
+      );
+      final handler = SingBoxUiHandler(core, onEvent: (_) {});
+      final controller = CoreController.scoped(handler);
+      final processes = <WindowsProcessWitness>[];
+      final pids = <int>[];
+      addTearDown(() {
+        for (final process in processes) {
+          process.close();
+        }
+      });
+      Future<void> record() async {
+        final running = core.lifecycle.state as DesktopCoreRunning;
+        pids.add(running.session.pid);
+        processes.add(WindowsProcessWitness.open(running.session.pid));
+        await _expectSystem(running.session.pid);
+      }
+
+      Future<void> policy() async {
+        expect(await controller.routingMode(), CoreRoutingMode.global);
+        final groups = await core.adapter.outbounds();
+        expect(
+          groups.singleWhere((entry) => entry.name == 'selected').selected,
+          'B',
+        );
+        expect(
+          groups.singleWhere((entry) => entry.name == 'Hotaru GLOBAL').selected,
+          'B',
+        );
+      }
+
+      Future<void> payload() async {
+        final client = HttpClient()
+          ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
+        try {
+          final request = await client.getUrl(
+            Uri.parse('http://127.0.0.1:${origin.port}/ui-listener'),
+          );
+          final response = await request.close();
+          expect(
+            await response.transform(utf8.decoder).join(),
+            'ui-listener-proof',
+          );
+        } finally {
+          client.close(force: true);
+        }
+      }
+
+      try {
+        await controller.start();
+        await record();
+        await controller.changeProxy(
+          const ChangeProxyParams(groupName: 'selected', proxyName: 'B'),
+        );
+        await controller.changeProxy(
+          const ChangeProxyParams(groupName: 'Hotaru GLOBAL', proxyName: 'B'),
+        );
+        await controller.setRoutingMode(CoreRoutingMode.global);
+        await payload();
+        expect(await controller.stopListener(), isTrue);
+        expect(processes.last.hasExited, isTrue);
+        await record();
+        await policy();
+        expect(core.configuration!.listeners.inboundsEnabled, isFalse);
+        final interfaces = await NetworkInterface.list(includeLoopback: true);
+        expect(
+          interfaces
+              .expand((entry) => entry.addresses)
+              .any((address) => address.address == '198.18.9.1'),
+          isFalse,
+        );
+        var called = false;
+        await expectLater(
+          controller.withOutboundClients('B', (client) async {
+            called = true;
+          }),
+          throwsA(isA<CoreAdapterException>()),
+        );
+        expect(called, isFalse);
+        expect(await controller.startListener(), isTrue);
+        expect(processes.last.hasExited, isTrue);
+        await record();
+        await policy();
+        await payload();
+        await controller.restart();
+        expect(processes.last.hasExited, isTrue);
+        await record();
+        await policy();
+        await payload();
+        expect(requests, 3);
+      } finally {
+        await controller.close();
+      }
+      expect(processes.every((process) => process.hasExited), isTrue);
+      final path = File(_environment['HOTARU_NATIVE_HELPER_RESULT']!);
+      final report = await path.exists()
+          ? Map<String, dynamic>.from(
+              jsonDecode(await path.readAsString()) as Map,
+            )
+          : <String, dynamic>{};
+      report['ui_listener_policy_retained'] = true;
+      (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
+      await path.writeAsString(jsonEncode(report));
+    },
+    skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 }

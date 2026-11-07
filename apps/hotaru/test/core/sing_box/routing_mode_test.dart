@@ -78,6 +78,11 @@ void main() {
           'action': 'route',
           'outbound': modes.global.tag,
         },
+        {
+          'clash_mode': 'rule',
+          'action': 'route',
+          'outbound': profile.finalOutbound,
+        },
       ]);
     },
   );

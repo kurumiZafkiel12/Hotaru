@@ -1,5 +1,6 @@
 import 'dns.dart';
 import 'probe_listener.dart';
+import '../routing_mode.dart';
 
 enum CoreNodeProtocol {
   direct,
@@ -173,6 +174,8 @@ final class CoreListenerSpec {
   final CoreTunSpec? tun;
   final int? dnsPort;
   final CoreProbeListenerSpec? probe;
+  final CoreRoutingMode initialMode;
+  final String? globalSelection;
 
   const CoreListenerSpec({
     required this.mixedPort,
@@ -182,6 +185,8 @@ final class CoreListenerSpec {
     this.tun,
     this.dnsPort,
     this.probe,
+    this.initialMode = CoreRoutingMode.rule,
+    this.globalSelection,
   });
 
   CoreProbeListenerSpec? get activeProbe => inboundsEnabled ? probe : null;
@@ -196,6 +201,24 @@ final class CoreListenerSpec {
     tun: tun,
     dnsPort: dnsPort,
     probe: probe,
+    initialMode: initialMode,
+    globalSelection: globalSelection,
+  );
+
+  CoreListenerSpec withRuntime({
+    required bool enabled,
+    required CoreRoutingMode mode,
+    required String? globalSelection,
+  }) => CoreListenerSpec(
+    mixedPort: mixedPort,
+    controllerPort: controllerPort,
+    secret: secret,
+    inboundsEnabled: enabled,
+    tun: tun,
+    dnsPort: dnsPort,
+    probe: probe,
+    initialMode: mode,
+    globalSelection: globalSelection,
   );
 }
 

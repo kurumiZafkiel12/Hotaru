@@ -20,6 +20,7 @@ import '../event.dart';
 import '../routing_mode.dart';
 import '../profile_documents.dart';
 import 'desktop_core.dart';
+import 'config_preparation.dart';
 import 'ui_routes.dart';
 import 'ui_traffic.dart';
 
@@ -77,7 +78,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<CoreLifecycleResult> start() => core.start();
   @override
-  Future<CoreLifecycleResult> restart() => core.restart();
+  Future<CoreLifecycleResult> restart() => _routes.restart();
   @override
   Future<CoreLifecycleResult> stop() => core.stop();
   @override
@@ -117,6 +118,16 @@ final class SingBoxUiHandler extends CoreHandlerInterface
 
   @override
   Future<void> setRoutingMode(CoreRoutingMode mode) => _routes.setMode(mode);
+
+  @override
+  Future<bool> startListener() => _routes.setInbounds(true);
+
+  @override
+  Future<bool> stopListener() => _routes.setInbounds(false);
+
+  Future<CoreLifecycleResult> applyConfiguration(
+    AcceptedSingBoxConfig configuration,
+  ) => _routes.applyConfiguration(configuration);
 
   @override
   Future<bool> get isInit async => core.lifecycle.state is DesktopCoreRunning;

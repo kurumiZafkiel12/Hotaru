@@ -51,6 +51,44 @@ CoreListenerSpec _settings({
 
 void main() {
   test(
+    'runtime policy defaults compile explicitly and invalid global selections cannot activate',
+    () async {
+      final listeners = _settings().withRuntime(
+        enabled: false,
+        mode: CoreRoutingMode.global,
+        globalSelection: 'direct',
+      );
+      final builder = SingBoxConfigBuilder();
+      final result = await builder.build(_profile(), listeners);
+      expect(result.issues, isEmpty);
+      final configuration = jsonDecode(result.json!);
+      expect(
+        configuration['experimental']['clash_api']['default_mode'],
+        'global',
+      );
+      expect(
+        (configuration['outbounds'] as List).singleWhere(
+          (entry) => entry['tag'] == 'Hotaru GLOBAL',
+        )['default'],
+        'direct',
+      );
+      final resumed = listeners.withInbounds(true);
+      expect(resumed.initialMode, CoreRoutingMode.global);
+      expect(resumed.globalSelection, 'direct');
+      final invalid = await builder.build(
+        _profile(),
+        listeners.withRuntime(
+          enabled: false,
+          mode: CoreRoutingMode.rule,
+          globalSelection: 'missing',
+        ),
+      );
+      expect(invalid.json, isNull);
+      expect(invalid.issues.single.code, 'invalid_global_selection');
+    },
+  );
+
+  test(
     'disabling inbounds retains requested settings and authenticated control without data listeners',
     () async {
       final active = _settings();
@@ -126,12 +164,17 @@ void main() {
         });
       }
       final api = await freeLoopbackPort();
-      final settings = _settings(
-        mixed: mixed.port,
-        api: api,
-        probe: probe.port,
-        dns: dns.port,
-      ).withInbounds(false);
+      final settings =
+          _settings(
+            mixed: mixed.port,
+            api: api,
+            probe: probe.port,
+            dns: dns.port,
+          ).withRuntime(
+            enabled: false,
+            mode: CoreRoutingMode.global,
+            globalSelection: 'direct',
+          );
       final built = await SingBoxConfigBuilder().build(_profile(), settings);
       expect(built.issues, isEmpty);
       expect(jsonDecode(built.json!)['inbounds'], isEmpty);
@@ -189,6 +232,14 @@ void main() {
         }
       }
       expect(ready, isTrue, reason: output.join());
+      expect(await adapter.routingMode(), CoreRoutingMode.global);
+      expect(
+        (await adapter.outbounds())
+            .singleWhere((entry) => entry.name == 'Hotaru GLOBAL')
+            .selected,
+        'direct',
+      );
+      await adapter.setRoutingMode(CoreRoutingMode.rule);
       await adapter.selectOutbound('selected', 'direct');
       expect(
         (await adapter.outbounds())
@@ -216,6 +267,7 @@ void main() {
       stdout.writeln(
         jsonEncode({
           'control_only_api_live': true,
+          'initial_runtime_mode_and_selection': true,
           'inactive_probe_refused': true,
           'occupied_data_ports_untouched': true,
           'controlled_host': controlled,

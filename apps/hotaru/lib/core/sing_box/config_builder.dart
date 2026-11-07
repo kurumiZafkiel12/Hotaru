@@ -184,8 +184,17 @@ final class SingBoxConfigBuilder {
         const CoreConfigIssue('invalid_probe_listener', 'listeners.probe'),
       );
     }
-    if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     final modes = CoreModeOutbounds(profile);
+    if (listeners.globalSelection != null &&
+        !modes.global.members.contains(listeners.globalSelection)) {
+      issues.add(
+        const CoreConfigIssue(
+          'invalid_global_selection',
+          'listeners.globalSelection',
+        ),
+      );
+    }
+    if (issues.isNotEmpty) return CoreConfigBuildResult(issues: issues);
     final probe = listeners.activeProbe;
     final tun = listeners.activeTun;
     try {
@@ -236,7 +245,7 @@ final class SingBoxConfigBuilder {
             'type': 'selector',
             'tag': modes.global.tag,
             'outbounds': modes.global.members,
-            'default': modes.global.selected,
+            'default': listeners.globalSelection ?? modes.global.selected,
           },
           for (final node in profile.nodes)
             {
@@ -318,13 +327,18 @@ final class SingBoxConfigBuilder {
                 if (rule.action == CoreRuleAction.drop) 'method': 'drop',
                 if (rule.outbound != null) 'outbound': rule.outbound,
               },
+            {
+              'clash_mode': 'rule',
+              'action': 'route',
+              'outbound': profile.finalOutbound,
+            },
           ],
         },
         'experimental': {
           'clash_api': {
             'external_controller': '127.0.0.1:${listeners.controllerPort}',
             'secret': listeners.secret,
-            'default_mode': 'rule',
+            'default_mode': listeners.initialMode.name,
           },
         },
       });
