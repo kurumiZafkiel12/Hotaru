@@ -120,16 +120,53 @@ void main() {
     },
   );
 
-  test('rejects HTTP delay before sending any request', () async {
-    await expectLater(
-      adapter.delay(
-        'node',
-        Uri.parse('http://example.com'),
-        const Duration(seconds: 1),
-      ),
-      throwsArgumentError,
-    );
+  test('rejects invalid delay targets before sending a request', () async {
+    var requests = 0;
+    handler = (request) async {
+      requests++;
+      await request.response.close();
+    };
+    for (final target in [
+      'ftp://example.com',
+      'https:///path',
+      'https://user:password@example.com',
+      'https://example.com/#fragment',
+      'http://example.com:0',
+      'http://example.com:65536',
+    ]) {
+      await expectLater(
+        adapter.delay('node', Uri.parse(target), const Duration(seconds: 1)),
+        throwsArgumentError,
+      );
+    }
+    expect(requests, 0);
   });
+
+  test(
+    'HTTP delay requires scoped clients instead of silently using the native API default',
+    () async {
+      var requests = 0;
+      handler = (request) async {
+        requests++;
+        await request.response.close();
+      };
+      await expectLater(
+        adapter.delay(
+          '日本 / A',
+          Uri.parse('http://example.com:8080/check?a=b'),
+          const Duration(seconds: 1),
+        ),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'outbound_http_unavailable',
+          ),
+        ),
+      );
+      expect(requests, 0);
+    },
+  );
 
   test(
     'failed delay remains an API error rather than a node verdict',

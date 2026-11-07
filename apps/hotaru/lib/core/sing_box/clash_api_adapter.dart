@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import '../adapter.dart';
+import '../config/test_target.dart';
 import '../config/probe_listener.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
@@ -174,13 +175,25 @@ final class SingBoxClashApiAdapter
 
   @override
   Future<Duration> delay(String outbound, Uri target, Duration timeout) async {
-    if (target.scheme != 'https' ||
-        target.host.isEmpty ||
-        target.userInfo.isNotEmpty ||
-        target.hasFragment ||
+    if (!isCoreTestTarget(target) ||
         timeout.inMilliseconds < 1 ||
         timeout.inMilliseconds > 32767) {
-      throw ArgumentError('Delay requires HTTPS and a timeout of 1–32767ms');
+      throw ArgumentError('Delay requires HTTP(S) and a timeout of 1–32767ms');
+    }
+    if (target.scheme == 'http') {
+      return withOutboundClient(outbound, (client) async {
+        final watch = Stopwatch()..start();
+        try {
+          final request = await client.headUrl(target);
+          request.followRedirects = false;
+          await request.close();
+          return watch.elapsed;
+        } on SocketException {
+          throw const CoreAdapterException('probe_failed');
+        } on HttpException {
+          throw const CoreAdapterException('probe_failed');
+        }
+      }, timeout: timeout);
     }
     final response = _object(
       await _request(

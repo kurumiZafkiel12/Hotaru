@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:io';
 
 import '../config/profile.dart';
+import '../config/test_target.dart';
 import '../config/encoding.dart';
 import '../config/ip_prefix.dart';
 import '../config/probe_listener.dart';
@@ -212,7 +213,7 @@ final class SingBoxConfigBuilder {
         );
       }
       if (selector.strategy == CoreGroupStrategy.urltest &&
-          (Uri.tryParse(selector.testUrl)?.scheme != 'https' ||
+          (!isCoreTestTarget(Uri.tryParse(selector.testUrl)) ||
               selector.interval.inSeconds < 1 ||
               selector.tolerance < 0 ||
               selector.selected != null)) {

@@ -14,6 +14,53 @@ void main() {
   const direct = CoreNodeSpec(tag: 'direct', protocol: CoreNodeProtocol.direct);
 
   test(
+    'URL-test groups accept HTTP(S) with a host and reject credentials and fragments',
+    () async {
+      for (final url in [
+        'http://127.0.0.1:8080/check?sample=1',
+        'https://example.com/generate_204',
+        'ftp://example.com',
+        'https:///missing-host',
+        'http://user:secret@example.com',
+        'https://example.com/#fragment',
+        'http://example.com:0',
+        'http://example.com:65536',
+      ]) {
+        final valid =
+            url == 'http://127.0.0.1:8080/check?sample=1' ||
+            url == 'https://example.com/generate_204';
+        final result = await builder.build(
+          CoreProfileSpec(
+            nodes: [direct],
+            selectors: [
+              CoreSelectorSpec(
+                tag: 'auto',
+                members: ['direct'],
+                strategy: CoreGroupStrategy.urltest,
+                testUrl: url,
+              ),
+            ],
+            finalOutbound: 'auto',
+          ),
+          listeners,
+        );
+        if (valid) {
+          expect(result.issues, isEmpty, reason: url);
+          expect(
+            (jsonDecode(result.json!)['outbounds'] as List).singleWhere(
+              (entry) => entry['tag'] == 'auto',
+            )['url'],
+            url,
+          );
+        } else {
+          expect(result.json, isNull, reason: url);
+          expect(result.issues.single.code, 'invalid_urltest');
+        }
+      }
+    },
+  );
+
+  test(
     'TUN is explicit and scoped routing does not enable a default route',
     () async {
       final profile = CoreProfileSpec(

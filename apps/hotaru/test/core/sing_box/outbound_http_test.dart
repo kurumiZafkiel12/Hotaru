@@ -195,14 +195,28 @@ void main() {
       addTearDown(() => secureOrigin.close(force: true));
       addTearDown(() => origin.close(force: true));
       final receipts = <String>[];
-      void respond(HttpRequest request) {
+      Future<void> respond(HttpRequest request) async {
         receipts.add(request.uri.path);
         expect(
           request.headers.value(HttpHeaders.proxyAuthorizationHeader),
           isNull,
         );
+        if (request.method == 'HEAD') {
+          expect(
+            request.uri.toString(),
+            anyOf('/delay-http?sample=1', '/delay-redirect'),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 8));
+          if (request.uri.path == '/delay-redirect') {
+            request.response.statusCode = HttpStatus.found;
+            request.response.headers.set(
+              HttpHeaders.locationHeader,
+              '/must-not-follow',
+            );
+          }
+        }
         request.response.write('node-proof');
-        unawaited(request.response.close());
+        await request.response.close();
       }
 
       secureOrigin.listen(respond);
@@ -447,6 +461,45 @@ void main() {
             'selected_unchanged': 'B',
             'factory_pinned_while_group_changed': true,
             'unauthenticated_origin_requests': 0,
+          }),
+        );
+        final beforeFirst = first.receipts.length;
+        final beforeSecond = second.receipts.length;
+        final delay = await adapter
+            .delay(
+              '日本 / A',
+              Uri.parse('http://127.0.0.1:${origin.port}/delay-http?sample=1'),
+              const Duration(seconds: 3),
+            )
+            .onError(
+              (error, _) => fail(
+                'HTTP delay failed: $error; proxy=${first.receipts}; origin=$receipts; ${output.join()}',
+              ),
+            );
+        expect(delay.inMilliseconds, greaterThan(0));
+        expect(first.receipts, hasLength(beforeFirst + 1));
+        expect(first.receipts.last, origin.port);
+        expect(second.receipts, hasLength(beforeSecond));
+        expect(receipts.last, '/delay-http');
+        await adapter.delay(
+          '日本 / A',
+          Uri.parse('http://127.0.0.1:${origin.port}/delay-redirect'),
+          const Duration(seconds: 3),
+        );
+        expect(first.receipts, hasLength(beforeFirst + 2));
+        expect(second.receipts, hasLength(beforeSecond));
+        expect(receipts.last, '/delay-redirect');
+        expect(receipts, isNot(contains('/must-not-follow')));
+        expect(
+          (await adapter.outbounds())
+              .singleWhere((item) => item.name == 'selected')
+              .selected,
+          'B',
+        );
+        stdout.writeln(
+          jsonEncode({
+            'http_delay_bound_to_node': true,
+            'selected_unchanged': 'B',
           }),
         );
       } finally {
