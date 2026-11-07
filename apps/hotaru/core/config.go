@@ -177,6 +177,9 @@ func applyConfig(params *SetupParams) error {
 	currentConfig = cfg
 	hub.ApplyConfig(cfg)
 	patchSelectGroup(params.SelectedMap)
+	if singBoxEnabled() && isRunning.Load() {
+		restartSingBox(params.SelectedMap)
+	}
 	bumpRouteEpoch()
 	updateListeners(cfg)
 	reconcileGeoUpdater()

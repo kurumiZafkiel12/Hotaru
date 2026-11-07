@@ -81,6 +81,24 @@ func handleTestDelay(params *TestDelayParams) *Delay {
 	}
 	result := &Delay{Name: params.ProxyName, Url: url, Value: delayFailed, UnifiedDelay: adapter.UnifiedDelay.Load()}
 
+	if singBoxEnabled() && sbIsUp.Load() {
+		timeout := timeoutFromMillis(params.Timeout, defaultDelayTestTimeout)
+		start := time.Now()
+		delay, err := sbTestDelay(params.ProxyName, url, timeout)
+		result.ElapsedMs = time.Since(start).Milliseconds()
+		switch {
+		case err == nil && delay > 0:
+			result.Value = delay
+		case errors.Is(err, errSBTimeout):
+			result.Value = delayTimedOut
+			result.Error = "timeout"
+		default:
+			result.Value = delayFailed
+			result.Error = delayErrorCategory(err)
+		}
+		return result
+	}
+
 	proxy := lookupProxy(params.ProxyName)
 	if proxy == nil {
 		result.Error = "missing-proxy"

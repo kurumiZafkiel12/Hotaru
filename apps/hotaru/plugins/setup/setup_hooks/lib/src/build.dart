@@ -6,6 +6,7 @@ import 'fingerprint.dart';
 import 'go_builder.dart';
 import 'options.dart';
 import 'rust_builder.dart';
+import 'singbox_fetch.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -82,11 +83,21 @@ Future<BuildReport> buildPlatform(BuildRequest request) async {
   );
   writeCoreManifest(path: manifestPath, coreSha256: coreSha256);
 
+  final extraOutputs = [manifestPath];
+  final singBoxPath = await fetchSingBox(
+    rootDir: rootDir,
+    target: target,
+    outputDir: config.outputDir,
+  );
+  if (singBoxPath != null) {
+    extraOutputs.add(singBoxPath);
+  }
+
   _log.info(
     'Done in ${stopwatch.elapsed}: ${core.primaryOutput}, '
     '${helper.primaryOutput}',
   );
-  return _report([core, helper], extraOutputs: [manifestPath]);
+  return _report([core, helper], extraOutputs: extraOutputs);
 }
 
 BuildReport _report(

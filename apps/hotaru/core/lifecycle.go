@@ -44,6 +44,12 @@ func handleStartListener() bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(true)
+	if singBoxEnabled() {
+		startSingBox()
+		if sbIsUp.Load() {
+			sbApplySelections(sbSelectionsFromState())
+		}
+	}
 	updateListeners(currentConfig)
 	resolver.ResetConnection()
 	// A probe already out left before the TUN routes and over the DNS
@@ -53,6 +59,7 @@ func handleStartListener() bool {
 }
 
 func handleStopListener() bool {
+	stopSingBox()
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(false)
@@ -63,6 +70,12 @@ func handleStopListener() bool {
 
 func updateListeners(cfg *config.Config) {
 	if cfg == nil || !isRunning.Load() {
+		return
+	}
+	if singBoxEnabled() && sbIsUp.Load() {
+		// sing-box owns the ports and the TUN device in beta mode; mihomo
+		// must not bind any of them itself. If sing-box failed to start,
+		// mihomo takes over so the app still works (the failure is logged).
 		return
 	}
 	general := cfg.General
@@ -90,6 +103,7 @@ func updateListeners(cfg *config.Config) {
 func handleShutdown() bool {
 	handleStopLog()
 	stopRouteWatch()
+	stopSingBox()
 
 	configMu.Lock()
 	isRunning.Store(false)

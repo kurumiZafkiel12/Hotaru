@@ -7,11 +7,17 @@ import (
 )
 
 func handleGetTraffic(onlyStatisticsProxy bool) Traffic {
+	if singBoxEnabled() && sbIsUp.Load() {
+		return Traffic{Up: sbRateUp.Load(), Down: sbRateDown.Load()}
+	}
 	up, down := statistic.DefaultManager.NowTraffic(onlyStatisticsProxy)
 	return Traffic{Up: up, Down: down}
 }
 
 func handleGetTotalTraffic(onlyStatisticsProxy bool) Traffic {
+	if singBoxEnabled() && sbIsUp.Load() {
+		return Traffic{Up: sbTotalUp.Load(), Down: sbTotalDn.Load()}
+	}
 	up, down := statistic.DefaultManager.TotalTraffic(onlyStatisticsProxy)
 	return Traffic{Up: up, Down: down}
 }
