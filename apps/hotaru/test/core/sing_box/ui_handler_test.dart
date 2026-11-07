@@ -13,7 +13,7 @@ import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/enum/enum.dart';
-import 'package:hotaru/models/models.dart' show CoreEvent, SetupBase;
+import 'package:hotaru/models/models.dart' show CoreEvent, SetupBase, Traffic;
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -45,6 +45,7 @@ void main() {
   late StreamController<DesktopCoreFailure> crashes;
   late List<CoreEvent> published;
   late DesktopCoreState state;
+  late Duration elapsed;
 
   setUp(() async {
     lifecycle = _Lifecycle();
@@ -52,6 +53,7 @@ void main() {
     events = StreamController.broadcast();
     crashes = StreamController.broadcast();
     published = [];
+    elapsed = Duration.zero;
     state = DesktopCoreRunning(
       DesktopCoreSession(
         sessionId: 'one',
@@ -98,7 +100,11 @@ void main() {
       lifecycle: lifecycle,
       configuration: _Binding(preparer.approve(result.candidate!), adapter),
     );
-    handler = SingBoxUiHandler(core, onEvent: published.add);
+    handler = SingBoxUiHandler(
+      core,
+      onEvent: published.add,
+      trafficElapsed: () => elapsed,
+    );
     controller = CoreController.scoped(handler);
   });
   tearDown(() async {
@@ -106,6 +112,169 @@ void main() {
     await events.close();
     await crashes.close();
   });
+
+  test(
+    'display speeds use monotonic elapsed time and total reads do not consume speed bytes',
+    () async {
+      var up = 10;
+      var down = 20;
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(
+          telemetryFixture(upload: up, download: down),
+        ),
+      );
+      expect(await controller.getTraffic(false), const Traffic());
+      elapsed = const Duration(seconds: 1);
+      up = 50;
+      down = 100;
+      expect(
+        await controller.getTotalTraffic(false),
+        const Traffic(up: 50, down: 100),
+      );
+      elapsed = const Duration(seconds: 2);
+      up = 110;
+      down = 220;
+      expect(
+        await controller.getTraffic(false),
+        const Traffic(up: 50, down: 100),
+      );
+      await handler.resetTraffic();
+      expect(await controller.getTotalTraffic(false), const Traffic());
+      elapsed = const Duration(seconds: 4);
+      up = 150;
+      down = 300;
+      expect(
+        await controller.getTotalTraffic(false),
+        const Traffic(up: 40, down: 80),
+      );
+      expect(
+        await controller.getTraffic(false),
+        const Traffic(up: 20, down: 40),
+      );
+      expect((up, down), (150, 300));
+    },
+  );
+
+  test(
+    'traffic samples in one clock tick retain bytes for the next interval and regressions fail',
+    () async {
+      var up = 10;
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async =>
+            CoreTelemetrySnapshot.fromJson(telemetryFixture(upload: up)),
+      );
+      await controller.getTraffic(false);
+      up = 20;
+      expect(await controller.getTraffic(false), const Traffic());
+      elapsed = const Duration(seconds: 1);
+      up = 30;
+      expect((await controller.getTraffic(false)).up, 20);
+      up = 29;
+      await expectLater(
+        controller.getTotalTraffic(false),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'traffic_counter_regressed',
+          ),
+        ),
+      );
+      up = 40;
+      elapsed = const Duration(seconds: 2);
+      expect((await controller.getTraffic(false)).up, 10);
+      up = 9223372036854775807;
+      elapsed = const Duration(seconds: 3);
+      final large = await controller.getTraffic(false);
+      expect(large.up, greaterThan(0));
+      expect(large.up.isFinite, isTrue);
+    },
+  );
+
+  test(
+    'proxy-only totals are not fabricated from a bounded connection window',
+    () async {
+      await expectLater(
+        controller.getTraffic(true),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'proxy_only_traffic_unavailable',
+          ),
+        ),
+      );
+      await expectLater(
+        controller.getTotalTraffic(true),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      verifyNever(() => adapter.telemetry());
+    },
+  );
+
+  test(
+    'replaced sessions reject old samples and discard display offsets',
+    () async {
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(
+          telemetryFixture(upload: 100, download: 200),
+        ),
+      );
+      await handler.resetTraffic();
+      final pending = Completer<CoreTelemetrySnapshot>();
+      when(() => adapter.telemetry()).thenAnswer((_) => pending.future);
+      final reading = controller.getTotalTraffic(false);
+      await Future<void>.delayed(Duration.zero);
+      final checked = expectLater(
+        reading,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      state = DesktopCoreRunning(
+        DesktopCoreSession(
+          sessionId: 'two',
+          lease: FakeProcessLease(
+            owner: CoreProcessOwner.direct,
+            pid: 4322,
+            sessionId: 'two',
+          ),
+          connectionGeneration: 2,
+        ),
+      );
+      pending.complete(
+        CoreTelemetrySnapshot.fromJson(
+          telemetryFixture(upload: 150, download: 300),
+        ),
+      );
+      await checked;
+      when(() => adapter.telemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson(
+          telemetryFixture(upload: 5, download: 6),
+        ),
+      );
+      expect(
+        await controller.getTotalTraffic(false),
+        const Traffic(up: 5, down: 6),
+      );
+      expect(await controller.getTraffic(false), const Traffic());
+      await controller.close();
+      await expectLater(
+        controller.getTraffic(false),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'closed',
+          ),
+        ),
+      );
+    },
+  );
 
   test(
     'file preparation uses Dart without sending a legacy kernel RPC',

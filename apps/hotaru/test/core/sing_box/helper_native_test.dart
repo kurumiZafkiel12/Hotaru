@@ -347,6 +347,8 @@ void main() {
         expect(dnsReceipts, 0);
         expect(providerRequests, 1);
         expect(rulesRequests, 2);
+        final initialUiTraffic = await controller.getTotalTraffic(false);
+        await controller.getTraffic(false);
         final request = await client.getUrl(Uri.parse('http://198.18.8.2/'));
         final response = await request.close().timeout(
           const Duration(seconds: 10),
@@ -358,6 +360,31 @@ void main() {
               .join()
               .timeout(const Duration(seconds: 10)),
           'helper-tun-proof',
+        );
+
+        final receivedUiTraffic = await controller.getTotalTraffic(false);
+        expect(receivedUiTraffic.down, greaterThan(initialUiTraffic.down));
+        expect((await controller.getTraffic(false)).speed, greaterThan(0));
+        final rawBeforeUiReset = await (service.adapter as CoreTelemetry)
+            .telemetry();
+        await uiHandler.resetTraffic();
+        final resetUiTraffic = await controller.getTotalTraffic(false);
+        final rawAfterUiReset = await (service.adapter as CoreTelemetry)
+            .telemetry();
+        expect(resetUiTraffic.up, greaterThanOrEqualTo(0));
+        expect(resetUiTraffic.down, greaterThanOrEqualTo(0));
+        expect(
+          resetUiTraffic.up,
+          lessThanOrEqualTo(rawAfterUiReset.uploadTotal),
+        );
+        expect(resetUiTraffic.down, lessThan(rawAfterUiReset.downloadTotal));
+        expect(
+          rawAfterUiReset.uploadTotal,
+          greaterThanOrEqualTo(rawBeforeUiReset.uploadTotal),
+        );
+        expect(
+          rawAfterUiReset.downloadTotal,
+          greaterThanOrEqualTo(rawBeforeUiReset.downloadTotal),
         );
 
         await service.adapter.selectOutbound('selected', 'proof');
@@ -636,6 +663,10 @@ void main() {
             isTrue,
           );
           expect(observed.downloadTotal, greaterThan(0));
+          expect(
+            (await controller.getTotalTraffic(false)).down,
+            greaterThan(0),
+          );
         } finally {
           restoredClient.close(force: true);
           await origin.close(force: true);
@@ -781,6 +812,7 @@ void main() {
             'node_http_factory_recovered_configuration': true,
             'ui_controller_selection_and_modes': true,
             'ui_route_epoch_recovered': true,
+            'ui_traffic_rate_and_local_reset': true,
             'native_closed_telemetry': true,
             'profile_traffic_final_persisted': true,
             'failed_activation_restored': true,

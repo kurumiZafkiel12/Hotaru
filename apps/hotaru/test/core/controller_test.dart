@@ -47,6 +47,18 @@ void main() {
     controller = CoreController.test(mock);
   });
 
+  test(
+    'unobserved reset failures do not escape as unhandled futures',
+    () async {
+      when(() => mock.resetTraffic()).thenAnswer(
+        (_) => Future<void>.error(StateError('fixture reset failure')),
+      );
+      controller.resetTraffic();
+      await Future<void>.delayed(Duration.zero);
+      verify(() => mock.resetTraffic()).called(1);
+    },
+  );
+
   tearDown(() {
     CoreController.resetInstance();
   });

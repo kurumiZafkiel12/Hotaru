@@ -18,6 +18,7 @@ import '../routing_mode.dart';
 import '../profile_documents.dart';
 import 'desktop_core.dart';
 import 'ui_routes.dart';
+import 'ui_traffic.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
     implements
@@ -26,14 +27,20 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreProfileTextBuilder {
   final SingBoxDesktopCore core;
   late final SingBoxUiRoutes _routes;
+  late final SingBoxUiTraffic _traffic;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
 
-  SingBoxUiHandler(this.core, {void Function(CoreEvent)? onEvent}) {
+  SingBoxUiHandler(
+    this.core, {
+    void Function(CoreEvent)? onEvent,
+    Duration Function()? trafficElapsed,
+  }) {
     if (core.configuration == null) {
       throw ArgumentError('A prepared sing-box configuration is required');
     }
     final publish = onEvent ?? coreEventManager.sendEvent;
+    _traffic = SingBoxUiTraffic(core: core, elapsed: trafficElapsed);
     _routes = SingBoxUiRoutes(
       core: core,
       onChange: (snapshot) => publish(
@@ -78,6 +85,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       return await core.close();
     } finally {
       await _routes.close();
+      await _traffic.close();
       await _crashes.cancel();
     }
   }
@@ -112,6 +120,17 @@ final class SingBoxUiHandler extends CoreHandlerInterface
 
   @override
   Future<bool> init(InitParams params) => isInit;
+
+  @override
+  Future<Traffic> getTraffic(bool onlyStatisticsProxy) =>
+      _traffic.speed(onlyStatisticsProxy);
+
+  @override
+  Future<Traffic> getTotalTraffic(bool onlyStatisticsProxy) =>
+      _traffic.total(onlyStatisticsProxy);
+
+  @override
+  Future<void> resetTraffic() => _traffic.reset();
 
   @override
   Future<Map<String, dynamic>> getConfig(String path) =>

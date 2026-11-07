@@ -395,7 +395,14 @@ class CoreController {
   }
 
   void resetTraffic() {
-    _interface.resetTraffic();
+    unawaited(
+      Future<void>.sync(() => _interface.resetTraffic()).onError((error, _) {
+        commonPrint.log(
+          'resetTraffic failed: $error',
+          logLevel: coreFailureLogLevel(error),
+        );
+      }),
+    );
   }
 
   void startLog() {
