@@ -5,6 +5,7 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/core/core.dart';
 import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
+import 'outbound_http.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -30,6 +31,27 @@ class CoreController {
 
   @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsOutboundClients => _interface is CoreOutboundHttpClients;
+
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) {
+    final source = _interface;
+    if (source is! CoreOutboundHttpClients) {
+      throw const CoreMethodException(
+        code: 'outbound_http_unavailable',
+        message: 'Scoped outbound clients are unavailable',
+      );
+    }
+    return (source as CoreOutboundHttpClients).withOutboundClients(
+      outbound,
+      action,
+      timeout: timeout,
+    );
+  }
 
   @visibleForTesting
   static void resetInstance() {

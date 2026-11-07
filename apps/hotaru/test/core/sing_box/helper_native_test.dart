@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
@@ -271,6 +272,7 @@ void main() {
         onError: (error, _) => trafficErrors.add(error),
       );
       final pids = <int>[];
+      late CoreOutboundClients recoveredClients;
       final client = HttpClient()..findProxy = (_) => 'DIRECT';
       client.connectionTimeout = const Duration(seconds: 10);
       try {
@@ -548,17 +550,28 @@ void main() {
             'restored-configuration-proof',
           );
           expect(restoredRequests, 1);
-          final probePayload = await (service.adapter as CoreOutboundHttp)
-              .withOutboundClient('direct', (probeClient) async {
-                final probeRequest = await probeClient.getUrl(
-                  Uri.parse('http://127.0.0.1:${origin.port}/restored'),
-                );
-                final probeResponse = await probeRequest.close();
-                expect(probeResponse.statusCode, 200);
-                return utf8.decoder.bind(probeResponse).join();
-              });
-          expect(probePayload, 'restored-configuration-proof');
-          expect(restoredRequests, 2);
+          final probePayloads =
+              await (service.adapter as CoreOutboundHttpClients)
+                  .withOutboundClients('selected', (clients) async {
+                    recoveredClients = clients;
+                    expect(clients.chain, ['selected', 'direct']);
+                    final payloads = <String>[];
+                    for (var index = 0; index < 2; index++) {
+                      final probeClient = clients.createClient();
+                      final probeRequest = await probeClient.getUrl(
+                        Uri.parse('http://127.0.0.1:${origin.port}/restored'),
+                      );
+                      final probeResponse = await probeRequest.close();
+                      expect(probeResponse.statusCode, 200);
+                      payloads.add(
+                        await utf8.decoder.bind(probeResponse).join(),
+                      );
+                      probeClient.close(force: true);
+                    }
+                    return payloads;
+                  });
+          expect(probePayloads, List.filled(2, 'restored-configuration-proof'));
+          expect(restoredRequests, 3);
           CoreTelemetrySnapshot? observed;
           for (var attempt = 0; attempt < 100; attempt++) {
             observed = await (service.adapter as CoreTelemetry).telemetry();
@@ -586,6 +599,16 @@ void main() {
         }
 
         await service.restart();
+        expect(
+          recoveredClients.createClient,
+          throwsA(
+            isA<CoreAdapterException>().having(
+              (error) => error.code,
+              'code',
+              'session_changed',
+            ),
+          ),
+        );
         final second = service.lifecycle.state as DesktopCoreRunning;
         pids.add(second.session.pid);
         expect(second.session.sessionId, isNot(first.session.sessionId));
@@ -712,6 +735,7 @@ void main() {
             'route_preview_no_dial': true,
             'route_preview_recovered_configuration': true,
             'node_http_recovered_configuration': true,
+            'node_http_factory_recovered_configuration': true,
             'native_closed_telemetry': true,
             'profile_traffic_final_persisted': true,
             'failed_activation_restored': true,

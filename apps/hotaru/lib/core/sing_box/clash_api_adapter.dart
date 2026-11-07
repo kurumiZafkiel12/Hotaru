@@ -11,7 +11,11 @@ import '../routing_mode.dart';
 import 'outbound_http.dart';
 
 final class SingBoxClashApiAdapter
-    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry, CoreRoutingModes {
+    implements
+        CoreAdapter,
+        CoreOutboundHttpClients,
+        CoreTelemetry,
+        CoreRoutingModes {
   final Uri endpoint;
   final String _secret;
   final HttpClient _client;
@@ -254,6 +258,66 @@ final class SingBoxClashApiAdapter
     Future<T> Function(HttpClient client) action, {
     Duration timeout = const Duration(minutes: 2),
   }) => _outboundHttp.withOutboundClient(outbound, action, timeout: timeout);
+
+  @override
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) async {
+    _outboundHttp.checkOutbound(outbound);
+    if (timeout <= Duration.zero || timeout > const Duration(minutes: 10)) {
+      throw ArgumentError(
+        'Probe timeout must be positive and at most 10 minutes',
+      );
+    }
+    final deadline = Stopwatch()..start();
+    final observed = await outbounds().timeout(
+      timeout,
+      onTimeout: () => throw const CoreAdapterException('timeout'),
+    );
+    final chain = await _resolvePinnedChain(outbound, observed);
+    final remaining = timeout - deadline.elapsed;
+    if (remaining <= Duration.zero) {
+      throw const CoreAdapterException('timeout');
+    }
+    return _outboundHttp.withOutboundClients(
+      chain.last,
+      (clients) => action(
+        CoreOutboundClients(chain: chain, createClient: clients.createClient),
+      ),
+      timeout: remaining,
+    );
+  }
+
+  static Future<List<String>> _resolvePinnedChain(
+    String outbound,
+    List<CoreOutbound> observed,
+  ) => Isolate.run(() => _pinnedChain(outbound, observed));
+
+  static List<String> _pinnedChain(
+    String outbound,
+    List<CoreOutbound> observed,
+  ) {
+    final available = {for (final node in observed) node.name: node};
+    final visited = <String>{};
+    final chain = <String>[];
+    var next = outbound;
+    while (visited.add(next)) {
+      final node = available[next];
+      if (node == null) throw const CoreAdapterException('unknown_outbound');
+      chain.add(next);
+      if (node.members.isEmpty) {
+        return chain;
+      }
+      final selected = node.selected;
+      if (selected == null || !node.members.contains(selected)) {
+        throw const CoreAdapterException('selection_unavailable');
+      }
+      next = selected;
+    }
+    throw const CoreAdapterException('outbound_cycle');
+  }
 
   @override
   Future<void> close() async {

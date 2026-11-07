@@ -9,7 +9,11 @@ import '../desktop/lifecycle.dart';
 import '../desktop/model.dart';
 
 final class SessionCoreAdapter
-    implements CoreAdapter, CoreOutboundHttp, CoreTelemetry, CoreRoutingModes {
+    implements
+        CoreAdapter,
+        CoreOutboundHttpClients,
+        CoreTelemetry,
+        CoreRoutingModes {
   final DesktopCoreLifecycleController lifecycle;
   final CoreAdapter Function() _factory;
   late final StreamSubscription<DesktopCoreState> _subscription;
@@ -132,6 +136,33 @@ final class SessionCoreAdapter
     return (adapter as CoreOutboundHttp).withOutboundClient(
       outbound,
       action,
+      timeout: timeout,
+    );
+  });
+
+  @override
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) => _invoke((adapter) {
+    if (adapter is! CoreOutboundHttpClients) {
+      throw const CoreAdapterException('outbound_http_unavailable');
+    }
+    final id = _sessionId!;
+    return (adapter as CoreOutboundHttpClients).withOutboundClients(
+      outbound,
+      (clients) => action(
+        CoreOutboundClients(
+          chain: clients.chain,
+          createClient: () {
+            if (!_sameSession(id)) {
+              throw const CoreAdapterException('session_changed');
+            }
+            return clients.createClient();
+          },
+        ),
+      ),
       timeout: timeout,
     );
   });

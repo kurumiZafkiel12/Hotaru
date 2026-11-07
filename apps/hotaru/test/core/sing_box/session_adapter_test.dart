@@ -46,6 +46,16 @@ final class _HttpAdapter extends Mock implements CoreAdapter, CoreOutboundHttp {
   Future<void> close() async => transport.close();
 }
 
+final class _FactoryAdapter extends _HttpAdapter
+    implements CoreOutboundHttpClients {
+  @override
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) => transport.withOutboundClients(outbound, action, timeout: timeout);
+}
+
 DesktopCoreRunning _running(String id) => DesktopCoreRunning(
   DesktopCoreSession(
     sessionId: id,
@@ -108,6 +118,48 @@ void main() {
     );
     expect(invoked, isFalse);
   });
+
+  test(
+    'a retained factory cannot create clients after its session changes',
+    () async {
+      final inner = _FactoryAdapter();
+      final scoped = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => inner,
+      );
+      addTearDown(scoped.close);
+      final entered = Completer<CoreOutboundClients>();
+      final release = Completer<int>();
+      final call = scoped.withOutboundClients('node', (clients) async {
+        entered.complete(clients);
+        return release.future;
+      });
+      final result = expectLater(
+        call,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      final clients = await entered.future;
+      state = _running('new');
+      expect(
+        clients.createClient,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      release.complete(1);
+      await result;
+    },
+  );
 
   test('missing mode capability cannot pretend a mode was applied', () async {
     await expectLater(

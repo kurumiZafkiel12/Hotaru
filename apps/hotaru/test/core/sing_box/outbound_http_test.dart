@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/telemetry.dart';
+import 'package:hotaru/core/outbound_http.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/sing_box/clash_api_adapter.dart';
@@ -340,6 +341,29 @@ void main() {
               .selected,
           'B',
         );
+        late CoreOutboundClients retained;
+        await adapter.withOutboundClients('selected', (clients) async {
+          retained = clients;
+          expect(clients.chain, ['selected', 'B']);
+          for (final path in ['factory-first', 'factory-second']) {
+            final client = clients.createClient();
+            client.badCertificateCallback = (certificate, host, port) =>
+                host == '127.0.0.1' &&
+                port == secureOrigin.port &&
+                base64Encode(certificate.der) == fixtureDer;
+            final request = await client.getUrl(
+              Uri.parse('https://127.0.0.1:${secureOrigin.port}/$path'),
+            );
+            final response = await request.close();
+            expect(await utf8.decoder.bind(response).join(), 'node-proof');
+            client.close(force: true);
+            await adapter.selectOutbound('selected', '日本 / A');
+          }
+        });
+        expect(first.receipts, hasLength(1));
+        expect(second.receipts, List.filled(3, secureOrigin.port));
+        expect(retained.createClient, throwsA(isA<CoreAdapterException>()));
+        await adapter.selectOutbound('selected', 'B');
         if (controlled) {
           CoreTelemetrySnapshot? observed;
           for (var attempt = 0; attempt < 100; attempt++) {
@@ -411,7 +435,7 @@ void main() {
           await unauthorizedSubscription.cancel();
           unauthenticated.destroy();
         }
-        expect(receipts, hasLength(2));
+        expect(receipts, hasLength(4));
         expect(await adapter.version(), 'sing-box 1.14.4');
         stdout.writeln(
           jsonEncode({
@@ -421,6 +445,7 @@ void main() {
             'http_node_receipts': first.receipts,
             'https_node_receipts': second.receipts,
             'selected_unchanged': 'B',
+            'factory_pinned_while_group_changed': true,
             'unauthenticated_origin_requests': 0,
           }),
         );
@@ -443,14 +468,16 @@ void main() {
                 .where((line) => line.startsWith('{'))
                 .map(jsonDecode)
                 .lastWhere((value) => value['event'] == 'stopped');
-            expect(
-              stopped['totals']['upload'],
-              greaterThanOrEqualTo(lastObservation!.uploadTotal),
-            );
-            expect(
-              stopped['totals']['download'],
-              greaterThanOrEqualTo(lastObservation.downloadTotal),
-            );
+            if (lastObservation case final observed?) {
+              expect(
+                stopped['totals']['upload'],
+                greaterThanOrEqualTo(observed.uploadTotal),
+              );
+              expect(
+                stopped['totals']['download'],
+                greaterThanOrEqualTo(observed.downloadTotal),
+              );
+            }
           }
         } finally {
           if (!exited) {
