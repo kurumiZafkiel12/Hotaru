@@ -342,6 +342,26 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                                            env=environment,
                                            stdin=subprocess.PIPE if stdio_host else None)
                 try:
+                    if stdio_host:
+                        progress('Wait for the owned host startup acknowledgement')
+                        ready_deadline = time.monotonic() + 10
+                        while True:
+                            lines = (pathlib.Path(directory) / 'core.log').read_text(encoding='utf-8', errors='replace').splitlines()
+                            owned_ready = False
+                            for line in lines:
+                                try:
+                                    event = json.loads(line)
+                                except json.JSONDecodeError:
+                                    continue
+                                if (isinstance(event, dict) and event.get('protocol') == 'hotaru-stdio-v1'
+                                        and event.get('pid') == process.pid and event.get('event') == 'ready'):
+                                    owned_ready = True
+                                    break
+                            if owned_ready:
+                                break
+                            if process.poll() is not None or time.monotonic() >= ready_deadline:
+                                raise RuntimeError('Owned host startup was not acknowledged: ' + '\n'.join(lines))
+                            time.sleep(0.05)
                     progress('Start isolated core and wait for controller')
                     deadline = time.monotonic() + 10
                     while True:
