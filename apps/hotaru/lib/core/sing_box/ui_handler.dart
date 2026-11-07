@@ -9,6 +9,7 @@ import '../adapter.dart';
 import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
 import '../config/proxy_definitions.dart';
+import '../config/node_definition.dart';
 import '../desktop/model.dart';
 import '../interface.dart';
 import '../method.dart';
@@ -158,6 +159,18 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<List<String>> validateProxies(List<Map<String, dynamic>> proxies) =>
       CoreProxyDefinitions.validate(proxies);
+
+  @override
+  Future<Map<String, dynamic>?> getProxyDefinition(String name) async {
+    final session = _session();
+    final configuration = core.configuration!;
+    final node = await CoreNodeDefinition.find(configuration.profile, name);
+    _checkSession(session);
+    if (!identical(configuration, core.configuration)) {
+      throw const CoreAdapterException('session_changed');
+    }
+    return node;
+  }
 
   @override
   Future<List<List<Map<String, dynamic>>>> decodeShareLinks(

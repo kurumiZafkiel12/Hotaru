@@ -114,6 +114,22 @@ void main() {
   });
 
   test(
+    'node editing reads the applied profile and never treats a selector as a node',
+    () async {
+      expect(await controller.getProxyDefinition('A'), {
+        'name': 'A',
+        'type': 'direct',
+      });
+      expect(await controller.getProxyDefinition('group'), isNull);
+      expect(await controller.getProxyDefinition('missing'), isNull);
+      verifyZeroInteractions(adapter);
+      final pending = controller.getProxyDefinition('B');
+      state = const DesktopCoreIdle();
+      await expectLater(pending, throwsA(isA<CoreAdapterException>()));
+    },
+  );
+
+  test(
     'display speeds use monotonic elapsed time and total reads do not consume speed bytes',
     () async {
       var up = 10;
