@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/controller.dart';
@@ -14,6 +15,7 @@ import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
 import 'package:hotaru/core/telemetry.dart';
 import 'package:hotaru/enum/enum.dart';
+import 'package:hotaru/l10n/l10n.dart';
 import 'package:hotaru/models/models.dart'
     show CoreEvent, SetupBase, Traffic, CoreMemoryStatsExt;
 import 'package:mocktail/mocktail.dart';
@@ -43,6 +45,7 @@ class _Binding implements SingBoxConfigurationBinding {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late _Lifecycle lifecycle;
   late _Adapter adapter;
   late SingBoxDesktopCore core;
@@ -121,6 +124,47 @@ void main() {
   });
 
   test(
+    'document validation is bounded, read only and localized without exposing source secrets',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'hotaru-validate-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      addTearDown(() => AppLocalizations.load(const Locale('en')));
+      final file = File('${directory.path}/profile.yaml');
+      const source = 'proxies: []\nrules: [MATCH,DIRECT]\n';
+      await file.writeAsString(source);
+      expect(await controller.validateConfig(file.path), '');
+      expect(await file.readAsString(), source);
+      for (final locale in [const Locale('en'), const Locale('zh', 'CN')]) {
+        final strings = await AppLocalizations.load(locale);
+        for (final text in [
+          '[private-node-secret]',
+          'private-node-secret: [',
+          'age-encryption.org/v1\nprivate-node-secret',
+        ]) {
+          await file.writeAsString(text);
+          expect(
+            await controller.validateConfig(file.path),
+            strings.importConfigInvalid,
+          );
+          expect(await file.readAsString(), text);
+        }
+        expect(
+          await controller.validateConfig('${directory.path}/missing'),
+          strings.importConfigInvalid,
+        );
+        await file.writeAsBytes([0xff]);
+        expect(
+          await controller.validateConfig(file.path),
+          strings.importConfigInvalid,
+        );
+      }
+      verifyZeroInteractions(adapter);
+    },
+  );
+
+  test(
     'ordinary maintenance methods await native acknowledgement and propagate failure',
     () async {
       when(() => adapter.collectMemory()).thenAnswer((_) async {});
@@ -195,6 +239,15 @@ void main() {
       final pending = controller.getProxyDefinition('B');
       state = const DesktopCoreIdle();
       await expectLater(pending, throwsA(isA<CoreAdapterException>()));
+    },
+  );
+
+  test(
+    'global selection exposes the client owned group without using API GLOBAL',
+    () async {
+      expect(controller.supportsGlobalOutbound, isTrue);
+      expect(await controller.globalOutbound(), 'Hotaru GLOBAL');
+      verifyZeroInteractions(adapter);
     },
   );
 
@@ -565,7 +618,7 @@ void main() {
     () async {
       expect(controller.supportsOutboundClients, isTrue);
       await expectLater(
-        handler.validateConfig('not-read'),
+        handler.validateFilters(['not-implemented']),
         throwsA(
           isA<CoreMethodException>().having(
             (error) => error.code,

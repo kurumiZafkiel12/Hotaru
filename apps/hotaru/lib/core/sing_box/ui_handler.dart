@@ -5,6 +5,7 @@ import 'dart:isolate';
 import '../../models/models.dart';
 import '../../common/common.dart';
 import '../../enum/enum.dart';
+import '../../l10n/l10n.dart';
 import '../adapter.dart';
 import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
@@ -29,6 +30,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     implements
         CoreOutboundHttpClients,
         CoreRoutingModes,
+        CoreGlobalOutbound,
         CoreProfileTextBuilder {
   final SingBoxDesktopCore core;
   late final SingBoxUiRoutes _routes;
@@ -121,6 +123,20 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   Future<void> setRoutingMode(CoreRoutingMode mode) => _routes.setMode(mode);
 
   @override
+  Future<String> globalOutbound() async {
+    final configuration = core.configuration;
+    if (configuration == null) {
+      throw const CoreAdapterException('applied_profile_unavailable');
+    }
+    final profile = configuration.profile;
+    final tag = await Isolate.run(() => CoreModeOutbounds(profile).global.tag);
+    if (!identical(configuration, core.configuration)) {
+      throw const CoreAdapterException('session_changed');
+    }
+    return tag;
+  }
+
+  @override
   Future<bool> startListener() => _routes.setInbounds(true);
 
   @override
@@ -194,6 +210,16 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<Map<String, dynamic>> getConfig(String path) =>
       CoreProfileDocuments.read(path);
+
+  @override
+  Future<String> validateConfig(String path) async {
+    try {
+      await CoreProfileDocuments.read(path);
+      return '';
+    } on Exception {
+      return AppLocalizations.current.importConfigInvalid;
+    }
+  }
 
   @override
   Future<ProfileBase> getProfileBase(String path) =>

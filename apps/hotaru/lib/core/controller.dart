@@ -38,6 +38,16 @@ class CoreController {
 
   bool get supportsRoutingModes => _interface is CoreRoutingModes;
 
+  bool get supportsGlobalOutbound => _interface is CoreGlobalOutbound;
+
+  Future<String> globalOutbound() {
+    final source = _interface;
+    if (source is CoreGlobalOutbound) {
+      return (source as CoreGlobalOutbound).globalOutbound();
+    }
+    return Future.value(GroupName.GLOBAL.name);
+  }
+
   CoreRoutingModes get _routingModes {
     final source = _interface;
     if (source is! CoreRoutingModes) {
