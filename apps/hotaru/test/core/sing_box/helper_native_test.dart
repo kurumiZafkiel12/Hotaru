@@ -1567,6 +1567,13 @@ void main() {
           ).exists(),
           isTrue,
         );
+        await controller.withRoutedClient(
+          (client) => fetch(client, 'after-geodata-refresh'),
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (8, 3, 5),
+        );
         completed = true;
       } finally {
         await controller.close();

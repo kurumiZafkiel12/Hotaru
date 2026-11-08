@@ -23,7 +23,7 @@ Hotaru 不提供代理服务器或订阅服务，使用前需要导入自己的�
 | 平台 | 版本要求 | 下载 |
 | --- | --- | --- |
 | Windows | Windows 10/11，x64 | [安装版与便携版](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) |
-| Android | Android 7.0 及以上 | [ARM64／ARMv7／x86_64 APK](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.5) |
+| Android | Android 7.0 及以上 | [ARM64／ARMv7／x86_64 APK](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.6) |
 
 安装文件及 SHA256 校验清单均在发布页。当前未提供 macOS 和 Linux 安装包。
 

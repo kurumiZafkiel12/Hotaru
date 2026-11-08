@@ -1,4 +1,4 @@
-param([string]$ExpectedVersion = '0.0.6')
+param([string]$ExpectedVersion = '0.0.7')
 $ErrorActionPreference = 'Stop'
 if (@(Get-Process Hotaru,HotaruCore,HotaruHelperService -ErrorAction SilentlyContinue).Count -ne 0) {
     throw 'Installation verification requires an isolated runner without an existing Hotaru process'
@@ -12,7 +12,7 @@ New-Item -ItemType Directory -Force $work,$reportDirectory | Out-Null
 $sentinels = @($env:APPDATA,$env:LOCALAPPDATA) | ForEach-Object {
     $directory = Join-Path $_ 'dev.hotaru/Hotaru'
     New-Item -ItemType Directory -Force $directory | Out-Null
-    $path = Join-Path $directory 'h006-install-verification.txt'
+    $path = Join-Path $directory 'h007-install-verification.txt'
     if (Test-Path $path) { throw 'Verification sentinel already exists' }
     Set-Content $path 'Hotaru installation preservation check'
     $path
@@ -46,11 +46,11 @@ function Invoke-Uninstall {
     Assert-Preserved
 }
 try {
-    & gh release download v0.0.5 --repo kurumiZafkiel12/Hotaru --pattern 'Hotaru-0.0.5-windows-amd64-setup.exe' --pattern SHA256SUMS --dir $work
+    & gh release download v0.0.6 --repo kurumiZafkiel12/Hotaru --pattern 'Hotaru-0.0.6-windows-amd64-setup.exe' --pattern SHA256SUMS --dir $work
     if ($LASTEXITCODE -ne 0) { throw 'Previous release download failed' }
-    $previous = Join-Path $work 'Hotaru-0.0.5-windows-amd64-setup.exe'
+    $previous = Join-Path $work 'Hotaru-0.0.6-windows-amd64-setup.exe'
     $hash = (Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant()
-    if (-not ((Get-Content (Join-Path $work 'SHA256SUMS')) | Where-Object { $_ -match "^$hash\s+\*?(?:\./)?Hotaru-0\.0\.5-windows-amd64-setup\.exe$" })) {
+    if (-not ((Get-Content (Join-Path $work 'SHA256SUMS')) | Where-Object { $_ -match "^$hash\s+\*?(?:\./)?Hotaru-0\.0\.6-windows-amd64-setup\.exe$" })) {
         throw 'Previous installer does not match published SHA256SUMS'
     }
     Invoke-Installer $previous 'previous-install'
@@ -66,7 +66,7 @@ try {
     $report = [ordered]@{
         source_sha=$env:GITHUB_SHA; version=$ExpectedVersion;
         setup_sha256=(Get-FileHash $setup[0].FullName -Algorithm SHA256).Hash;
-        upgrade_from='0.0.5'; repeat_install=$true; fresh_install=$true; silent_uninstall_preserves_data=$true;
+        upgrade_from='0.0.6'; repeat_install=$true; fresh_install=$true; silent_uninstall_preserves_data=$true;
         scope='Actual installer lifecycle on isolated Windows; application not launched for connected proxy or TUN testing'
     }
     $report | ConvertTo-Json | Set-Content (Join-Path $reportDirectory 'result.json')

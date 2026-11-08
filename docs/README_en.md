@@ -19,7 +19,7 @@ Bring your own configuration: Hotaru does not provide servers or subscriptions. 
 | Platform | Requirements | Downloads |
 | --- | --- | --- |
 | Windows | Windows 10/11, x64 | [Installer and portable ZIP](https://github.com/kurumiZafkiel12/Hotaru/releases/latest) |
-| Android | Android 7.0 or later | [ARM64, ARMv7 and x86_64 APKs](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.5) |
+| Android | Android 7.0 or later | [ARM64, ARMv7 and x86_64 APKs](https://github.com/kurumiZafkiel12/Hotaru/releases/tag/v0.0.6) |
 
 Packages and SHA256 checksums are available on each release page. macOS and Linux packages are currently unavailable.
 
