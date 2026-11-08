@@ -1188,7 +1188,11 @@ void main() {
       var receipts = 0;
       origin.listen((request) async {
         receipts++;
-        request.response.write('application-source-receipt');
+        request.response.write(
+          request.uri.path == '/ip'
+              ? '{"ip":"1.1.1.1"}'
+              : 'application-source-receipt',
+        );
         await request.response.close();
       });
       final sourceServer = await HttpServer.bind(
@@ -1486,6 +1490,35 @@ void main() {
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
           (6, 1, 4),
         );
+        final address = await controller.outboundIp(
+          OutboundIpParams(
+            urls: ['http://127.0.0.1:${origin.port}/ip'],
+            timeout: 10000,
+          ),
+        );
+        expect(address!.error, isNull);
+        expect(address.body, '{"ip":"1.1.1.1"}');
+        expect(address.chains, contains('B'));
+        expect(address.hits, isNotEmpty);
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (7, 1, 5),
+        );
+        expect(
+          (await controller.checkRoutes(
+            CheckRoutesParams(routes: [address.hits]),
+          ))!.held,
+          [true],
+        );
+        await controller.changeProxy(
+          const ChangeProxyParams(groupName: 'selected', proxyName: 'A'),
+        );
+        expect(
+          (await controller.checkRoutes(
+            CheckRoutesParams(routes: [address.hits]),
+          ))!.held,
+          [false],
+        );
         completed = true;
       } finally {
         await controller.close();
@@ -1519,6 +1552,7 @@ void main() {
       report['application_process_counters'] = true;
       report['application_runtime_update'] = true;
       report['application_provider_cache_refresh'] = true;
+      report['application_ip_route_evidence'] = true;
       report['application_bootstrap_assembly'] = true;
       report['application_profile_traffic_wiring'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);

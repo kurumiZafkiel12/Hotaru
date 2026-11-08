@@ -127,6 +127,115 @@ void main() {
       onError: (error, _) => errors.add(error),
     );
   });
+  test(
+    'observed route stamps ignore unrelated group movement and invalidate the used selection',
+    () async {
+      final baseline = await adapter.outbounds();
+      var other = 'A';
+      when(() => adapter.outbounds()).thenAnswer(
+        (_) async => [
+          for (final node in baseline)
+            node.name == 'group'
+                ? CoreOutbound(
+                    name: 'group',
+                    type: 'Selector',
+                    members: const ['A', 'B'],
+                    selected: selected,
+                  )
+                : node,
+          CoreOutbound(
+            name: 'unrelated',
+            type: 'URLTest',
+            members: const ['A', 'B'],
+            selected: other,
+          ),
+        ],
+      );
+      final observed = await routes.observeProbe(
+        const ProbeParams(url: 'https://example.com/', timeout: 5000),
+        (_) async {
+          other = 'B';
+          return const ProbeResult(statusCode: 200, chains: ['B', 'group']);
+        },
+      );
+      expect(observed.hits, hasLength(1));
+      expect(
+        (await routes.check(CheckRoutesParams(routes: [observed.hits]))).held,
+        [true],
+      );
+      selected = 'A';
+      expect(
+        (await routes.check(CheckRoutesParams(routes: [observed.hits]))).held,
+        [false],
+      );
+    },
+  );
+
+  test(
+    'an actual used group movement during the request discards its route stamp',
+    () async {
+      await expectLater(
+        routes.observeProbe(
+          const ProbeParams(url: 'https://example.com/', timeout: 5000),
+          (_) async {
+            selected = 'A';
+            return const ProbeResult(statusCode: 200, chains: ['B', 'group']);
+          },
+        ),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'route_changed',
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'named node probes survive mode changes but never survive a new core session',
+    () async {
+      final observed = await routes.observeProbe(
+        const ProbeParams(
+          url: 'https://example.com/',
+          proxyName: 'B',
+          timeout: 5000,
+        ),
+        (_) async => const ProbeResult(statusCode: 200, chains: ['B']),
+      );
+      mode = CoreRoutingMode.direct;
+      expect(
+        (await routes.check(CheckRoutesParams(routes: [observed.hits]))).held,
+        [true],
+      );
+      state = _running('replacement');
+      expect(
+        (await routes.check(CheckRoutesParams(routes: [observed.hits]))).held,
+        [false],
+      );
+    },
+  );
+
+  test('absent or malformed observations never become held routes', () async {
+    final observed = await routes.observeProbe(
+      const ProbeParams(url: 'https://example.com/', timeout: 5000),
+      (_) async => const ProbeResult(statusCode: 200),
+    );
+    expect(observed.hits, isEmpty);
+    expect(
+      (await routes.check(
+        const CheckRoutesParams(
+          routes: [
+            [],
+            [RouteHit(exit: '{broken')],
+          ],
+        ),
+      )).held,
+      [false, false],
+    );
+  });
+
   tearDown(() async {
     await core.close();
     await routes.close();

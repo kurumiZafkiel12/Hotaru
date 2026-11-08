@@ -35,6 +35,8 @@ import 'config_preparation.dart';
 import 'ui_routes.dart';
 import 'ui_traffic.dart';
 import 'http_probe.dart';
+import 'service_diagnostics.dart';
+import 'outbound_ip.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
     implements
@@ -54,6 +56,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   late final SingBoxUiTraffic _traffic;
   late final SingBoxRoutedHttp _routedHttp;
   late final SingBoxHttpProbe _probe;
+  late final SingBoxServiceDiagnostics _services;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
   int _profileRevision = 0;
@@ -95,6 +98,12 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       onError: (error, _) => commonPrint.log(
         'sing-box route watch failed: ${error is CoreAdapterException ? error.code : 'failed'}',
         logLevel: LogLevel.debug,
+      ),
+    );
+    _services = SingBoxServiceDiagnostics(
+      send: (params, cancelled) => _routes.observeProbe(
+        params,
+        (request) => _probe.probe(request, cancelled: cancelled),
       ),
     );
     _crashes = core.lifecycle.crashEvents.listen(
@@ -163,6 +172,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     if (_closing == null) {
       _profileRevision++;
       _sourcePreparation?.close();
+      _services.close();
       _closing = _close();
     }
     return _closing!;
@@ -338,7 +348,25 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   }
 
   @override
+  Future<List<ServiceCheckItem>> serviceCheck(ServiceCheckParams params) =>
+      _services.check(params);
+
+  @override
   Future<RouteSnapshot> watchRoute(bool watch) => _routes.watch(watch);
+
+  @override
+  Future<RouteCheck?> checkRoutes(CheckRoutesParams params) =>
+      _routes.check(params);
+
+  @override
+  Future<OutboundIpResult?> outboundIp(OutboundIpParams params) =>
+      lookupSingBoxOutboundIp(
+        params,
+        (request, cancelled) => _routes.observeProbe(
+          request,
+          (request) => _probe.probe(request, cancelled: cancelled),
+        ),
+      );
 
   @override
   Future<ChangeProxyResult> changeProxy(ChangeProxyParams changeProxyParams) {

@@ -90,6 +90,24 @@ void main() {
     );
   });
 
+  test(
+    'cancelling an active request closes its client without waiting for the server',
+    () async {
+      final cancel = Completer<void>();
+      final pending = probe.probe(
+        const ProbeParams(url: 'http://fixture.invalid/slow', timeout: 10000),
+        cancelled: cancel.future,
+      );
+      while (received.isEmpty) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+      cancel.complete();
+      final result = await pending.timeout(const Duration(seconds: 1));
+      expect(result.message, 'cancelled');
+      expect(transport.closed, 1);
+    },
+  );
+
   ProbeParams params({
     String path = '/',
     String proxyName = '',

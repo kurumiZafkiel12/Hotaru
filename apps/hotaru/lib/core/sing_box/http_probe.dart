@@ -17,7 +17,16 @@ final class SingBoxHttpProbe {
 
   SingBoxHttpProbe({required this.transport, required this.observe});
 
-  Future<ProbeResult> probe(ProbeParams params) async {
+  Future<ProbeResult> probe(
+    ProbeParams params, {
+    Future<void>? cancelled,
+  }) async {
+    var stopped = false;
+    final cancellation = cancelled?.then<ProbeResult>((_) {
+      stopped = true;
+      throw const CoreAdapterException('cancelled');
+    });
+    cancellation?.ignore();
     final watch = Stopwatch()..start();
     final timeout = Duration(
       milliseconds: params.timeout <= 0 ? 10000 : params.timeout,
@@ -63,19 +72,28 @@ final class SingBoxHttpProbe {
         }
         headers[key] = entry.value;
       }
-      return await _pool
+      final pending = _pool
           .run(() {
+            if (stopped) throw const CoreAdapterException('cancelled');
             final remaining = timeout - watch.elapsed;
             if (remaining <= Duration.zero) {
               throw const CoreAdapterException('timeout');
             }
             return transport.withRoutedClient(
-              (client) => _request(client, uri, headers, params.maxBody),
+              (client) => cancellation == null
+                  ? _request(client, uri, headers, params.maxBody)
+                  : Future.any([
+                      _request(client, uri, headers, params.maxBody),
+                      cancellation,
+                    ]),
               outbound: params.proxyName.isEmpty ? null : params.proxyName,
               timeout: remaining,
             );
           })
           .timeout(timeout);
+      return await (cancellation == null
+          ? pending
+          : Future.any([pending, cancellation]));
     } catch (error) {
       final timedOut =
           error is TimeoutException ||

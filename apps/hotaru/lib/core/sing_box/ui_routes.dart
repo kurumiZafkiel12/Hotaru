@@ -341,6 +341,112 @@ final class SingBoxUiRoutes {
         .toString();
   });
 
+  Future<({ProbeResult result, RouteSnapshot snapshot, List<RouteHit> hits})>
+  observeProbe(
+    ProbeParams params,
+    Future<ProbeResult> Function(ProbeParams) send,
+  ) async {
+    final before = await _run(_read);
+    final result = await send(params);
+    final after = await _run(_read);
+    _checkMutation(before, after);
+    final initial = await _evidence(before, result.chains, params.proxyName);
+    final current = await _evidence(after, result.chains, params.proxyName);
+    if (initial != current) throw const CoreAdapterException('route_changed');
+    return (
+      result: result,
+      snapshot: after.snapshot,
+      hits: initial == null
+          ? const <RouteHit>[]
+          : <RouteHit>[
+              RouteHit(
+                host: Uri.parse(params.url).authority,
+                proxy: params.proxyName,
+                exit: initial,
+              ),
+            ],
+    );
+  }
+
+  Future<RouteCheck> check(CheckRoutesParams params) async {
+    if (params.routes.length > 256 ||
+        params.routes.any((route) => route.length > 128)) {
+      throw const CoreAdapterException('invalid_route_bounds');
+    }
+    final policy = await _run(_read);
+    final routes = params.routes;
+    final selections = {
+      for (final node in policy.outbounds) node.name: node.selected,
+    };
+    final epoch = policy.snapshot.coreEpoch;
+    final mode = policy.mode.name;
+    final held = await Isolate.run(
+      () => [
+        for (final route in routes)
+          route.isNotEmpty &&
+              route.every((hit) {
+                if (hit.exit.length > 16384) return false;
+                try {
+                  final token = jsonDecode(hit.exit);
+                  if (token is! Map ||
+                      token['version'] != 1 ||
+                      token['epoch'] != epoch ||
+                      token['proxy'] != hit.proxy ||
+                      (hit.proxy.isEmpty && token['mode'] != mode) ||
+                      token['selected'] is! Map) {
+                    return false;
+                  }
+                  final selected = token['selected'] as Map;
+                  return selected.entries.every(
+                    (entry) =>
+                        selections.containsKey(entry.key) &&
+                        selections[entry.key] == entry.value,
+                  );
+                } on FormatException {
+                  return false;
+                }
+              }),
+      ],
+    );
+    return RouteCheck(
+      coreEpoch: epoch,
+      routeVersion: policy.snapshot.routeVersion,
+      held: held,
+    );
+  }
+
+  static Future<String?> _evidence(
+    _Policy policy,
+    List<String> chain,
+    String proxy,
+  ) {
+    final nodes = policy.outbounds;
+    final epoch = policy.snapshot.coreEpoch;
+    final mode = policy.mode.name;
+    return Isolate.run(() {
+      if (chain.isEmpty || chain.length > 128) return null;
+      final byName = {for (final node in nodes) node.name: node};
+      if (chain.any((name) => !byName.containsKey(name))) return null;
+      final selected = {
+        for (final name in chain)
+          if (byName[name]!.members.isNotEmpty) name: byName[name]!.selected,
+      };
+      if (selected.values.any(
+        (value) => value == null || !chain.contains(value),
+      )) {
+        return null;
+      }
+      final token = jsonEncode({
+        'version': 1,
+        'epoch': epoch,
+        'proxy': proxy,
+        if (proxy.isEmpty) 'mode': mode,
+        'selected': selected,
+      });
+      return token.length <= 16384 ? token : null;
+    });
+  }
+
   Future<RouteSnapshot> snapshot() =>
       _run(() async => (await _read()).snapshot);
 
