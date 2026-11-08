@@ -1297,15 +1297,6 @@ void main() {
         processes.add(WindowsProcessWitness.open(state.session.pid));
       }
 
-      final client = HttpClient()
-        ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
-      addTearDown(() => client.close(force: true));
-      client.addProxyCredentials(
-        '127.0.0.1',
-        listeners.mixedPort,
-        'sing-box',
-        HttpClientBasicCredentials('fixture', 'password:part'),
-      );
       try {
         await controller.start();
         record();
@@ -1324,13 +1315,18 @@ void main() {
         expect(processes.last.hasExited, isTrue);
         record();
         await _expectSystem(pids.last);
-        final request = await client.getUrl(
-          Uri.parse('http://127.0.0.1:${origin.port}/application'),
-        );
-        final response = await request.close();
-        expect(
-          await utf8.decoder.bind(response).join(),
-          'application-source-receipt',
+        Future<void> fetch(HttpClient client, String path) async {
+          final request = await client.getUrl(
+            Uri.parse('http://127.0.0.1:${origin.port}/$path'),
+          );
+          expect(
+            await utf8.decoder.bind(await request.close()).join(),
+            'application-source-receipt',
+          );
+        }
+
+        await controller.withRoutedClient(
+          (client) => fetch(client, 'application'),
         );
         expect(
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
@@ -1349,6 +1345,14 @@ void main() {
         expect(
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
           (2, 1, 1),
+        );
+        await controller.withRoutedClient(
+          (client) => fetch(client, 'direct'),
+          outbound: 'DIRECT',
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (3, 1, 1),
         );
         final committed = core.configuration;
         final session =
@@ -1379,7 +1383,6 @@ void main() {
         );
         expect(reviews, 2);
       } finally {
-        client.close(force: true);
         await controller.close();
         await proxyA.close();
         await proxyB.close();
@@ -1395,6 +1398,7 @@ void main() {
         jsonDecode(await result.readAsString()) as Map,
       );
       report['application_profile_handoff'] = true;
+      report['application_http_current_and_direct'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

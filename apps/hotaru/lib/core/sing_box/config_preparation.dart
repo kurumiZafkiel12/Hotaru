@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import '../config/encoding.dart';
 import '../config/profile.dart';
+import '../config/mode_outbounds.dart';
 import 'bootstrap.dart';
 import 'config_builder.dart';
 
@@ -15,6 +16,7 @@ final class SingBoxConfigCandidate {
   final CoreProfileSpec _profile;
   final int? _profileId;
   final Object? _applicationData;
+  final String _directOutbound;
 
   const SingBoxConfigCandidate._(
     this.revision,
@@ -24,6 +26,7 @@ final class SingBoxConfigCandidate {
     this._profile,
     this._profileId,
     this._applicationData,
+    this._directOutbound,
   );
 
   int get bootstrapBytes => _bootstrap.length;
@@ -47,6 +50,7 @@ final class AcceptedSingBoxConfig {
   CoreProfileSpec get profile => _candidate._profile;
   int? get profileId => _candidate._profileId;
   Object? get applicationData => _candidate._applicationData;
+  String get directOutbound => _candidate._directOutbound;
 }
 
 final class SingBoxPreparationResult {
@@ -101,6 +105,7 @@ final class SingBoxConfigPreparer {
         imported.profile!,
         profileId,
         applicationData,
+        data.directOutbound!,
       );
       _current = candidate;
       return SingBoxPreparationResult._(
@@ -156,9 +161,13 @@ SingBoxPreparationResult _superseded() =>
 final class _PreparedData {
   final List<CoreConfigIssue> issues;
   final SingBoxBootstrap? bootstrap;
+  final String? directOutbound;
 
-  _PreparedData(List<CoreConfigIssue> issues, [this.bootstrap])
-    : issues = List.unmodifiable(issues);
+  _PreparedData(
+    List<CoreConfigIssue> issues, [
+    this.bootstrap,
+    this.directOutbound,
+  ]) : issues = List.unmodifiable(issues);
 }
 
 Future<_PreparedData> _prepareData(
@@ -187,7 +196,11 @@ Future<_PreparedData> _prepareData(
       return _PreparedData(issues);
     }
     final bootstrap = await SingBoxBootstrap.prepare(json);
-    return _PreparedData(issues, bootstrap);
+    return _PreparedData(
+      issues,
+      bootstrap,
+      CoreModeOutbounds(profile).direct.tag,
+    );
   } on CoreConfigSizeException {
     return _PreparedData([
       ...issues,

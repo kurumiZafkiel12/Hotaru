@@ -43,6 +43,12 @@ on:
       - apps/hotaru/lib/core/controller.dart
       - apps/hotaru/lib/core/profile_documents.dart
       - apps/hotaru/test/core/profile_documents_test.dart
+      - apps/hotaru/lib/core/provider_files.dart
+      - apps/hotaru/lib/core/provider_download.dart
+      - apps/hotaru/lib/core/routed_http.dart
+      - apps/hotaru/test/core/provider_files_test.dart
+      - apps/hotaru/test/core/provider_download_test.dart
+      - apps/hotaru/test/core/sing_box/routed_http_test.dart
       - apps/hotaru/lib/common/speed_test.dart
       - apps/hotaru/lib/views/proxies/card.dart
       - apps/hotaru/test/widgets/node_speed_route_test.dart
@@ -184,7 +190,7 @@ jobs:
           }
           Expand-Archive $asset -DestinationPath (Join-Path $env:RUNNER_TEMP 'sing-box-dns')
           $env:HOTARU_TEST_SING_BOX = Join-Path $env:RUNNER_TEMP 'sing-box-dns/sing-box-1.14.4-windows-amd64/sing-box.exe'
-          flutter test test/core/sing_box/application_profile_test.dart test/core/sing_box/application_settings_test.dart test/core/sing_box/ui_configuration_test.dart test/core/sing_box/share_link_encoder_test.dart test/core/sing_box/node_definition_test.dart test/core/sing_box/proxy_definitions_test.dart test/core/sing_box/inbound_state_test.dart test/core/sing_box/share_links_test.dart test/core/profile_documents_test.dart test/core/spill_test.dart test/core/sing_box/yaml_document_test.dart test/core/sing_box/ui_routes_test.dart test/core/sing_box/outbound_clients_test.dart test/core/sing_box/ui_handler_test.dart test/core/sing_box/routing_mode_test.dart test/core/sing_box/telemetry_test.dart test/core/sing_box/outbound_http_test.dart test/core/sing_box/detour_test.dart test/core/sing_box/route_preview_session_test.dart test/core/desktop/configuration_lifecycle_test.dart test/core/desktop/lifecycle_test.dart test/core/sing_box/config_preparation_test.dart test/core/sing_box/pipe_connection_test.dart test/core/sing_box/ip_rule_test.dart test/core/sing_box/ip_resolution_test.dart test/core/sing_box/geodata_test.dart test/core/sing_box/clash_rule_sets_test.dart test/core/sing_box/clash_subscription_test.dart test/core/sing_box/clash_importer_test.dart test/core/sing_box/config_builder_test.dart test/core/sing_box/dns_config_test.dart test/core/sing_box/dns_wire_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart --reporter expanded
+          flutter test test/core/provider_files_test.dart test/core/provider_download_test.dart test/core/sing_box/routed_http_test.dart test/core/sing_box/application_profile_test.dart test/core/sing_box/application_settings_test.dart test/core/sing_box/ui_configuration_test.dart test/core/sing_box/share_link_encoder_test.dart test/core/sing_box/node_definition_test.dart test/core/sing_box/proxy_definitions_test.dart test/core/sing_box/inbound_state_test.dart test/core/sing_box/share_links_test.dart test/core/profile_documents_test.dart test/core/spill_test.dart test/core/sing_box/yaml_document_test.dart test/core/sing_box/ui_routes_test.dart test/core/sing_box/outbound_clients_test.dart test/core/sing_box/ui_handler_test.dart test/core/sing_box/routing_mode_test.dart test/core/sing_box/telemetry_test.dart test/core/sing_box/outbound_http_test.dart test/core/sing_box/detour_test.dart test/core/sing_box/route_preview_session_test.dart test/core/desktop/configuration_lifecycle_test.dart test/core/desktop/lifecycle_test.dart test/core/sing_box/config_preparation_test.dart test/core/sing_box/pipe_connection_test.dart test/core/sing_box/ip_rule_test.dart test/core/sing_box/ip_resolution_test.dart test/core/sing_box/geodata_test.dart test/core/sing_box/clash_rule_sets_test.dart test/core/sing_box/clash_subscription_test.dart test/core/sing_box/clash_importer_test.dart test/core/sing_box/config_builder_test.dart test/core/sing_box/dns_config_test.dart test/core/sing_box/dns_wire_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify two real proxy hops through the packaged host
         working-directory: apps/hotaru
@@ -194,7 +200,7 @@ jobs:
           $env:HOTARU_TEST_SING_BOX_HOST = '1'
           flutter test test/core/sing_box/inbound_state_test.dart test/core/sing_box/routing_mode_test.dart test/core/sing_box/outbound_http_test.dart test/core/sing_box/detour_test.dart test/core/sing_box/ip_resolution_test.dart --plain-name 'real engine' --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          flutter test test/core/sing_box/application_settings_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart test/core/sing_box/geodata_test.dart --reporter expanded
+          flutter test test/core/sing_box/routed_http_test.dart test/core/sing_box/application_settings_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart test/core/sing_box/geodata_test.dart --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Remove-Item Env:HOTARU_TEST_SING_BOX_HOST
       - name: Verify real Flutter Rust IPC through SYSTEM Helper

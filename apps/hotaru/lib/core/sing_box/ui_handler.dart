@@ -12,6 +12,8 @@ import '../config/clash_subscription.dart';
 import '../config/profile.dart';
 import 'application_profile.dart';
 import '../logs.dart';
+import '../routed_http.dart';
+import 'routed_http.dart';
 import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
 import '../config/proxy_definitions.dart';
@@ -34,6 +36,7 @@ import 'ui_traffic.dart';
 final class SingBoxUiHandler extends CoreHandlerInterface
     implements
         CoreOutboundHttpClients,
+        CoreRoutedHttp,
         CoreRoutingModes,
         CoreGlobalOutbound,
         CoreProfileTextBuilder,
@@ -43,6 +46,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   _prepareProfile;
   late final SingBoxUiRoutes _routes;
   late final SingBoxUiTraffic _traffic;
+  late final SingBoxRoutedHttp _routedHttp;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
   int _profileRevision = 0;
@@ -64,6 +68,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     _publishLog = (log) =>
         publish(CoreEvent(type: CoreEventType.log, data: log.toJson()));
     _traffic = SingBoxUiTraffic(core: core, elapsed: trafficElapsed);
+    _routedHttp = SingBoxRoutedHttp(core);
     _routes = SingBoxUiRoutes(
       core: core,
       onChange: (snapshot) => publish(
@@ -92,12 +97,14 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     listeners,
     required Future<bool> Function(List<CoreConfigIssue>) review,
     void Function(CoreEvent)? onEvent,
+    Map<String, String> providerFiles = const {},
   }) {
     final preparation = SingBoxApplicationProfilePreparer(
       configPath: configPath,
       importer: importer,
       listeners: listeners,
       review: review,
+      providerFiles: providerFiles,
     );
     return SingBoxUiHandler(
       core,
@@ -186,6 +193,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       try {
         await stopLog();
       } finally {
+        await _routedHttp.close();
         await _routes.close();
         await _traffic.close();
         await _crashes.cancel();
@@ -555,6 +563,17 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     }
     return source as CoreOutboundHttpClients;
   }
+
+  @override
+  Future<T> withRoutedClient<T>(
+    Future<T> Function(HttpClient client) action, {
+    String? outbound,
+    Duration timeout = const Duration(minutes: 2),
+  }) => _routedHttp.withRoutedClient(
+    action,
+    outbound: outbound,
+    timeout: timeout,
+  );
 
   @override
   Future<T> withOutboundClient<T>(

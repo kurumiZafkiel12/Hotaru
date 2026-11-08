@@ -236,7 +236,7 @@ final class SingBoxConfigBuilder {
               'listen': '127.0.0.1',
               'listen_port': probe.port,
               'users': [
-                for (final tag in tags)
+                for (final tag in [...tags, modes.direct.tag])
                   {
                     'username': CoreProbeListenerSpec.username(tag),
                     'password': probe.secret,
@@ -319,7 +319,7 @@ final class SingBoxConfigBuilder {
                 'action': 'hijack-dns',
               },
             if (probe != null) ...[
-              for (final tag in tags)
+              for (final tag in [...tags, modes.direct.tag])
                 {
                   'inbound': ['hotaru-probe'],
                   'auth_user': [CoreProbeListenerSpec.username(tag)],

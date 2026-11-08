@@ -72,6 +72,7 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
       runtime: (lifecycle.activePlan as _HelperPlan).connection(),
       probe: listeners.activeProbe,
       probeOutbounds: [
+        configuration.directOutbound,
         ...configuration.profile.nodes.map((node) => node.tag),
         ...configuration.profile.selectors.map((group) => group.tag),
       ],

@@ -61,7 +61,7 @@ void main() {
       final probe = config['inbounds'].first;
       expect(probe['listen'], '127.0.0.1');
       expect(probe['type'], 'http');
-      expect(probe['users'], hasLength(3));
+      expect(probe['users'], hasLength(4));
       expect(
         probe['users'].first['username'],
         CoreProbeListenerSpec.username('日本 / A'),
@@ -69,7 +69,8 @@ void main() {
       final rules = config['route']['rules'] as List;
       expect(rules.first['inbound'], ['hotaru-probe']);
       expect(rules.first['outbound'], '日本 / A');
-      expect(rules[3], {
+      expect(rules[3]['outbound'], 'Hotaru DIRECT');
+      expect(rules[4], {
         'inbound': ['hotaru-probe'],
         'action': 'reject',
       });

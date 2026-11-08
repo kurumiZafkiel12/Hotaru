@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:path/path.dart' as p;
+
 import '../routing_mode.dart';
 import 'encoding.dart';
 import 'profile.dart';
@@ -18,6 +20,7 @@ final class CoreApplicationSettings {
   final int? dnsPort;
   final String? userAgent;
   final Map<String, String> geoUrls;
+  final Map<String, String> providerFiles;
 
   CoreApplicationSettings._({
     required this.source,
@@ -29,12 +32,20 @@ final class CoreApplicationSettings {
     required this.dnsPort,
     required this.userAgent,
     required Map<String, String> geoUrls,
-  }) : geoUrls = Map.unmodifiable(geoUrls);
+    required Map<String, String> providerFiles,
+  }) : geoUrls = Map.unmodifiable(geoUrls),
+       providerFiles = Map.unmodifiable(providerFiles);
 
   static Future<CoreApplicationSettingsResult> parse(
     String source, {
     required bool skipCertVerify,
-  }) => Isolate.run(() => _SettingsReader().read(source, skipCertVerify));
+    Map<String, String> authorizedProviderFiles = const {},
+  }) {
+    final files = Map<String, String>.of(authorizedProviderFiles);
+    return Isolate.run(
+      () => _SettingsReader().read(source, skipCertVerify, files),
+    );
+  }
 }
 
 final class CoreApplicationSettingsResult {
@@ -102,9 +113,14 @@ final class _SettingsReader {
     return value.cast<String>();
   }
 
-  CoreApplicationSettingsResult read(String source, bool skipCertVerify) {
+  CoreApplicationSettingsResult read(
+    String source,
+    bool skipCertVerify,
+    Map<String, String> files,
+  ) {
     try {
       final document = mapping(decodeCoreYaml(source));
+      normalizeProviderPaths(document, files);
       final mixedPort = field(
         'mixed-port',
         () => integer(document.remove('mixed-port'), 7890, min: 1),
@@ -374,6 +390,7 @@ final class _SettingsReader {
           dnsPort: dnsPort,
           userAgent: userAgent.isEmpty ? null : userAgent,
           geoUrls: urls,
+          providerFiles: files,
         ),
         issues,
       );
@@ -385,6 +402,49 @@ final class _SettingsReader {
       return CoreApplicationSettingsResult(null, [
         CoreConfigIssue('invalid_application_setting', _path),
       ]);
+    }
+  }
+
+  void normalizeProviderPaths(
+    Map<String, dynamic> document,
+    Map<String, String> files,
+  ) {
+    if (files.length > 4096) {
+      throw const FormatException('provider_file_grant_limit');
+    }
+    final aliases = <String, String>{};
+    for (final entry in files.entries) {
+      if (!RegExp(r'^hotaru-files/[a-z0-9_-]{1,128}$').hasMatch(entry.key) ||
+          !p.isAbsolute(entry.value) ||
+          aliases.containsKey(p.normalize(entry.value))) {
+        throw const FormatException('invalid_provider_file_grant');
+      }
+      aliases[p.normalize(entry.value)] = entry.key;
+    }
+    for (final section in ['proxy-providers', 'rule-providers']) {
+      final raw = document[section];
+      if (raw is! Map<String, dynamic>) continue;
+      final providers = Map<String, dynamic>.of(raw);
+      for (final entry in providers.entries) {
+        if (entry.value is! Map<String, dynamic>) continue;
+        final provider = Map<String, dynamic>.of(
+          entry.value as Map<String, dynamic>,
+        );
+        if (provider['type'] == 'http' && provider.containsKey('path')) {
+          if (provider['path'] is! String) throw const FormatException();
+          provider.remove('path');
+          issue(
+            'provider_cache_path_client_owned',
+            '$section.${entry.key}.path',
+            warning: true,
+          );
+        } else if (provider['type'] == 'file' && provider['path'] is String) {
+          final reference = aliases[p.normalize(provider['path'] as String)];
+          if (reference != null) provider['path'] = reference;
+        }
+        providers[entry.key] = provider;
+      }
+      document[section] = providers;
     }
   }
 

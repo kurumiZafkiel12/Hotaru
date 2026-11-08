@@ -10,6 +10,7 @@ import 'config_preparation.dart';
 
 final class SingBoxApplicationProfilePreparer {
   final String configPath;
+  final Map<String, String> providerFiles;
   final ClashSubscriptionImporter Function(CoreApplicationSettings) importer;
   final Future<CoreListenerSpec> Function(
     CoreProfileSpec,
@@ -26,7 +27,8 @@ final class SingBoxApplicationProfilePreparer {
     required this.importer,
     required this.listeners,
     required this.review,
-  });
+    Map<String, String> providerFiles = const {},
+  }) : providerFiles = Map.unmodifiable(providerFiles);
 
   bool _current(int revision) => !_closed && revision == _revision;
 
@@ -86,6 +88,7 @@ final class SingBoxApplicationProfilePreparer {
     final projection = await CoreApplicationSettings.parse(
       source,
       skipCertVerify: params.skipCertVerify,
+      authorizedProviderFiles: providerFiles,
     );
     if (!_current(revision)) return null;
     final settings = projection.settings;

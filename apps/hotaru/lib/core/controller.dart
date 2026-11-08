@@ -6,6 +6,7 @@ import 'package:hotaru/core/core.dart';
 import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
 import 'outbound_http.dart';
+import 'routed_http.dart';
 import 'routing_mode.dart';
 import 'profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
@@ -33,6 +34,27 @@ class CoreController {
 
   @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsRoutedClients => _interface is CoreRoutedHttp;
+
+  Future<T> withRoutedClient<T>(
+    Future<T> Function(HttpClient client) action, {
+    String? outbound,
+    Duration timeout = const Duration(minutes: 2),
+  }) {
+    final source = _interface;
+    if (source is! CoreRoutedHttp) {
+      throw const CoreMethodException(
+        code: 'routed_http_unavailable',
+        message: 'Routed HTTP clients are unavailable',
+      );
+    }
+    return (source as CoreRoutedHttp).withRoutedClient(
+      action,
+      outbound: outbound,
+      timeout: timeout,
+    );
+  }
 
   bool get supportsOutboundClients => _interface is CoreOutboundHttpClients;
 
