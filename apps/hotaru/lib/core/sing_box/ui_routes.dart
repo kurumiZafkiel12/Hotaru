@@ -47,6 +47,11 @@ final class SingBoxUiRoutes {
   int _version = 0;
   _Policy? _lastPolicy;
   AcceptedSingBoxConfig? _requestedConfiguration;
+  Future<AcceptedSingBoxConfig?> Function(
+    AcceptedSingBoxConfig,
+    List<CoreOutbound>,
+  )?
+  _requestedUpdate;
   AcceptedSingBoxConfig? _lastSubmitted;
   bool? _requestedInbounds;
   int _configurationRevision = 0;
@@ -147,6 +152,19 @@ final class SingBoxUiRoutes {
     AcceptedSingBoxConfig configuration,
   ) {
     _requestedConfiguration = configuration;
+    _requestedUpdate = null;
+    return _requestConfiguration();
+  }
+
+  Future<CoreLifecycleResult> updateConfiguration(
+    Future<AcceptedSingBoxConfig?> Function(
+      AcceptedSingBoxConfig,
+      List<CoreOutbound>,
+    )
+    update,
+  ) {
+    _adoptCommittedConfiguration();
+    _requestedUpdate = update;
     return _requestConfiguration();
   }
 
@@ -211,7 +229,16 @@ final class SingBoxUiRoutes {
             ? _lastPolicy!
             : await _read();
         if (!_configurationCurrent(revision)) return null;
-        final base = _requestedConfiguration ?? before.configuration;
+        var base = _requestedConfiguration ?? before.configuration;
+        final update = _requestedUpdate;
+        if (update != null) {
+          final updated = await update(base, before.outbounds);
+          if (!_configurationCurrent(revision)) return null;
+          if (updated == null) {
+            throw const CoreAdapterException('configuration_review_cancelled');
+          }
+          base = updated;
+        }
         final enabled =
             _requestedInbounds ??
             before.configuration.listeners.inboundsEnabled;
@@ -259,6 +286,7 @@ final class SingBoxUiRoutes {
       final prepared = submitted.prepared;
       final before = submitted.before;
       if (applied.outcome == CoreLifecycleOutcome.superseded) {
+        _requestedUpdate = null;
         _requestedConfiguration = core.configuration;
         _requestedInbounds = core.configuration?.listeners.inboundsEnabled;
         return applied;
@@ -266,6 +294,7 @@ final class SingBoxUiRoutes {
       if (!identical(core.configuration, prepared)) {
         throw const CoreAdapterException('session_changed');
       }
+      _requestedUpdate = null;
       _requestedConfiguration = prepared;
       _requestedInbounds = prepared.listeners.inboundsEnabled;
       final after = await snapshot();
@@ -280,6 +309,7 @@ final class SingBoxUiRoutes {
       if (!_configurationCurrent(revision)) {
         return _supersededConfiguration(revision);
       }
+      _requestedUpdate = null;
       _requestedConfiguration = core.configuration;
       _requestedInbounds = core.configuration?.listeners.inboundsEnabled;
       rethrow;

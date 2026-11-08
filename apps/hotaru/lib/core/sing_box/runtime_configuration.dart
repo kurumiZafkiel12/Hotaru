@@ -3,6 +3,7 @@ import 'dart:isolate';
 import '../adapter.dart';
 import '../config/mode_outbounds.dart';
 import '../config/profile.dart';
+import '../config/runtime_options.dart';
 import '../routing_mode.dart';
 import 'config_preparation.dart';
 
@@ -12,19 +13,23 @@ Future<AcceptedSingBoxConfig> prepareSingBoxRuntime({
   required CoreRoutingMode mode,
   required List<CoreOutbound> outbounds,
   required bool preserveSelections,
+  CoreRuntimeOptions? runtime,
+  CoreListenerSpec? listeners,
+  Object? applicationData,
 }) async {
   final (:profile, :global) = await _runtimeData(
     configuration.profile,
     outbounds,
     preserveSelections,
     configuration.listeners.globalSelection,
+    runtime,
   );
   final preparer = SingBoxConfigPreparer();
   final prepared = await preparer.prepare(
     profileId: configuration.profileId,
-    applicationData: configuration.applicationData,
+    applicationData: applicationData ?? configuration.applicationData,
     import: () async => CoreConfigImportResult(profile: profile, issues: []),
-    listeners: configuration.listeners.withRuntime(
+    listeners: (listeners ?? configuration.listeners).withRuntime(
       enabled: enabled,
       mode: mode,
       globalSelection: global,
@@ -41,8 +46,11 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
   List<CoreOutbound> outbounds,
   bool preserve,
   String? initialGlobal,
+  CoreRuntimeOptions? runtime,
 ) => Isolate.run(() {
-  if (!preserve) return (profile: profile, global: initialGlobal);
+  if (!preserve && runtime == null) {
+    return (profile: profile, global: initialGlobal);
+  }
   final modes = CoreModeOutbounds(profile);
   final global = outbounds
       .where((entry) => entry.name == modes.global.tag)
@@ -50,7 +58,9 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
       ?.selected;
   final selected = {
     for (final entry in outbounds)
-      if (entry.type.toLowerCase() == 'selector' && entry.selected != null)
+      if (preserve &&
+          entry.type.toLowerCase() == 'selector' &&
+          entry.selected != null)
         entry.name: entry.selected!,
   };
   final updated = CoreProfileSpec(
@@ -73,7 +83,10 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
     rules: profile.rules,
     ruleSets: profile.ruleSets,
     dns: profile.dns,
-    runtime: profile.runtime,
+    runtime: runtime ?? profile.runtime,
   );
-  return (profile: updated, global: global);
+  return (
+    profile: updated,
+    global: preserve ? global ?? initialGlobal : initialGlobal,
+  );
 });

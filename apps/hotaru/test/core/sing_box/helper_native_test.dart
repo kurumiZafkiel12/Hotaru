@@ -6,7 +6,7 @@ import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
-import 'package:hotaru/enum/enum.dart' show CoreEventType;
+import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/config/dns.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
@@ -1422,6 +1422,49 @@ void main() {
           'B',
         );
         expect(reviews, 2);
+        approved = true;
+        final updatedPort = await freeLoopbackPort();
+        await controller.updateConfig(
+          defaultClashConfig
+              .toUpdateParams(
+                authentication: ['updated:new:password'],
+                skipCertVerify: false,
+              )
+              .copyWith(
+                mixedPort: updatedPort,
+                ipv6: true,
+                findProcessMode: FindProcessMode.always,
+              ),
+        );
+        expect(processes.last.hasExited, isTrue);
+        record();
+        await _expectSystem(pids.last);
+        expect(core.configuration!.listeners.mixedPort, updatedPort);
+        expect(core.configuration!.listeners.secret, listeners.secret);
+        expect(core.configuration!.profileId, 11);
+        expect(
+          (await core.adapter.outbounds())
+              .singleWhere((node) => node.name == 'selected')
+              .selected,
+          'B',
+        );
+        await controller.withRoutedClient(
+          (client) => fetch(client, 'after-settings-update'),
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (5, 1, 3),
+        );
+        await expectLater(
+          controller.updateConfig(
+            defaultClashConfig
+                .toUpdateParams(authentication: [], skipCertVerify: false)
+                .copyWith(mixedPort: 0),
+          ),
+          throwsA(isA<CoreAdapterException>()),
+        );
+        expect(core.configuration!.listeners.mixedPort, updatedPort);
+        expect(processes.last.hasExited, isFalse);
       } finally {
         await controller.close();
         await proxyA.close();
@@ -1442,6 +1485,7 @@ void main() {
       report['application_offline_preview'] = true;
       report['application_http_probe_observation'] = true;
       report['application_process_counters'] = true;
+      report['application_runtime_update'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

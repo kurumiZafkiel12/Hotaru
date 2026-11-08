@@ -12,6 +12,8 @@ import 'yaml_document.dart';
 
 final class CoreApplicationSettings {
   final String source;
+  final String _document;
+  final List<CoreConfigIssue> issues;
   final int mixedPort;
   final CoreInboundOptions inbound;
   final CoreRuntimeOptions runtime;
@@ -24,6 +26,8 @@ final class CoreApplicationSettings {
 
   CoreApplicationSettings._({
     required this.source,
+    required String document,
+    required List<CoreConfigIssue> issues,
     required this.mixedPort,
     required this.inbound,
     required this.runtime,
@@ -33,7 +37,9 @@ final class CoreApplicationSettings {
     required this.userAgent,
     required Map<String, String> geoUrls,
     required Map<String, String> providerFiles,
-  }) : geoUrls = Map.unmodifiable(geoUrls),
+  }) : _document = document,
+       issues = List.unmodifiable(issues),
+       geoUrls = Map.unmodifiable(geoUrls),
        providerFiles = Map.unmodifiable(providerFiles);
 
   static Future<CoreApplicationSettingsResult> parse(
@@ -45,6 +51,50 @@ final class CoreApplicationSettings {
     return Isolate.run(
       () => _SettingsReader().read(source, skipCertVerify, files),
     );
+  }
+
+  Future<CoreApplicationSettingsResult> updated(
+    Map<String, Object?> values, {
+    required bool skipCertVerify,
+  }) {
+    final patch = Map<String, Object?>.of(values);
+    final source = _document;
+    final files = providerFiles;
+    return Isolate.run(() {
+      const allowed = {
+        'tun',
+        'mixed-port',
+        'allow-lan',
+        'find-process-mode',
+        'mode',
+        'log-level',
+        'ipv6',
+        'tcp-concurrent',
+        'unified-delay',
+        'authentication',
+        'geo-auto-update',
+        'geo-update-interval',
+        'geox-url',
+      };
+      final document = decodeCoreYaml(source) as Map<String, dynamic>;
+      for (final entry in patch.entries) {
+        if (allowed.contains(entry.key) && entry.value != null) {
+          if (entry.key == 'tun' && entry.value is Map) {
+            document[entry.key] = {
+              if (document[entry.key] case final Map old) ...old,
+              ...entry.value as Map,
+            };
+          } else {
+            document[entry.key] = entry.value;
+          }
+        }
+      }
+      return _SettingsReader().read(
+        utf8.decode(CoreConfigEncoding.encode(document)),
+        skipCertVerify,
+        files,
+      );
+    });
   }
 }
 
@@ -377,6 +427,8 @@ final class _SettingsReader {
       return CoreApplicationSettingsResult(
         CoreApplicationSettings._(
           source: utf8.decode(CoreConfigEncoding.encode(document)),
+          document: source,
+          issues: issues,
           mixedPort: mixedPort,
           inbound: CoreInboundOptions(
             listen: listen,

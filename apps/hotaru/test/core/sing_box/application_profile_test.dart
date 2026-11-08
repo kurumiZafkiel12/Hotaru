@@ -8,7 +8,10 @@ import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/config/dns.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/sing_box/application_profile.dart';
-import 'package:hotaru/models/core.dart';
+import 'package:hotaru/models/models.dart';
+import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/routing_mode.dart';
+import 'package:hotaru/enum/enum.dart';
 
 const _source = '''
 proxies:
@@ -82,6 +85,138 @@ void main() {
     preparation.close();
     await directory.delete(recursive: true);
   });
+
+  UpdateParams patch({int port = 17999, bool tun = false}) => UpdateParams(
+    tun: Tun(enable: tun, stack: TunStack.system),
+    mixedPort: port,
+    allowLan: true,
+    findProcessMode: FindProcessMode.always,
+    mode: Mode.global,
+    logLevel: LogLevel.warning,
+    externalController: ExternalControllerStatus.close,
+    authentication: ['alice:first:second'],
+    skipCertVerify: true,
+  );
+
+  test(
+    'runtime patches preserve routing data, live selections and private bindings',
+    () async {
+      final before = (await preparation.prepare(_params, 7))!;
+      final updated = (await preparation.update(before, [
+        const CoreOutbound(
+          name: 'group',
+          type: 'Selector',
+          members: ['A', 'B'],
+          selected: 'A',
+        ),
+        const CoreOutbound(
+          name: 'Hotaru GLOBAL',
+          type: 'Selector',
+          members: ['A', 'B'],
+          selected: 'A',
+        ),
+      ], patch(tun: true)))!;
+      expect(updated.profileId, 7);
+      expect(
+        updated.profile.nodes.map(
+          (node) => (node.tag, node.server, node.port, node.protocol),
+        ),
+        before.profile.nodes.map(
+          (node) => (node.tag, node.server, node.port, node.protocol),
+        ),
+      );
+      expect(
+        updated.profile.rules.map(
+          (rule) => (rule.kind, rule.value, rule.outbound),
+        ),
+        before.profile.rules.map(
+          (rule) => (rule.kind, rule.value, rule.outbound),
+        ),
+      );
+      expect(updated.profile.selectors.single.selected, 'A');
+      expect(updated.listeners.globalSelection, 'A');
+      expect(updated.listeners.initialMode, CoreRoutingMode.global);
+      expect(updated.listeners.controllerPort, 19090);
+      expect(updated.listeners.secret, 'owned-controller');
+      expect(updated.listeners.mixedPort, 17999);
+      expect(updated.listeners.inbound!.users.single.password, 'first:second');
+      expect(updated.listeners.inbound!.listen, '0.0.0.0');
+      expect(updated.listeners.tun, isNotNull);
+      expect(updated.profile.runtime.findProcess, isTrue);
+      expect(updated.profile.runtime.resolveIpv6, isTrue);
+      expect(updated.profile.runtime.skipCertVerify, isTrue);
+      expect(updated.profile.runtime.logLevel, 'warning');
+      expect(await config.readAsString(), _source);
+      expect(resolutions, 0);
+    },
+  );
+
+  test(
+    'runtime cancellation and rejected ports leave the accepted profile unchanged',
+    () async {
+      final before = (await preparation.prepare(_params, 7))!;
+      reviewer = (_) async => false;
+      expect(
+        await preparation.update(
+          before,
+          [],
+          patch().copyWith(tcpConcurrent: true),
+        ),
+        isNull,
+      );
+      expect(before.listeners.mixedPort, 7890);
+      reviewer = (_) async => true;
+      expect(await preparation.update(before, [], patch(port: 0)), isNull);
+      expect(reports.last.single.path, 'mixed-port');
+      expect(before.profile.runtime.skipCertVerify, isFalse);
+    },
+  );
+
+  test(
+    'a later profile preparation supersedes a pending runtime review',
+    () async {
+      final before = (await preparation.prepare(_params, 7))!;
+      final entered = Completer<void>();
+      final response = Completer<bool>();
+      reviewer = (_) {
+        entered.complete();
+        return response.future;
+      };
+      final pending = preparation.update(
+        before,
+        [],
+        patch().copyWith(tcpConcurrent: true),
+      );
+      await entered.future;
+      reviewer = (_) async => true;
+      final newer = await preparation.prepare(_params, 8);
+      expect(await pending.timeout(const Duration(seconds: 2)), isNull);
+      response.complete(true);
+      expect(newer!.profileId, 8);
+    },
+  );
+
+  test(
+    'terminal close releases a blocked runtime review without waiting for a dialog reply',
+    () async {
+      final before = (await preparation.prepare(_params, 7))!;
+      final entered = Completer<void>();
+      final response = Completer<bool>();
+      reviewer = (_) {
+        entered.complete();
+        return response.future;
+      };
+      final pending = preparation.update(
+        before,
+        [],
+        patch().copyWith(tcpConcurrent: true),
+      );
+      await entered.future;
+      preparation.close();
+      expect(await pending.timeout(const Duration(seconds: 2)), isNull);
+      response.complete(true);
+    },
+  );
 
   test(
     'actual source files prepare selected nodes and keep private controls outside source settings',

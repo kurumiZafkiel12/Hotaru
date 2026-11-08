@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import '../../models/core.dart';
+import '../adapter.dart';
 import '../config/application_settings.dart';
 import '../config/clash_subscription.dart';
 import '../config/mode_outbounds.dart';
 import '../config/profile.dart';
 import '../profile_documents.dart';
 import 'config_preparation.dart';
+import 'runtime_configuration.dart';
 
 final class SingBoxApplicationProfilePreparer {
   final String configPath;
@@ -21,6 +24,7 @@ final class SingBoxApplicationProfilePreparer {
   final SingBoxConfigPreparer _preparer = SingBoxConfigPreparer();
   int _revision = 0;
   bool _closed = false;
+  Completer<bool>? _reviewCancellation;
 
   SingBoxApplicationProfilePreparer({
     required this.configPath,
@@ -38,6 +42,7 @@ final class SingBoxApplicationProfilePreparer {
   ) async {
     if (_closed) throw StateError('Profile preparation is closed');
     final revision = ++_revision;
+    _cancelReview();
     _preparer.cancel();
     if (profileId != null && profileId < 0) {
       return _reject(revision, [
@@ -65,7 +70,7 @@ final class SingBoxApplicationProfilePreparer {
     final candidate = prepared.candidate;
     if (candidate == null) return _reject(revision, prepared.issues);
     if (prepared.issues.isNotEmpty) {
-      final approved = await review(prepared.issues);
+      final approved = await _requestReview(prepared.issues, revision);
       if (!_current(revision) || !approved) return null;
       return _preparer.approve(
         candidate,
@@ -157,17 +162,91 @@ final class SingBoxApplicationProfilePreparer {
     );
   }
 
+  Future<AcceptedSingBoxConfig?> update(
+    AcceptedSingBoxConfig configuration,
+    List<CoreOutbound> outbounds,
+    UpdateParams params,
+  ) async {
+    if (_closed) throw StateError('Profile preparation is closed');
+    final revision = ++_revision;
+    _cancelReview();
+    _preparer.cancel();
+    final previous = configuration.applicationData;
+    if (previous is! CoreApplicationSettings) {
+      throw const CoreAdapterException('application_settings_unavailable');
+    }
+    final projection = await previous.updated(
+      params.toJson(),
+      skipCertVerify: params.skipCertVerify,
+    );
+    if (!_current(revision)) return null;
+    final settings = projection.settings;
+    if (settings == null) return _reject(revision, projection.issues);
+    final newIssues = projection.issues
+        .where(
+          (issue) => !previous.issues.any(
+            (old) =>
+                old.code == issue.code &&
+                old.path == issue.path &&
+                old.severity == issue.severity,
+          ),
+        )
+        .toList();
+    if (newIssues.isNotEmpty) {
+      final approved = await _requestReview(newIssues, revision);
+      if (!_current(revision) || !approved) return null;
+    }
+    final bound = await listeners(configuration.profile, settings);
+    if (!_current(revision)) return null;
+    final updated = await prepareSingBoxRuntime(
+      configuration: configuration,
+      enabled: configuration.listeners.inboundsEnabled,
+      mode: settings.mode,
+      outbounds: outbounds,
+      preserveSelections: true,
+      runtime: settings.runtime,
+      listeners: bound,
+      applicationData: settings,
+    );
+    return _current(revision) ? updated : null;
+  }
+
   Future<AcceptedSingBoxConfig?> _reject(
     int revision,
     List<CoreConfigIssue> issues,
   ) async {
-    if (_current(revision)) await review(issues);
+    if (_current(revision)) await _requestReview(issues, revision);
     return null;
+  }
+
+  Future<bool> _requestReview(
+    List<CoreConfigIssue> issues,
+    int revision,
+  ) async {
+    if (!_current(revision)) return false;
+    final cancellation = Completer<bool>();
+    _reviewCancellation = cancellation;
+    try {
+      return await Future.any([review(issues), cancellation.future]);
+    } finally {
+      if (identical(_reviewCancellation, cancellation)) {
+        _reviewCancellation = null;
+      }
+    }
+  }
+
+  void _cancelReview() {
+    final cancellation = _reviewCancellation;
+    _reviewCancellation = null;
+    if (cancellation != null && !cancellation.isCompleted) {
+      cancellation.complete(false);
+    }
   }
 
   void close() {
     _closed = true;
     _revision++;
+    _cancelReview();
     _preparer.cancel();
   }
 }

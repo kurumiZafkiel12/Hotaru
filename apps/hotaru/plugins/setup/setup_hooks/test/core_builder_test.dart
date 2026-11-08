@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:setup_hooks/src/build.dart';
 import 'package:setup_hooks/src/core_builder.dart';
 import 'package:setup_hooks/src/error.dart';
+import 'package:setup_hooks/src/options.dart';
 import 'package:setup_hooks/src/target.dart';
 import 'package:test/test.dart';
 
@@ -102,6 +103,55 @@ void main() {
       expect(request.harnessDir, p.join(packageRoot.path, 'setup_hooks'));
       expect(request.target, Target.linuxAmd64);
     });
+
+    test(
+      'Windows explicitly selects its host without changing other platform builds',
+      () {
+        const builder = CoreBuilder();
+        expect(
+          builder
+              .requestFor(
+                buildInput(os: OS.windows, architecture: Architecture.x64),
+              )!
+              .engine,
+          CoreBuildEngine.mihomo,
+        );
+        expect(
+          builder
+              .requestFor(
+                buildInput(
+                  os: OS.windows,
+                  architecture: Architecture.x64,
+                  userDefines: {'windows_core': 'sing-box'},
+                ),
+              )!
+              .engine,
+          CoreBuildEngine.singBox,
+        );
+        expect(
+          builder
+              .requestFor(
+                buildInput(
+                  os: OS.linux,
+                  architecture: Architecture.x64,
+                  userDefines: {'windows_core': 'sing-box'},
+                ),
+              )!
+              .engine,
+          CoreBuildEngine.mihomo,
+        );
+        expect(
+          () => builder.requestFor(
+            buildInput(
+              os: OS.windows,
+              architecture: Architecture.x64,
+              userDefines: {'windows_core': 'wrong'},
+            ),
+          ),
+          throwsA(isA<BuildException>()),
+        );
+      },
+    );
 
     test('skips the macOS slice the host does not run', () {
       const builder = CoreBuilder(hostArchitecture: Architecture.arm64);

@@ -16,10 +16,14 @@ class BuildRequest {
     required this.rootDir,
     required this.target,
     this.harnessDir,
+    this.engine = CoreBuildEngine.mihomo,
+    this.outputDir,
   });
 
   final String rootDir;
   final Target target;
+  final CoreBuildEngine engine;
+  final String? outputDir;
 
   final String? harnessDir;
 }
@@ -46,7 +50,12 @@ Future<BuildReport> buildPlatform(BuildRequest request) async {
   final stopwatch = Stopwatch()..start();
   final target = request.target;
   final rootDir = request.rootDir;
-  final config = BuildConfig.load(rootDir: rootDir);
+  if (request.engine == CoreBuildEngine.singBox && target.goos != 'windows') {
+    throw ArgumentError('The sing-box application bundle is Windows-only');
+  }
+  final config = BuildConfig.load(
+    rootDir: rootDir,
+  ).forEngine(request.engine, outputDir: request.outputDir);
   final cache = BuildCache(rootDir: rootDir);
   final notice = BuildNotice();
   final harnessInputs = switch (request.harnessDir) {
@@ -80,7 +89,12 @@ Future<BuildReport> buildPlatform(BuildRequest request) async {
     target.platformDir,
     coreManifestName,
   );
-  writeCoreManifest(path: manifestPath, coreSha256: coreSha256);
+  writeCoreManifest(
+    path: manifestPath,
+    coreSha256: coreSha256,
+    engine: config.engine,
+    coreVersion: config.coreVersion,
+  );
 
   _log.info(
     'Done in ${stopwatch.elapsed}: ${core.primaryOutput}, '

@@ -201,6 +201,26 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     return '';
   }
 
+  @override
+  Future<String> updateConfig(UpdateParams updateParams) async {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    final preparation = _sourcePreparation;
+    if (preparation == null) {
+      throw const CoreAdapterException('application_settings_unavailable');
+    }
+    final revision = ++_profileRevision;
+    final result = await _routes.updateConfiguration(
+      (configuration, outbounds) =>
+          preparation.update(configuration, outbounds, updateParams),
+    );
+    if (_closing != null) throw const CoreAdapterException('closed');
+    if (revision != _profileRevision ||
+        result.outcome == CoreLifecycleOutcome.superseded) {
+      throw const CoreAdapterException('configuration_superseded');
+    }
+    return '';
+  }
+
   Future<CoreLifecycleResult> _close() async {
     try {
       return await core.close();

@@ -14,6 +14,43 @@ import 'package:hotaru/models/models.dart';
 
 void main() {
   test(
+    'successive runtime overrides preserve unpatched source settings and reject invalid values',
+    () async {
+      final original = (await CoreApplicationSettings.parse(
+        'ipv6: true\nport: 17891\ninterface-name: Ethernet\nsecret: source-secret\ntun: {enable: false, mtu: 1400, route-exclude-address: [192.168.0.0/16]}',
+        skipCertVerify: false,
+      )).settings!;
+      final first = (await original.updated({
+        'mixed-port': 17999,
+        'tun': {'enable': true, 'stack': 'system'},
+        'external-controller': '0.0.0.0:1111',
+        'secret': 'unaccepted-control-secret',
+      }, skipCertVerify: true)).settings!;
+      final second = (await first.updated({
+        'mixed-port': 18000,
+        'ipv6': null,
+      }, skipCertVerify: false)).settings!;
+      expect(original.mixedPort, 7890);
+      expect(first.mixedPort, 17999);
+      expect(second.mixedPort, 18000);
+      expect(second.inbound.httpPort, 17891);
+      expect(second.runtime.defaultInterface, 'Ethernet');
+      expect(second.runtime.resolveIpv6, isTrue);
+      expect(second.tun!.mtu, 1400);
+      expect(second.tun!.excludedRoutes, ['192.168.0.0/16']);
+      expect(first.runtime.skipCertVerify, isTrue);
+      expect(second.runtime.skipCertVerify, isFalse);
+      expect(second.source, isNot(contains('unaccepted-control-secret')));
+      expect(
+        (await second.updated({
+          'mixed-port': -1,
+        }, skipCertVerify: false)).settings,
+        isNull,
+      );
+    },
+  );
+
+  test(
     'actual application output keeps settings and stops injecting the unauthenticated legacy probe',
     () async {
       const state = MakeRealProfileState(

@@ -14,7 +14,9 @@ import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_routes.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
-import 'package:hotaru/models/models.dart' show SetupParams;
+import 'package:hotaru/models/models.dart';
+import 'package:hotaru/enum/enum.dart';
+import 'package:hotaru/core/sing_box/runtime_configuration.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -277,9 +279,110 @@ authentication: ["fixture:one:two"]
           'one:two',
         );
         expect(selected, 'A');
+        await handler.stopListener();
+        selected = 'B';
+        final before = binding.current;
+        expect(
+          await handler.updateConfig(
+            defaultClashConfig
+                .toUpdateParams(
+                  authentication: ['new-user:new-password'],
+                  skipCertVerify: true,
+                )
+                .copyWith(
+                  mixedPort: 17999,
+                  ipv6: true,
+                  mode: Mode.direct,
+                  findProcessMode: FindProcessMode.always,
+                ),
+          ),
+          '',
+        );
+        expect(binding.current.profileId, 11);
+        expect(binding.current.listeners.inboundsEnabled, isFalse);
+        expect(binding.current.listeners.mixedPort, 17999);
+        expect(
+          binding.current.listeners.inbound!.users.single.username,
+          'new-user',
+        );
+        expect(binding.current.listeners.secret, 'owned');
+        expect(binding.current.profile.runtime.skipCertVerify, isTrue);
+        expect((selected, mode), ('B', CoreRoutingMode.direct));
+        await handler.startListener();
+        expect((selected, mode), ('B', CoreRoutingMode.direct));
+        expect(binding.current.listeners.mixedPort, 17999);
+        await expectLater(
+          handler.updateConfig(
+            defaultClashConfig
+                .toUpdateParams(authentication: [], skipCertVerify: false)
+                .copyWith(mixedPort: 0),
+          ),
+          throwsA(isA<CoreAdapterException>()),
+        );
+        expect(binding.current.listeners.mixedPort, 17999);
+        expect(identical(before, binding.current), isFalse);
       } finally {
         await directory.delete(recursive: true);
       }
+    },
+  );
+
+  test(
+    'a settings update blocked in review is superseded by a later profile',
+    () async {
+      final entered = Completer<void>();
+      final review = Completer<AcceptedSingBoxConfig?>();
+      final pending = routes.updateConfiguration((configuration, outbounds) {
+        entered.complete();
+        return review.future;
+      });
+      await entered.future;
+      final newer = await _configuration(id: 3);
+      final replacement = routes.applyConfiguration(newer);
+      review.complete(await _configuration(id: 2));
+      expect((await pending).outcome, CoreLifecycleOutcome.superseded);
+      await replacement;
+      expect(binding.current.profileId, 3);
+      expect(submitted.map((entry) => entry.profileId), [3]);
+    },
+  );
+
+  test(
+    'pause while settings are prepared wins without losing the patch',
+    () async {
+      final entered = Completer<void>();
+      final release = Completer<void>();
+      var attempts = 0;
+      final pending = routes.updateConfiguration((
+        configuration,
+        outbounds,
+      ) async {
+        if (attempts++ == 0) {
+          entered.complete();
+          await release.future;
+        }
+        return prepareSingBoxRuntime(
+          configuration: configuration,
+          enabled: configuration.listeners.inboundsEnabled,
+          mode: CoreRoutingMode.direct,
+          outbounds: outbounds,
+          preserveSelections: true,
+          listeners: const CoreListenerSpec(
+            mixedPort: 17999,
+            controllerPort: 19090,
+            secret: 'fixture-1',
+          ),
+        );
+      });
+      await entered.future;
+      final pause = routes.setInbounds(false);
+      release.complete();
+      expect((await pending).outcome, CoreLifecycleOutcome.superseded);
+      await pause;
+      expect(binding.current.listeners.inboundsEnabled, isFalse);
+      expect(binding.current.listeners.mixedPort, 17999);
+      expect((selected, mode), ('B', CoreRoutingMode.direct));
+      expect(submitted, hasLength(1));
     },
   );
 

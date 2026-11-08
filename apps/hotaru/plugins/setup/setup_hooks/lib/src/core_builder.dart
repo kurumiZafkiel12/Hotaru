@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
-import 'package:hooks/hooks.dart';
+import 'package:hooks/hooks.dart' hide BuildConfig;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'build.dart';
 import 'error.dart';
 import 'logging.dart';
+import 'options.dart';
 import 'target.dart';
 
 typedef CoreBuildFunction = Future<BuildReport> Function(BuildRequest request);
@@ -123,6 +124,9 @@ final class CoreBuilder implements Builder {
       rootDir: rootDir,
       harnessDir: p.join(p.fromUri(input.packageRoot), 'setup_hooks'),
       target: target,
+      engine: platform == 'windows'
+          ? BuildConfig.windowsEngine(input.userDefines['windows_core'])
+          : CoreBuildEngine.mihomo,
     );
   }
 

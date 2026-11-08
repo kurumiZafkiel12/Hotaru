@@ -15,27 +15,27 @@ $saved = @{}
 foreach ($key in $environmentKeys) { $saved[$key] = [Environment]::GetEnvironmentVariable($key, 'Process') }
 try {
   $module = Join-Path $root 'core/sing_box_host'
-  $env:GOOS = 'windows'
-  $env:GOARCH = 'amd64'
-  $env:CGO_ENABLED = '0'
   go -C $module mod verify
   if ($LASTEXITCODE -ne 0) { throw 'Go module verification failed' }
+  $harness = Join-Path $root 'plugins/setup/setup_hooks'
+  Push-Location $harness
+  try {
+    dart pub get
+    if ($LASTEXITCODE -ne 0) { throw 'Build hook dependencies failed' }
+    dart run bin/windows_host.dart $root $staging
+    if ($LASTEXITCODE -ne 0) { throw 'Application build hook failed' }
+  } finally { Pop-Location }
+  $artifacts = Join-Path $staging 'windows'
   $core = Join-Path $staging 'HotaruCore.exe'
-  go -C $module build -mod=readonly -trimpath -tags with_clash_api,with_quic,with_utls '-ldflags=-s -w' -o $core .
-  if ($LASTEXITCODE -ne 0) { throw 'Pinned sing-box host build failed' }
+  $helper = Join-Path $staging 'HotaruHelperService.exe'
+  Move-Item (Join-Path $artifacts 'HotaruCore.exe') $core
+  Move-Item (Join-Path $artifacts 'HotaruHelperService.exe') $helper
+  Remove-Item $artifacts -Recurse -Force
   $version = @(& $core version)
   if ($LASTEXITCODE -ne 0 -or $version[0] -ne 'sing-box version 1.14.4' -or $version[1] -ne 'Host control: hotaru-stdio-v1') {
     throw 'Built host version or control protocol does not match'
   }
   $env:CORE_SHA256 = (Get-FileHash $core -Algorithm SHA256).Hash.ToLowerInvariant()
-  $env:CORE_NAME = 'HotaruCore.exe'
-  $helperRoot = Join-Path $root 'services/helper'
-  $helperTarget = Join-Path $helperRoot 'target'
-  $triple = 'x86_64-pc-windows-msvc'
-  cargo build --locked --release --target $triple --features windows-service --manifest-path "$helperRoot/Cargo.toml" --target-dir $helperTarget
-  if ($LASTEXITCODE -ne 0) { throw 'Digest-bound Helper build failed' }
-  $helper = Join-Path $staging 'HotaruHelperService.exe'
-  Copy-Item "$helperTarget/$triple/release/helper.exe" $helper
   $upstream = go -C $module list -mod=readonly -m -f '{{.Dir}}' github.com/sagernet/sing-box
   if ($LASTEXITCODE -ne 0) { throw 'Cannot locate pinned upstream source' }
   Copy-Item (Join-Path $upstream 'LICENSE') (Join-Path $staging 'LICENSE-sing-box')
