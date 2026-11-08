@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import '../adapter.dart';
+import '../logs.dart';
+import 'log_stream.dart';
 import '../config/test_target.dart';
 import '../config/probe_listener.dart';
 import '../outbound_http.dart';
@@ -15,6 +17,7 @@ import 'outbound_http.dart';
 final class SingBoxClashApiAdapter
     implements
         CoreAdapter,
+        CoreLogSource,
         CoreOutboundHttpClients,
         CoreTelemetry,
         CoreRoutingModes,
@@ -27,6 +30,7 @@ final class SingBoxClashApiAdapter
   final Future<CoreTelemetrySnapshot> Function()? _telemetry;
   final CoreRuntimeMaintenance? _runtime;
   bool _closed = false;
+  final Set<SingBoxLogStream> _logs = {};
 
   SingBoxClashApiAdapter({
     required this.endpoint,
@@ -59,6 +63,19 @@ final class SingBoxClashApiAdapter
       );
     }
     _client.findProxy = (_) => 'DIRECT';
+  }
+
+  @override
+  Stream<CoreLogMessage> logs() {
+    if (_closed) throw const CoreAdapterException('closed');
+    late SingBoxLogStream source;
+    source = SingBoxLogStream(
+      endpoint: endpoint,
+      secret: _secret,
+      onClose: () => _logs.remove(source),
+    );
+    _logs.add(source);
+    return source.stream;
   }
 
   Future<Object?> _request(
@@ -373,6 +390,7 @@ final class SingBoxClashApiAdapter
     _closed = true;
     _outboundHttp.close();
     _client.close(force: true);
+    await Future.wait([for (final source in _logs.toList()) source.close()]);
   }
 
   static Map<String, dynamic> _object(Object? value) {

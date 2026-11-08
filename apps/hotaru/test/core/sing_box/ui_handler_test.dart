@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/logs.dart';
 import 'package:hotaru/core/config/profile.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
@@ -28,6 +29,7 @@ class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 class _Adapter extends Mock
     implements
         CoreAdapter,
+        CoreLogSource,
         CoreTelemetry,
         CoreRuntimeMaintenance,
         CoreConnectionMaintenance {}
@@ -122,6 +124,59 @@ void main() {
     await events.close();
     await crashes.close();
   });
+
+  test(
+    'log controls are idempotent, map severity and stop publishing after cancellation',
+    () async {
+      final logs = StreamController<CoreLogMessage>.broadcast();
+      when(() => adapter.logs()).thenAnswer((_) => logs.stream);
+      await handler.stopLog().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw StateError('stop log timed out'),
+      );
+      await handler.startLog();
+      await handler.startLog();
+      verify(() => adapter.logs()).called(1);
+      logs.add(
+        const CoreLogMessage(level: 'warn', payload: 'observed warning'),
+      );
+      await Future<void>.delayed(Duration.zero);
+      final message = published.singleWhere(
+        (event) => event.type == CoreEventType.log,
+      );
+      expect(message.data, containsPair('Payload', 'observed warning'));
+      expect(message.data, containsPair('LogLevel', 'warning'));
+      await handler.stopLog().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw StateError('stop log timed out'),
+      );
+      logs.add(const CoreLogMessage(level: 'error', payload: 'late'));
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        published.where((event) => event.type == CoreEventType.log),
+        hasLength(1),
+      );
+      await handler.startLog();
+      await handler.close().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw StateError('close timed out'),
+      );
+      logs.add(const CoreLogMessage(level: 'info', payload: 'after close'));
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        published.where((event) => event.type == CoreEventType.log),
+        hasLength(1),
+      );
+      await expectLater(
+        handler.startLog(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      await logs.close().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw StateError('source close timed out'),
+      );
+    },
+  );
 
   test(
     'document validation is bounded, read only and localized without exposing source secrets',

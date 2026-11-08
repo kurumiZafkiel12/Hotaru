@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import '../adapter.dart';
+import '../logs.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
 import '../routing_mode.dart';
@@ -12,6 +13,7 @@ import '../desktop/model.dart';
 final class SessionCoreAdapter
     implements
         CoreAdapter,
+        CoreLogSource,
         CoreOutboundHttpClients,
         CoreTelemetry,
         CoreRoutingModes,
@@ -82,6 +84,31 @@ final class SessionCoreAdapter
       rethrow;
     }
   }
+
+  @override
+  Stream<CoreLogMessage> logs() => Stream.multi((controller) {
+    final subscription =
+        Stream.fromFuture(
+              _invoke((adapter) async {
+                if (adapter is! CoreLogSource) {
+                  throw const CoreAdapterException('logs_unavailable');
+                }
+                return (_sessionId!, adapter as CoreLogSource);
+              }),
+            )
+            .asyncExpand(
+              (binding) =>
+                  binding.$2.logs().takeWhile((_) => _sameSession(binding.$1)),
+            )
+            .listen(
+              controller.addSync,
+              onError: controller.addErrorSync,
+              onDone: controller.closeSync,
+            );
+    controller.onCancel = () => subscription.cancel();
+    controller.onPause = subscription.pause;
+    controller.onResume = subscription.resume;
+  });
 
   @override
   Future<List<CoreOutbound>> outbounds() =>

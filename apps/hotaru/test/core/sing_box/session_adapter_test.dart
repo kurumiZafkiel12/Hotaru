@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/core/logs.dart';
 import 'package:hotaru/core/maintenance.dart';
 import 'package:hotaru/core/config/probe_listener.dart';
 import 'package:hotaru/core/outbound_http.dart';
@@ -19,7 +20,9 @@ import '../desktop/fakes.dart';
 
 final class _Lifecycle extends Mock implements DesktopCoreLifecycleController {}
 
-final class _Adapter extends Mock implements CoreAdapter {}
+class _Adapter extends Mock implements CoreAdapter {}
+
+final class _LoggingAdapter extends _Adapter implements CoreLogSource {}
 
 final class _MaintenanceAdapter extends Mock
     implements CoreAdapter, CoreRuntimeMaintenance, CoreConnectionMaintenance {}
@@ -104,6 +107,52 @@ void main() {
     await adapter.close();
     await events.close();
   });
+
+  test(
+    'unsubscribed logs neither instantiate a client nor start a core',
+    () async {
+      adapter.logs();
+      await Future<void>.delayed(Duration.zero);
+      expect(created, 0);
+      state = const DesktopCoreIdle();
+      await expectLater(
+        adapter.logs().toList(),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      expect(created, 0);
+      verifyNever(() => lifecycle.start());
+    },
+  );
+
+  test(
+    'log observations from a replaced session never reach the new session',
+    () async {
+      final source = StreamController<CoreLogMessage>.broadcast(sync: true);
+      final logging = _LoggingAdapter();
+      first = logging;
+      when(() => logging.close()).thenAnswer((_) async {});
+      when(() => logging.logs()).thenAnswer((_) => source.stream);
+      final messages = <CoreLogMessage>[];
+      final errors = <Object>[];
+      final subscription = adapter.logs().listen(
+        messages.add,
+        onError: errors.add,
+      );
+      await Future<void>.delayed(Duration.zero);
+      source.add(const CoreLogMessage(level: 'info', payload: 'first session'));
+      await Future<void>.delayed(Duration.zero);
+      expect(messages.single.payload, 'first session');
+      state = _running('second');
+      events.add(state);
+      await Future<void>.delayed(Duration.zero);
+      source.add(const CoreLogMessage(level: 'error', payload: 'stale'));
+      await Future<void>.delayed(Duration.zero);
+      expect(messages, hasLength(1));
+      expect(errors, isEmpty);
+      await subscription.cancel();
+      await source.close();
+    },
+  );
 
   test(
     'missing maintenance support fails before dispatch and never closes unrelated connections',

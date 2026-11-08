@@ -7,6 +7,7 @@ import '../../common/common.dart';
 import '../../enum/enum.dart';
 import '../../l10n/l10n.dart';
 import '../adapter.dart';
+import '../logs.dart';
 import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
 import '../config/proxy_definitions.dart';
@@ -41,6 +42,9 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
   int _profileRevision = 0;
+  StreamSubscription<CoreLogMessage>? _logs;
+  int _logRevision = 0;
+  late final void Function(Log) _publishLog;
 
   SingBoxUiHandler(
     this.core, {
@@ -52,6 +56,8 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       throw ArgumentError('A prepared sing-box configuration is required');
     }
     final publish = onEvent ?? coreEventManager.sendEvent;
+    _publishLog = (log) =>
+        publish(CoreEvent(type: CoreEventType.log, data: log.toJson()));
     _traffic = SingBoxUiTraffic(core: core, elapsed: trafficElapsed);
     _routes = SingBoxUiRoutes(
       core: core,
@@ -145,10 +151,53 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     try {
       return await core.close();
     } finally {
-      await _routes.close();
-      await _traffic.close();
-      await _crashes.cancel();
+      try {
+        await stopLog();
+      } finally {
+        await _routes.close();
+        await _traffic.close();
+        await _crashes.cancel();
+      }
     }
+  }
+
+  @override
+  Future<void> startLog() async {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    if (_logs != null) return;
+    final source = core.adapter;
+    if (source is! CoreLogSource) {
+      throw const CoreAdapterException('logs_unavailable');
+    }
+    final revision = ++_logRevision;
+    _logs = (source as CoreLogSource).logs().listen(
+      (entry) {
+        if (_closing != null || revision != _logRevision) return;
+        final level = switch (entry.level) {
+          'trace' || 'debug' => LogLevel.debug,
+          'warn' || 'warning' => LogLevel.warning,
+          'error' || 'fatal' || 'panic' => LogLevel.error,
+          _ => LogLevel.info,
+        };
+        _publishLog(Log.app(entry.payload).copyWith(logLevel: level));
+      },
+      onError: (Object _) {
+        if (revision == _logRevision) _logs = null;
+        commonPrint.log('sing-box log stream failed', logLevel: LogLevel.debug);
+      },
+      onDone: () {
+        if (revision == _logRevision) _logs = null;
+      },
+      cancelOnError: true,
+    );
+  }
+
+  @override
+  Future<void> stopLog() async {
+    _logRevision++;
+    final stopping = _logs?.cancel();
+    _logs = null;
+    await stopping;
   }
 
   @override
