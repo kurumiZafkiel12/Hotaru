@@ -7,6 +7,8 @@ import '../../common/common.dart';
 import '../../enum/enum.dart';
 import '../../l10n/l10n.dart';
 import '../adapter.dart';
+import '../geodata_store.dart';
+import '../config/geodata.dart';
 import '../config/application_settings.dart';
 import '../config/clash_subscription.dart';
 import '../config/profile.dart';
@@ -47,9 +49,14 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreProfileTextBuilder,
         CoreProfileApplication,
         CoreRoutePreviewSource,
-        CoreProcessTrafficSource {
+        CoreProcessTrafficSource,
+        CoreGeoResources {
   final SingBoxDesktopCore core;
   final Future<void> Function()? afterClose;
+  final CoreGeoDataStore Function()? geoData;
+  late final void Function(CoreEvent) _publish;
+  final _geoUpdates = <String, Future<void>>{};
+  Future<void> _geoTail = Future.value();
   final Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)?
   _prepareProfile;
   late final SingBoxUiRoutes _routes;
@@ -70,12 +77,14 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     void Function(CoreEvent)? onEvent,
     Duration Function()? trafficElapsed,
     this.afterClose,
+    this.geoData,
     Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)? prepareProfile,
   }) : _prepareProfile = prepareProfile {
     if (core.configuration == null) {
       throw ArgumentError('A prepared sing-box configuration is required');
     }
     final publish = onEvent ?? coreEventManager.sendEvent;
+    _publish = publish;
     _publishLog = (log) =>
         publish(CoreEvent(type: CoreEventType.log, data: log.toJson()));
     _traffic = SingBoxUiTraffic(core: core, elapsed: trafficElapsed);
@@ -129,6 +138,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     Map<String, String> providerFiles = const {},
     Future<Map<String, String>> Function()? providerFileGrants,
     Future<void> Function()? afterClose,
+    CoreGeoDataStore Function()? geoData,
   }) {
     final preparation = SingBoxApplicationProfilePreparer(
       configPath: configPath,
@@ -143,6 +153,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       core,
       prepareProfile: preparation.prepare,
       afterClose: afterClose,
+      geoData: geoData,
       onEvent: onEvent,
     ).._sourcePreparation = preparation;
   }
@@ -240,6 +251,107 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   }
 
   @override
+  Set<String> get supportedTypes =>
+      geoData == null ? const {} : const {'GEOIP', 'GEOSITE'};
+
+  @override
+  Future<String?> filePath(String type) async {
+    final settings = core.configuration?.applicationData;
+    final store = geoData?.call();
+    return settings is CoreApplicationSettings && store != null
+        ? store.path(type, settings.geoUrls)
+        : null;
+  }
+
+  @override
+  Future<String> updateGeoData(String type) async {
+    final operation = refreshGeoData(type);
+    unawaited(operation.catchError((Object _) {}));
+    return '';
+  }
+
+  Future<void> refreshGeoData(String type) {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    final key = type.toUpperCase();
+    if (!supportedTypes.contains(key)) {
+      throw const CoreAdapterException('unsupported_geo_resource');
+    }
+    final existing = _geoUpdates[key];
+    if (existing != null) return existing;
+    final operation = _geoTail.then((_) => _refreshGeoData(key));
+    _geoUpdates[key] = operation;
+    void release() {
+      if (identical(_geoUpdates[key], operation)) _geoUpdates.remove(key);
+    }
+
+    _geoTail = operation.then<void>(
+      (_) => release(),
+      onError: (Object _, StackTrace _) => release(),
+    );
+    return operation;
+  }
+
+  Future<void> _refreshGeoData(String type) async {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    final configuration = core.configuration;
+    final settings = configuration?.applicationData;
+    final preparation = _sourcePreparation;
+    if (configuration == null ||
+        settings is! CoreApplicationSettings ||
+        preparation == null) {
+      throw const CoreAdapterException('applied_profile_unavailable');
+    }
+    _publish(
+      CoreEvent(
+        type: CoreEventType.geoUpdate,
+        data: {'type': type, 'updating': true},
+      ),
+    );
+    String? failure;
+    try {
+      final kind = type == 'GEOIP' ? CoreGeoKind.ip : CoreGeoKind.site;
+      final prefix = 'geo:${kind.name}:';
+      final requests = [
+        for (final set in configuration.profile.ruleSets)
+          if (set.tag.startsWith(prefix))
+            ?CoreGeoRequest.parse(kind, set.tag.substring(prefix.length)),
+      ].where((request) => builtinCoreGeoMatch(request) == null).toList();
+      await geoData!().update(type, urls: settings.geoUrls, requests: requests);
+      if (_closing != null || !identical(core.configuration, configuration)) {
+        throw const CoreAdapterException('configuration_superseded');
+      }
+      final revision = ++_profileRevision;
+      preparation.cancelPending();
+      await _finishMutation(
+        _routes.updateConfiguration(
+          (configuration, outbounds) =>
+              preparation.refresh(configuration, outbounds, null),
+          preserveMode: true,
+        ),
+        revision,
+      );
+    } catch (error) {
+      failure = error is CoreAdapterException
+          ? error.code
+          : 'geo_update_failed';
+      commonPrint.log(
+        'geo update failed: $failure',
+        logLevel: LogLevel.warning,
+      );
+      rethrow;
+    } finally {
+      if (_closing == null) {
+        _publish(
+          CoreEvent(
+            type: CoreEventType.geoUpdate,
+            data: {'type': type, 'updating': false, 'error': ?failure},
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Future<String> updateExternalProvider(String providerName) async {
     if (_closing != null) throw const CoreAdapterException('closed');
     final preparation = _sourcePreparation;
@@ -289,6 +401,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       } finally {
         try {
           await _routedHttp.close();
+          await _geoTail;
           await _routes.close();
           await _traffic.close();
           await _crashes.cancel();

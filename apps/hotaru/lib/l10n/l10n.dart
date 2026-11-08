@@ -10597,6 +10597,16 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Could not update {resource}. The running configuration is unchanged. Check the network and resource URL, then try again.`
+  String geoUpdateFailedTip(String resource) {
+    return Intl.message(
+      'Could not update $resource. The running configuration is unchanged. Check the network and resource URL, then try again.',
+      name: 'geoUpdateFailedTip',
+      desc: '',
+      args: [resource],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -129,6 +129,7 @@ final class CoreGeoDecoder {
       }
       index[country] = entry;
     }
+    if (index.isEmpty) throw const FormatException('invalid_geo_index');
     final result = <String, CoreGeoMatchData>{};
     var total = 0;
     for (final request in requests) {

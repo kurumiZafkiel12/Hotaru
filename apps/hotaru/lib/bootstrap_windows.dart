@@ -11,6 +11,10 @@ import 'core/config/dns.dart';
 import 'core/config/geodata.dart';
 import 'core/config/profile.dart';
 import 'core/config/probe_listener.dart';
+import 'core/config/provider_info.dart';
+import 'core/desktop/model.dart';
+import 'core/geodata_store.dart';
+import 'core/refresh_scheduler.dart';
 import 'core/controller.dart';
 import 'core/event.dart';
 import 'core/provider_cache.dart';
@@ -34,7 +38,7 @@ final class WindowsCoreApplication {
     required String configPath,
     required int mixedPort,
     required Future<Map<String, String>> Function() providerFiles,
-    required CoreGeoResolver resolveGeo,
+    CoreGeoResolver? resolveGeo,
     required Future<bool> Function(List<CoreConfigIssue>) review,
     required Future<void> Function(ProfileTrafficObservation) persistTraffic,
     required void Function(Object, StackTrace) onError,
@@ -100,6 +104,8 @@ final class WindowsCoreApplication {
               bundleDirectory: bundleDirectory,
             ));
     ProfileTrafficRecorder? recorder;
+    CoreRefreshScheduler? scheduler;
+    late final CoreGeoDataStore geoData;
     late final SingBoxUiHandler handler;
     var attached = false;
     ClashSubscriptionImporter importer(
@@ -132,7 +138,9 @@ final class WindowsCoreApplication {
           request,
           force: force.contains(request.name),
         )).text,
-        resolveGeo: resolveGeo,
+        resolveGeo:
+            resolveGeo ??
+            (requests) => geoData.resolve(requests, urls: settings.geoUrls),
       );
     }
 
@@ -179,11 +187,65 @@ final class WindowsCoreApplication {
         },
         review: review,
         onEvent: onEvent ?? coreEventManager.sendEvent,
+        geoData: () => geoData,
         afterClose: () async {
-          await recorder?.close();
+          try {
+            await scheduler?.close();
+          } finally {
+            await recorder?.close();
+          }
         },
       );
       attached = true;
+      geoData = CoreGeoDataStore(home: homeDirectory, transport: handler);
+      scheduler = CoreRefreshScheduler(
+        onError: onError,
+        entries: () async {
+          final configuration = core.configuration;
+          final settings = configuration?.applicationData;
+          if (core.lifecycle.state is! DesktopCoreRunning ||
+              settings is! CoreApplicationSettings ||
+              settings.unconfigured) {
+            return [];
+          }
+          final updates = <CoreScheduledRefresh>[
+            for (final provider in settings.providers)
+              if (provider.vehicle == CoreProviderVehicle.http &&
+                  provider.interval > Duration.zero)
+                CoreScheduledRefresh(
+                  key: 'provider:${configuration!.profileId}:${provider.name}',
+                  loadedAt: provider.loadedAt,
+                  interval: provider.interval,
+                  refresh: () async {
+                    if (identical(configuration, core.configuration)) {
+                      await handler.updateExternalProvider(provider.name);
+                    }
+                  },
+                ),
+          ];
+          if (settings.geoAutoUpdate) {
+            for (final type in ['GEOIP', 'GEOSITE']) {
+              final file = File(await geoData.path(type, settings.geoUrls));
+              final loadedAt = await file.exists()
+                  ? await file.lastModified()
+                  : DateTime.fromMillisecondsSinceEpoch(0);
+              updates.add(
+                CoreScheduledRefresh(
+                  key: 'geo:${configuration!.profileId}:$type',
+                  loadedAt: loadedAt,
+                  interval: Duration(hours: settings.geoUpdateInterval),
+                  refresh: () async {
+                    if (identical(configuration, core.configuration)) {
+                      await handler.refreshGeoData(type);
+                    }
+                  },
+                ),
+              );
+            }
+          }
+          return updates;
+        },
+      );
       recorder = ProfileTrafficRecorder(
         core: core,
         persist: persistTraffic,

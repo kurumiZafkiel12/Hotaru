@@ -228,12 +228,13 @@ final class SingBoxApplicationProfilePreparer {
   Future<AcceptedSingBoxConfig?> refresh(
     AcceptedSingBoxConfig configuration,
     List<CoreOutbound> outbounds,
-    String providerName,
+    String? providerName,
   ) async {
     if (_closed) throw StateError('Profile preparation is closed');
     final settings = configuration.applicationData;
     if (settings is! CoreApplicationSettings ||
-        !settings.providers.any((info) => info.name == providerName)) {
+        providerName != null &&
+            !settings.providers.any((info) => info.name == providerName)) {
       throw const CoreAdapterException('provider_not_found');
     }
     final revision = ++_revision;
@@ -244,7 +245,8 @@ final class SingBoxApplicationProfilePreparer {
     final CoreConfigImportResult? imported;
     try {
       final loader =
-          refreshImporter?.call(settings, {providerName}) ?? importer(settings);
+          refreshImporter?.call(settings, {?providerName}) ??
+          importer(settings);
       imported = await Future.any([
         loader.import(settings.source),
         cancellation.future,

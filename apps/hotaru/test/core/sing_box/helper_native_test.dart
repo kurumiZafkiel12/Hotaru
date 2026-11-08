@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart' show Locale;
+import 'package:hotaru/l10n/l10n.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/bootstrap_windows.dart';
 import 'package:hotaru/core/controller.dart';
@@ -26,6 +29,7 @@ import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
 import '../../plugins/code_forge/support.dart' show initEditorNative;
 import 'support/dns_fixture.dart';
+import 'support/geodata_fixture.dart';
 import 'support/windows_process_witness.dart';
 import 'loopback_proxy_fixture.dart'
     show freeLoopbackPort, LoopbackProxyFixture;
@@ -1186,7 +1190,16 @@ void main() {
       );
       addTearDown(proxyB.close);
       var receipts = 0;
+      var geoReads = 0;
       origin.listen((request) async {
+        if (request.uri.path == '/geosite') {
+          geoReads++;
+          request.response.add(
+            geoDatabase('fixture', [geoDomain(3, 'fixture.invalid')]),
+          );
+          await request.response.close();
+          return;
+        }
         receipts++;
         request.response.write(
           request.uri.path == '/ip'
@@ -1230,12 +1243,13 @@ void main() {
       var reviews = 0;
       final persisted = <ProfileTrafficObservation>[];
       final persistenceErrors = <Object>[];
+      await AppLocalizations.load(const Locale('en'));
+      final geoUpdated = Completer<Map<String, dynamic>>();
       final application = await WindowsCoreApplication.create(
         homeDirectory: directory.path,
         configPath: '${directory.path}/application.yaml',
         mixedPort: await freeLoopbackPort(),
         providerFiles: () async => {},
-        resolveGeo: (_) async => {},
         review: (_) async {
           reviews++;
           return approved;
@@ -1244,7 +1258,13 @@ void main() {
           persisted.add(sample);
         },
         onError: (error, _) => persistenceErrors.add(error),
-        onEvent: (_) {},
+        onEvent: (event) {
+          if (event.type == CoreEventType.geoUpdate &&
+              event.data['updating'] == false &&
+              !geoUpdated.isCompleted) {
+            geoUpdated.complete(Map<String, dynamic>.from(event.data as Map));
+          }
+        },
         bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
       );
       final core = application.core;
@@ -1257,6 +1277,8 @@ void main() {
           'mixed-port': listeners.mixedPort,
           'ipv6': true,
           'mode': 'rule',
+          'geodata-mode': true,
+          'geox-url': {'geosite': 'http://127.0.0.1:${origin.port}/geosite'},
           'authentication': ['fixture:password:part'],
           'secret': 'source-not-controller',
           'external-controller': '0.0.0.0:9090',
@@ -1275,7 +1297,7 @@ void main() {
               'use': ['source'],
             },
           ],
-          'rules': ['MATCH,selected'],
+          'rules': ['GEOSITE,fixture,selected', 'MATCH,selected'],
         }),
       );
       final processes = <WindowsProcessWitness>[];
@@ -1436,6 +1458,7 @@ void main() {
                 mixedPort: updatedPort,
                 ipv6: true,
                 findProcessMode: FindProcessMode.always,
+                geoXUrl: {'geosite': 'http://127.0.0.1:${origin.port}/geosite'},
               ),
         );
         expect(processes.last.hasExited, isTrue);
@@ -1519,6 +1542,31 @@ void main() {
           ))!.held,
           [false],
         );
+        expect(geoReads, 1);
+        expect(controller.supportedGeoResources, [
+          GeoResource.GEOIP,
+          GeoResource.GEOSITE,
+        ]);
+        await controller.updateGeoData('GEOSITE');
+        final updated = await geoUpdated.future.timeout(
+          const Duration(seconds: 45),
+        );
+        expect(updated['error'], isNull, reason: '$updated');
+        expect(processes.last.hasExited, isTrue);
+        record();
+        await _expectSystem(pids.last);
+        expect(geoReads, 2);
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (7, 2, 5),
+        );
+        expect((await controller.previewRoute('fixture.invalid')).hops, ['A']);
+        expect(
+          await File(
+            (await controller.geoResources!.filePath('GEOSITE'))!,
+          ).exists(),
+          isTrue,
+        );
         completed = true;
       } finally {
         await controller.close();
@@ -1552,6 +1600,7 @@ void main() {
       report['application_process_counters'] = true;
       report['application_runtime_update'] = true;
       report['application_provider_cache_refresh'] = true;
+      report['application_geo_data_refresh'] = true;
       report['application_ip_route_evidence'] = true;
       report['application_bootstrap_assembly'] = true;
       report['application_profile_traffic_wiring'] = true;

@@ -26,6 +26,8 @@ final class CoreApplicationSettings {
   final int? dnsPort;
   final String? userAgent;
   final Map<String, String> geoUrls;
+  final bool geoAutoUpdate;
+  final int geoUpdateInterval;
   final Map<String, String> providerFiles;
 
   CoreApplicationSettings._({
@@ -43,6 +45,8 @@ final class CoreApplicationSettings {
     required this.dnsPort,
     required this.userAgent,
     required Map<String, String> geoUrls,
+    this.geoAutoUpdate = false,
+    this.geoUpdateInterval = 24,
     required Map<String, String> providerFiles,
   }) : importIssues = List.unmodifiable(importIssues),
        providers = List.unmodifiable(providers),
@@ -86,6 +90,8 @@ final class CoreApplicationSettings {
     dnsPort: dnsPort,
     userAgent: userAgent,
     geoUrls: geoUrls,
+    geoAutoUpdate: geoAutoUpdate,
+    geoUpdateInterval: geoUpdateInterval,
     providerFiles: providerFiles,
   );
 
@@ -375,13 +381,11 @@ final class _SettingsReader {
           urls[entry.key] = value;
         }
       }
-      if (field(
+      final geoAutoUpdate = field(
         'geo-auto-update',
         () => flag(document.remove('geo-auto-update'), false),
-      )) {
-        issue('geo_scheduler_required', 'geo-auto-update');
-      }
-      field(
+      );
+      final geoUpdateInterval = field(
         'geo-update-interval',
         () => integer(
           document.remove('geo-update-interval'),
@@ -491,6 +495,8 @@ final class _SettingsReader {
           dnsPort: dnsPort,
           userAgent: userAgent.isEmpty ? null : userAgent,
           geoUrls: urls,
+          geoAutoUpdate: geoAutoUpdate,
+          geoUpdateInterval: geoUpdateInterval,
           providerFiles: files,
         ),
         issues,

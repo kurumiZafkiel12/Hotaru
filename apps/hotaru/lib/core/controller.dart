@@ -11,6 +11,7 @@ import 'config/route_preview.dart';
 import 'telemetry.dart';
 import 'routing_mode.dart';
 import 'profile_documents.dart';
+import 'geodata_store.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -18,6 +19,16 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 
 class CoreController {
+  CoreGeoResources? get geoResources =>
+      _interface is CoreGeoResources ? _interface as CoreGeoResources : null;
+
+  Iterable<GeoResource> get supportedGeoResources {
+    final types = geoResources?.supportedTypes;
+    return GeoResource.values.where(
+      (type) => types == null || types.contains(type.name),
+    );
+  }
+
   static CoreController? _instance;
   late CoreHandlerInterface _interface;
 

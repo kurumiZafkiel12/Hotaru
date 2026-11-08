@@ -4,9 +4,7 @@ import 'dart:io';
 import 'package:hotaru/common/boot_guard.dart';
 import 'package:hotaru/common/core_upgrade.dart';
 import 'package:hotaru/core/desktop/core_manifest.dart';
-import 'package:hotaru/core/geodata_files.dart';
 import 'bootstrap_windows.dart';
-import 'package:path/path.dart' as p;
 import 'package:hotaru/common/boot_record.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/launch.dart';
@@ -124,10 +122,6 @@ class Bootstrap {
           configPath: await appPath.configFilePath,
           mixedPort: config.patchClashConfig.mixedPort,
           providerFiles: _providerFiles,
-          resolveGeo: CoreGeoDataFiles(
-            geoIpPath: p.join(directory, 'GeoIP.dat'),
-            geoSitePath: p.join(directory, 'GeoSite.dat'),
-          ).resolve,
           review: dialogs.showConfigurationReview,
           persistTraffic: (sample) async {
             await database.profileTrafficDao.record(
@@ -138,7 +132,7 @@ class Bootstrap {
             );
           },
           onError: (error, _) => commonPrint.log(
-            'profile traffic persistence: ${compactError(error)}',
+            'Windows background task failed: ${compactError(error)}',
           ),
         );
       }

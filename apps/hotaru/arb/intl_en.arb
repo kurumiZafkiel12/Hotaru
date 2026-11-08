@@ -1268,5 +1268,13 @@
   "processTrafficOverflow": "Some processes could not be listed individually; their bytes are included in unattributed traffic.",
   "processTrafficSampled": "Sampled",
   "singBoxReimportTitle": "Reimport subscriptions or configurations",
-  "singBoxReimportBody": "Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules."
+  "singBoxReimportBody": "Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.",
+  "geoUpdateFailedTip": "Could not update {resource}. The running configuration is unchanged. Check the network and resource URL, then try again.",
+  "@geoUpdateFailedTip": {
+    "placeholders": {
+      "resource": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -192,6 +192,29 @@ void main() {
     },
   );
 
+  test(
+    'geo refresh policy and URLs survive runtime updates and catalog replacement',
+    () async {
+      final projected = await CoreApplicationSettings.parse(
+        'geo-auto-update: true\ngeo-update-interval: 12\ngeox-url: {geoip: https://example.com/geoip.dat}',
+        skipCertVerify: false,
+      );
+      expect(projected.issues, isEmpty);
+      final settings = projected.settings!.withProviders([]);
+      expect(settings.geoAutoUpdate, isTrue);
+      expect(settings.geoUpdateInterval, 12);
+      final updated = await settings.updated({
+        'mixed-port': 17891,
+      }, skipCertVerify: false);
+      expect(updated.settings!.geoAutoUpdate, isTrue);
+      expect(updated.settings!.geoUpdateInterval, 12);
+      expect(
+        updated.settings!.geoUrls['geoip'],
+        'https://example.com/geoip.dat',
+      );
+    },
+  );
+
   for (final entry in <String, Object?>{
     'mixed-port': 0,
     'authentication': ['malformed'],
@@ -203,7 +226,6 @@ void main() {
     'tproxy-port': 1234,
     'routing-mark': 1,
     'hosts': {'host.example': '127.0.0.1'},
-    'geo-auto-update': true,
     'geox-url': {'geoip': 'https://user:secret@example.com/a'},
     'profile': {'store-fake-ip': true},
     'sniffer': {'enable': true},
