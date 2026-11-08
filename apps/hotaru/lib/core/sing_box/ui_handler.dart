@@ -10,6 +10,7 @@ import '../adapter.dart';
 import '../config/application_settings.dart';
 import '../config/clash_subscription.dart';
 import '../config/profile.dart';
+import '../config/provider_info.dart';
 import '../config/route_preview.dart';
 import 'application_profile.dart';
 import '../logs.dart';
@@ -111,6 +112,8 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     )
     listeners,
     required Future<bool> Function(List<CoreConfigIssue>) review,
+    ClashSubscriptionImporter Function(CoreApplicationSettings, Set<String>)?
+    refreshImporter,
     void Function(CoreEvent)? onEvent,
     Map<String, String> providerFiles = const {},
   }) {
@@ -119,6 +122,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       importer: importer,
       listeners: listeners,
       review: review,
+      refreshImporter: refreshImporter,
       providerFiles: providerFiles,
     );
     return SingBoxUiHandler(
@@ -209,10 +213,49 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       throw const CoreAdapterException('application_settings_unavailable');
     }
     final revision = ++_profileRevision;
-    final result = await _routes.updateConfiguration(
-      (configuration, outbounds) =>
-          preparation.update(configuration, outbounds, updateParams),
+    preparation.cancelPending();
+    return _finishMutation(
+      _routes.updateConfiguration(
+        (configuration, outbounds) =>
+            preparation.update(configuration, outbounds, updateParams),
+      ),
+      revision,
     );
+  }
+
+  @override
+  Future<String> updateExternalProvider(String providerName) async {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    final preparation = _sourcePreparation;
+    if (preparation == null) {
+      throw const CoreAdapterException('profile_preparation_unavailable');
+    }
+    final revision = ++_profileRevision;
+    preparation.cancelPending();
+    return _finishMutation(
+      _routes.updateConfiguration(
+        (configuration, outbounds) =>
+            preparation.refresh(configuration, outbounds, providerName),
+        preserveMode: true,
+      ),
+      revision,
+    );
+  }
+
+  Future<String> _finishMutation(
+    Future<CoreLifecycleResult> operation,
+    int revision,
+  ) async {
+    final CoreLifecycleResult result;
+    try {
+      result = await operation;
+    } catch (_) {
+      if (_closing != null) throw const CoreAdapterException('closed');
+      if (revision != _profileRevision) {
+        throw const CoreAdapterException('configuration_superseded');
+      }
+      rethrow;
+    }
     if (_closing != null) throw const CoreAdapterException('closed');
     if (revision != _profileRevision ||
         result.outcome == CoreLifecycleOutcome.superseded) {
@@ -364,6 +407,40 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     }
     return (await (source as CoreTelemetry).telemetry()).processes;
   }
+
+  @override
+  Future<List<ExternalProvider>> getExternalProviders() async {
+    final session = _session();
+    final settings = core.configuration?.applicationData;
+    if (settings is! CoreApplicationSettings) {
+      throw const CoreAdapterException('application_settings_unavailable');
+    }
+    final entries = await Isolate.run(() {
+      final byName = <String, ExternalProvider>{};
+      for (final info in settings.providers) {
+        byName[info.name] = ExternalProvider(
+          name: info.name,
+          type: info.kind == CoreProviderKind.proxy ? 'Proxy' : 'Rule',
+          path: settings.providerFiles[info.path] ?? info.path,
+          count: info.count,
+          vehicleType: info.vehicle == CoreProviderVehicle.http
+              ? 'HTTP'
+              : 'File',
+          updateAt: info.loadedAt,
+        );
+      }
+      return byName.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+    });
+    _checkSession(session);
+    return entries;
+  }
+
+  @override
+  Future<ExternalProvider?> getExternalProvider(
+    String externalProviderName,
+  ) async => (await getExternalProviders())
+      .where((entry) => entry.name == externalProviderName)
+      .firstOrNull;
 
   @override
   Future<CoreMemoryStats?> getMemoryStats() async {

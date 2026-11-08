@@ -20,6 +20,9 @@ import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
+import 'package:hotaru/core/config/application_settings.dart';
+import 'package:hotaru/core/provider_cache.dart';
+import 'package:hotaru/core/provider_download.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
@@ -1190,6 +1193,40 @@ void main() {
         request.response.write('application-source-receipt');
         await request.response.close();
       });
+      final sourceServer = await HttpServer.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      addTearDown(() => sourceServer.close(force: true));
+      var sourceReads = 0;
+      final providerBody = jsonEncode({
+        'proxies': [
+          for (final (name, proxyPort) in [
+            ('A', proxyA.server.port),
+            ('B', proxyB.server.port),
+          ])
+            {
+              'name': name,
+              'type': 'http',
+              'server': '127.0.0.1',
+              'port': proxyPort,
+            },
+        ],
+      });
+      sourceServer.listen((request) async {
+        sourceReads++;
+        request.response.headers.set('etag', 'source-v1');
+        if (request.headers.value(HttpHeaders.ifNoneMatchHeader) ==
+            'source-v1') {
+          request.response.statusCode = HttpStatus.notModified;
+        } else {
+          request.response.write(providerBody);
+        }
+        await request.response.close();
+      });
+      final providerCache = await CoreProviderCache.open(
+        '${directory.path}/provider-cache',
+      );
       final occupied = <int>{};
       Future<int> port() async {
         while (true) {
@@ -1238,25 +1275,19 @@ void main() {
               'authentication': ['fixture:password:part'],
               'secret': 'source-not-controller',
               'external-controller': '0.0.0.0:9090',
-              'proxies': [
-                {
-                  'name': 'A',
+              'proxy-providers': {
+                'source': {
                   'type': 'http',
-                  'server': '127.0.0.1',
-                  'port': proxyA.server.port,
+                  'url': 'http://127.0.0.1:${sourceServer.port}/source',
+                  'proxy': 'DIRECT',
+                  'interval': 3600,
                 },
-                {
-                  'name': 'B',
-                  'type': 'http',
-                  'server': '127.0.0.1',
-                  'port': proxyB.server.port,
-                },
-              ],
+              },
               'proxy-groups': [
                 {
                   'name': 'selected',
                   'type': 'select',
-                  'proxies': ['A', 'B'],
+                  'use': ['source'],
                 },
               ],
               'rules': ['MATCH,selected'],
@@ -1264,12 +1295,31 @@ void main() {
           );
       var approved = true;
       var reviews = 0;
-      final handler = SingBoxUiHandler.withProfileFiles(
+      late final SingBoxUiHandler handler;
+      ClashSubscriptionImporter importer(
+        CoreApplicationSettings settings,
+        Set<String> force,
+      ) {
+        final cache = CoreCachedProviderLoader(
+          downloader: CoreProviderDownloader(
+            transport: handler,
+            userAgent: settings.userAgent,
+          ),
+          cache: providerCache,
+        );
+        return ClashSubscriptionImporter(
+          resolve: (request) async => (await cache.loadProxy(
+            request,
+            force: force.contains(request.name),
+          )).text,
+        );
+      }
+
+      handler = SingBoxUiHandler.withProfileFiles(
         core,
         configPath: file.path,
-        importer: (_) => ClashSubscriptionImporter(
-          resolve: (_) => throw StateError('Unexpected provider'),
-        ),
+        importer: (settings) => importer(settings, const {}),
+        refreshImporter: importer,
         listeners: (profile, settings) async => CoreListenerSpec(
           mixedPort: settings.mixedPort,
           controllerPort: listeners.controllerPort,
@@ -1310,6 +1360,12 @@ void main() {
         expect(processes.last.hasExited, isTrue);
         record();
         expect(core.configuration!.profileId, 11);
+        expect(sourceReads, 1);
+        expect((await controller.getExternalProviders()).single.count, 2);
+        expect(
+          (await controller.getExternalProvider('source'))!.vehicleType,
+          'HTTP',
+        );
         expect(core.configuration!.listeners.secret, listeners.secret);
         expect(core.configuration!.listeners.inboundsEnabled, isFalse);
         expect(await controller.startListener(), isTrue);
@@ -1465,6 +1521,22 @@ void main() {
         );
         expect(core.configuration!.listeners.mixedPort, updatedPort);
         expect(processes.last.hasExited, isFalse);
+        await controller.updateExternalProvider(providerName: 'source');
+        expect(processes.last.hasExited, isTrue);
+        record();
+        await _expectSystem(pids.last);
+        expect(sourceReads, 2);
+        expect((await controller.getExternalProviders()).single.count, 2);
+        expect(
+          (await core.adapter.outbounds())
+              .singleWhere((node) => node.name == 'selected')
+              .selected,
+          'B',
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (5, 1, 3),
+        );
       } finally {
         await controller.close();
         await proxyA.close();
@@ -1486,6 +1558,7 @@ void main() {
       report['application_http_probe_observation'] = true;
       report['application_process_counters'] = true;
       report['application_runtime_update'] = true;
+      report['application_provider_cache_refresh'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

@@ -47,10 +47,14 @@ final class SingBoxUiRoutes {
   int _version = 0;
   _Policy? _lastPolicy;
   AcceptedSingBoxConfig? _requestedConfiguration;
-  Future<AcceptedSingBoxConfig?> Function(
-    AcceptedSingBoxConfig,
-    List<CoreOutbound>,
-  )?
+  ({
+    Future<AcceptedSingBoxConfig?> Function(
+      AcceptedSingBoxConfig,
+      List<CoreOutbound>,
+    )
+    prepare,
+    bool preserveMode,
+  })?
   _requestedUpdate;
   AcceptedSingBoxConfig? _lastSubmitted;
   bool? _requestedInbounds;
@@ -161,10 +165,11 @@ final class SingBoxUiRoutes {
       AcceptedSingBoxConfig,
       List<CoreOutbound>,
     )
-    update,
-  ) {
+    update, {
+    bool preserveMode = false,
+  }) {
     _adoptCommittedConfiguration();
-    _requestedUpdate = update;
+    _requestedUpdate = (prepare: update, preserveMode: preserveMode);
     return _requestConfiguration();
   }
 
@@ -232,7 +237,7 @@ final class SingBoxUiRoutes {
         var base = _requestedConfiguration ?? before.configuration;
         final update = _requestedUpdate;
         if (update != null) {
-          final updated = await update(base, before.outbounds);
+          final updated = await update.prepare(base, before.outbounds);
           if (!_configurationCurrent(revision)) return null;
           if (updated == null) {
             throw const CoreAdapterException('configuration_review_cancelled');
@@ -246,7 +251,9 @@ final class SingBoxUiRoutes {
         final prepared = await prepareSingBoxRuntime(
           configuration: base,
           enabled: enabled,
-          mode: preserve ? before.mode : base.listeners.initialMode,
+          mode: preserve || update?.preserveMode == true
+              ? before.mode
+              : base.listeners.initialMode,
           outbounds: before.outbounds,
           preserveSelections: preserve,
         );

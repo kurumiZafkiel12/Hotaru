@@ -7,11 +7,14 @@ import 'package:path/path.dart' as p;
 import '../routing_mode.dart';
 import 'encoding.dart';
 import 'profile.dart';
+import 'provider_info.dart';
 import 'runtime_options.dart';
 import 'yaml_document.dart';
 
 final class CoreApplicationSettings {
   final String source;
+  final List<CoreProviderInfo> providers;
+  final List<CoreConfigIssue> importIssues;
   final String _document;
   final List<CoreConfigIssue> issues;
   final int mixedPort;
@@ -26,6 +29,8 @@ final class CoreApplicationSettings {
 
   CoreApplicationSettings._({
     required this.source,
+    List<CoreProviderInfo> providers = const [],
+    List<CoreConfigIssue> importIssues = const [],
     required String document,
     required List<CoreConfigIssue> issues,
     required this.mixedPort,
@@ -37,7 +42,9 @@ final class CoreApplicationSettings {
     required this.userAgent,
     required Map<String, String> geoUrls,
     required Map<String, String> providerFiles,
-  }) : _document = document,
+  }) : importIssues = List.unmodifiable(importIssues),
+       providers = List.unmodifiable(providers),
+       _document = document,
        issues = List.unmodifiable(issues),
        geoUrls = Map.unmodifiable(geoUrls),
        providerFiles = Map.unmodifiable(providerFiles);
@@ -53,6 +60,26 @@ final class CoreApplicationSettings {
     );
   }
 
+  CoreApplicationSettings withProviders(
+    List<CoreProviderInfo> providers, {
+    List<CoreConfigIssue>? importIssues,
+  }) => CoreApplicationSettings._(
+    source: source,
+    document: _document,
+    issues: issues,
+    providers: providers,
+    importIssues: importIssues ?? this.importIssues,
+    mixedPort: mixedPort,
+    inbound: inbound,
+    runtime: runtime,
+    tun: tun,
+    mode: mode,
+    dnsPort: dnsPort,
+    userAgent: userAgent,
+    geoUrls: geoUrls,
+    providerFiles: providerFiles,
+  );
+
   Future<CoreApplicationSettingsResult> updated(
     Map<String, Object?> values, {
     required bool skipCertVerify,
@@ -60,6 +87,8 @@ final class CoreApplicationSettings {
     final patch = Map<String, Object?>.of(values);
     final source = _document;
     final files = providerFiles;
+    final retainedProviders = providers;
+    final retainedIssues = importIssues;
     return Isolate.run(() {
       const allowed = {
         'tun',
@@ -89,10 +118,17 @@ final class CoreApplicationSettings {
           }
         }
       }
-      return _SettingsReader().read(
+      final projected = _SettingsReader().read(
         utf8.decode(CoreConfigEncoding.encode(document)),
         skipCertVerify,
         files,
+      );
+      return CoreApplicationSettingsResult(
+        projected.settings?.withProviders(
+          retainedProviders,
+          importIssues: retainedIssues,
+        ),
+        projected.issues,
       );
     });
   }

@@ -219,6 +219,100 @@ void main() {
   );
 
   test(
+    'provider refresh rebuilds actual memberships and preserves runtime policy and source identity',
+    () async {
+      await config.writeAsString('''
+proxy-providers:
+  remote: {type: http, url: https://example.com/provider, interval: 3600}
+proxy-groups:
+  - {name: group, type: select, use: [remote]}
+rules: ["MATCH,group"]
+ipv6: true
+''');
+      var members = ['A', 'B'];
+      resolve = (_) async => jsonEncode({
+        'proxies': [
+          for (final name in members)
+            {
+              'name': name,
+              'type': 'http',
+              'server': '127.0.0.1',
+              'port': 18080,
+            },
+        ],
+      });
+      final before = (await preparation.prepare(_params, 7))!;
+      final info =
+          (before.applicationData as CoreApplicationSettings).providers.single;
+      expect(
+        (info.name, info.count, info.interval),
+        ('remote', 2, const Duration(hours: 1)),
+      );
+      final patched = (await preparation.update(before, [], patch()))!;
+      expect(
+        (patched.applicationData as CoreApplicationSettings)
+            .providers
+            .single
+            .count,
+        2,
+      );
+      expect(resolutions, 1);
+      members = ['A', 'C'];
+      final refreshed = (await preparation.refresh(patched, [
+        const CoreOutbound(
+          name: 'group',
+          type: 'Selector',
+          members: ['A', 'B'],
+          selected: 'B',
+        ),
+      ], 'remote'))!;
+      expect(refreshed.profileId, 7);
+      expect(refreshed.profile.nodes.map((node) => node.tag), ['A', 'C']);
+      expect(refreshed.profile.selectors.single.selected, isNull);
+      expect(refreshed.listeners.mixedPort, 17999);
+      expect(refreshed.profile.runtime.skipCertVerify, isTrue);
+      expect(resolutions, 2);
+      expect(before.profile.nodes.map((node) => node.tag), ['A', 'B']);
+      await expectLater(
+        preparation.refresh(refreshed, [], 'missing'),
+        throwsA(isA<CoreAdapterException>()),
+      );
+      resolve = (_) async => 'proxies: [invalid]';
+      expect(await preparation.refresh(refreshed, [], 'remote'), isNull);
+      expect(refreshed.profile.nodes.map((node) => node.tag), ['A', 'C']);
+    },
+  );
+
+  test(
+    'closing cancels an in-flight provider refresh before a late payload can bind',
+    () async {
+      await config.writeAsString('''
+proxy-providers:
+  remote: {type: http, url: https://example.com/provider}
+proxy-groups:
+  - {name: group, type: select, use: [remote]}
+rules: ["MATCH,group"]
+ipv6: true
+''');
+      const payload =
+          'proxies: [{name: A, type: http, server: 127.0.0.1, port: 18080}]';
+      resolve = (_) async => payload;
+      final before = (await preparation.prepare(_params, 7))!;
+      final entered = Completer<void>();
+      final response = Completer<String>();
+      resolve = (_) {
+        entered.complete();
+        return response.future;
+      };
+      final pending = preparation.refresh(before, [], 'remote');
+      await entered.future;
+      preparation.close();
+      expect(await pending.timeout(const Duration(seconds: 2)), isNull);
+      response.complete(payload);
+    },
+  );
+
+  test(
     'actual source files prepare selected nodes and keep private controls outside source settings',
     () async {
       await config.writeAsString(

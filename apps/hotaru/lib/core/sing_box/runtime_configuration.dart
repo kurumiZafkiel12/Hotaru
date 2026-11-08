@@ -14,11 +14,12 @@ Future<AcceptedSingBoxConfig> prepareSingBoxRuntime({
   required List<CoreOutbound> outbounds,
   required bool preserveSelections,
   CoreRuntimeOptions? runtime,
+  CoreProfileSpec? replacementProfile,
   CoreListenerSpec? listeners,
   Object? applicationData,
 }) async {
   final (:profile, :global) = await _runtimeData(
-    configuration.profile,
+    replacementProfile ?? configuration.profile,
     outbounds,
     preserveSelections,
     configuration.listeners.globalSelection,
@@ -71,7 +72,9 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
           tag: group.tag,
           members: group.members,
           selected: group.strategy == CoreGroupStrategy.selector
-              ? selected[group.tag] ?? group.selected
+              ? group.members.contains(selected[group.tag])
+                    ? selected[group.tag]
+                    : group.selected
               : null,
           strategy: group.strategy,
           testUrl: group.testUrl,
@@ -87,6 +90,12 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
   );
   return (
     profile: updated,
-    global: preserve ? global ?? initialGlobal : initialGlobal,
+    global: modes.global.members.contains(preserve ? global : initialGlobal)
+        ? preserve
+              ? global
+              : initialGlobal
+        : modes.global.members.contains(initialGlobal)
+        ? initialGlobal
+        : null,
   );
 });

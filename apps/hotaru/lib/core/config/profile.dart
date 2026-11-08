@@ -1,4 +1,5 @@
 import 'dns.dart';
+import 'provider_info.dart';
 import 'probe_listener.dart';
 import 'rule_set.dart';
 import 'runtime_options.dart';
@@ -286,8 +287,14 @@ final class CoreConfigImportResult {
   final CoreProfileSpec? profile;
   final List<CoreConfigIssue> issues;
 
-  CoreConfigImportResult({this.profile, required List<CoreConfigIssue> issues})
-    : issues = List.unmodifiable(issues);
+  final List<CoreProviderInfo> providers;
+
+  CoreConfigImportResult({
+    this.profile,
+    required List<CoreConfigIssue> issues,
+    List<CoreProviderInfo> providers = const [],
+  }) : issues = List.unmodifiable(issues),
+       providers = List.unmodifiable(providers);
 }
 
 final class CoreConfigBuildResult {

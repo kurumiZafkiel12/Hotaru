@@ -21,6 +21,12 @@ final class SingBoxApplicationProfilePreparer {
   )
   listeners;
   final Future<bool> Function(List<CoreConfigIssue>) review;
+  final ClashSubscriptionImporter Function(
+    CoreApplicationSettings,
+    Set<String>,
+  )?
+  refreshImporter;
+  Completer<CoreConfigImportResult?>? _refreshCancellation;
   final SingBoxConfigPreparer _preparer = SingBoxConfigPreparer();
   int _revision = 0;
   bool _closed = false;
@@ -31,6 +37,7 @@ final class SingBoxApplicationProfilePreparer {
     required this.importer,
     required this.listeners,
     required this.review,
+    this.refreshImporter,
     Map<String, String> providerFiles = const {},
   }) : providerFiles = Map.unmodifiable(providerFiles);
 
@@ -151,7 +158,10 @@ final class SingBoxApplicationProfilePreparer {
     if (!_current(revision)) return null;
     return _preparer.prepare(
       profileId: profileId,
-      applicationData: settings,
+      applicationData: settings.withProviders(
+        imported.providers,
+        importIssues: imported.issues,
+      ),
       import: () async =>
           CoreConfigImportResult(profile: updated, issues: issues),
       listeners: bound.withRuntime(
@@ -211,6 +221,76 @@ final class SingBoxApplicationProfilePreparer {
     return _current(revision) ? updated : null;
   }
 
+  Future<AcceptedSingBoxConfig?> refresh(
+    AcceptedSingBoxConfig configuration,
+    List<CoreOutbound> outbounds,
+    String providerName,
+  ) async {
+    if (_closed) throw StateError('Profile preparation is closed');
+    final settings = configuration.applicationData;
+    if (settings is! CoreApplicationSettings ||
+        !settings.providers.any((info) => info.name == providerName)) {
+      throw const CoreAdapterException('provider_not_found');
+    }
+    final revision = ++_revision;
+    _cancelReview();
+    _preparer.cancel();
+    final cancellation = Completer<CoreConfigImportResult?>();
+    _refreshCancellation = cancellation;
+    final CoreConfigImportResult? imported;
+    try {
+      final loader =
+          refreshImporter?.call(settings, {providerName}) ?? importer(settings);
+      imported = await Future.any([
+        loader.import(settings.source),
+        cancellation.future,
+      ]);
+    } finally {
+      if (identical(_refreshCancellation, cancellation)) {
+        _refreshCancellation = null;
+      }
+    }
+    if (!_current(revision) || imported == null) return null;
+    final profile = imported.profile;
+    if (profile == null ||
+        imported.issues.any(
+          (issue) => issue.severity == CoreConfigIssueSeverity.error,
+        )) {
+      return _reject(revision, imported.issues);
+    }
+    final newIssues = imported.issues
+        .where(
+          (issue) => !settings.importIssues.any(
+            (old) =>
+                old.code == issue.code &&
+                old.path == issue.path &&
+                old.severity == issue.severity,
+          ),
+        )
+        .toList();
+    if (newIssues.isNotEmpty) {
+      final approved = await _requestReview(newIssues, revision);
+      if (!_current(revision) || !approved) return null;
+    }
+    final bound = await listeners(profile, settings);
+    if (!_current(revision)) return null;
+    final updated = await prepareSingBoxRuntime(
+      configuration: configuration,
+      replacementProfile: profile,
+      enabled: configuration.listeners.inboundsEnabled,
+      mode: settings.mode,
+      outbounds: outbounds,
+      preserveSelections: true,
+      runtime: settings.runtime,
+      listeners: bound,
+      applicationData: settings.withProviders(
+        imported.providers,
+        importIssues: imported.issues,
+      ),
+    );
+    return _current(revision) ? updated : null;
+  }
+
   Future<AcceptedSingBoxConfig?> _reject(
     int revision,
     List<CoreConfigIssue> issues,
@@ -236,11 +316,20 @@ final class SingBoxApplicationProfilePreparer {
   }
 
   void _cancelReview() {
+    final refresh = _refreshCancellation;
+    _refreshCancellation = null;
+    if (refresh != null && !refresh.isCompleted) refresh.complete(null);
     final cancellation = _reviewCancellation;
     _reviewCancellation = null;
     if (cancellation != null && !cancellation.isCompleted) {
       cancellation.complete(false);
     }
+  }
+
+  void cancelPending() {
+    _revision++;
+    _cancelReview();
+    _preparer.cancel();
   }
 
   void close() {

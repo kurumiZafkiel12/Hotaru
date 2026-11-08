@@ -14,6 +14,7 @@ import 'routed_http.dart';
 final class CoreProviderPayload {
   final String text;
   final DateTime fetchedAt;
+  final DateTime? validatedAt;
   final Uri? finalUrl;
   final String? etag;
   final String? lastModified;
@@ -22,6 +23,7 @@ final class CoreProviderPayload {
   const CoreProviderPayload({
     required this.text,
     required this.fetchedAt,
+    this.validatedAt,
     this.finalUrl,
     this.etag,
     this.lastModified,
@@ -55,31 +57,37 @@ final class CoreProviderDownloader {
   Future<String> resolveRule(CoreRuleProviderRequest request) async =>
       (await loadRule(request)).text;
 
-  Future<CoreProviderPayload> loadProxy(CoreProxyProviderRequest request) =>
-      _guard(
-        () => request.kind == CoreProxyProviderKind.file
-            ? _file(request.path, request.maxBytes, request.timeout)
-            : _http(
-                request.url,
-                request.headers,
-                request.outbound,
-                request.maxBytes,
-                request.timeout,
-              ),
-      );
+  Future<CoreProviderPayload> loadProxy(
+    CoreProxyProviderRequest request, {
+    CoreProviderPayload? cached,
+  }) => _guard(
+    () => request.kind == CoreProxyProviderKind.file
+        ? _file(request.path, request.maxBytes, request.timeout)
+        : _http(
+            request.url,
+            request.headers,
+            request.outbound,
+            request.maxBytes,
+            request.timeout,
+            cached: cached,
+          ),
+  );
 
-  Future<CoreProviderPayload> loadRule(CoreRuleProviderRequest request) =>
-      _guard(
-        () => request.url == null
-            ? _file(request.path, request.maxBytes, request.timeout)
-            : _http(
-                request.url,
-                const {},
-                request.outbound,
-                request.maxBytes,
-                request.timeout,
-              ),
-      );
+  Future<CoreProviderPayload> loadRule(
+    CoreRuleProviderRequest request, {
+    CoreProviderPayload? cached,
+  }) => _guard(
+    () => request.url == null
+        ? _file(request.path, request.maxBytes, request.timeout)
+        : _http(
+            request.url,
+            const {},
+            request.outbound,
+            request.maxBytes,
+            request.timeout,
+            cached: cached,
+          ),
+  );
 
   Future<CoreProviderPayload> _guard(
     Future<CoreProviderPayload> Function() operation,
@@ -119,8 +127,9 @@ final class CoreProviderDownloader {
     Map<String, List<String>> headers,
     String? sourceOutbound,
     int maxBytes,
-    Duration timeout,
-  ) async {
+    Duration timeout, {
+    CoreProviderPayload? cached,
+  }) async {
     if (url == null ||
         maxBytes < 1 ||
         maxBytes > CoreConfigEncoding.maxBytes ||
@@ -134,6 +143,9 @@ final class CoreProviderDownloader {
         sourceOutbound != 'DIRECT' &&
         outbound == null) {
       throw const CoreAdapterException('provider_route_binding_required');
+    }
+    if (cached != null) {
+      await _validateCachedPayload(cached, maxBytes);
     }
     final agent = userAgent;
     final prepared = await Isolate.run(
@@ -149,7 +161,31 @@ final class CoreProviderDownloader {
           requestHeaders.forEach(
             (key, values) => request.headers.set(key, values),
           );
+          final conditional =
+              cached != null &&
+              target == cached.finalUrl &&
+              (cached.etag != null || cached.lastModified != null);
+          if (conditional) {
+            if (cached.etag case final value?) {
+              request.headers.set(HttpHeaders.ifNoneMatchHeader, value);
+            }
+            if (cached.lastModified case final value?) {
+              request.headers.set(HttpHeaders.ifModifiedSinceHeader, value);
+            }
+          }
           final response = await request.close();
+          if (response.statusCode == HttpStatus.notModified && conditional) {
+            await response.listen((_) {}, onError: (Object _) {}).cancel();
+            return CoreProviderPayload(
+              text: cached.text,
+              fetchedAt: cached.fetchedAt,
+              validatedAt: DateTime.now().toUtc(),
+              finalUrl: cached.finalUrl,
+              etag: cached.etag,
+              lastModified: cached.lastModified,
+              subscriptionInfo: cached.subscriptionInfo,
+            );
+          }
           if (const {301, 302, 303, 307, 308}.contains(response.statusCode)) {
             final location = response.headers.value(HttpHeaders.locationHeader);
             await response.listen((_) {}, onError: (Object _) {}).cancel();
@@ -300,3 +336,16 @@ final class _ProviderRequest {
 
 Future<String> _decode(Uint8List bytes) =>
     Isolate.run(() => utf8.decode(bytes));
+
+Future<void> _validateCachedPayload(CoreProviderPayload cached, int maxBytes) =>
+    Isolate.run(() {
+      if (utf8.encode(cached.text).length > maxBytes ||
+          [cached.etag, cached.lastModified].any(
+            (value) =>
+                value != null &&
+                (value.length > 8192 ||
+                    value.contains(RegExp(r'[\x00-\x1f\x7f]'))),
+          )) {
+        throw const CoreAdapterException('invalid_cached_provider');
+      }
+    });

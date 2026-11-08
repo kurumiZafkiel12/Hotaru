@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 import 'clash_importer.dart';
 import 'clash_rule_sets.dart';
 import 'profile.dart';
+import 'provider_info.dart';
 import 'geodata.dart';
 import 'yaml_document.dart';
 
@@ -92,6 +93,7 @@ final class ClashSubscriptionImporter {
     }
     final issues = [...prepared.issues];
     final payloads = <String, String>{};
+    final loaded = <String, DateTime>{};
     var next = 0;
     var totalBytes = 0;
     var aborted = false;
@@ -115,6 +117,7 @@ final class ClashSubscriptionImporter {
             issues.add(CoreConfigIssue('provider_total_size_exceeded', path));
           } else {
             payloads[request.name] = content;
+            loaded[request.name] = DateTime.now().toUtc();
           }
         } catch (_) {
           aborted = true;
@@ -129,6 +132,7 @@ final class ClashSubscriptionImporter {
     issues.addAll(expanded.issues);
     if (_hasErrors(issues)) return CoreConfigImportResult(issues: issues);
     var document = expanded.document;
+    final ruleProviders = <CoreProviderInfo>[];
     if (document.containsKey('rule-providers')) {
       final ExpandedClashRules ruleSets = await ClashRuleSetImporter(
         resolve: resolveRules,
@@ -140,6 +144,7 @@ final class ClashSubscriptionImporter {
         return CoreConfigImportResult(issues: issues);
       }
       document = ruleSets.document!;
+      ruleProviders.addAll(ruleSets.providers);
     }
     final imported = await ClashProfileImporter().importDocument(
       document,
@@ -153,7 +158,25 @@ final class ClashSubscriptionImporter {
           : issue.path;
       issues.add(CoreConfigIssue(issue.code, path, severity: issue.severity));
     }
-    return CoreConfigImportResult(profile: imported.profile, issues: issues);
+    return CoreConfigImportResult(
+      profile: imported.profile,
+      issues: issues,
+      providers: [
+        for (final request in prepared.requests)
+          CoreProviderInfo(
+            name: request.name,
+            kind: CoreProviderKind.proxy,
+            vehicle: request.kind == CoreProxyProviderKind.http
+                ? CoreProviderVehicle.http
+                : CoreProviderVehicle.file,
+            path: request.path,
+            count: expanded.counts[request.name] ?? 0,
+            loadedAt: loaded[request.name]!,
+            interval: request.interval,
+          ),
+        ...ruleProviders,
+      ],
+    );
   }
 }
 
@@ -190,7 +213,13 @@ final class _ExpandedClash {
   final List<String> origins;
   final List<CoreConfigIssue> issues;
 
-  const _ExpandedClash(this.document, this.origins, this.issues);
+  final Map<String, int> counts;
+  const _ExpandedClash(
+    this.document,
+    this.origins,
+    this.issues, [
+    this.counts = const {},
+  ]);
 }
 
 final class _ProviderImport {
@@ -407,6 +436,7 @@ final class _ProviderImport {
   _ExpandedClash expand(ClashProviderPlan plan, Map<String, String> payloads) {
     final root = Map<String, dynamic>.of(plan._document);
     final origins = <String>[];
+    final counts = <String, int>{};
     try {
       final nodes = List<dynamic>.of(list(root['proxies'] ?? []));
       if (nodes.length > nodeLimit) {
@@ -461,6 +491,7 @@ final class _ProviderImport {
           issue('invalid_provider_payload', path);
         }
         memberships[name] = members;
+        counts[name] = members.length;
         providerIndex++;
       }
       final allProviders = _sortedNames(memberships.keys);
@@ -530,6 +561,6 @@ final class _ProviderImport {
     } on FormatException {
       issue('invalid_provider_document', 'document');
     }
-    return _ExpandedClash(root, origins, issues);
+    return _ExpandedClash(root, origins, issues, counts);
   }
 }

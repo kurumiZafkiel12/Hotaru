@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'profile.dart';
+import 'provider_info.dart';
 import 'geodata.dart';
 import 'encoding.dart';
 import 'ip_prefix.dart';
@@ -42,8 +43,16 @@ final class ExpandedClashRules {
   final Map<String, dynamic>? document;
   final List<CoreConfigIssue> issues;
 
-  ExpandedClashRules(this.document, List<CoreConfigIssue> issues)
-    : issues = List.unmodifiable(issues);
+  final Map<String, int> counts;
+  final List<CoreProviderInfo> providers;
+  ExpandedClashRules(
+    this.document,
+    List<CoreConfigIssue> issues, {
+    Map<String, int> counts = const {},
+    List<CoreProviderInfo> providers = const [],
+  }) : issues = List.unmodifiable(issues),
+       counts = Map.unmodifiable(counts),
+       providers = List.unmodifiable(providers);
 }
 
 final class ClashRuleSetImporter {
@@ -66,6 +75,7 @@ final class ClashRuleSetImporter {
     if (_errors(plan.issues)) return ExpandedClashRules(null, plan.issues);
     final issues = [...plan.issues];
     final payloads = <String, String>{};
+    final loaded = <String, DateTime>{};
     var next = 0;
     var total = 0;
     var aborted = false;
@@ -95,6 +105,7 @@ final class ClashRuleSetImporter {
             aborted = true;
           } else {
             payloads[request.name] = payload;
+            loaded[request.name] = DateTime.now().toUtc();
           }
         } catch (_) {
           issues.add(CoreConfigIssue('rule_provider_resolution_failed', path));
@@ -106,10 +117,24 @@ final class ClashRuleSetImporter {
     await Future.wait(List.generate(concurrency, (_) => worker()));
     if (_errors(issues)) return ExpandedClashRules(null, issues);
     final expanded = await _expandRules(plan, payloads);
-    return ExpandedClashRules(expanded.document, [
-      ...issues,
-      ...expanded.issues,
-    ]);
+    return ExpandedClashRules(
+      expanded.document,
+      [...issues, ...expanded.issues],
+      providers: [
+        for (final request in plan.requests)
+          CoreProviderInfo(
+            name: request.name,
+            kind: CoreProviderKind.rule,
+            vehicle: request.url == null
+                ? CoreProviderVehicle.file
+                : CoreProviderVehicle.http,
+            path: request.path,
+            count: expanded.counts[request.name] ?? 0,
+            loadedAt: loaded[request.name]!,
+            interval: request.interval,
+          ),
+      ],
+    );
   }
 }
 
@@ -483,7 +508,11 @@ final class _RuleImport {
     }
     final document = {...plan.document}..remove('rule-providers');
     document['rules'] = rules;
-    return ExpandedClashRules(_errors(issues) ? null : document, issues);
+    return ExpandedClashRules(
+      _errors(issues) ? null : document,
+      issues,
+      counts: entries.map((key, value) => MapEntry(key, value.length)),
+    );
   }
 }
 

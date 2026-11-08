@@ -230,11 +230,10 @@ void main() {
       try {
         final file = await File('${directory.path}/config.yaml').writeAsString(
           '''
-proxies:
-  - {name: A, type: http, server: 127.0.0.1, port: 18080}
-  - {name: B, type: http, server: 127.0.0.1, port: 18081}
+proxy-providers:
+  remote: {type: http, url: https://provider.invalid/source}
 proxy-groups:
-  - {name: group, type: select, proxies: [A, B]}
+  - {name: group, type: select, use: [remote]}
 rules: ["MATCH,group"]
 ipv6: true
 find-process-mode: always
@@ -242,11 +241,15 @@ mixed-port: 17990
 authentication: ["fixture:one:two"]
 ''',
         );
+        var providerReads = 0;
         final handler = SingBoxUiHandler.withProfileFiles(
           core,
           configPath: file.path,
           importer: (_) => ClashSubscriptionImporter(
-            resolve: (_) => throw StateError('Unexpected provider'),
+            resolve: (_) async {
+              providerReads++;
+              return 'proxies: [{name: A, type: http, server: 127.0.0.1, port: 18080}, {name: B, type: http, server: 127.0.0.1, port: 18081}]';
+            },
           ),
           listeners: (profile, settings) async => CoreListenerSpec(
             mixedPort: settings.mixedPort,
@@ -266,6 +269,12 @@ authentication: ["fixture:one:two"]
           '',
         );
         expect(submitted.single.profileId, 11);
+        final provider = (await handler.getExternalProviders()).single;
+        expect(
+          (provider.name, provider.count, provider.type, provider.vehicleType),
+          ('remote', 2, 'Proxy', 'HTTP'),
+        );
+        expect(await handler.getExternalProvider('missing'), isNull);
         expect(
           binding.current.profile.nodes
               .firstWhere((node) => node.tag == 'A')
@@ -321,6 +330,12 @@ authentication: ["fixture:one:two"]
         );
         expect(binding.current.listeners.mixedPort, 17999);
         expect(identical(before, binding.current), isFalse);
+        expect(providerReads, 1);
+        expect(await handler.updateExternalProvider('remote'), '');
+        expect(providerReads, 2);
+        expect((selected, mode), ('B', CoreRoutingMode.direct));
+        expect((await handler.getExternalProvider('remote'))!.count, 2);
+        expect(binding.current.listeners.mixedPort, 17999);
       } finally {
         await directory.delete(recursive: true);
       }
