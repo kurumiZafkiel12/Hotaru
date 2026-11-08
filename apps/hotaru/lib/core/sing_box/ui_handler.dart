@@ -33,6 +33,7 @@ import 'desktop_core.dart';
 import 'config_preparation.dart';
 import 'ui_routes.dart';
 import 'ui_traffic.dart';
+import 'http_probe.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
     implements
@@ -49,6 +50,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   late final SingBoxUiRoutes _routes;
   late final SingBoxUiTraffic _traffic;
   late final SingBoxRoutedHttp _routedHttp;
+  late final SingBoxHttpProbe _probe;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
   int _profileRevision = 0;
@@ -71,6 +73,16 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         publish(CoreEvent(type: CoreEventType.log, data: log.toJson()));
     _traffic = SingBoxUiTraffic(core: core, elapsed: trafficElapsed);
     _routedHttp = SingBoxRoutedHttp(core);
+    _probe = SingBoxHttpProbe(
+      transport: _routedHttp,
+      observe: () {
+        final source = core.adapter;
+        if (source is! CoreTelemetry) {
+          throw const CoreAdapterException('telemetry_unavailable');
+        }
+        return (source as CoreTelemetry).telemetry();
+      },
+    );
     _routes = SingBoxUiRoutes(
       core: core,
       onChange: (snapshot) => publish(
@@ -497,6 +509,9 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     _checkSession(session);
     return result;
   }
+
+  @override
+  Future<ProbeResult> probe(ProbeParams params) => _probe.probe(params);
 
   @override
   Future<Delay> asyncTestDelay(
