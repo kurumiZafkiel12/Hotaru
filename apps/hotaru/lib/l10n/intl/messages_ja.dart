@@ -561,6 +561,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "この項目は変換後に動作が変わります。詳細な位置を確認してください。",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "新しいコア独自の接続スケジューリングと遅延測定を使用するため、以前のバージョンと結果が異なる場合があります。",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "グループ内の重複したノード参照は統合されます。",
     ),
@@ -597,6 +600,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage("設定変換の確認"),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "仮想アダプターは sing-box のシステムネットワークスタックを使用します。元の設定とは異なります。",
+    ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "この項目は変換できません。詳細な位置を確認してください。",
     ),

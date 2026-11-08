@@ -519,6 +519,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "此选项在转换后的处理方式存在差异，请查看详细位置。",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "新内核采用自身的连接调度和延迟测量方式，结果可能与旧版本不同。",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "同组内重复的节点引用已合并。",
     ),
@@ -555,6 +558,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage("配置转换检查"),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "虚拟网卡将使用 sing-box 的系统网络栈，与原配置的网络栈不同。",
+    ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "此选项无法转换，请查看详细位置。",
     ),

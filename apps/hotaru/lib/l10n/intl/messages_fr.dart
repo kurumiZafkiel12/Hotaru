@@ -719,6 +719,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Le comportement de cette option change après conversion. Consultez son emplacement technique.",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "Le nouveau moteur utilise sa propre planification des connexions et mesure de latence ; les résultats peuvent différer de la version précédente.",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "Les références de nœuds en double dans un groupe sont fusionnées.",
     ),
@@ -756,6 +759,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage(
       "Vérification de la conversion",
+    ),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "L’adaptateur virtuel utilisera la pile réseau système de sing-box, différente de la configuration d’origine.",
     ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "Cette option ne peut pas être convertie. Consultez son emplacement technique.",

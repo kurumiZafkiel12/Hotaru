@@ -145,6 +145,8 @@ class ConfigurationReviewDialog extends StatelessWidget {
     'provider_cache_path_client_owned' => l10n.configurationReviewOwned,
     'metadata_field_ignored' => l10n.configurationReviewMetadata,
     'ip_resolution_semantics_changed' => l10n.configurationReviewIpRules,
+    'native_tun_stack_changed' => l10n.configurationReviewTunStack,
+    'native_dial_semantics_changed' => l10n.configurationReviewDial,
     'geoip_database_changed' => l10n.configurationReviewGeo,
     'dns_hosts_not_migrated' ||
     'dns_system_hosts_not_migrated' => l10n.configurationReviewHosts,

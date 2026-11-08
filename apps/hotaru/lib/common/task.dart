@@ -370,7 +370,9 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .map((item) => item.definition)
         .toList();
   }
-  final speedTestGroup = injectSpeedTestRoute(rawConfig);
+  final speedTestGroup = data.scopedOutboundClients
+      ? ''
+      : injectSpeedTestRoute(rawConfig);
   if (realPatchConfig.blockCommonStun) {
     rules = [
       'AND,((NETWORK,UDP),(DST-PORT,3478)),REJECT',

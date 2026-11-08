@@ -1238,5 +1238,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "configurationReviewTunStack": "El adaptador virtual usará la pila de red del sistema de sing-box, distinta de la configuración original.",
+  "configurationReviewDial": "El nuevo núcleo utiliza su propia planificación de conexiones y medición de latencia; los resultados pueden diferir de la versión anterior."
 }

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/config/rule_set.dart';
 import 'package:hotaru/core/desktop/lifecycle.dart';
 import 'package:hotaru/core/desktop/model.dart';
@@ -215,6 +217,70 @@ void main() {
   const params = SetupParams(
     selectedMap: {},
     testUrl: 'http://fixture.invalid',
+  );
+
+  test(
+    'file-backed application handler reviews and applies actual configuration output',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'hotaru-ui-source-',
+      );
+      try {
+        final file = await File('${directory.path}/config.yaml').writeAsString(
+          '''
+proxies:
+  - {name: A, type: http, server: 127.0.0.1, port: 18080}
+  - {name: B, type: http, server: 127.0.0.1, port: 18081}
+proxy-groups:
+  - {name: group, type: select, proxies: [A, B]}
+rules: ["MATCH,group"]
+ipv6: true
+find-process-mode: always
+mixed-port: 17990
+authentication: ["fixture:one:two"]
+''',
+        );
+        final handler = SingBoxUiHandler.withProfileFiles(
+          core,
+          configPath: file.path,
+          importer: (_) => ClashSubscriptionImporter(
+            resolve: (_) => throw StateError('Unexpected provider'),
+          ),
+          listeners: (profile, settings) async => CoreListenerSpec(
+            mixedPort: settings.mixedPort,
+            controllerPort: 19090,
+            secret: 'owned',
+            inbound: settings.inbound,
+          ),
+          review: (_) async => true,
+          onEvent: (_) {},
+        );
+        handlers.add(handler);
+        expect(
+          await handler.setupProfile(
+            params.copyWith(selectedMap: {'group': 'A'}),
+            profileId: 11,
+          ),
+          '',
+        );
+        expect(submitted.single.profileId, 11);
+        expect(
+          binding.current.profile.nodes
+              .firstWhere((node) => node.tag == 'A')
+              .server,
+          '127.0.0.1',
+        );
+        expect(binding.current.profile.runtime.findProcess, isTrue);
+        expect(binding.current.listeners.mixedPort, 17990);
+        expect(
+          binding.current.listeners.inbound!.users.single.password,
+          'one:two',
+        );
+        expect(selected, 'A');
+      } finally {
+        await directory.delete(recursive: true);
+      }
+    },
   );
 
   test(

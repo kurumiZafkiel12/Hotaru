@@ -10297,6 +10297,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.`
+  String get configurationReviewTunStack {
+    return Intl.message(
+      'The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.',
+      name: 'configurationReviewTunStack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.`
+  String get configurationReviewDial {
+    return Intl.message(
+      'The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.',
+      name: 'configurationReviewDial',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

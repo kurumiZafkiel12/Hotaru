@@ -7,6 +7,10 @@ import '../../common/common.dart';
 import '../../enum/enum.dart';
 import '../../l10n/l10n.dart';
 import '../adapter.dart';
+import '../config/application_settings.dart';
+import '../config/clash_subscription.dart';
+import '../config/profile.dart';
+import 'application_profile.dart';
 import '../logs.dart';
 import '../config/mode_outbounds.dart';
 import '../config/share_links.dart';
@@ -42,6 +46,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
   int _profileRevision = 0;
+  SingBoxApplicationProfilePreparer? _sourcePreparation;
   StreamSubscription<CoreLogMessage>? _logs;
   int _logRevision = 0;
   late final void Function(Log) _publishLog;
@@ -75,6 +80,32 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     );
   }
 
+  factory SingBoxUiHandler.withProfileFiles(
+    SingBoxDesktopCore core, {
+    required String configPath,
+    required ClashSubscriptionImporter Function(CoreApplicationSettings)
+    importer,
+    required Future<CoreListenerSpec> Function(
+      CoreProfileSpec,
+      CoreApplicationSettings,
+    )
+    listeners,
+    required Future<bool> Function(List<CoreConfigIssue>) review,
+    void Function(CoreEvent)? onEvent,
+  }) {
+    final preparation = SingBoxApplicationProfilePreparer(
+      configPath: configPath,
+      importer: importer,
+      listeners: listeners,
+      review: review,
+    );
+    return SingBoxUiHandler(
+      core,
+      prepareProfile: preparation.prepare,
+      onEvent: onEvent,
+    ).._sourcePreparation = preparation;
+  }
+
   String _session() {
     final state = core.lifecycle.state;
     if (state is! DesktopCoreRunning) {
@@ -99,6 +130,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   Future<CoreLifecycleResult> close() {
     if (_closing == null) {
       _profileRevision++;
+      _sourcePreparation?.close();
       _closing = _close();
     }
     return _closing!;

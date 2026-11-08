@@ -26,7 +26,8 @@ import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 import '../../plugins/code_forge/support.dart' show initEditorNative;
 import 'support/dns_fixture.dart';
 import 'support/windows_process_witness.dart';
-import 'loopback_proxy_fixture.dart' show freeLoopbackPort;
+import 'loopback_proxy_fixture.dart'
+    show freeLoopbackPort, LoopbackProxyFixture;
 
 final _environment = Platform.environment;
 final _enabled =
@@ -1157,6 +1158,245 @@ void main() {
       report['ui_runtime_maintenance'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await path.writeAsString(jsonEncode(report));
+    },
+    skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
+  test(
+    'real SYSTEM Helper applies reviewed application files and preserves the active source after cancellation',
+    () async {
+      await initEditorNative();
+      final directory = await Directory.systemTemp.createTemp(
+        'hotaru-native-app-',
+      );
+      addTearDown(() async {
+        if (await directory.exists()) await directory.delete(recursive: true);
+      });
+      final origin = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => origin.close(force: true));
+      final proxyA = LoopbackProxyFixture(
+        await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
+        origin.port,
+      );
+      addTearDown(proxyA.close);
+      final proxyB = LoopbackProxyFixture(
+        await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
+        origin.port,
+      );
+      addTearDown(proxyB.close);
+      var receipts = 0;
+      origin.listen((request) async {
+        receipts++;
+        request.response.write('application-source-receipt');
+        await request.response.close();
+      });
+      final occupied = <int>{};
+      Future<int> port() async {
+        while (true) {
+          final candidate = await freeLoopbackPort();
+          if (occupied.add(candidate)) return candidate;
+        }
+      }
+
+      final listeners = CoreListenerSpec(
+        mixedPort: await port(),
+        controllerPort: await port(),
+        secret: 'application-private-fixture',
+        inboundsEnabled: false,
+        probe: CoreProbeListenerSpec(
+          port: await port(),
+          secret: 'application-probe-fixture-1234567890123456',
+        ),
+      );
+      final initial = SingBoxConfigPreparer();
+      final prepared = await initial.prepare(
+        import: () async => CoreConfigImportResult(
+          profile: CoreProfileSpec(
+            nodes: const [
+              CoreNodeSpec(tag: 'DIRECT', protocol: CoreNodeProtocol.direct),
+            ],
+            selectors: [],
+            finalOutbound: 'DIRECT',
+          ),
+          issues: [],
+        ),
+        listeners: listeners,
+      );
+      expect(prepared.status, SingBoxPreparationStatus.ready);
+      final core = await createSingBoxHelperCore(
+        bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
+        configuration: initial.approve(prepared.candidate!),
+      );
+      addTearDown(core.close);
+      final file = await File('${directory.path}/application.yaml')
+          .writeAsString(
+            jsonEncode({
+              'mixed-port': listeners.mixedPort,
+              'ipv6': true,
+              'mode': 'rule',
+              'authentication': ['fixture:password:part'],
+              'secret': 'source-not-controller',
+              'external-controller': '0.0.0.0:9090',
+              'proxies': [
+                {
+                  'name': 'A',
+                  'type': 'http',
+                  'server': '127.0.0.1',
+                  'port': proxyA.server.port,
+                },
+                {
+                  'name': 'B',
+                  'type': 'http',
+                  'server': '127.0.0.1',
+                  'port': proxyB.server.port,
+                },
+              ],
+              'proxy-groups': [
+                {
+                  'name': 'selected',
+                  'type': 'select',
+                  'proxies': ['A', 'B'],
+                },
+              ],
+              'rules': ['MATCH,selected'],
+            }),
+          );
+      var approved = true;
+      var reviews = 0;
+      final handler = SingBoxUiHandler.withProfileFiles(
+        core,
+        configPath: file.path,
+        importer: (_) => ClashSubscriptionImporter(
+          resolve: (_) => throw StateError('Unexpected provider'),
+        ),
+        listeners: (profile, settings) async => CoreListenerSpec(
+          mixedPort: settings.mixedPort,
+          controllerPort: listeners.controllerPort,
+          secret: listeners.secret,
+          probe: listeners.probe,
+          inbound: settings.inbound,
+        ),
+        review: (issues) async {
+          reviews++;
+          return approved;
+        },
+        onEvent: (_) {},
+      );
+      addTearDown(handler.close);
+      final controller = CoreController.scoped(handler);
+      final processes = <WindowsProcessWitness>[];
+      final pids = <int>[];
+      addTearDown(() {
+        for (final process in processes) {
+          process.close();
+        }
+      });
+      void record() {
+        final state = core.lifecycle.state as DesktopCoreRunning;
+        pids.add(state.session.pid);
+        processes.add(WindowsProcessWitness.open(state.session.pid));
+      }
+
+      final client = HttpClient()
+        ..findProxy = (_) => 'PROXY 127.0.0.1:${listeners.mixedPort}';
+      addTearDown(() => client.close(force: true));
+      client.addProxyCredentials(
+        '127.0.0.1',
+        listeners.mixedPort,
+        'sing-box',
+        HttpClientBasicCredentials('fixture', 'password:part'),
+      );
+      try {
+        await controller.start();
+        record();
+        await _expectSystem(pids.last);
+        const params = SetupParams(
+          selectedMap: {'selected': 'B'},
+          testUrl: 'http://fixture.invalid',
+        );
+        expect(await controller.setupConfig(params: params, profileId: 11), '');
+        expect(processes.last.hasExited, isTrue);
+        record();
+        expect(core.configuration!.profileId, 11);
+        expect(core.configuration!.listeners.secret, listeners.secret);
+        expect(core.configuration!.listeners.inboundsEnabled, isFalse);
+        expect(await controller.startListener(), isTrue);
+        expect(processes.last.hasExited, isTrue);
+        record();
+        await _expectSystem(pids.last);
+        final request = await client.getUrl(
+          Uri.parse('http://127.0.0.1:${origin.port}/application'),
+        );
+        final response = await request.close();
+        expect(
+          await utf8.decoder.bind(response).join(),
+          'application-source-receipt',
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (1, 0, 1),
+        );
+        await controller.withOutboundClients('A', (clients) async {
+          final scoped = clients.createClient();
+          final request = await scoped.getUrl(
+            Uri.parse('http://127.0.0.1:${origin.port}/scoped'),
+          );
+          expect(
+            await utf8.decoder.bind(await request.close()).join(),
+            'application-source-receipt',
+          );
+        });
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (2, 1, 1),
+        );
+        final committed = core.configuration;
+        final session =
+            (core.lifecycle.state as DesktopCoreRunning).session.sessionId;
+        approved = false;
+        var takeover = false;
+        await expectLater(
+          controller.setupConfig(
+            params: params,
+            profileId: 12,
+            preloadInvoke: () async {
+              takeover = true;
+            },
+          ),
+          throwsA(isA<CoreAdapterException>()),
+        );
+        expect(takeover, isFalse);
+        expect(identical(core.configuration, committed), isTrue);
+        expect(
+          (core.lifecycle.state as DesktopCoreRunning).session.sessionId,
+          session,
+        );
+        expect(
+          (await core.adapter.outbounds())
+              .singleWhere((node) => node.name == 'selected')
+              .selected,
+          'B',
+        );
+        expect(reviews, 2);
+      } finally {
+        client.close(force: true);
+        await controller.close();
+        await proxyA.close();
+        await proxyB.close();
+        await origin.close(force: true);
+        await directory.delete(recursive: true);
+      }
+      expect(processes.every((process) => process.hasExited), isTrue);
+      for (final process in processes) {
+        process.close();
+      }
+      final result = File(_environment['HOTARU_NATIVE_HELPER_RESULT']!);
+      final report = Map<String, dynamic>.from(
+        jsonDecode(await result.readAsString()) as Map,
+      );
+      report['application_profile_handoff'] = true;
+      (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
+      await result.writeAsString(jsonEncode(report));
     },
     skip: _enabled ? false : 'Opt-in disposable Windows SCM integration only',
     timeout: const Timeout(Duration(minutes: 3)),

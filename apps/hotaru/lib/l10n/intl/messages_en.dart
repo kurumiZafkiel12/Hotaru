@@ -669,6 +669,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "This option changes behavior during conversion. See its technical location.",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "Duplicate node references within a group are merged.",
     ),
@@ -706,6 +709,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage(
       "Configuration conversion review",
+    ),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.",
     ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "This option could not be converted. See its technical location.",

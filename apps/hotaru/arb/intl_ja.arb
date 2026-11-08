@@ -1238,5 +1238,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "configurationReviewTunStack": "仮想アダプターは sing-box のシステムネットワークスタックを使用します。元の設定とは異なります。",
+  "configurationReviewDial": "新しいコア独自の接続スケジューリングと遅延測定を使用するため、以前のバージョンと結果が異なる場合があります。"
 }

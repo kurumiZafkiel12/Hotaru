@@ -1238,5 +1238,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "configurationReviewTunStack": "The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.",
+  "configurationReviewDial": "The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version."
 }

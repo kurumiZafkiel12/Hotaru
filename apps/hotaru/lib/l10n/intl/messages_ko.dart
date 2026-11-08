@@ -545,6 +545,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "변환 후 이 옵션의 동작이 달라집니다. 상세 위치를 확인하세요.",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "새 코어는 자체 연결 스케줄링과 지연 측정 방식을 사용하므로 이전 버전과 결과가 다를 수 있습니다.",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "그룹 내 중복 노드 참조는 병합됩니다.",
     ),
@@ -582,6 +585,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage(
       "설정 변환 검토",
+    ),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "가상 어댑터는 원래 설정과 다른 sing-box 시스템 네트워크 스택을 사용합니다.",
     ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "이 옵션은 변환할 수 없습니다. 상세 위치를 확인하세요.",

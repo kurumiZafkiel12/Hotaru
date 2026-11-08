@@ -1,0 +1,439 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:isolate';
+
+import '../routing_mode.dart';
+import 'encoding.dart';
+import 'profile.dart';
+import 'runtime_options.dart';
+import 'yaml_document.dart';
+
+final class CoreApplicationSettings {
+  final String source;
+  final int mixedPort;
+  final CoreInboundOptions inbound;
+  final CoreRuntimeOptions runtime;
+  final CoreTunSpec? tun;
+  final CoreRoutingMode mode;
+  final int? dnsPort;
+  final String? userAgent;
+  final Map<String, String> geoUrls;
+
+  CoreApplicationSettings._({
+    required this.source,
+    required this.mixedPort,
+    required this.inbound,
+    required this.runtime,
+    required this.tun,
+    required this.mode,
+    required this.dnsPort,
+    required this.userAgent,
+    required Map<String, String> geoUrls,
+  }) : geoUrls = Map.unmodifiable(geoUrls);
+
+  static Future<CoreApplicationSettingsResult> parse(
+    String source, {
+    required bool skipCertVerify,
+  }) => Isolate.run(() => _SettingsReader().read(source, skipCertVerify));
+}
+
+final class CoreApplicationSettingsResult {
+  final CoreApplicationSettings? settings;
+  final List<CoreConfigIssue> issues;
+
+  CoreApplicationSettingsResult(this.settings, List<CoreConfigIssue> issues)
+    : issues = List.unmodifiable(issues);
+}
+
+final class _SettingsReader {
+  final issues = <CoreConfigIssue>[];
+  String _path = 'document';
+
+  void issue(String code, String path, {bool warning = false}) => issues.add(
+    CoreConfigIssue(
+      code,
+      path,
+      severity: warning
+          ? CoreConfigIssueSeverity.warning
+          : CoreConfigIssueSeverity.error,
+    ),
+  );
+
+  T field<T>(String path, T Function() read) {
+    _path = path;
+    return read();
+  }
+
+  bool flag(Object? value, bool fallback) {
+    if (value == null) return fallback;
+    if (value is! bool) throw const FormatException();
+    return value;
+  }
+
+  String text(Object? value, [String fallback = '']) {
+    if (value == null) return fallback;
+    if (value is! String || value.contains(RegExp(r'[\x00-\x1f]'))) {
+      throw const FormatException();
+    }
+    return value;
+  }
+
+  int integer(Object? value, int fallback, {int min = 0, int max = 65535}) {
+    final number = value ?? fallback;
+    if (number is! int || number < min || number > max) {
+      throw const FormatException();
+    }
+    return number;
+  }
+
+  Map<String, dynamic> mapping(Object? value) {
+    if (value == null) return {};
+    if (value is! Map<String, dynamic>) throw const FormatException();
+    return Map.of(value);
+  }
+
+  List<String> strings(Object? value, {int limit = 4096}) {
+    if (value == null) return [];
+    if (value is! List ||
+        value.length > limit ||
+        value.any((v) => v is! String)) {
+      throw const FormatException();
+    }
+    return value.cast<String>();
+  }
+
+  CoreApplicationSettingsResult read(String source, bool skipCertVerify) {
+    try {
+      final document = mapping(decodeCoreYaml(source));
+      final mixedPort = field(
+        'mixed-port',
+        () => integer(document.remove('mixed-port'), 7890, min: 1),
+      );
+      final allowLan = field(
+        'allow-lan',
+        () => flag(document.remove('allow-lan'), false),
+      );
+      final bind = field(
+        'bind-address',
+        () => text(document.remove('bind-address'), '*'),
+      );
+      final listen = !allowLan
+          ? '127.0.0.1'
+          : bind == '*'
+          ? '0.0.0.0'
+          : bind;
+      if (InternetAddress.tryParse(listen) == null || listen.contains('%')) {
+        issue('invalid_inbound_address', 'bind-address');
+      }
+      final http = field('port', () => integer(document.remove('port'), 0));
+      final socks = field(
+        'socks-port',
+        () => integer(document.remove('socks-port'), 0),
+      );
+      final credentials = field(
+        'authentication',
+        () => strings(document.remove('authentication'), limit: 128),
+      );
+      final users = <CoreLocalCredential>[];
+      for (var i = 0; i < credentials.length; i++) {
+        final entry = credentials[i];
+        final colon = entry.indexOf(':');
+        if (colon <= 0) {
+          issue('invalid_inbound_user', 'authentication.$i');
+        } else {
+          users.add(
+            CoreLocalCredential(
+              entry.substring(0, colon),
+              entry.substring(colon + 1),
+            ),
+          );
+        }
+      }
+      final exemptions = field(
+        'skip-auth-prefixes',
+        () => strings(document.remove('skip-auth-prefixes')),
+      );
+      if (exemptions.isNotEmpty) {
+        issue('authentication_exemptions_not_migrated', 'skip-auth-prefixes');
+      }
+      final process = field(
+        'find-process-mode',
+        () => text(document.remove('find-process-mode'), 'off'),
+      );
+      if (!const {'off', 'strict', 'always'}.contains(process)) {
+        issue('invalid_process_mode', 'find-process-mode');
+      }
+      final ipv6 = field('ipv6', () => flag(document.remove('ipv6'), false));
+      final logLevel = field(
+        'log-level',
+        () => text(document.remove('log-level'), 'info'),
+      );
+      final interface = field(
+        'interface-name',
+        () => text(document.remove('interface-name')),
+      );
+      final idle = field(
+        'keep-alive-idle',
+        () =>
+            integer(document.remove('keep-alive-idle'), 15, min: 1, max: 86400),
+      );
+      final interval = field(
+        'keep-alive-interval',
+        () => integer(
+          document.remove('keep-alive-interval'),
+          30,
+          min: 1,
+          max: 86400,
+        ),
+      );
+      final disableKeepAlive = field(
+        'disable-keep-alive',
+        () => flag(document.remove('disable-keep-alive'), false),
+      );
+      final runtime = CoreRuntimeOptions(
+        logLevel: logLevel,
+        findProcess: process != 'off',
+        defaultInterface: interface.isEmpty ? null : interface,
+        resolveIpv6: ipv6,
+        tcpKeepAliveSeconds: idle,
+        tcpKeepAliveIntervalSeconds: interval,
+        disableTcpKeepAlive: disableKeepAlive,
+        skipCertVerify: skipCertVerify,
+      );
+      final modeName = field(
+        'mode',
+        () => text(document.remove('mode'), 'rule'),
+      );
+      final mode = CoreRoutingMode.values
+          .where((mode) => mode.name == modeName)
+          .firstOrNull;
+      if (mode == null) issue('unsupported_routing_mode', 'mode');
+      for (final key in ['tcp-concurrent', 'unified-delay']) {
+        if (document.containsKey(key)) {
+          field(key, () => flag(document.remove(key), true));
+          issue('native_dial_semantics_changed', key, warning: true);
+        }
+      }
+      for (final key in ['redir-port', 'tproxy-port', 'routing-mark']) {
+        if (field(
+              key,
+              () => integer(document.remove(key), 0, max: 0xffffffff),
+            ) !=
+            0) {
+          issue('unsupported_windows_network_setting', key);
+        }
+      }
+      for (final key in [
+        'external-controller',
+        'external-controller-tls',
+        'external-controller-unix',
+        'external-controller-pipe',
+        'external-ui',
+        'external-ui-url',
+      ]) {
+        if (field(key, () => text(document.remove(key))).isNotEmpty) {
+          issue('app_owned_setting_replaced', key, warning: true);
+        }
+      }
+      field('secret', () => text(document.remove('secret')));
+      final userAgent = field(
+        'global-ua',
+        () => text(document.remove('global-ua')),
+      );
+      final geoUrls = field(
+        'geox-url',
+        () => mapping(document.remove('geox-url')),
+      );
+      final urls = <String, String>{};
+      for (final entry in geoUrls.entries) {
+        if (!const {'geoip', 'geosite', 'mmdb', 'asn'}.contains(entry.key)) {
+          issue('unsupported_geo_resource', 'geox-url.${entry.key}');
+        }
+        final value = field('geox-url.${entry.key}', () => text(entry.value));
+        final uri = Uri.tryParse(value);
+        if (uri == null ||
+            !const {'http', 'https'}.contains(uri.scheme) ||
+            uri.host.isEmpty ||
+            uri.userInfo.isNotEmpty ||
+            uri.hasFragment) {
+          issue('invalid_geo_url', 'geox-url.${entry.key}');
+        } else {
+          urls[entry.key] = value;
+        }
+      }
+      if (field(
+        'geo-auto-update',
+        () => flag(document.remove('geo-auto-update'), false),
+      )) {
+        issue('geo_scheduler_required', 'geo-auto-update');
+      }
+      field(
+        'geo-update-interval',
+        () => integer(
+          document.remove('geo-update-interval'),
+          24,
+          min: 1,
+          max: 8760,
+        ),
+      );
+      final hosts = field('hosts', () => mapping(document.remove('hosts')));
+      if (hosts.isNotEmpty) issue('hosts_not_migrated', 'hosts');
+      final profile = field(
+        'profile',
+        () => mapping(document.remove('profile')),
+      );
+      for (final entry in profile.entries) {
+        if (entry.key == 'store-selected') {
+          if (field('profile.store-selected', () => flag(entry.value, false))) {
+            issue(
+              'app_owned_setting_replaced',
+              'profile.store-selected',
+              warning: true,
+            );
+          }
+        } else if (entry.key == 'store-fake-ip' && entry.value == false) {
+          continue;
+        } else {
+          issue('unsupported_profile_setting', 'profile.${entry.key}');
+        }
+      }
+      for (final key in ['sniffer', 'ntp', 'tuic-server', 'iptables']) {
+        final value = field(key, () => mapping(document.remove(key)));
+        if (field('$key.enable', () => flag(value['enable'], false))) {
+          issue('unsupported_application_feature', key);
+        } else if (value.keys.any((entry) => entry != 'enable')) {
+          issue('inactive_settings_not_applied', key, warning: true);
+        }
+      }
+      for (final key in ['listeners', 'tunnels']) {
+        final value = document.remove(key);
+        if (value != null && (value is! List || value.isNotEmpty)) {
+          issue('unsupported_application_feature', key);
+        }
+      }
+      for (final key in ['ss-config', 'vmess-config']) {
+        if (field(key, () => text(document.remove(key))).isNotEmpty) {
+          issue('unsupported_application_feature', key);
+        }
+      }
+      final tun = readTun(
+        field('tun', () => mapping(document.remove('tun'))),
+        ipv6,
+      );
+      int? dnsPort;
+      if (document['dns'] case final Map<String, dynamic> value) {
+        final dns = Map<String, dynamic>.of(value);
+        final address = field('dns.listen', () => text(dns.remove('listen')));
+        if (address.isNotEmpty && dns['enable'] == true) {
+          final uri = Uri.tryParse('udp://$address');
+          if (uri == null ||
+              uri.userInfo.isNotEmpty ||
+              uri.hasQuery ||
+              uri.hasFragment ||
+              uri.path.isNotEmpty ||
+              !uri.hasPort ||
+              !const {'127.0.0.1', '::1', '0.0.0.0', '::'}.contains(uri.host) ||
+              uri.port < 1 ||
+              uri.port > 65535) {
+            issue('unsupported_dns_listener', 'dns.listen');
+          } else {
+            dnsPort = uri.port;
+            if (uri.host != '127.0.0.1') {
+              issue('app_owned_setting_replaced', 'dns.listen', warning: true);
+            }
+          }
+        }
+        if (dns['enable'] == true && !dns.containsKey('default-nameserver')) {
+          dns['default-nameserver'] = [
+            '114.114.114.114',
+            '223.5.5.5',
+            '8.8.8.8',
+            '1.0.0.1',
+          ];
+        }
+        document['dns'] = dns;
+      }
+      if (issues.any(
+        (issue) => issue.severity == CoreConfigIssueSeverity.error,
+      )) {
+        return CoreApplicationSettingsResult(null, issues);
+      }
+      return CoreApplicationSettingsResult(
+        CoreApplicationSettings._(
+          source: utf8.decode(CoreConfigEncoding.encode(document)),
+          mixedPort: mixedPort,
+          inbound: CoreInboundOptions(
+            listen: listen,
+            users: users,
+            httpPort: http == 0 ? null : http,
+            socksPort: socks == 0 ? null : socks,
+          ),
+          runtime: runtime,
+          tun: tun,
+          mode: mode!,
+          dnsPort: dnsPort,
+          userAgent: userAgent.isEmpty ? null : userAgent,
+          geoUrls: urls,
+        ),
+        issues,
+      );
+    } on CoreConfigSizeException {
+      return CoreApplicationSettingsResult(null, [
+        const CoreConfigIssue('configuration_too_large', 'document'),
+      ]);
+    } on Exception {
+      return CoreApplicationSettingsResult(null, [
+        CoreConfigIssue('invalid_application_setting', _path),
+      ]);
+    }
+  }
+
+  CoreTunSpec? readTun(Map<String, dynamic> value, bool ipv6) {
+    if (!field('tun.enable', () => flag(value['enable'], false))) return null;
+    for (final key in value.keys) {
+      if (!const {
+        'enable',
+        'device',
+        'stack',
+        'auto-route',
+        'auto-detect-interface',
+        'dns-hijack',
+        'mtu',
+        'route-address',
+        'route-exclude-address',
+      }.contains(key)) {
+        issue('unsupported_tun_setting', 'tun.$key');
+      }
+    }
+    final stack = field('tun.stack', () => text(value['stack'], 'system'));
+    if (!const {'system', 'gvisor', 'mixed', 'mips'}.contains(stack)) {
+      issue('invalid_tun_stack', 'tun.stack');
+    } else if (stack != 'system') {
+      issue('native_tun_stack_changed', 'tun.stack', warning: true);
+    }
+    final automatic = field(
+      'tun.auto-detect-interface',
+      () => flag(value['auto-detect-interface'], true),
+    );
+    if (!automatic) {
+      issue('interface_detection_required', 'tun.auto-detect-interface');
+    }
+    final hijack = field('tun.dns-hijack', () => strings(value['dns-hijack']));
+    if (hijack.isNotEmpty &&
+        (hijack.length != 1 || hijack.single != 'any:53')) {
+      issue('unsupported_dns_hijack', 'tun.dns-hijack');
+    }
+    return CoreTunSpec(
+      interfaceName: field('tun.device', () => text(value['device'], 'Hotaru')),
+      addresses: ['172.19.0.1/30', if (ipv6) 'fdfe:dcba:9876::1/126'],
+      autoRoute: field('tun.auto-route', () => flag(value['auto-route'], true)),
+      hijackDns: hijack.isNotEmpty,
+      mtu: field('tun.mtu', () => integer(value['mtu'], 9000, min: 1280)),
+      routes: field('tun.route-address', () => strings(value['route-address'])),
+      excludedRoutes: field(
+        'tun.route-exclude-address',
+        () => strings(value['route-exclude-address']),
+      ),
+    );
+  }
+}

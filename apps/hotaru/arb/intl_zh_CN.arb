@@ -1238,5 +1238,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "configurationReviewTunStack": "虚拟网卡将使用 sing-box 的系统网络栈，与原配置的网络栈不同。",
+  "configurationReviewDial": "新内核采用自身的连接调度和延迟测量方式，结果可能与旧版本不同。"
 }

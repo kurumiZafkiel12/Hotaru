@@ -693,6 +693,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "После преобразования этот параметр работает иначе. См. технические сведения.",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "Новое ядро использует собственное планирование соединений и измерение задержки; результаты могут отличаться от предыдущей версии.",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "Повторные ссылки на узлы внутри группы объединяются.",
     ),
@@ -730,6 +733,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage(
       "Проверка преобразования",
+    ),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "Виртуальный адаптер будет использовать системный сетевой стек sing-box, отличный от исходной конфигурации.",
     ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "Этот параметр не удалось преобразовать. См. технические сведения.",

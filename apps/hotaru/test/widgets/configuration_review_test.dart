@@ -24,6 +24,16 @@ void main() {
         'rules.4',
         severity: CoreConfigIssueSeverity.warning,
       ),
+      const CoreConfigIssue(
+        'native_tun_stack_changed',
+        'tun.stack',
+        severity: CoreConfigIssueSeverity.warning,
+      ),
+      const CoreConfigIssue(
+        'native_dial_semantics_changed',
+        'tcp-concurrent',
+        severity: CoreConfigIssueSeverity.warning,
+      ),
     ]);
     blocked = await ConfigurationReviewData.prepare([
       const CoreConfigIssue('unsupported_field', 'document.unknown'),
@@ -126,7 +136,9 @@ void main() {
       expect(find.text(l10n.configurationReviewTitle), findsOneWidget);
       expect(find.text(l10n.configurationReviewIpRules), findsOneWidget);
       expect(find.text('rules.2'), findsNothing);
-      await tester.tap(find.text(l10n.configurationReviewLocations));
+      expect(find.text(l10n.configurationReviewTunStack), findsOneWidget);
+      expect(find.text(l10n.configurationReviewDial), findsOneWidget);
+      await tester.tap(find.text(l10n.configurationReviewLocations).first);
       await tester.pumpAndSettle();
       expect(find.textContaining('rules.2'), findsOneWidget);
       await tester.tap(find.text(l10n.configurationReviewApply));

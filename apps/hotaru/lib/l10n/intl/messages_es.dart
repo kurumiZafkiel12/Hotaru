@@ -724,6 +724,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "El comportamiento de esta opción cambia tras la conversión. Consulta su ubicación técnica.",
     ),
     "configurationReviewCount": m5,
+    "configurationReviewDial": MessageLookupByLibrary.simpleMessage(
+      "El nuevo núcleo utiliza su propia planificación de conexiones y medición de latencia; los resultados pueden diferir de la versión anterior.",
+    ),
     "configurationReviewDuplicates": MessageLookupByLibrary.simpleMessage(
       "Se combinan las referencias de nodos duplicadas dentro de un grupo.",
     ),
@@ -761,6 +764,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "configurationReviewSummary": m7,
     "configurationReviewTitle": MessageLookupByLibrary.simpleMessage(
       "Revisión de la conversión",
+    ),
+    "configurationReviewTunStack": MessageLookupByLibrary.simpleMessage(
+      "El adaptador virtual usará la pila de red del sistema de sing-box, distinta de la configuración original.",
     ),
     "configurationReviewUnsupported": MessageLookupByLibrary.simpleMessage(
       "No se pudo convertir esta opción. Consulta su ubicación técnica.",

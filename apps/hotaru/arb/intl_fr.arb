@@ -1238,5 +1238,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "configurationReviewTunStack": "L’adaptateur virtuel utilisera la pile réseau système de sing-box, différente de la configuration d’origine.",
+  "configurationReviewDial": "Le nouveau moteur utilise sa propre planification des connexions et mesure de latence ; les résultats peuvent différer de la version précédente."
 }

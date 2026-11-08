@@ -617,6 +617,7 @@ class SetupAction extends _$SetupAction {
             ? setupState.matchTarget
             : lastMatchTarget(profileBase.base.matchRules),
         safeMode: ref.read(safeModeProvider),
+        scopedOutboundClients: _core.supportsOutboundClients,
       ),
     );
     if (profileBase == null) {
