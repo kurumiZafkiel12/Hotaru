@@ -125,7 +125,7 @@ enum CoreRuleKind {
   always,
 }
 
-enum CoreRuleAction { route, reject, drop }
+enum CoreRuleAction { route, global, reject, drop }
 
 final class CoreRouteRule {
   final CoreRuleKind kind;

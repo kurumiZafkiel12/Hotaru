@@ -1240,5 +1240,21 @@
     }
   },
   "configurationReviewTunStack": "가상 어댑터는 원래 설정과 다른 sing-box 시스템 네트워크 스택을 사용합니다.",
-  "configurationReviewDial": "새 코어는 자체 연결 스케줄링과 지연 측정 방식을 사용하므로 이전 버전과 결과가 다를 수 있습니다."
+  "configurationReviewDial": "새 코어는 자체 연결 스케줄링과 지연 측정 방식을 사용하므로 이전 버전과 결과가 다를 수 있습니다.",
+  "routePreviewTitle": "라우팅 미리보기",
+  "routePreviewScope": "DNS 조회나 대상 연결 없이 현재 규칙과 선택 경로를 확인합니다. 실제 연결 기록이 아닌 라우팅 계획입니다.",
+  "routePreviewTarget": "도메인 또는 IP 주소",
+  "routePreviewAction": "미리보기",
+  "routePreviewRunning": "확인 중…",
+  "routePreviewUnavailable": "sing-box를 시작하고 구성을 적용하세요.",
+  "routePreviewFailed": "현재 경로를 일관되게 읽지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+  "routePreviewResolved": "라우팅 계획을 찾았습니다",
+  "routePreviewAddressRequired": "앞선 규칙에 DNS 응답이 필요하여 오프라인에서는 경로를 판단할 수 없습니다.",
+  "routePreviewContextRequired": "앞선 규칙에 포트나 프로세스 등 추가 연결 정보가 필요합니다.",
+  "routePreviewSelectionRequired": "현재 노드 선택을 읽을 수 없습니다. 노드를 선택하고 다시 시도하세요.",
+  "routePreviewInvalidTarget": "URL 프로토콜이나 경로 없이 도메인 또는 IP를 입력하세요.",
+  "routePreviewRule": "일치한 규칙",
+  "routePreviewDefault": "기본 경로 또는 현재 아웃바운드 모드",
+  "routePreviewPath": "선택 경로",
+  "routePreviewHops": "예정된 물리 홉"
 }

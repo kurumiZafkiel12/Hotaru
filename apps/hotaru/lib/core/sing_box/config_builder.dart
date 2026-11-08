@@ -352,7 +352,7 @@ final class SingBoxConfigBuilder {
               'action': 'route',
               'outbound': modes.global.tag,
             },
-            ..._profileRules(profile.rules, ruleSets),
+            ..._profileRules(profile.rules, ruleSets, modes.global.tag),
             {
               'clash_mode': 'rule',
               'action': 'route',
@@ -384,6 +384,7 @@ final class SingBoxConfigBuilder {
   static List<Map<String, Object?>> _profileRules(
     List<CoreRouteRule> rules,
     Map<String, CoreRuleSetSpec> sets,
+    String global,
   ) {
     final result = <Map<String, Object?>>[];
     var resolved = false;
@@ -396,7 +397,7 @@ final class SingBoxConfigBuilder {
         result.add({'action': 'resolve'});
         resolved = true;
       }
-      final native = _rule(rule, sets);
+      final native = _rule(rule, sets, global);
       if (native != null) result.add(native);
     }
     return result;
@@ -408,6 +409,7 @@ final class SingBoxConfigBuilder {
   static Map<String, Object?>? _rule(
     CoreRouteRule rule,
     Map<String, CoreRuleSetSpec> sets,
+    String global,
   ) {
     final Map<String, Object?>? match;
     if (rule.kind == CoreRuleKind.ruleSet) {
@@ -430,9 +432,15 @@ final class SingBoxConfigBuilder {
     if (match == null) return null;
     return {
       ...match,
-      'action': rule.action == CoreRuleAction.route ? 'route' : 'reject',
+      'action': switch (rule.action) {
+        CoreRuleAction.route || CoreRuleAction.global => 'route',
+        CoreRuleAction.reject || CoreRuleAction.drop => 'reject',
+      },
       if (rule.action == CoreRuleAction.drop) 'method': 'drop',
-      if (rule.outbound != null) 'outbound': rule.outbound,
+      if (rule.action == CoreRuleAction.global)
+        'outbound': global
+      else if (rule.outbound != null)
+        'outbound': rule.outbound,
     };
   }
 

@@ -1240,5 +1240,21 @@
     }
   },
   "configurationReviewTunStack": "El adaptador virtual usará la pila de red del sistema de sing-box, distinta de la configuración original.",
-  "configurationReviewDial": "El nuevo núcleo utiliza su propia planificación de conexiones y medición de latencia; los resultados pueden diferir de la versión anterior."
+  "configurationReviewDial": "El nuevo núcleo utiliza su propia planificación de conexiones y medición de latencia; los resultados pueden diferir de la versión anterior.",
+  "routePreviewTitle": "Vista previa de rutas",
+  "routePreviewScope": "Consulta las reglas activas y la ruta elegida sin DNS ni conexión al destino. Es un plan, no una conexión observada.",
+  "routePreviewTarget": "Dominio o dirección IP",
+  "routePreviewAction": "Previsualizar",
+  "routePreviewRunning": "Consultando…",
+  "routePreviewUnavailable": "Inicia sing-box y aplica una configuración.",
+  "routePreviewFailed": "No se pudo leer una ruta coherente. Comprueba la conexión e inténtalo de nuevo.",
+  "routePreviewResolved": "Plan de ruta encontrado",
+  "routePreviewAddressRequired": "Una regla anterior necesita una respuesta DNS; no se puede determinar la ruta sin conexión.",
+  "routePreviewContextRequired": "Una regla anterior necesita detalles de conexión que esta vista no tiene.",
+  "routePreviewSelectionRequired": "La selección activa no está disponible. Elige un nodo y reintenta.",
+  "routePreviewInvalidTarget": "Introduce un dominio o IP sin protocolo ni ruta URL.",
+  "routePreviewRule": "Regla coincidente",
+  "routePreviewDefault": "Ruta predeterminada o modo de salida actual",
+  "routePreviewPath": "Ruta seleccionada",
+  "routePreviewHops": "Saltos físicos previstos"
 }

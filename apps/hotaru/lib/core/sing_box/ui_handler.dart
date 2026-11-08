@@ -10,6 +10,7 @@ import '../adapter.dart';
 import '../config/application_settings.dart';
 import '../config/clash_subscription.dart';
 import '../config/profile.dart';
+import '../config/route_preview.dart';
 import 'application_profile.dart';
 import '../logs.dart';
 import '../routed_http.dart';
@@ -40,7 +41,8 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreRoutingModes,
         CoreGlobalOutbound,
         CoreProfileTextBuilder,
-        CoreProfileApplication {
+        CoreProfileApplication,
+        CoreRoutePreviewSource {
   final SingBoxDesktopCore core;
   final Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)?
   _prepareProfile;
@@ -239,6 +241,10 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     _logs = null;
     await stopping;
   }
+
+  @override
+  Future<CoreRoutePreview> previewRoute(String target) =>
+      core.previewRoute(target);
 
   @override
   Future<RouteSnapshot> watchRoute(bool watch) => _routes.watch(watch);

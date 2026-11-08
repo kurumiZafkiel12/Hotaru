@@ -265,6 +265,15 @@ final class _ClashImport {
       }
       final rules = <CoreRouteRule>[];
       final ruleSets = <String, CoreRuleSetSpec>{};
+      final declaredGlobal =
+          nodes.any((node) => node.tag == 'GLOBAL') ||
+          selectors.any((group) => group.tag == 'GLOBAL');
+      CoreRuleAction actionFor(String target) => switch (target) {
+        'REJECT' => CoreRuleAction.reject,
+        'REJECT-DROP' => CoreRuleAction.drop,
+        'GLOBAL' when !declaredGlobal => CoreRuleAction.global,
+        _ => CoreRuleAction.route,
+      };
       String? finalOutbound;
       final rawRules = list(input['rules'] ?? []);
       for (var index = 0; index < rawRules.length; index++) {
@@ -278,17 +287,20 @@ final class _ClashImport {
         }
         if (fields.length == 2 && fields.first == 'MATCH') {
           finalOutbound = fields.last;
-          if (const ['REJECT', 'REJECT-DROP'].contains(finalOutbound)) {
+          final action = actionFor(finalOutbound);
+          if (action != CoreRuleAction.route) {
             rules.add(
               CoreRouteRule(
                 kind: CoreRuleKind.always,
                 value: '',
-                action: finalOutbound == 'REJECT'
-                    ? CoreRuleAction.reject
-                    : CoreRuleAction.drop,
+                action: action,
               ),
             );
-            finalOutbound = 'DIRECT';
+            finalOutbound = action == CoreRuleAction.global
+                ? selectors.firstOrNull?.tag ??
+                      nodes.firstOrNull?.tag ??
+                      'DIRECT'
+                : 'DIRECT';
           }
           continue;
         }
@@ -330,11 +342,7 @@ final class _ClashImport {
           if (geoIp && !noResolve) {
             issue('ip_resolution_semantics_changed', path, warning: true);
           }
-          final action = switch (fields[2]) {
-            'REJECT' => CoreRuleAction.reject,
-            'REJECT-DROP' => CoreRuleAction.drop,
-            _ => CoreRuleAction.route,
-          };
+          final action = actionFor(fields[2]);
           rules.add(
             CoreRouteRule(
               kind: CoreRuleKind.ruleSet,
@@ -368,11 +376,7 @@ final class _ClashImport {
           issue('invalid_ip_prefix', path);
           continue;
         }
-        final action = switch (fields[2]) {
-          'REJECT' => CoreRuleAction.reject,
-          'REJECT-DROP' => CoreRuleAction.drop,
-          _ => CoreRuleAction.route,
-        };
+        final action = actionFor(fields[2]);
         rules.add(
           CoreRouteRule(
             kind: kind,

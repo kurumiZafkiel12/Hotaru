@@ -7,6 +7,10 @@ import 'mode_outbounds.dart';
 import 'rule_set.dart';
 import '../routing_mode.dart';
 
+abstract interface class CoreRoutePreviewSource {
+  Future<CoreRoutePreview> previewRoute(String target);
+}
+
 enum CoreRoutePreviewStatus {
   resolved,
   addressRequired,
@@ -63,6 +67,7 @@ final class CoreRoutePreviewer {
           CoreRoutingMode.direct => modes.direct.tag,
         },
         selections: snapshot,
+        global: modes.global.tag,
       );
     });
   }
@@ -74,6 +79,7 @@ final class CoreRoutePreviewer {
     required List<CoreRouteRule> rules,
     required List<CoreRuleSetSpec> ruleSets,
     required String finalOutbound,
+    required String global,
     required Map<String, String> selections,
   }) {
     final target = input.trim().toLowerCase();
@@ -235,14 +241,21 @@ final class CoreRoutePreviewer {
           : const [],
       selectedOutbounds: selectedOutbounds,
     );
-    if (action != CoreRuleAction.route) {
+    if (action == CoreRuleAction.reject || action == CoreRuleAction.drop) {
       return result(
         matched?.outbound == null
             ? CoreRoutePreviewStatus.resolved
             : CoreRoutePreviewStatus.invalidProfile,
       );
     }
-    var next = matched == null ? finalOutbound : matched.outbound;
+    if (action == CoreRuleAction.global && matched?.outbound != null) {
+      return result(CoreRoutePreviewStatus.invalidProfile);
+    }
+    var next = action == CoreRuleAction.global
+        ? global
+        : matched == null
+        ? finalOutbound
+        : matched.outbound;
     final visited = <String>{};
     var followsDetour = false;
     while (next != null && visited.add(next)) {

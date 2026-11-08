@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'speed_test.dart';
+import 'route_preview.dart';
 import 'embedded_tool.dart';
 import 'ip_tools.dart';
 import '../features/browser_diagnostics/tool_site.dart';
@@ -67,6 +68,14 @@ class _ToolMatrix extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.appLocalizations;
     final tools = <(String, String, String?, Glyph, VoidCallback)>[
+      if (platform == SupportPlatform.Windows)
+        (
+          l10n.toolsServices,
+          l10n.routePreviewTitle,
+          l10n.routePreviewScope,
+          AppGlyphs.proxies,
+          () => BaseNavigator.push(context, const RoutePreviewView()),
+        ),
       (
         l10n.toolsServices,
         l10n.auditTitle,

@@ -1950,6 +1950,44 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Route exclude addresses",
     ),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("Preview"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "An earlier rule needs a DNS answer. Offline preview cannot determine the route.",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "An earlier rule needs connection details that this preview does not have.",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage(
+      "Default route or current outbound mode",
+    ),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "The active route could not be read consistently. Check the connection and try again.",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage(
+      "Planned physical hops",
+    ),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "Enter a domain or IP address, without a URL scheme or path.",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage("Selected path"),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage(
+      "Routing plan found",
+    ),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage("Matched rule"),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("Checking…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "The active selection is unavailable. Choose a node and retry.",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage(
+      "Domain or IP address",
+    ),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage("Route preview"),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Start the sing-box engine and apply a profile to use route preview.",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
       "No routing configuration imported",
     ),

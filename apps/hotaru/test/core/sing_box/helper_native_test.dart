@@ -1354,6 +1354,14 @@ void main() {
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
           (3, 1, 1),
         );
+        final preview = await controller.previewRoute('fixture.invalid');
+        expect(preview.status, CoreRoutePreviewStatus.resolved);
+        expect(preview.chain, ['selected', 'B']);
+        expect(preview.hops, ['B']);
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (3, 1, 1),
+        );
         final committed = core.configuration;
         final session =
             (core.lifecycle.state as DesktopCoreRunning).session.sessionId;
@@ -1399,6 +1407,7 @@ void main() {
       );
       report['application_profile_handoff'] = true;
       report['application_http_current_and_direct'] = true;
+      report['application_offline_preview'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

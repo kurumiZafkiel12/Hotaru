@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:hotaru/core/config/application_settings.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
 import 'package:hotaru/core/config/encoding.dart';
@@ -37,7 +38,7 @@ void main() {
         root: root.path,
         files: {'hotaru-files/nodes': provider.path},
       );
-      expect(access.paths, {'hotaru-files/nodes': provider.path});
+      expect(access.paths, {'hotaru-files/nodes': p.normalize(provider.path)});
       expect(
         await access.read(
           'hotaru-files/nodes',

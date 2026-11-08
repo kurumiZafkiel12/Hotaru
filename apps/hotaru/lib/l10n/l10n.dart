@@ -10317,6 +10317,166 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Route preview`
+  String get routePreviewTitle {
+    return Intl.message(
+      'Route preview',
+      name: 'routePreviewTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.`
+  String get routePreviewScope {
+    return Intl.message(
+      'Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.',
+      name: 'routePreviewScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domain or IP address`
+  String get routePreviewTarget {
+    return Intl.message(
+      'Domain or IP address',
+      name: 'routePreviewTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preview`
+  String get routePreviewAction {
+    return Intl.message(
+      'Preview',
+      name: 'routePreviewAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checking…`
+  String get routePreviewRunning {
+    return Intl.message(
+      'Checking…',
+      name: 'routePreviewRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start the sing-box engine and apply a profile to use route preview.`
+  String get routePreviewUnavailable {
+    return Intl.message(
+      'Start the sing-box engine and apply a profile to use route preview.',
+      name: 'routePreviewUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The active route could not be read consistently. Check the connection and try again.`
+  String get routePreviewFailed {
+    return Intl.message(
+      'The active route could not be read consistently. Check the connection and try again.',
+      name: 'routePreviewFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Routing plan found`
+  String get routePreviewResolved {
+    return Intl.message(
+      'Routing plan found',
+      name: 'routePreviewResolved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `An earlier rule needs a DNS answer. Offline preview cannot determine the route.`
+  String get routePreviewAddressRequired {
+    return Intl.message(
+      'An earlier rule needs a DNS answer. Offline preview cannot determine the route.',
+      name: 'routePreviewAddressRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `An earlier rule needs connection details that this preview does not have.`
+  String get routePreviewContextRequired {
+    return Intl.message(
+      'An earlier rule needs connection details that this preview does not have.',
+      name: 'routePreviewContextRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The active selection is unavailable. Choose a node and retry.`
+  String get routePreviewSelectionRequired {
+    return Intl.message(
+      'The active selection is unavailable. Choose a node and retry.',
+      name: 'routePreviewSelectionRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a domain or IP address, without a URL scheme or path.`
+  String get routePreviewInvalidTarget {
+    return Intl.message(
+      'Enter a domain or IP address, without a URL scheme or path.',
+      name: 'routePreviewInvalidTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Matched rule`
+  String get routePreviewRule {
+    return Intl.message(
+      'Matched rule',
+      name: 'routePreviewRule',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default route or current outbound mode`
+  String get routePreviewDefault {
+    return Intl.message(
+      'Default route or current outbound mode',
+      name: 'routePreviewDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Selected path`
+  String get routePreviewPath {
+    return Intl.message(
+      'Selected path',
+      name: 'routePreviewPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Planned physical hops`
+  String get routePreviewHops {
+    return Intl.message(
+      'Planned physical hops',
+      name: 'routePreviewHops',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

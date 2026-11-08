@@ -1653,6 +1653,40 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("再試行"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("ルートアドレス"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("ルート除外アドレス"),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("確認"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "先行ルールに DNS 応答が必要なため、オフラインでは経路を判定できません。",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "先行ルールにポートやプロセスなどの接続情報が必要です。",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage(
+      "既定ルートまたは現在の送信モード",
+    ),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "現在の経路を一貫して取得できませんでした。接続を確認して再試行してください。",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage("予定される物理ホップ"),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "URL のスキームやパスを含めず、ドメインまたは IP を入力してください。",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage("選択された経路"),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage("経路計画を確認しました"),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage("一致したルール"),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("読み込み中…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "DNS 照会や対象への接続を行わず、現在のルールと選択経路を確認します。実際の接続記録ではありません。",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "現在のノード選択を取得できません。ノードを選んで再試行してください。",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage(
+      "ドメインまたは IP アドレス",
+    ),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage("ルーティングプレビュー"),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "sing-box を起動し、設定を適用してください。",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
       "ルーティング設定がありません",
     ),

@@ -1631,6 +1631,40 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("다시 시도"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("라우팅 주소"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("라우팅 제외 주소"),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("미리보기"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "앞선 규칙에 DNS 응답이 필요하여 오프라인에서는 경로를 판단할 수 없습니다.",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "앞선 규칙에 포트나 프로세스 등 추가 연결 정보가 필요합니다.",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage(
+      "기본 경로 또는 현재 아웃바운드 모드",
+    ),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "현재 경로를 일관되게 읽지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage("예정된 물리 홉"),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "URL 프로토콜이나 경로 없이 도메인 또는 IP를 입력하세요.",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage("선택 경로"),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage(
+      "라우팅 계획을 찾았습니다",
+    ),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage("일치한 규칙"),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("확인 중…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "DNS 조회나 대상 연결 없이 현재 규칙과 선택 경로를 확인합니다. 실제 연결 기록이 아닌 라우팅 계획입니다.",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "현재 노드 선택을 읽을 수 없습니다. 노드를 선택하고 다시 시도하세요.",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage("도메인 또는 IP 주소"),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage("라우팅 미리보기"),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "sing-box를 시작하고 구성을 적용하세요.",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
       "가져온 라우팅 구성이 없습니다",
     ),

@@ -1240,5 +1240,21 @@
     }
   },
   "configurationReviewTunStack": "The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.",
-  "configurationReviewDial": "The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version."
+  "configurationReviewDial": "The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.",
+  "routePreviewTitle": "Route preview",
+  "routePreviewScope": "Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.",
+  "routePreviewTarget": "Domain or IP address",
+  "routePreviewAction": "Preview",
+  "routePreviewRunning": "Checking…",
+  "routePreviewUnavailable": "Start the sing-box engine and apply a profile to use route preview.",
+  "routePreviewFailed": "The active route could not be read consistently. Check the connection and try again.",
+  "routePreviewResolved": "Routing plan found",
+  "routePreviewAddressRequired": "An earlier rule needs a DNS answer. Offline preview cannot determine the route.",
+  "routePreviewContextRequired": "An earlier rule needs connection details that this preview does not have.",
+  "routePreviewSelectionRequired": "The active selection is unavailable. Choose a node and retry.",
+  "routePreviewInvalidTarget": "Enter a domain or IP address, without a URL scheme or path.",
+  "routePreviewRule": "Matched rule",
+  "routePreviewDefault": "Default route or current outbound mode",
+  "routePreviewPath": "Selected path",
+  "routePreviewHops": "Planned physical hops"
 }

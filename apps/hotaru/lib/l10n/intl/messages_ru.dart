@@ -2034,6 +2034,48 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Исключённые адреса маршрутов",
     ),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("Проверить"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "Предыдущее правило требует ответа DNS; маршрут нельзя определить без сети.",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "Предыдущее правило требует дополнительных сведений о соединении.",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage(
+      "Маршрут по умолчанию или текущий режим выхода",
+    ),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось получить согласованный маршрут. Проверьте соединение и повторите попытку.",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage(
+      "Планируемые физические переходы",
+    ),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "Введите домен или IP без протокола и пути URL.",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage("Выбранный путь"),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage(
+      "План маршрута найден",
+    ),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage(
+      "Совпавшее правило",
+    ),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("Чтение…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "Проверяет активные правила и выбранный путь без DNS-запроса и подключения к цели. Это план, а не запись фактического соединения.",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "Активный выбор недоступен. Выберите узел и повторите попытку.",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage(
+      "Домен или IP-адрес",
+    ),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage(
+      "Предпросмотр маршрута",
+    ),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Запустите sing-box и примените конфигурацию.",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
       "Конфигурации маршрутизации не импортированы",
     ),

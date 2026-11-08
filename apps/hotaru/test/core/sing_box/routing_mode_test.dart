@@ -13,27 +13,33 @@ import 'package:hotaru/core/sing_box/config_builder.dart';
 
 import 'loopback_proxy_fixture.dart';
 
-CoreProfileSpec _profile(int first, int second) => CoreProfileSpec(
-  nodes: [
-    CoreNodeSpec(
-      tag: 'A',
-      protocol: CoreNodeProtocol.http,
-      server: '127.0.0.1',
-      port: first,
-    ),
-    CoreNodeSpec(
-      tag: 'B',
-      protocol: CoreNodeProtocol.http,
-      server: '127.0.0.1',
-      port: second,
-    ),
-  ],
-  selectors: [],
-  finalOutbound: 'A',
-  rules: const [
-    CoreRouteRule(kind: CoreRuleKind.always, value: '', outbound: 'A'),
-  ],
-);
+CoreProfileSpec _profile(int first, int second, {bool managedGlobal = false}) =>
+    CoreProfileSpec(
+      nodes: [
+        CoreNodeSpec(
+          tag: 'A',
+          protocol: CoreNodeProtocol.http,
+          server: '127.0.0.1',
+          port: first,
+        ),
+        CoreNodeSpec(
+          tag: 'B',
+          protocol: CoreNodeProtocol.http,
+          server: '127.0.0.1',
+          port: second,
+        ),
+      ],
+      selectors: [],
+      finalOutbound: 'A',
+      rules: [
+        CoreRouteRule(
+          kind: CoreRuleKind.always,
+          value: '',
+          action: managedGlobal ? CoreRuleAction.global : CoreRuleAction.route,
+          outbound: managedGlobal ? null : 'A',
+        ),
+      ],
+    );
 
 void main() {
   test(
@@ -112,175 +118,185 @@ void main() {
 
   final binary = Platform.environment['HOTARU_TEST_SING_BOX'];
   final controlled = Platform.environment['HOTARU_TEST_SING_BOX_HOST'] == '1';
-  test(
-    'real engine mode changes alter the actual proxy receipt while explicit node probes stay pinned',
-    () async {
-      final directory = await Directory.systemTemp.createTemp('hotaru-modes-');
-      addTearDown(() => directory.delete(recursive: true));
-      final origin = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-      addTearDown(() => origin.close(force: true));
-      final paths = <String>[];
-      origin.listen((request) {
-        paths.add(request.uri.path);
-        request.response.write('mode-proof');
-        unawaited(request.response.close());
-      });
-      final first = LoopbackProxyFixture(
-        await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
-        origin.port,
-      );
-      final second = LoopbackProxyFixture(
-        await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
-        origin.port,
-      );
-      addTearDown(first.close);
-      addTearDown(second.close);
-      final mixed = await freeLoopbackPort();
-      final controller = await freeLoopbackPort();
-      final probe = CoreProbeListenerSpec(
-        port: await freeLoopbackPort(),
-        secret: 'fixture-only-12345678901234567890123456789',
-      );
-      final profile = _profile(first.server.port, second.server.port);
-      final modes = CoreModeOutbounds(profile);
-      final built = await SingBoxConfigBuilder().build(
-        profile,
-        CoreListenerSpec(
-          mixedPort: mixed,
-          controllerPort: controller,
+  for (final managedGlobal in [false, true]) {
+    test(
+      'real engine managedGlobal=$managedGlobal mode changes alter the actual proxy receipt while explicit node probes stay pinned',
+      () async {
+        final directory = await Directory.systemTemp.createTemp(
+          'hotaru-modes-',
+        );
+        addTearDown(() => directory.delete(recursive: true));
+        final origin = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        addTearDown(() => origin.close(force: true));
+        final paths = <String>[];
+        origin.listen((request) {
+          paths.add(request.uri.path);
+          request.response.write('mode-proof');
+          unawaited(request.response.close());
+        });
+        final first = LoopbackProxyFixture(
+          await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
+          origin.port,
+        );
+        final second = LoopbackProxyFixture(
+          await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
+          origin.port,
+        );
+        addTearDown(first.close);
+        addTearDown(second.close);
+        final mixed = await freeLoopbackPort();
+        final controller = await freeLoopbackPort();
+        final probe = CoreProbeListenerSpec(
+          port: await freeLoopbackPort(),
+          secret: 'fixture-only-12345678901234567890123456789',
+        );
+        final profile = _profile(
+          first.server.port,
+          second.server.port,
+          managedGlobal: managedGlobal,
+        );
+        final modes = CoreModeOutbounds(profile);
+        final built = await SingBoxConfigBuilder().build(
+          profile,
+          CoreListenerSpec(
+            mixedPort: mixed,
+            controllerPort: controller,
+            secret: 'fixture',
+            probe: probe,
+          ),
+        );
+        expect(built.issues, isEmpty);
+        final file = await File(
+          '${directory.path}/config.json',
+        ).writeAsString(built.json!);
+        final process = await Process.start(binary!, [
+          'run',
+          '-c',
+          file.path,
+          if (controlled) '--stdio-control',
+        ]);
+        var exited = false;
+        final exitCode = process.exitCode.then((code) {
+          exited = true;
+          return code;
+        });
+        final output = <String>[];
+        final readers = [
+          process.stdout.transform(utf8.decoder).forEach(output.add),
+          process.stderr.transform(utf8.decoder).forEach(output.add),
+        ];
+        addTearDown(() async {
+          if (!exited) {
+            if (controlled) {
+              process.stdin.writeln('{"method":"stop"}');
+              await process.stdin.flush();
+            } else {
+              process.kill();
+            }
+          }
+          try {
+            await exitCode.timeout(const Duration(seconds: 5));
+          } on TimeoutException {
+            process.kill(ProcessSignal.sigkill);
+            await exitCode;
+          }
+          await Future.wait(readers);
+        });
+        final adapter = SingBoxClashApiAdapter(
+          endpoint: Uri.parse('http://127.0.0.1:$controller'),
           secret: 'fixture',
           probe: probe,
-        ),
-      );
-      expect(built.issues, isEmpty);
-      final file = await File(
-        '${directory.path}/config.json',
-      ).writeAsString(built.json!);
-      final process = await Process.start(binary!, [
-        'run',
-        '-c',
-        file.path,
-        if (controlled) '--stdio-control',
-      ]);
-      var exited = false;
-      final exitCode = process.exitCode.then((code) {
-        exited = true;
-        return code;
-      });
-      final output = <String>[];
-      final readers = [
-        process.stdout.transform(utf8.decoder).forEach(output.add),
-        process.stderr.transform(utf8.decoder).forEach(output.add),
-      ];
-      addTearDown(() async {
-        if (!exited) {
-          if (controlled) {
-            process.stdin.writeln('{"method":"stop"}');
-            await process.stdin.flush();
-          } else {
-            process.kill();
+          probeOutbounds: ['A', 'B'],
+        );
+        addTearDown(adapter.close);
+        var ready = false;
+        for (var attempt = 0; attempt < 100; attempt++) {
+          try {
+            await adapter.version();
+            ready = true;
+            break;
+          } catch (_) {
+            await Future<void>.delayed(const Duration(milliseconds: 50));
           }
         }
-        try {
-          await exitCode.timeout(const Duration(seconds: 5));
-        } on TimeoutException {
-          process.kill(ProcessSignal.sigkill);
-          await exitCode;
+        expect(ready, isTrue, reason: output.join());
+        await adapter.selectOutbound(modes.global.tag, 'B');
+        Future<String> read(HttpClient client, String path) async {
+          final request = await client.getUrl(
+            Uri.parse('http://127.0.0.1:${origin.port}/$path'),
+          );
+          final response = await request.close();
+          expect(response.statusCode, 200);
+          return utf8.decoder.bind(response).join();
         }
-        await Future.wait(readers);
-      });
-      final adapter = SingBoxClashApiAdapter(
-        endpoint: Uri.parse('http://127.0.0.1:$controller'),
-        secret: 'fixture',
-        probe: probe,
-        probeOutbounds: ['A', 'B'],
-      );
-      addTearDown(adapter.close);
-      var ready = false;
-      for (var attempt = 0; attempt < 100; attempt++) {
-        try {
-          await adapter.version();
-          ready = true;
-          break;
-        } catch (_) {
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        Future<String> mixedRequest(String path) async {
+          final client = HttpClient()
+            ..findProxy = (_) => 'PROXY 127.0.0.1:$mixed';
+          try {
+            return await read(client, path).timeout(const Duration(seconds: 5));
+          } finally {
+            client.close(force: true);
+          }
         }
-      }
-      expect(ready, isTrue, reason: output.join());
-      await adapter.selectOutbound(modes.global.tag, 'B');
-      Future<String> read(HttpClient client, String path) async {
-        final request = await client.getUrl(
-          Uri.parse('http://127.0.0.1:${origin.port}/$path'),
+
+        expect(await adapter.routingMode(), CoreRoutingMode.rule);
+        expect(await mixedRequest('rule'), 'mode-proof');
+        expect(first.receipts, hasLength(managedGlobal ? 0 : 1));
+        expect(second.receipts, hasLength(managedGlobal ? 1 : 0));
+        await adapter.setRoutingMode(CoreRoutingMode.global);
+        expect(await mixedRequest('global'), 'mode-proof');
+        expect(first.receipts, hasLength(managedGlobal ? 0 : 1));
+        expect(second.receipts, hasLength(managedGlobal ? 2 : 1));
+        await adapter.setRoutingMode(CoreRoutingMode.direct);
+        expect(await mixedRequest('direct'), 'mode-proof');
+        expect(first.receipts, hasLength(managedGlobal ? 0 : 1));
+        expect(second.receipts, hasLength(managedGlobal ? 2 : 1));
+        expect(
+          await adapter.withOutboundClient(
+            'A',
+            (client) => read(client, 'pinned-in-direct'),
+          ),
+          'mode-proof',
         );
-        final response = await request.close();
-        expect(response.statusCode, 200);
-        return utf8.decoder.bind(response).join();
-      }
-
-      Future<String> mixedRequest(String path) async {
-        final client = HttpClient()
-          ..findProxy = (_) => 'PROXY 127.0.0.1:$mixed';
-        try {
-          return await read(client, path).timeout(const Duration(seconds: 5));
-        } finally {
-          client.close(force: true);
-        }
-      }
-
-      expect(await adapter.routingMode(), CoreRoutingMode.rule);
-      expect(await mixedRequest('rule'), 'mode-proof');
-      expect(first.receipts, [origin.port]);
-      expect(second.receipts, isEmpty);
-      await adapter.setRoutingMode(CoreRoutingMode.global);
-      expect(await mixedRequest('global'), 'mode-proof');
-      expect(first.receipts, hasLength(1));
-      expect(second.receipts, [origin.port]);
-      await adapter.setRoutingMode(CoreRoutingMode.direct);
-      expect(await mixedRequest('direct'), 'mode-proof');
-      expect(first.receipts, hasLength(1));
-      expect(second.receipts, hasLength(1));
-      expect(
-        await adapter.withOutboundClient(
-          'A',
-          (client) => read(client, 'pinned-in-direct'),
-        ),
-        'mode-proof',
-      );
-      expect(first.receipts, hasLength(2));
-      expect(second.receipts, hasLength(1));
-      expect(await adapter.routingMode(), CoreRoutingMode.direct);
-      await adapter.setRoutingMode(CoreRoutingMode.rule);
-      expect(await mixedRequest('rule-again'), 'mode-proof');
-      expect(first.receipts, hasLength(3));
-      expect(paths, [
-        '/rule',
-        '/global',
-        '/direct',
-        '/pinned-in-direct',
-        '/rule-again',
-      ]);
-      expect(
-        (await adapter.outbounds())
-            .singleWhere((outbound) => outbound.name == modes.global.tag)
-            .selected,
-        'B',
-      );
-      stdout.writeln(
-        jsonEncode({
-          'proof': 'routing_modes',
-          'rule_proxy': 'A',
-          'global_proxy': 'B',
-          'direct_bypassed_proxies': true,
-          'probe_in_direct': 'A',
-          'proxy_a_receipts': first.receipts.length,
-          'proxy_b_receipts': second.receipts.length,
-          'origin_paths': paths,
-          'global_selection_preserved': true,
-        }),
-      );
-    },
-    skip: binary == null
-        ? 'Set HOTARU_TEST_SING_BOX to a pinned real engine'
-        : false,
-  );
+        expect(first.receipts, hasLength(managedGlobal ? 1 : 2));
+        expect(second.receipts, hasLength(managedGlobal ? 2 : 1));
+        expect(await adapter.routingMode(), CoreRoutingMode.direct);
+        await adapter.setRoutingMode(CoreRoutingMode.rule);
+        expect(await mixedRequest('rule-again'), 'mode-proof');
+        expect(first.receipts, hasLength(managedGlobal ? 1 : 3));
+        expect(second.receipts, hasLength(managedGlobal ? 3 : 1));
+        expect(paths, [
+          '/rule',
+          '/global',
+          '/direct',
+          '/pinned-in-direct',
+          '/rule-again',
+        ]);
+        expect(
+          (await adapter.outbounds())
+              .singleWhere((outbound) => outbound.name == modes.global.tag)
+              .selected,
+          'B',
+        );
+        stdout.writeln(
+          jsonEncode({
+            'proof': 'routing_modes',
+            'rule_proxy': managedGlobal ? 'B' : 'A',
+            'managed_global_rule': managedGlobal,
+            'global_proxy': 'B',
+            'direct_bypassed_proxies': true,
+            'probe_in_direct': 'A',
+            'proxy_a_receipts': first.receipts.length,
+            'proxy_b_receipts': second.receipts.length,
+            'origin_paths': paths,
+            'global_selection_preserved': true,
+          }),
+        );
+      },
+      skip: binary == null
+          ? 'Set HOTARU_TEST_SING_BOX to a pinned real engine'
+          : false,
+    );
+  }
 }

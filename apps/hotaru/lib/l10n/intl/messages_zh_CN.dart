@@ -1513,6 +1513,36 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("路由地址"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("排除路由地址"),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("预演"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "前面的规则需要 DNS 解析结果，离线预演无法确定路线。",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "前面的规则需要端口、进程等连接信息，本次预演无法确定路线。",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage("默认规则或当前出站模式"),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "无法一致地读取当前路线，请检查连接后重试。",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage("计划经过的物理节点"),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "请输入域名或 IP 地址，不包含网址协议或路径。",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage("选中链路"),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage("已找到路由计划"),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage("命中规则"),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("读取中…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "读取当前规则与节点选择，不查询 DNS，也不连接目标。结果是路由计划，并非已发生的连接。",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "当前节点选择不可用，请选择节点后重试。",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage("域名或 IP 地址"),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage("分流预演"),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "请启动 sing-box 内核并应用配置，再使用分流预演。",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage("尚未导入分流配置"),
     "routingConfigFailed": MessageLookupByLibrary.simpleMessage(
       "无法载入或应用配置，请检查链接、规则及所选节点组。",

@@ -7,6 +7,7 @@ import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
 import 'outbound_http.dart';
 import 'routed_http.dart';
+import 'config/route_preview.dart';
 import 'routing_mode.dart';
 import 'profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
@@ -34,6 +35,19 @@ class CoreController {
 
   @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsRoutePreview => _interface is CoreRoutePreviewSource;
+
+  Future<CoreRoutePreview> previewRoute(String target) {
+    final source = _interface;
+    if (source is! CoreRoutePreviewSource) {
+      throw const CoreMethodException(
+        code: 'route_preview_unavailable',
+        message: 'Offline route preview is unavailable',
+      );
+    }
+    return (source as CoreRoutePreviewSource).previewRoute(target);
+  }
 
   bool get supportsRoutedClients => _interface is CoreRoutedHttp;
 

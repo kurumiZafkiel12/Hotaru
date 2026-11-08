@@ -2094,6 +2094,50 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Adresses de route exclues",
     ),
+    "routePreviewAction": MessageLookupByLibrary.simpleMessage("Prévisualiser"),
+    "routePreviewAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "Une règle précédente exige une réponse DNS ; le trajet reste indéterminé hors ligne.",
+    ),
+    "routePreviewContextRequired": MessageLookupByLibrary.simpleMessage(
+      "Une règle précédente exige des détails de connexion absents de cet aperçu.",
+    ),
+    "routePreviewDefault": MessageLookupByLibrary.simpleMessage(
+      "Route par défaut ou mode de sortie actif",
+    ),
+    "routePreviewFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible de lire une route cohérente. Vérifiez la connexion et réessayez.",
+    ),
+    "routePreviewHops": MessageLookupByLibrary.simpleMessage(
+      "Sauts physiques prévus",
+    ),
+    "routePreviewInvalidTarget": MessageLookupByLibrary.simpleMessage(
+      "Saisissez un domaine ou une IP sans protocole ni chemin URL.",
+    ),
+    "routePreviewPath": MessageLookupByLibrary.simpleMessage(
+      "Chemin sélectionné",
+    ),
+    "routePreviewResolved": MessageLookupByLibrary.simpleMessage(
+      "Plan de routage trouvé",
+    ),
+    "routePreviewRule": MessageLookupByLibrary.simpleMessage(
+      "Règle correspondante",
+    ),
+    "routePreviewRunning": MessageLookupByLibrary.simpleMessage("Lecture…"),
+    "routePreviewScope": MessageLookupByLibrary.simpleMessage(
+      "Consulte les règles actives et le chemin choisi sans requête DNS ni connexion à la cible. Ce plan ne représente pas une connexion observée.",
+    ),
+    "routePreviewSelectionRequired": MessageLookupByLibrary.simpleMessage(
+      "La sélection active est indisponible. Choisissez un nœud et réessayez.",
+    ),
+    "routePreviewTarget": MessageLookupByLibrary.simpleMessage(
+      "Domaine ou adresse IP",
+    ),
+    "routePreviewTitle": MessageLookupByLibrary.simpleMessage(
+      "Aperçu du routage",
+    ),
+    "routePreviewUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Démarrez sing-box et appliquez une configuration.",
+    ),
     "routingConfigEmpty": MessageLookupByLibrary.simpleMessage(
       "Aucune configuration de routage importée",
     ),
