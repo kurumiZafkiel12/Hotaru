@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "가져온 이후 이 프로필이 활성화된 동안의 업로드 및 다운로드 합계"
+  "profileTrafficSinceImport": "가져온 이후 이 프로필이 활성화된 동안의 업로드 및 다운로드 합계",
+  "configurationReviewTitle": "설정 변환 검토",
+  "configurationReviewIntro": "설정을 활성화하기 전에 차이점을 확인하세요. 원본 파일은 변경되지 않습니다.",
+  "configurationReviewBlocked": "일부 옵션을 변환할 수 없습니다. 이 설정은 활성화되지 않으며 현재 연결과 원본 파일은 유지됩니다.",
+  "configurationReviewSummary": "차단 항목: {errors} · 변경 사항: {warnings}",
+  "configurationReviewApply": "설정 활성화",
+  "configurationReviewLocations": "상세 위치",
+  "configurationReviewCount": "항목: {count}개",
+  "configurationReviewMore": "추가 {count}개",
+  "configurationReviewOwned": "이 설정이나 로컬 캐시 경로는 Hotaru가 관리합니다.",
+  "configurationReviewMetadata": "설명용 메타데이터는 무시되며 라우팅에는 영향을 주지 않습니다.",
+  "configurationReviewIpRules": "IP 규칙은 새 코어에서 이름을 확인합니다. 응답이 여러 개이거나 조회에 실패하면 라우팅 결과가 달라질 수 있습니다.",
+  "configurationReviewGeo": "GeoIP는 선택한 DAT 데이터베이스를 사용하므로 기존 MMDB와 지역 판정이 다를 수 있습니다.",
+  "configurationReviewHosts": "Hosts 동작은 아직 완전히 일치하지 않습니다. 사용자 또는 시스템 Hosts가 다르게 처리될 수 있습니다.",
+  "configurationReviewLoadBalance": "부하 분산은 수동 선택으로 바뀌며 연결이 자동으로 분산되지 않습니다.",
+  "configurationReviewFallback": "장애 조치는 URL 테스트 선택으로 바뀌며 노드 선택 시점이 달라질 수 있습니다.",
+  "configurationReviewHealth": "공급자의 독립 상태 검사는 아직 이전되지 않았습니다. URL 테스트 그룹은 자체 설정을 사용합니다.",
+  "configurationReviewDuplicates": "그룹 내 중복 노드 참조는 병합됩니다.",
+  "configurationReviewUnsupported": "이 옵션은 변환할 수 없습니다. 상세 위치를 확인하세요.",
+  "configurationReviewChanged": "변환 후 이 옵션의 동작이 달라집니다. 상세 위치를 확인하세요.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

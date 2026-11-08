@@ -10107,6 +10107,196 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Configuration conversion review`
+  String get configurationReviewTitle {
+    return Intl.message(
+      'Configuration conversion review',
+      name: 'configurationReviewTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review the differences before enabling this configuration. The source file stays unchanged.`
+  String get configurationReviewIntro {
+    return Intl.message(
+      'Review the differences before enabling this configuration. The source file stays unchanged.',
+      name: 'configurationReviewIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.`
+  String get configurationReviewBlocked {
+    return Intl.message(
+      'Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.',
+      name: 'configurationReviewBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Blocking: {errors} · Changes: {warnings}`
+  String configurationReviewSummary(int errors, int warnings) {
+    return Intl.message(
+      'Blocking: $errors · Changes: $warnings',
+      name: 'configurationReviewSummary',
+      desc: '',
+      args: [errors, warnings],
+    );
+  }
+
+  /// `Enable configuration`
+  String get configurationReviewApply {
+    return Intl.message(
+      'Enable configuration',
+      name: 'configurationReviewApply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Technical locations`
+  String get configurationReviewLocations {
+    return Intl.message(
+      'Technical locations',
+      name: 'configurationReviewLocations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Items: {count}`
+  String configurationReviewCount(int count) {
+    return Intl.message(
+      'Items: $count',
+      name: 'configurationReviewCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Additional: {count}`
+  String configurationReviewMore(int count) {
+    return Intl.message(
+      'Additional: $count',
+      name: 'configurationReviewMore',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Hotaru controls these settings or local cache paths.`
+  String get configurationReviewOwned {
+    return Intl.message(
+      'Hotaru controls these settings or local cache paths.',
+      name: 'configurationReviewOwned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Descriptive metadata is ignored and does not change routing.`
+  String get configurationReviewMetadata {
+    return Intl.message(
+      'Descriptive metadata is ignored and does not change routing.',
+      name: 'configurationReviewMetadata',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.`
+  String get configurationReviewIpRules {
+    return Intl.message(
+      'IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.',
+      name: 'configurationReviewIpRules',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `GeoIP uses the selected DAT database; region matches can differ from the original MMDB.`
+  String get configurationReviewGeo {
+    return Intl.message(
+      'GeoIP uses the selected DAT database; region matches can differ from the original MMDB.',
+      name: 'configurationReviewGeo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.`
+  String get configurationReviewHosts {
+    return Intl.message(
+      'Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.',
+      name: 'configurationReviewHosts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Load balancing becomes manual selection; connections are no longer distributed.`
+  String get configurationReviewLoadBalance {
+    return Intl.message(
+      'Load balancing becomes manual selection; connections are no longer distributed.',
+      name: 'configurationReviewLoadBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fallback becomes URL-test selection; selection timing can differ.`
+  String get configurationReviewFallback {
+    return Intl.message(
+      'Fallback becomes URL-test selection; selection timing can differ.',
+      name: 'configurationReviewFallback',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.`
+  String get configurationReviewHealth {
+    return Intl.message(
+      'The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.',
+      name: 'configurationReviewHealth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duplicate node references within a group are merged.`
+  String get configurationReviewDuplicates {
+    return Intl.message(
+      'Duplicate node references within a group are merged.',
+      name: 'configurationReviewDuplicates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This option could not be converted. See its technical location.`
+  String get configurationReviewUnsupported {
+    return Intl.message(
+      'This option could not be converted. See its technical location.',
+      name: 'configurationReviewUnsupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This option changes behavior during conversion. See its technical location.`
+  String get configurationReviewChanged {
+    return Intl.message(
+      'This option changes behavior during conversion. See its technical location.',
+      name: 'configurationReviewChanged',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

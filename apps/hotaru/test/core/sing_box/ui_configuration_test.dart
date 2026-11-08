@@ -43,6 +43,7 @@ Future<AcceptedSingBoxConfig> _configuration({
   final preparer = SingBoxConfigPreparer();
   final result = await preparer.prepare(
     profileId: id,
+    applicationData: 'source-$id',
     import: () async => CoreConfigImportResult(
       profile: CoreProfileSpec(
         nodes: const [
@@ -385,6 +386,7 @@ void main() {
       );
       expect((selected, global, mode), ('B', 'B', CoreRoutingMode.global));
       expect(binding.current.profileId, original.profileId);
+      expect(binding.current.applicationData, original.applicationData);
       expect(await routes.setInbounds(true), isTrue);
       expect(binding.current.listeners.inboundsEnabled, isTrue);
       expect(binding.current.profile.ruleSets.single.suffixes, [

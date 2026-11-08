@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "Données envoyées et reçues pendant que ce profil était actif, depuis son importation"
+  "profileTrafficSinceImport": "Données envoyées et reçues pendant que ce profil était actif, depuis son importation",
+  "configurationReviewTitle": "Vérification de la conversion",
+  "configurationReviewIntro": "Vérifiez les différences avant d’activer cette configuration. Le fichier source reste inchangé.",
+  "configurationReviewBlocked": "Certaines options ne peuvent pas être converties. Cette configuration ne sera pas activée ; la connexion actuelle et le fichier source restent inchangés.",
+  "configurationReviewSummary": "Blocages : {errors} · Modifications : {warnings}",
+  "configurationReviewApply": "Activer la configuration",
+  "configurationReviewLocations": "Emplacements techniques",
+  "configurationReviewCount": "Éléments : {count}",
+  "configurationReviewMore": "Autres : {count}",
+  "configurationReviewOwned": "Hotaru gère ces paramètres ou les chemins du cache local.",
+  "configurationReviewMetadata": "Les métadonnées descriptives sont ignorées sans modifier le routage.",
+  "configurationReviewIpRules": "Les règles IP utilisent le nouveau résolveur. Plusieurs réponses ou un échec DNS peuvent modifier le routage.",
+  "configurationReviewGeo": "GeoIP utilise la base DAT sélectionnée ; les régions peuvent différer de la MMDB d’origine.",
+  "configurationReviewHosts": "Le comportement de Hosts n’est pas entièrement aligné. Les entrées locales ou système peuvent être traitées différemment.",
+  "configurationReviewLoadBalance": "La répartition de charge devient une sélection manuelle ; les connexions ne sont plus réparties.",
+  "configurationReviewFallback": "Le basculement devient une sélection par test URL ; le moment de sélection peut différer.",
+  "configurationReviewHealth": "Les vérifications indépendantes du fournisseur ne sont pas encore migrées. Les groupes de test URL gardent leurs propres paramètres.",
+  "configurationReviewDuplicates": "Les références de nœuds en double dans un groupe sont fusionnées.",
+  "configurationReviewUnsupported": "Cette option ne peut pas être convertie. Consultez son emplacement technique.",
+  "configurationReviewChanged": "Le comportement de cette option change après conversion. Consultez son emplacement technique.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

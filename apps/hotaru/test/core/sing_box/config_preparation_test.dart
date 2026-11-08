@@ -97,13 +97,17 @@ void main() {
         controllerPort: 19090,
         secret: 'fixture',
       );
+      final metadata = Object();
       final result = await preparation.prepare(
+        applicationData: metadata,
         import: import,
         listeners: listeners,
         profileId: 7,
       );
       final accepted = preparation.approve(result.candidate!);
       expect(accepted.profileId, 7);
+      expect(accepted.applicationData, same(metadata));
+      expect(decoded(accepted).toString(), isNot(contains('applicationData')));
       final invalid = await preparation.prepare(
         import: import,
         listeners: listeners,

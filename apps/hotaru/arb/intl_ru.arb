@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "Объём отправленных и полученных данных за время работы профиля с момента импорта"
+  "profileTrafficSinceImport": "Объём отправленных и полученных данных за время работы профиля с момента импорта",
+  "configurationReviewTitle": "Проверка преобразования",
+  "configurationReviewIntro": "Проверьте различия перед включением конфигурации. Исходный файл не изменяется.",
+  "configurationReviewBlocked": "Некоторые параметры не удалось преобразовать. Конфигурация не будет включена; текущее соединение и исходный файл сохраняются.",
+  "configurationReviewSummary": "Блокирующие: {errors} · Изменения: {warnings}",
+  "configurationReviewApply": "Включить конфигурацию",
+  "configurationReviewLocations": "Технические сведения",
+  "configurationReviewCount": "Количество: {count}",
+  "configurationReviewMore": "Дополнительно: {count}",
+  "configurationReviewOwned": "Эти параметры и пути локального кэша управляются Hotaru.",
+  "configurationReviewMetadata": "Описательные метаданные пропускаются и не меняют маршрутизацию.",
+  "configurationReviewIpRules": "Правила IP используют новый механизм DNS. Несколько ответов или ошибки разрешения могут изменить маршрутизацию.",
+  "configurationReviewGeo": "GeoIP использует выбранную базу DAT. Определение региона может отличаться от исходной MMDB.",
+  "configurationReviewHosts": "Поведение Hosts пока не полностью совпадает. Пользовательские и системные записи могут обрабатываться иначе.",
+  "configurationReviewLoadBalance": "Балансировка нагрузки заменяется ручным выбором; соединения больше не распределяются.",
+  "configurationReviewFallback": "Резервирование заменяется выбором по URL-тесту; момент переключения может отличаться.",
+  "configurationReviewHealth": "Отдельные проверки состояния провайдера пока не перенесены. Группы URL-теста используют собственные настройки.",
+  "configurationReviewDuplicates": "Повторные ссылки на узлы внутри группы объединяются.",
+  "configurationReviewUnsupported": "Этот параметр не удалось преобразовать. См. технические сведения.",
+  "configurationReviewChanged": "После преобразования этот параметр работает иначе. См. технические сведения.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

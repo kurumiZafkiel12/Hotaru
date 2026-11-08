@@ -22,6 +22,7 @@ Future<AcceptedSingBoxConfig> prepareSingBoxRuntime({
   final preparer = SingBoxConfigPreparer();
   final prepared = await preparer.prepare(
     profileId: configuration.profileId,
+    applicationData: configuration.applicationData,
     import: () async => CoreConfigImportResult(profile: profile, issues: []),
     listeners: configuration.listeners.withRuntime(
       enabled: enabled,

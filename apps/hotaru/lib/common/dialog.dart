@@ -6,9 +6,20 @@ import 'package:hotaru/models/models.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/config/profile.dart';
+import '../widgets/configuration_review.dart';
 
 class Dialogs {
   Dialogs._();
+
+  Future<bool> showConfigurationReview(List<CoreConfigIssue> issues) async {
+    if (issues.isEmpty) return true;
+    final data = await ConfigurationReviewData.prepare(issues);
+    return await showCommonDialog<bool>(
+          child: ConfigurationReviewDialog(data: data),
+        ) ??
+        false;
+  }
 
   // Focus sits in the route the user acts in, so an alert raised from a form
   // sheet, or a page pushed inside one, opens over it, beside the navigation

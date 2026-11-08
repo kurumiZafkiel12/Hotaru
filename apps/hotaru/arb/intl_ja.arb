@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "インポート後にこのプロファイルが有効だった間の送受信合計"
+  "profileTrafficSinceImport": "インポート後にこのプロファイルが有効だった間の送受信合計",
+  "configurationReviewTitle": "設定変換の確認",
+  "configurationReviewIntro": "有効にする前に差分を確認してください。元の設定ファイルは変更されません。",
+  "configurationReviewBlocked": "一部の項目を変換できません。この設定は有効にならず、現在の接続と元のファイルは維持されます。",
+  "configurationReviewSummary": "適用不可：{errors} 件 · 動作の差分：{warnings} 件",
+  "configurationReviewApply": "設定を有効にする",
+  "configurationReviewLocations": "詳細な位置",
+  "configurationReviewCount": "{count} 件",
+  "configurationReviewMore": "ほか {count} 件",
+  "configurationReviewOwned": "これらの設定やローカルキャッシュの場所は Hotaru が管理します。",
+  "configurationReviewMetadata": "説明用のメタデータは無視され、振り分けには影響しません。",
+  "configurationReviewIpRules": "IP ルールは新しいコアで名前解決します。複数の応答や解決失敗時の振り分けが変わる場合があります。",
+  "configurationReviewGeo": "GeoIP は選択した DAT データベースを使用し、元の MMDB と地域判定が異なる場合があります。",
+  "configurationReviewHosts": "Hosts の動作は完全には一致していません。独自またはシステムの Hosts の扱いが異なる場合があります。",
+  "configurationReviewLoadBalance": "負荷分散は手動選択に変換され、接続は自動分散されません。",
+  "configurationReviewFallback": "フェイルオーバーは URL テストによる選択に変換され、選択のタイミングが変わる場合があります。",
+  "configurationReviewHealth": "プロバイダー独自のヘルスチェックは未移行です。URL テストグループは自身の設定を使用します。",
+  "configurationReviewDuplicates": "グループ内の重複したノード参照は統合されます。",
+  "configurationReviewUnsupported": "この項目は変換できません。詳細な位置を確認してください。",
+  "configurationReviewChanged": "この項目は変換後に動作が変わります。詳細な位置を確認してください。",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

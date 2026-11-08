@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "Upload and download while this profile was active, accumulated since import"
+  "profileTrafficSinceImport": "Upload and download while this profile was active, accumulated since import",
+  "configurationReviewTitle": "Configuration conversion review",
+  "configurationReviewIntro": "Review the differences before enabling this configuration. The source file stays unchanged.",
+  "configurationReviewBlocked": "Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.",
+  "configurationReviewSummary": "Blocking: {errors} · Changes: {warnings}",
+  "configurationReviewApply": "Enable configuration",
+  "configurationReviewLocations": "Technical locations",
+  "configurationReviewCount": "Items: {count}",
+  "configurationReviewMore": "Additional: {count}",
+  "configurationReviewOwned": "Hotaru controls these settings or local cache paths.",
+  "configurationReviewMetadata": "Descriptive metadata is ignored and does not change routing.",
+  "configurationReviewIpRules": "IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.",
+  "configurationReviewGeo": "GeoIP uses the selected DAT database; region matches can differ from the original MMDB.",
+  "configurationReviewHosts": "Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.",
+  "configurationReviewLoadBalance": "Load balancing becomes manual selection; connections are no longer distributed.",
+  "configurationReviewFallback": "Fallback becomes URL-test selection; selection timing can differ.",
+  "configurationReviewHealth": "The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.",
+  "configurationReviewDuplicates": "Duplicate node references within a group are merged.",
+  "configurationReviewUnsupported": "This option could not be converted. See its technical location.",
+  "configurationReviewChanged": "This option changes behavior during conversion. See its technical location.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

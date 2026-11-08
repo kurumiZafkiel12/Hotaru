@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "Datos enviados y recibidos mientras este perfil estuvo activo, desde su importación"
+  "profileTrafficSinceImport": "Datos enviados y recibidos mientras este perfil estuvo activo, desde su importación",
+  "configurationReviewTitle": "Revisión de la conversión",
+  "configurationReviewIntro": "Revisa las diferencias antes de activar esta configuración. El archivo original no se modifica.",
+  "configurationReviewBlocked": "No se pudieron convertir algunas opciones. Esta configuración no se activará; se conservan la conexión actual y el archivo original.",
+  "configurationReviewSummary": "Bloqueos: {errors} · Cambios: {warnings}",
+  "configurationReviewApply": "Activar configuración",
+  "configurationReviewLocations": "Ubicaciones técnicas",
+  "configurationReviewCount": "Elementos: {count}",
+  "configurationReviewMore": "Adicionales: {count}",
+  "configurationReviewOwned": "Hotaru administra estos ajustes o las rutas de la caché local.",
+  "configurationReviewMetadata": "Se omiten los metadatos descriptivos sin cambiar el enrutamiento.",
+  "configurationReviewIpRules": "Las reglas IP utilizan el nuevo resolvedor. Varias respuestas o fallos DNS pueden producir rutas distintas.",
+  "configurationReviewGeo": "GeoIP utiliza la base DAT seleccionada; las regiones pueden diferir de la MMDB original.",
+  "configurationReviewHosts": "El comportamiento de Hosts aún no coincide por completo. Las entradas personalizadas o del sistema pueden tratarse de otra forma.",
+  "configurationReviewLoadBalance": "El balanceo de carga pasa a selección manual; las conexiones ya no se distribuyen.",
+  "configurationReviewFallback": "La conmutación por error pasa a selección mediante pruebas URL; el momento de selección puede variar.",
+  "configurationReviewHealth": "Las comprobaciones independientes del proveedor aún no se han migrado. Los grupos de prueba URL conservan sus propios ajustes.",
+  "configurationReviewDuplicates": "Se combinan las referencias de nodos duplicadas dentro de un grupo.",
+  "configurationReviewUnsupported": "No se pudo convertir esta opción. Consulta su ubicación técnica.",
+  "configurationReviewChanged": "El comportamiento de esta opción cambia tras la conversión. Consulta su ubicación técnica.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

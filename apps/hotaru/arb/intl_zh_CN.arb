@@ -1195,5 +1195,48 @@
       }
     }
   },
-  "profileTrafficSinceImport": "自导入以来，本配置生效期间的上传与下载总量"
+  "profileTrafficSinceImport": "自导入以来，本配置生效期间的上传与下载总量",
+  "configurationReviewTitle": "配置转换检查",
+  "configurationReviewIntro": "启用前请查看以下差异。原始配置文件保持不变。",
+  "configurationReviewBlocked": "部分选项无法转换，这份配置不会启用；当前连接与原始文件保持不变。",
+  "configurationReviewSummary": "阻止启用：{errors} 项 · 行为差异：{warnings} 项",
+  "configurationReviewApply": "启用配置",
+  "configurationReviewLocations": "详细位置",
+  "configurationReviewCount": "{count} 项",
+  "configurationReviewMore": "另有 {count} 项",
+  "configurationReviewOwned": "这些设置或本地缓存路径由 Hotaru 接管。",
+  "configurationReviewMetadata": "说明性字段已忽略，不会改变分流。",
+  "configurationReviewIpRules": "IP 规则使用新内核解析。多个解析结果或解析失败时，分流结果可能与原配置不同。",
+  "configurationReviewGeo": "GeoIP 使用选定的 DAT 数据库，地区匹配可能与原来的 MMDB 不同。",
+  "configurationReviewHosts": "Hosts 行为尚未完全对齐，自定义或系统 Hosts 的处理可能不同。",
+  "configurationReviewLoadBalance": "负载均衡改为手动选择，不再自动分摊连接。",
+  "configurationReviewFallback": "故障转移组改为自动测速组，节点选择时机可能不同。",
+  "configurationReviewHealth": "提供者的独立健康检查尚未迁移；自动测速组仍使用自身的设置。",
+  "configurationReviewDuplicates": "同组内重复的节点引用已合并。",
+  "configurationReviewUnsupported": "此选项无法转换，请查看详细位置。",
+  "configurationReviewChanged": "此选项在转换后的处理方式存在差异，请查看详细位置。",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
