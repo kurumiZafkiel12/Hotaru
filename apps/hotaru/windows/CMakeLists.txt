@@ -127,6 +127,16 @@ install(FILES
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
+install(CODE "
+  file(READ \"${CORE_ARTIFACTS_DIR}/manifest.json\" host_manifest)
+  if(host_manifest MATCHES \"sing-box\")
+    file(INSTALL DESTINATION \"${INSTALL_BUNDLE_LIB_DIR}\" TYPE FILE FILES
+      \"${CORE_ARTIFACTS_DIR}/LICENSE-sing-box\"
+      \"${CORE_ARTIFACTS_DIR}/LICENSE-Hotaru\"
+      \"${CORE_ARTIFACTS_DIR}/SOURCES.txt\")
+  endif()
+" COMPONENT Runtime)
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"

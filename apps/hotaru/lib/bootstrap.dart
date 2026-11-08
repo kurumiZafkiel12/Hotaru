@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hotaru/common/boot_guard.dart';
+import 'package:hotaru/common/core_upgrade.dart';
+import 'package:hotaru/core/desktop/core_manifest.dart';
+import 'bootstrap_windows.dart';
 import 'package:hotaru/common/boot_record.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/common/launch.dart';
@@ -30,6 +33,8 @@ class Bootstrap {
   }
 
   BootDecision _bootDecision = const BootDecision();
+  bool _showCoreReimport = false;
+  bool _singBoxDesktop = false;
 
   Future<ProviderContainer> init(int version) async {
     globalState.appEnv = const String.fromEnvironment(
@@ -80,6 +85,21 @@ class Bootstrap {
       config = config.copyWith(patchClashConfig: patchClashConfig);
       await preferences.saveConfig(config);
     }
+    final useSingBox =
+        Platform.isWindows &&
+        !safeModeBuild &&
+        await CoreManifest.readSingBoxHostSha256() != null;
+    _singBoxDesktop = useSingBox;
+    if (useSingBox) {
+      final hadSelection = config.currentProfileId != null;
+      final upgrade = await DesktopCoreUpgrade(
+        readEpoch: preferences.getDesktopCoreEpoch,
+        saveEpoch: preferences.setDesktopCoreEpoch,
+        saveConfig: preferences.saveConfig,
+      ).prepare(config);
+      config = upgrade.config;
+      _showCoreReimport = upgrade.changed && hadSelection;
+    }
     final appState = AppState(
       brightness: WidgetsBinding.instance.platformDispatcher.platformBrightness,
       version: version,
@@ -92,28 +112,92 @@ class Bootstrap {
     );
     final appStateOverrides = buildAppStateOverrides(appState);
     final configOverrides = buildConfigOverrides(config);
-    final container = ProviderContainer(
-      overrides: [...appStateOverrides, ...configOverrides],
-    );
-    globalState.container = container;
-    container
-        .read(dynamicColorProvider.notifier)
-        .seed(
-          lightSeed: dynamicColor.lightSeed,
-          darkSeed: dynamicColor.darkSeed,
-          accentColor: dynamicColor.accentColor,
+    WindowsCoreApplication? windowsApplication;
+    ProviderContainer? ownedContainer;
+    try {
+      if (useSingBox) {
+        final directory = await appPath.homeDirPath;
+        windowsApplication = await WindowsCoreApplication.create(
+          homeDirectory: directory,
+          configPath: await appPath.configFilePath,
+          mixedPort: config.patchClashConfig.mixedPort,
+          providerFiles: _providerFiles,
+          review: dialogs.showConfigurationReview,
+          persistTraffic: (sample) async {
+            await database.profileTrafficDao.record(
+              profileId: sample.profileId,
+              sessionId: sample.sessionId,
+              upload: sample.upload,
+              download: sample.download,
+            );
+          },
+          onError: (error, _) => commonPrint.log(
+            'Windows background task failed: ${compactError(error)}',
+          ),
         );
-    final profiles = await database.profilesDao.query().get();
-    container.read(profilesProvider.notifier).reorder(profiles);
-    await AppLocalizations.load(
-      getLocaleForString(config.appSettingProps.locale) ??
-          WidgetsBinding.instance.platformDispatcher.locale,
-    );
-    await window?.init(version, config.windowProps);
-    if (system.isAndroid) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
+      final container = ProviderContainer(
+        overrides: [
+          ...appStateOverrides,
+          ...configOverrides,
+          if (windowsApplication != null)
+            coreHandlerProvider.overrideWithValue(
+              windowsApplication.controller,
+            ),
+        ],
+      );
+      ownedContainer = container;
+      globalState.container = container;
+      container
+          .read(dynamicColorProvider.notifier)
+          .seed(
+            lightSeed: dynamicColor.lightSeed,
+            darkSeed: dynamicColor.darkSeed,
+            accentColor: dynamicColor.accentColor,
+          );
+      final profiles = await database.profilesDao.query().get();
+      container.read(profilesProvider.notifier).reorder(profiles);
+      await AppLocalizations.load(
+        getLocaleForString(config.appSettingProps.locale) ??
+            WidgetsBinding.instance.platformDispatcher.locale,
+      );
+      await window?.init(version, config.windowProps);
+      if (system.isAndroid) {
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
+      return container;
+    } catch (_) {
+      try {
+        await windowsApplication?.controller.close();
+      } finally {
+        ownedContainer?.dispose();
+      }
+      rethrow;
     }
-    return container;
+  }
+
+  Future<Map<String, String>> _providerFiles() async {
+    final result = <String, String>{};
+    final seen = <String>{};
+    final rules = await database.clashProvidersDao.query().get();
+    final profiles = await database.profilesDao.query().get();
+    for (final profile in profiles) {
+      final path = await appPath.getProfilePath(profile.id.toString());
+      if (await File(path).exists() && seen.add(path)) {
+        result['hotaru-files/profile-${profile.id}'] = path;
+      }
+    }
+    for (final rule in rules) {
+      for (final (kind, path) in [
+        ('source', await rule.path),
+        ('compiled', await rule.compiledPath),
+      ]) {
+        if (await File(path).exists() && seen.add(path)) {
+          result['hotaru-files/rule-${rule.id}-$kind'] = path;
+        }
+      }
+    }
+    return result;
   }
 
   Future<void> attach() async {
@@ -127,11 +211,19 @@ class Bootstrap {
   ProviderContainer get _container => globalState.container;
 
   Future<void> _initApp() async {
+    if (safeModeBuild) {
+      unawaited(window?.show());
+      _container.read(initProvider.notifier).value = true;
+      await bootGuard.markRunning();
+      return;
+    }
     await latencyDiagnosticsStore.ensureLoaded();
     unawaited(_container.read(systemActionProvider.notifier).updateTray());
-    unawaited(
-      _container.read(profilesActionProvider.notifier).autoUpdateProfiles(),
-    );
+    if (!_singBoxDesktop || _container.read(currentProfileIdProvider) != null) {
+      unawaited(
+        _container.read(profilesActionProvider.notifier).autoUpdateProfiles(),
+      );
+    }
     unawaited(_container.read(commonActionProvider.notifier).autoCheckUpdate());
     unawaited(
       autoLaunch?.updateStatus(_container.read(appSettingProvider).autoLaunch),
@@ -144,7 +236,16 @@ class Bootstrap {
     await _handleFailedPreference();
     await _showCrashRecoveryTip();
     await _container.read(coreActionProvider.notifier).startCore();
-    if (!_bootDecision.isDegraded) {
+    if (_showCoreReimport) {
+      await dialogs.showAlert(
+        title: currentAppLocalizations.singBoxReimportTitle,
+        message: TextSpan(text: currentAppLocalizations.singBoxReimportBody),
+      );
+      _showCoreReimport = false;
+    }
+    if (!_bootDecision.isDegraded &&
+        (!_singBoxDesktop ||
+            _container.read(currentProfileIdProvider) != null)) {
       await _container.read(setupActionProvider.notifier).initStatus();
     }
     _container.read(initProvider.notifier).value = true;

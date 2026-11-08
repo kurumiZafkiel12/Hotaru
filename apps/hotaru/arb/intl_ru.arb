@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "Публичный адрес WebRTC отличается от выхода страницы в том же семействе IP. Проверьте UDP и настройки прокси.",
   "browserRtcMatch": "Публичный адрес WebRTC совпадает с выходом этой страницы. Другие браузеры могут использовать иной маршрут.",
   "browserLeakUnavailable": "Не удалось запустить веб-проверку. Проверьте доступ к BrowserLeaks и установку Microsoft Edge WebView2.",
-  "browserRemoteIp": "Выходной IP страницы",
+  "browserRemoteIp": "IP, видимый сайту",
   "browserRtcPublicIp": "Публичный IP WebRTC",
   "browserLocalIp": "Локальный IP",
-  "browserLocalNotExposed": "Определяемый локальный адрес не раскрыт"
+  "browserLocalNotExposed": "Определяемый локальный адрес не раскрыт",
+  "embeddedToolScope": "Страница загружается через текущий прокси Hotaru. Проверку выполняет сайт.",
+  "embeddedToolNeedCore": "Подключите Hotaru, чтобы открыть инструмент.",
+  "embeddedToolUnavailable": "Не удалось загрузить страницу. Проверьте подключение и WebView2 и повторите попытку.",
+  "embeddedToolReload": "Обновить страницу",
+  "ipToolsTitle": "Диагностика IP",
+  "ipToolsScope": "Выберите сайт для проверки IP, сети и репутации текущего подключения.",
+  "ipToolsDetails": "Местоположение и сеть",
+  "ipToolsReputation": "Репутация и риск IP",
+  "ipToolsPrivacy": "Конфиденциальность IP и браузера",
+  "browserIpv4": "Адрес IPv4",
+  "browserIpv6": "Адрес IPv6",
+  "browserCountry": "Страна",
+  "browserRegion": "Регион",
+  "browserCity": "Город",
+  "browserOrganization": "Организация",
+  "browserPublicIp": "Публичный IP",
+  "browserSupport": "Поддержка WebRTC",
+  "browserNoLeak": "В этой проверке утечка не обнаружена",
+  "browserLeakDetected": "Обнаружена утечка",
+  "browserPotentialLeak": "Возможна утечка",
+  "browserDnsServers": "Серверы DNS",
+  "browserSessionDescription": "Описание сеанса",
+  "browserMediaDevices": "Медиаустройства",
+  "browserPermissions": "Разрешения",
+  "ipFactsOrigin": "Происхождение IP",
+  "ipFactsAttribute": "Тип IP",
+  "ipFactsQuality": "Качество IP",
+  "ipFactsNative": "Нативный",
+  "ipFactsBroadcast": "Перенесённый",
+  "ipFactsLow": "Низкий риск",
+  "ipFactsMedium": "Средний",
+  "ipFactsElevated": "Повышенный",
+  "ipFactsHigh": "Высокий риск",
+  "ipFactsScore": "{level} (Scamalytics: {score})",
+  "ipFactsOriginEvidence": "Страна геолокации: {geo}; страна регистрации блока IP: {registered} (RDAP)",
+  "ipFactsScope": "Происхождение IP определяется сравнением страны регистрации блока и геолокации. Тип предоставляет iplocate, оценку качества — только Scamalytics. При отсутствии данных показано «Неизвестно».",
+  "ipFactsNoData": "Нет пригодных данных",
+  "networkLatencyRating": "Оценка задержки",
+  "profileTrafficTotal": "Всего {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "Объём отправленных и полученных данных за время работы профиля с момента импорта",
+  "configurationReviewTitle": "Проверка преобразования",
+  "configurationReviewIntro": "Проверьте различия перед включением конфигурации. Исходный файл не изменяется.",
+  "configurationReviewBlocked": "Некоторые параметры не удалось преобразовать. Конфигурация не будет включена; текущее соединение и исходный файл сохраняются.",
+  "configurationReviewSummary": "Блокирующие: {errors} · Изменения: {warnings}",
+  "configurationReviewApply": "Включить конфигурацию",
+  "configurationReviewLocations": "Технические сведения",
+  "configurationReviewCount": "Количество: {count}",
+  "configurationReviewMore": "Дополнительно: {count}",
+  "configurationReviewOwned": "Эти параметры и пути локального кэша управляются Hotaru.",
+  "configurationReviewMetadata": "Описательные метаданные пропускаются и не меняют маршрутизацию.",
+  "configurationReviewIpRules": "Правила IP используют новый механизм DNS. Несколько ответов или ошибки разрешения могут изменить маршрутизацию.",
+  "configurationReviewGeo": "GeoIP использует выбранную базу DAT. Определение региона может отличаться от исходной MMDB.",
+  "configurationReviewHosts": "Поведение Hosts пока не полностью совпадает. Пользовательские и системные записи могут обрабатываться иначе.",
+  "configurationReviewLoadBalance": "Балансировка нагрузки заменяется ручным выбором; соединения больше не распределяются.",
+  "configurationReviewFallback": "Резервирование заменяется выбором по URL-тесту; момент переключения может отличаться.",
+  "configurationReviewHealth": "Отдельные проверки состояния провайдера пока не перенесены. Группы URL-теста используют собственные настройки.",
+  "configurationReviewDuplicates": "Повторные ссылки на узлы внутри группы объединяются.",
+  "configurationReviewUnsupported": "Этот параметр не удалось преобразовать. См. технические сведения.",
+  "configurationReviewChanged": "После преобразования этот параметр работает иначе. См. технические сведения.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "Виртуальный адаптер будет использовать системный сетевой стек sing-box, отличный от исходной конфигурации.",
+  "configurationReviewDial": "Новое ядро использует собственное планирование соединений и измерение задержки; результаты могут отличаться от предыдущей версии.",
+  "routePreviewTitle": "Предпросмотр маршрута",
+  "routePreviewScope": "Проверяет активные правила и выбранный путь без DNS-запроса и подключения к цели. Это план, а не запись фактического соединения.",
+  "routePreviewTarget": "Домен или IP-адрес",
+  "routePreviewAction": "Проверить",
+  "routePreviewRunning": "Чтение…",
+  "routePreviewUnavailable": "Запустите sing-box и примените конфигурацию.",
+  "routePreviewFailed": "Не удалось получить согласованный маршрут. Проверьте соединение и повторите попытку.",
+  "routePreviewResolved": "План маршрута найден",
+  "routePreviewAddressRequired": "Предыдущее правило требует ответа DNS; маршрут нельзя определить без сети.",
+  "routePreviewContextRequired": "Предыдущее правило требует дополнительных сведений о соединении.",
+  "routePreviewSelectionRequired": "Активный выбор недоступен. Выберите узел и повторите попытку.",
+  "routePreviewInvalidTarget": "Введите домен или IP без протокола и пути URL.",
+  "routePreviewRule": "Совпавшее правило",
+  "routePreviewDefault": "Маршрут по умолчанию или текущий режим выхода",
+  "routePreviewPath": "Выбранный путь",
+  "routePreviewHops": "Планируемые физические переходы",
+  "processTrafficTitle": "Рейтинг трафика приложений",
+  "processTrafficScope": "Учитывается только трафик через Hotaru в текущем сеансе ядра, включая закрытые соединения. Перезапуск ядра обнуляет счётчики. Неопознанный трафик показан отдельно.",
+  "processTrafficByApp": "По приложениям",
+  "processTrafficByProcess": "По процессам",
+  "processTrafficUnavailable": "Текущее ядро не предоставляет счётчики по процессам.",
+  "processTrafficEmpty": "Трафика пока нет. Выполните запрос через Hotaru.",
+  "processTrafficFailed": "Не удалось прочитать счётчики. Обновите данные.",
+  "processTrafficUnattributed": "Неатрибутированный трафик",
+  "processTrafficOverflow": "Некоторые процессы не удалось показать отдельно; их байты включены в неатрибутированный трафик.",
+  "processTrafficSampled": "Время замера",
+  "singBoxReimportTitle": "Повторно импортируйте подписки или конфигурации",
+  "singBoxReimportBody": "Hotaru теперь использует sing-box. Файлы и настройки сохранены; прежняя конфигурация не включается автоматически. Перед подключением заново импортируйте подписку или конфигурацию и выберите узлы для независимых правил маршрутизации.",
+  "geoUpdateFailedTip": "Не удалось обновить {resource}. Рабочая конфигурация не изменена. Проверьте сеть и URL ресурса и повторите попытку.",
+  "connectionObservedPath": "Наблюдаемый путь соединения",
+  "connectionThisDevice": "Это устройство",
+  "connectionPathComplete": "Полный путь подтверждён",
+  "connectionPathPartial": "Только наблюдаемые узлы"
 }

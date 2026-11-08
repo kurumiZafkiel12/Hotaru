@@ -1,7 +1,36 @@
 import 'package:hotaru/common/speed_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:io';
+import 'package:mocktail/mocktail.dart';
+
+class _Client extends Mock implements HttpClient {}
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(Uri.parse('https://example.org'));
+    registerFallbackValue((Uri _) => 'DIRECT');
+  });
+  test(
+    'a supplied client factory retains its proxy binding and is closed on failure',
+    () async {
+      final client = _Client();
+      when(() => client.getUrl(any())).thenThrow(StateError('fixture stop'));
+      var created = 0;
+      final runner = SpeedTestRunner.withClientFactory(() {
+        created++;
+        return client;
+      });
+      final result = await runner.run(
+        provider: SpeedTestProvider.apple,
+        durationSeconds: 1,
+        onProgress: (_, _, _) {},
+      );
+      expect(result.error, contains('fixture stop'));
+      expect(created, 1);
+      verifyNever(() => client.findProxy = any());
+      verify(() => client.close(force: true)).called(1);
+    },
+  );
   group('speedGaugeScaleMax', () {
     test('picks the first tier that contains the value', () {
       expect(speedGaugeScaleMax(0), 10 * 1e6);

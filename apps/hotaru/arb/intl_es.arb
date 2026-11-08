@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "La IP pública WebRTC difiere de la salida de la página en la misma familia IP. Revisa UDP y el proxy.",
   "browserRtcMatch": "La IP pública WebRTC coincide con la salida de esta página. Otros navegadores pueden usar otra ruta.",
   "browserLeakUnavailable": "No se pudo ejecutar la prueba web. Revisa la conexión con BrowserLeaks y la instalación de Microsoft Edge WebView2.",
-  "browserRemoteIp": "IP de salida de la página",
+  "browserRemoteIp": "IP visible para el sitio",
   "browserRtcPublicIp": "IP pública WebRTC",
-  "browserLocalIp": "IP local",
-  "browserLocalNotExposed": "No se expuso una dirección local identificable"
+  "browserLocalIp": "Dirección IP local",
+  "browserLocalNotExposed": "No se expuso una dirección local identificable",
+  "embeddedToolScope": "La página usa el proxy actual de Hotaru. El sitio realiza la prueba.",
+  "embeddedToolNeedCore": "Conecta Hotaru para abrir esta herramienta.",
+  "embeddedToolUnavailable": "No se pudo cargar la página. Comprueba la conexión y WebView2 e inténtalo de nuevo.",
+  "embeddedToolReload": "Recargar página",
+  "ipToolsTitle": "Diagnóstico IP",
+  "ipToolsScope": "Elige un sitio para consultar la IP, la red y la reputación de la conexión actual.",
+  "ipToolsDetails": "Ubicación y red",
+  "ipToolsReputation": "Reputación y riesgo de IP",
+  "ipToolsPrivacy": "Privacidad de IP y navegador",
+  "browserIpv4": "Dirección IPv4",
+  "browserIpv6": "Dirección IPv6",
+  "browserCountry": "País",
+  "browserRegion": "Región",
+  "browserCity": "Ciudad",
+  "browserOrganization": "Organización",
+  "browserPublicIp": "Dirección IP pública",
+  "browserSupport": "Compatibilidad con WebRTC",
+  "browserNoLeak": "No se detectaron fugas en esta prueba",
+  "browserLeakDetected": "Fuga detectada",
+  "browserPotentialLeak": "Posible fuga",
+  "browserDnsServers": "Servidores DNS",
+  "browserSessionDescription": "Descripción de sesión",
+  "browserMediaDevices": "Dispositivos multimedia",
+  "browserPermissions": "Permisos",
+  "ipFactsOrigin": "Origen IP",
+  "ipFactsAttribute": "Tipo IP",
+  "ipFactsQuality": "Calidad IP",
+  "ipFactsNative": "Nativa",
+  "ipFactsBroadcast": "Difundida",
+  "ipFactsLow": "Riesgo bajo",
+  "ipFactsMedium": "Medio",
+  "ipFactsElevated": "Elevado",
+  "ipFactsHigh": "Riesgo alto",
+  "ipFactsScore": "{level} (Scamalytics: {score})",
+  "ipFactsOriginEvidence": "País de ubicación: {geo}; país de registro del bloque IP: {registered} (RDAP)",
+  "ipFactsScope": "El origen compara el país de registro del bloque IP con su ubicación. El tipo procede de iplocate; la calidad solo usa la puntuación de Scamalytics. Los datos ausentes se muestran como desconocidos.",
+  "ipFactsNoData": "No hay datos utilizables",
+  "networkLatencyRating": "Evaluación de latencia",
+  "profileTrafficTotal": "Total {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "Datos enviados y recibidos mientras este perfil estuvo activo, desde su importación",
+  "configurationReviewTitle": "Revisión de la conversión",
+  "configurationReviewIntro": "Revisa las diferencias antes de activar esta configuración. El archivo original no se modifica.",
+  "configurationReviewBlocked": "No se pudieron convertir algunas opciones. Esta configuración no se activará; se conservan la conexión actual y el archivo original.",
+  "configurationReviewSummary": "Bloqueos: {errors} · Cambios: {warnings}",
+  "configurationReviewApply": "Activar configuración",
+  "configurationReviewLocations": "Ubicaciones técnicas",
+  "configurationReviewCount": "Elementos: {count}",
+  "configurationReviewMore": "Adicionales: {count}",
+  "configurationReviewOwned": "Hotaru administra estos ajustes o las rutas de la caché local.",
+  "configurationReviewMetadata": "Se omiten los metadatos descriptivos sin cambiar el enrutamiento.",
+  "configurationReviewIpRules": "Las reglas IP utilizan el nuevo resolvedor. Varias respuestas o fallos DNS pueden producir rutas distintas.",
+  "configurationReviewGeo": "GeoIP utiliza la base DAT seleccionada; las regiones pueden diferir de la MMDB original.",
+  "configurationReviewHosts": "El comportamiento de Hosts aún no coincide por completo. Las entradas personalizadas o del sistema pueden tratarse de otra forma.",
+  "configurationReviewLoadBalance": "El balanceo de carga pasa a selección manual; las conexiones ya no se distribuyen.",
+  "configurationReviewFallback": "La conmutación por error pasa a selección mediante pruebas URL; el momento de selección puede variar.",
+  "configurationReviewHealth": "Las comprobaciones independientes del proveedor aún no se han migrado. Los grupos de prueba URL conservan sus propios ajustes.",
+  "configurationReviewDuplicates": "Se combinan las referencias de nodos duplicadas dentro de un grupo.",
+  "configurationReviewUnsupported": "No se pudo convertir esta opción. Consulta su ubicación técnica.",
+  "configurationReviewChanged": "El comportamiento de esta opción cambia tras la conversión. Consulta su ubicación técnica.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "El adaptador virtual usará la pila de red del sistema de sing-box, distinta de la configuración original.",
+  "configurationReviewDial": "El nuevo núcleo utiliza su propia planificación de conexiones y medición de latencia; los resultados pueden diferir de la versión anterior.",
+  "routePreviewTitle": "Vista previa de rutas",
+  "routePreviewScope": "Consulta las reglas activas y la ruta elegida sin DNS ni conexión al destino. Es un plan, no una conexión observada.",
+  "routePreviewTarget": "Dominio o dirección IP",
+  "routePreviewAction": "Previsualizar",
+  "routePreviewRunning": "Consultando…",
+  "routePreviewUnavailable": "Inicia sing-box y aplica una configuración.",
+  "routePreviewFailed": "No se pudo leer una ruta coherente. Comprueba la conexión e inténtalo de nuevo.",
+  "routePreviewResolved": "Plan de ruta encontrado",
+  "routePreviewAddressRequired": "Una regla anterior necesita una respuesta DNS; no se puede determinar la ruta sin conexión.",
+  "routePreviewContextRequired": "Una regla anterior necesita detalles de conexión que esta vista no tiene.",
+  "routePreviewSelectionRequired": "La selección activa no está disponible. Elige un nodo y reintenta.",
+  "routePreviewInvalidTarget": "Introduce un dominio o IP sin protocolo ni ruta URL.",
+  "routePreviewRule": "Regla coincidente",
+  "routePreviewDefault": "Ruta predeterminada o modo de salida actual",
+  "routePreviewPath": "Ruta seleccionada",
+  "routePreviewHops": "Saltos físicos previstos",
+  "processTrafficTitle": "Clasificación de tráfico por aplicación",
+  "processTrafficScope": "Solo cuenta el tráfico que pasa por Hotaru en esta sesión del núcleo, incluidas las conexiones cerradas. Reiniciar el núcleo pone los contadores a cero. El tráfico sin identificar aparece aparte.",
+  "processTrafficByApp": "Por aplicación",
+  "processTrafficByProcess": "Por proceso",
+  "processTrafficUnavailable": "El núcleo actual no ofrece contadores por proceso.",
+  "processTrafficEmpty": "Todavía no hay tráfico. Envía una solicitud a través de Hotaru.",
+  "processTrafficFailed": "No se pudieron leer los contadores. Actualiza para reintentar.",
+  "processTrafficUnattributed": "Tráfico sin atribuir",
+  "processTrafficOverflow": "Algunos procesos no se pueden listar por separado; sus bytes se incluyen en el tráfico sin atribuir.",
+  "processTrafficSampled": "Muestra",
+  "singBoxReimportTitle": "Vuelve a importar las suscripciones o configuraciones",
+  "singBoxReimportBody": "Hotaru ahora usa sing-box. Se conservan tus archivos y preferencias; la configuración anterior no se iniciará automáticamente. Vuelve a importar la suscripción o configuración antes de conectar y selecciona de nuevo los nodos de las reglas independientes.",
+  "geoUpdateFailedTip": "No se pudo actualizar {resource}. La configuración activa no ha cambiado. Comprueba la red y la URL del recurso e inténtalo de nuevo.",
+  "connectionObservedPath": "Ruta de conexión observada",
+  "connectionThisDevice": "Este dispositivo",
+  "connectionPathComplete": "Ruta completa observada",
+  "connectionPathPartial": "Solo saltos observados"
 }

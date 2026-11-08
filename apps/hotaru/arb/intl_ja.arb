@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "WebRTC の公開アドレスが同じアドレス形式のページ出口と異なります。UDP とプロキシ設定を確認してください。",
   "browserRtcMatch": "今回の WebRTC 公開アドレスはページ出口と一致しています。他のブラウザーの経路は未検査です。",
   "browserLeakUnavailable": "ウェブ検査を実行できません。BrowserLeaks への接続と Microsoft Edge WebView2 ランタイムを確認してください。",
-  "browserRemoteIp": "ページ出口 IP",
+  "browserRemoteIp": "サイトから見える IP",
   "browserRtcPublicIp": "WebRTC 公開 IP",
-  "browserLocalIp": "ローカル IP",
-  "browserLocalNotExposed": "識別可能なローカルアドレスは非公開"
+  "browserLocalIp": "ローカル IP アドレス",
+  "browserLocalNotExposed": "識別可能なローカルアドレスは非公開",
+  "embeddedToolScope": "ページは Hotaru の現在のプロキシ経由で読み込まれ、サイトが検査します。",
+  "embeddedToolNeedCore": "このツールを開くには Hotaru に接続してください。",
+  "embeddedToolUnavailable": "ページを読み込めません。接続と WebView2 を確認して再試行してください。",
+  "embeddedToolReload": "ページを再読み込み",
+  "ipToolsTitle": "IP 診断",
+  "ipToolsScope": "現在の接続の IP、ネットワーク、評判を確認するサイトを選択します。",
+  "ipToolsDetails": "位置とネットワーク情報",
+  "ipToolsReputation": "IP の評判とリスク",
+  "ipToolsPrivacy": "IP とブラウザーのプライバシー",
+  "browserIpv4": "IPv4 アドレス",
+  "browserIpv6": "IPv6 アドレス",
+  "browserCountry": "国・地域",
+  "browserRegion": "地域",
+  "browserCity": "都市",
+  "browserOrganization": "組織",
+  "browserPublicIp": "公開 IP アドレス",
+  "browserSupport": "WebRTC の対応状況",
+  "browserNoLeak": "今回の検査で漏洩は検出されませんでした",
+  "browserLeakDetected": "漏洩を検出",
+  "browserPotentialLeak": "漏洩の可能性",
+  "browserDnsServers": "DNS サーバー",
+  "browserSessionDescription": "セッションの説明",
+  "browserMediaDevices": "メディアデバイス",
+  "browserPermissions": "権限",
+  "ipFactsOrigin": "IP由来",
+  "ipFactsAttribute": "IP種別",
+  "ipFactsQuality": "IP品質",
+  "ipFactsNative": "ネイティブ",
+  "ipFactsBroadcast": "ブロードキャスト",
+  "ipFactsLow": "低リスク",
+  "ipFactsMedium": "中程度",
+  "ipFactsElevated": "やや高い",
+  "ipFactsHigh": "高リスク",
+  "ipFactsScore": "{level}（Scamalytics {score} 点）",
+  "ipFactsOriginEvidence": "位置情報の国：{geo}、IP ブロック登録国：{registered}（RDAP）",
+  "ipFactsScope": "IP 由来は IP ブロック登録国と位置情報を比較します。種別は iplocate、品質は Scamalytics のスコアのみを使用します。データがなければ不明と表示します。",
+  "ipFactsNoData": "有効なデータなし",
+  "networkLatencyRating": "遅延評価",
+  "profileTrafficTotal": "累計 {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "インポート後にこのプロファイルが有効だった間の送受信合計",
+  "configurationReviewTitle": "設定変換の確認",
+  "configurationReviewIntro": "有効にする前に差分を確認してください。元の設定ファイルは変更されません。",
+  "configurationReviewBlocked": "一部の項目を変換できません。この設定は有効にならず、現在の接続と元のファイルは維持されます。",
+  "configurationReviewSummary": "適用不可：{errors} 件 · 動作の差分：{warnings} 件",
+  "configurationReviewApply": "設定を有効にする",
+  "configurationReviewLocations": "詳細な位置",
+  "configurationReviewCount": "{count} 件",
+  "configurationReviewMore": "ほか {count} 件",
+  "configurationReviewOwned": "これらの設定やローカルキャッシュの場所は Hotaru が管理します。",
+  "configurationReviewMetadata": "説明用のメタデータは無視され、振り分けには影響しません。",
+  "configurationReviewIpRules": "IP ルールは新しいコアで名前解決します。複数の応答や解決失敗時の振り分けが変わる場合があります。",
+  "configurationReviewGeo": "GeoIP は選択した DAT データベースを使用し、元の MMDB と地域判定が異なる場合があります。",
+  "configurationReviewHosts": "Hosts の動作は完全には一致していません。独自またはシステムの Hosts の扱いが異なる場合があります。",
+  "configurationReviewLoadBalance": "負荷分散は手動選択に変換され、接続は自動分散されません。",
+  "configurationReviewFallback": "フェイルオーバーは URL テストによる選択に変換され、選択のタイミングが変わる場合があります。",
+  "configurationReviewHealth": "プロバイダー独自のヘルスチェックは未移行です。URL テストグループは自身の設定を使用します。",
+  "configurationReviewDuplicates": "グループ内の重複したノード参照は統合されます。",
+  "configurationReviewUnsupported": "この項目は変換できません。詳細な位置を確認してください。",
+  "configurationReviewChanged": "この項目は変換後に動作が変わります。詳細な位置を確認してください。",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "仮想アダプターは sing-box のシステムネットワークスタックを使用します。元の設定とは異なります。",
+  "configurationReviewDial": "新しいコア独自の接続スケジューリングと遅延測定を使用するため、以前のバージョンと結果が異なる場合があります。",
+  "routePreviewTitle": "ルーティングプレビュー",
+  "routePreviewScope": "DNS 照会や対象への接続を行わず、現在のルールと選択経路を確認します。実際の接続記録ではありません。",
+  "routePreviewTarget": "ドメインまたは IP アドレス",
+  "routePreviewAction": "確認",
+  "routePreviewRunning": "読み込み中…",
+  "routePreviewUnavailable": "sing-box を起動し、設定を適用してください。",
+  "routePreviewFailed": "現在の経路を一貫して取得できませんでした。接続を確認して再試行してください。",
+  "routePreviewResolved": "経路計画を確認しました",
+  "routePreviewAddressRequired": "先行ルールに DNS 応答が必要なため、オフラインでは経路を判定できません。",
+  "routePreviewContextRequired": "先行ルールにポートやプロセスなどの接続情報が必要です。",
+  "routePreviewSelectionRequired": "現在のノード選択を取得できません。ノードを選んで再試行してください。",
+  "routePreviewInvalidTarget": "URL のスキームやパスを含めず、ドメインまたは IP を入力してください。",
+  "routePreviewRule": "一致したルール",
+  "routePreviewDefault": "既定ルートまたは現在の送信モード",
+  "routePreviewPath": "選択された経路",
+  "routePreviewHops": "予定される物理ホップ",
+  "processTrafficTitle": "アプリの通信量ランキング",
+  "processTrafficScope": "このカーネルセッションで Hotaru を通る通信のみを集計します。接続終了後も保持し、カーネル再起動でリセットします。識別できない通信は別枠です。",
+  "processTrafficByApp": "アプリ別",
+  "processTrafficByProcess": "プロセス別",
+  "processTrafficUnavailable": "現在のカーネルはプロセス通信量を提供していません。",
+  "processTrafficEmpty": "通信はまだありません。Hotaru 経由で接続してください。",
+  "processTrafficFailed": "統計を取得できませんでした。更新して再試行してください。",
+  "processTrafficUnattributed": "未分類の通信",
+  "processTrafficOverflow": "一部のプロセスは個別表示できず、その通信量は未分類に含まれます。",
+  "processTrafficSampled": "取得時刻",
+  "singBoxReimportTitle": "サブスクリプションまたは設定を再インポート",
+  "singBoxReimportBody": "Hotaru は sing-box に切り替わりました。既存のファイルと設定は保持されますが、以前の構成は自動的に有効になりません。接続前にサブスクリプションまたは構成を再インポートし、独立ルーティング用のノードを再選択してください。",
+  "geoUpdateFailedTip": "{resource} を更新できませんでした。実行中の構成は変更されていません。ネットワークとリソース URL を確認して再試行してください。",
+  "connectionObservedPath": "実際の接続経路",
+  "connectionThisDevice": "この端末",
+  "connectionPathComplete": "経路全体を観測済み",
+  "connectionPathPartial": "観測できた経路のみ表示"
 }

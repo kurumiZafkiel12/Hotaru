@@ -39,10 +39,26 @@ Desktop core mode:
   applies a three-minute default method timeout, unwraps `CoreMethodResponse`, and fails all pending calls when transport
   disconnects or closes.
 - `lib/core/desktop/lifecycle.dart` serializes process intents and owns the authoritative desktop state machine.
+  It consumes `DesktopCoreConnection` readiness and disconnect events from `connection.dart`, without depending on
+  IPC frames. `CoreService` composes an IPC frame binding for RPC; the sing-box prototype composes authenticated HTTP
+  readiness through the same lifecycle. Direct leases expose their owned process exit for prompt failure detection.
 - `lib/core/desktop/launcher.dart` abstracts direct child-process and privileged Helper ownership through idempotent process
   leases. `lib/core/desktop/helper_client.dart` is the typed local HTTP client for the privileged Helper.
 
 `lib/core/controller.dart` (`CoreController`) selects the implementation based on platform. `lib/core/interface.dart` defines the shared `CoreHandlerInterface`.
+
+The Windows sing-box prototype is composed in `lib/core/sing_box/desktop_core.dart`; it is not yet selected by
+`CoreController`. `SessionCoreAdapter` invalidates API clients across lifecycle sessions and rejects stale responses.
+HTTP readiness requires an owned process, pinned version, and on Windows an OS listener PID matching that process;
+it does not use HTTP status alone as process identity. The standalone `tool/sing_box_lifecycle_smoke.dart` exercises
+the same lifecycle with real processes without enabling TUN or changing the system proxy.
+
+`core/sing_box_host/` embeds the pinned upstream Go module and provides the client-side `hotaru-stdio-v1`
+lifecycle channel. Its ready event follows engine startup; its stopped acknowledgement follows engine cleanup.
+`StdioCoreLease` requires both confirmed process exit and clean acknowledgement, and retains ownership on timeout.
+Windows TUN startup through the new launcher requires this graceful host. The disposable Windows TUN probe uses a
+scoped benchmark subnet with auto-route disabled and checks real packet chains plus OS adapter/route cleanup;
+privileged helper packaging and the normal GUI backend have not yet switched.
 
 Key Go core files:
 

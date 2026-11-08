@@ -1,0 +1,38 @@
+Map<String, dynamic> telemetryFixture({int upload = 10, int download = 20}) => {
+  'sampled_at': '2026-11-06T12:00:00Z',
+  'upload_total': upload,
+  'download_total': download,
+  'history_capacity': 1000,
+  'active_truncated': false,
+  'active': <Object?>[],
+  'closed': <Object?>[],
+};
+
+Map<String, dynamic> observedConnectionFixture({bool closed = false}) => {
+  'id': 'connection',
+  'created_at': '2026-11-06T11:59:00Z',
+  if (closed) 'closed_at': '2026-11-06T11:59:01Z',
+  'upload': 10,
+  'download': 20,
+  'inbound': 'mixed',
+  'network': 'tcp',
+  'source_ip': '127.0.0.1',
+  'source_port': 20000,
+  'destination_ip': '192.0.2.1',
+  'destination_port': 443,
+  'host': 'example.org',
+  'process_id': 42,
+  'process_path': r'C:\Apps\browser.exe',
+  'chain': ['exit', 'selected'],
+  'rule': 'final',
+  'outbound': 'exit',
+  'outbound_type': 'http',
+};
+
+Map<String, dynamic> observedMemoryFixture() => {
+  'rss': 1000,
+  'heap_inuse': 400,
+  'heap_idle': 100,
+  'stack_inuse': 80,
+  'runtime_other': 20,
+};

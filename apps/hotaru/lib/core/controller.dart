@@ -5,6 +5,13 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/core/core.dart';
 import 'package:hotaru/core/interface.dart';
 import 'package:hotaru/core/spill.dart';
+import 'outbound_http.dart';
+import 'routed_http.dart';
+import 'config/route_preview.dart';
+import 'telemetry.dart';
+import 'routing_mode.dart';
+import 'profile_documents.dart';
+import 'geodata_store.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -12,6 +19,16 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 
 class CoreController {
+  CoreGeoResources? get geoResources =>
+      _interface is CoreGeoResources ? _interface as CoreGeoResources : null;
+
+  Iterable<GeoResource> get supportedGeoResources {
+    final types = geoResources?.supportedTypes;
+    return GeoResource.values.where(
+      (type) => types == null || types.contains(type.name),
+    );
+  }
+
   static CoreController? _instance;
   late CoreHandlerInterface _interface;
 
@@ -28,8 +45,103 @@ class CoreController {
     _instance = this;
   }
 
-  @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsProcessTraffic => _interface is CoreProcessTrafficSource;
+
+  Future<CoreProcessTraffic?> getProcessTraffic() {
+    final source = _interface;
+    if (source is! CoreProcessTrafficSource) {
+      throw const CoreMethodException(
+        code: 'process_traffic_unavailable',
+        message: 'Process traffic observation is unavailable',
+      );
+    }
+    return (source as CoreProcessTrafficSource).getProcessTraffic();
+  }
+
+  bool get supportsRoutePreview => _interface is CoreRoutePreviewSource;
+
+  Future<CoreRoutePreview> previewRoute(String target) {
+    final source = _interface;
+    if (source is! CoreRoutePreviewSource) {
+      throw const CoreMethodException(
+        code: 'route_preview_unavailable',
+        message: 'Offline route preview is unavailable',
+      );
+    }
+    return (source as CoreRoutePreviewSource).previewRoute(target);
+  }
+
+  bool get supportsRoutedClients => _interface is CoreRoutedHttp;
+
+  Future<T> withRoutedClient<T>(
+    Future<T> Function(HttpClient client) action, {
+    String? outbound,
+    Duration timeout = const Duration(minutes: 2),
+  }) {
+    final source = _interface;
+    if (source is! CoreRoutedHttp) {
+      throw const CoreMethodException(
+        code: 'routed_http_unavailable',
+        message: 'Routed HTTP clients are unavailable',
+      );
+    }
+    return (source as CoreRoutedHttp).withRoutedClient(
+      action,
+      outbound: outbound,
+      timeout: timeout,
+    );
+  }
+
+  bool get supportsOutboundClients => _interface is CoreOutboundHttpClients;
+
+  bool get supportsRoutingModes => _interface is CoreRoutingModes;
+
+  bool get supportsGlobalOutbound => _interface is CoreGlobalOutbound;
+
+  Future<String> globalOutbound() {
+    final source = _interface;
+    if (source is CoreGlobalOutbound) {
+      return (source as CoreGlobalOutbound).globalOutbound();
+    }
+    return Future.value(GroupName.GLOBAL.name);
+  }
+
+  CoreRoutingModes get _routingModes {
+    final source = _interface;
+    if (source is! CoreRoutingModes) {
+      throw const CoreMethodException(
+        code: 'routing_modes_unavailable',
+        message: 'Routing modes are unavailable',
+      );
+    }
+    return source as CoreRoutingModes;
+  }
+
+  Future<CoreRoutingMode> routingMode() => _routingModes.routingMode();
+
+  Future<void> setRoutingMode(CoreRoutingMode mode) =>
+      _routingModes.setRoutingMode(mode);
+
+  Future<T> withOutboundClients<T>(
+    String outbound,
+    Future<T> Function(CoreOutboundClients clients) action, {
+    Duration timeout = const Duration(minutes: 2),
+  }) {
+    final source = _interface;
+    if (source is! CoreOutboundHttpClients) {
+      throw const CoreMethodException(
+        code: 'outbound_http_unavailable',
+        message: 'Scoped outbound clients are unavailable',
+      );
+    }
+    return (source as CoreOutboundHttpClients).withOutboundClients(
+      outbound,
+      action,
+      timeout: timeout,
+    );
+  }
 
   @visibleForTesting
   static void resetInstance() {
@@ -174,7 +286,17 @@ class CoreController {
   Future<String> setupConfig({
     required SetupParams params,
     Future<void> Function()? preloadInvoke,
+    int? profileId,
   }) async {
+    final source = _interface;
+    if (source is CoreProfileApplication) {
+      final result = await (source as CoreProfileApplication).setupProfile(
+        params,
+        profileId: profileId,
+      );
+      if (result.isEmpty) await preloadInvoke?.call();
+      return result;
+    }
     if (preloadInvoke == null) {
       return _interface.setupConfig(params);
     }
@@ -309,8 +431,9 @@ class CoreController {
 
   Future<Map<String, dynamic>> _readConfig(String path) async {
     final data = Map<String, dynamic>.from(await _interface.getConfig(path));
-    data['rules'] = data['rule'];
-    data.remove('rule');
+    if (data.containsKey('rule')) {
+      data['rules'] = data.remove('rule');
+    }
     return data;
   }
 
@@ -325,6 +448,10 @@ class CoreController {
   }
 
   Future<String> buildProfile(SetupBase base) async {
+    final source = _interface;
+    if (source is CoreProfileTextBuilder) {
+      return (source as CoreProfileTextBuilder).buildProfileText(base);
+    }
     return readSpilledText(await _interface.buildProfile(base));
   }
 
@@ -348,7 +475,14 @@ class CoreController {
   }
 
   void resetTraffic() {
-    _interface.resetTraffic();
+    unawaited(
+      Future<void>.sync(() => _interface.resetTraffic()).onError((error, _) {
+        commonPrint.log(
+          'resetTraffic failed: $error',
+          logLevel: coreFailureLogLevel(error),
+        );
+      }),
+    );
   }
 
   void startLog() {

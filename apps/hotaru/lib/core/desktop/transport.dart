@@ -5,147 +5,66 @@ import 'package:hotaru/common/common.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:rust_api/rust_api.dart';
 
+import 'connection.dart';
+
+export 'connection.dart';
+
 typedef IpcServerBinder = Future<IpcServer> Function(String address);
 
-enum DesktopTransportState { idle, starting, ready, connected, failed, closed }
-
-sealed class DesktopTransportEvent {
-  const DesktopTransportEvent();
-}
-
-final class TransportReady extends DesktopTransportEvent {
-  const TransportReady();
-}
-
-final class TransportConnected extends DesktopTransportEvent {
-  final int? pid;
-  final int generation;
-
-  const TransportConnected({required this.pid, required this.generation});
-}
-
-final class TransportDisconnected extends DesktopTransportEvent {
-  final int generation;
-  final Object? error;
-
-  const TransportDisconnected(this.generation, {this.error});
-}
-
-final class TransportFailed extends DesktopTransportEvent {
-  final Object error;
-  final StackTrace stackTrace;
-
-  const TransportFailed(this.error, this.stackTrace);
-}
-
-abstract interface class DesktopCoreTransport {
-  String get address;
-
-  DesktopTransportState get state;
-
-  Stream<DesktopTransportEvent> get events;
-
+abstract interface class DesktopCoreTransport implements DesktopCoreConnection {
   Stream<Uint8List> get frames;
-
-  Future<void> open();
-
-  Future<TransportConnected> waitUntilConnected(Duration timeout);
-
   void send(List<int> frame);
-
-  Future<void> close();
 }
 
-final class DesktopCoreTransportBinding implements DesktopCoreTransport {
-  DesktopCoreTransport _transport;
-  final StreamController<DesktopTransportEvent> _eventController =
-      StreamController<DesktopTransportEvent>.broadcast();
-  final StreamController<Uint8List> _frameController =
+final class DesktopCoreTransportBinding extends DesktopCoreConnectionBinding
+    implements DesktopCoreTransport {
+  final StreamController<Uint8List> _frames =
       StreamController<Uint8List>.broadcast();
-  StreamSubscription<DesktopTransportEvent>? _eventSubscription;
   StreamSubscription<Uint8List>? _frameSubscription;
-  Future<void>? _closeOperation;
+  Future<void>? _closingFrames;
 
   DesktopCoreTransportBinding(DesktopCoreTransport transport)
-    : _transport = transport {
-    _bind(transport);
+    : super(transport) {
+    _bindFrames(transport);
   }
 
-  void _bind(DesktopCoreTransport transport) {
-    _eventSubscription = transport.events.listen(
-      _eventController.add,
-      onError: _eventController.addError,
-    );
+  void _bindFrames(DesktopCoreTransport transport) {
     _frameSubscription = transport.frames.listen(
-      _frameController.add,
-      onError: _frameController.addError,
+      _frames.add,
+      onError: _frames.addError,
     );
   }
 
-  Future<void> _unbind() async {
-    await _eventSubscription?.cancel();
-    await _frameSubscription?.cancel();
-    _eventSubscription = null;
-    _frameSubscription = null;
-  }
+  @override
+  Stream<Uint8List> get frames => _frames.stream;
 
   @override
-  String get address => _transport.address;
-
-  @override
-  DesktopTransportState get state => _transport.state;
-
-  @override
-  Stream<DesktopTransportEvent> get events => _eventController.stream;
-
-  @override
-  Stream<Uint8List> get frames => _frameController.stream;
-
-  Future<void> replace(DesktopCoreTransport next) async {
-    if (_closeOperation != null) {
+  Future<void> replace(covariant DesktopCoreTransport next) async {
+    if (_closingFrames != null) {
       throw StateError('IPC transport binding is closed');
     }
-    final previous = _transport;
-    if (previous.state == DesktopTransportState.connected) {
-      _eventController.add(
-        TransportFailed(
-          StateError('Connected IPC transport was replaced'),
-          StackTrace.current,
-        ),
-      );
-    }
-    await _unbind();
+    await _frameSubscription?.cancel();
     try {
-      await previous.close();
+      await super.replace(next);
     } finally {
-      _transport = next;
-      _bind(next);
+      if (identical(current, next)) {
+        _bindFrames(next);
+      }
     }
   }
 
   @override
-  Future<void> open() => _transport.open();
+  void send(List<int> frame) => (current as DesktopCoreTransport).send(frame);
 
   @override
-  Future<TransportConnected> waitUntilConnected(Duration timeout) {
-    return _transport.waitUntilConnected(timeout);
-  }
+  Future<void> close() => _closingFrames ??= _closeFrames();
 
-  @override
-  void send(List<int> frame) => _transport.send(frame);
-
-  @override
-  Future<void> close() {
-    return _closeOperation ??= _close();
-  }
-
-  Future<void> _close() async {
-    await _unbind();
+  Future<void> _closeFrames() async {
+    await _frameSubscription?.cancel();
     try {
-      await _transport.close();
+      await super.close();
     } finally {
-      await _eventController.close();
-      await _frameController.close();
+      await _frames.close();
     }
   }
 }

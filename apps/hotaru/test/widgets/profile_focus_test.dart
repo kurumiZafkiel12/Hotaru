@@ -55,6 +55,7 @@ Future<ProviderContainer> pumpProfiles(
   final container = ProviderContainer(
     overrides: [
       profilesProvider.overrideWith(() => TestProfiles(profiles)),
+      profileTrafficProvider.overrideWith((_, _) => Stream.value(null)),
       currentProfileIdProvider.overrideWithBuild(
         (_, _) => currentProfileId ?? profiles.first.id,
       ),

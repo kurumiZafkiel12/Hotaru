@@ -7,6 +7,14 @@ import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+String _observedPathText(BuildContext context, TrackerInfo info) => [
+  context.appLocalizations.connectionThisDevice,
+  if (info.pathInbound.isNotEmpty) info.pathInbound,
+  if (info.pathObservationStatus != 'complete') '…',
+  ...info.observedPath,
+  if (info.rule.isNotEmpty) info.rule,
+].join(' → ');
+
 String _ruleText(TrackerInfo trackerInfo) {
   final rule = trackerInfo.rule;
   final rulePayload = trackerInfo.rulePayload;
@@ -208,6 +216,11 @@ class _TrackerInfoBody extends StatelessWidget {
               ),
           ],
         ),
+        if (trackerInfo.pathObservationStatus.isNotEmpty)
+          Text(
+            _observedPathText(context, trackerInfo),
+            style: styles.secondary,
+          ),
         if (source.isNotEmpty) Text(source, style: styles.secondary),
       ],
     );
@@ -299,6 +312,18 @@ class TrackerInfoDetailView extends StatelessWidget {
               (appLocalizations.dnsMode, metadata.dnsMode?.name ?? ''),
             ]),
             _buildChains(context),
+            if (trackerInfo.pathObservationStatus.isNotEmpty) ...[
+              DetailRow.text(
+                title: appLocalizations.connectionObservedPath,
+                value: _observedPathText(context, trackerInfo),
+              ),
+              DetailRow.text(
+                title: appLocalizations.status,
+                value: trackerInfo.pathObservationStatus == 'complete'
+                    ? appLocalizations.connectionPathComplete
+                    : appLocalizations.connectionPathPartial,
+              ),
+            ],
           ],
         ),
       ],

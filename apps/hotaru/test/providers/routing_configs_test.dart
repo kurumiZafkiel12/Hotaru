@@ -4,9 +4,12 @@ import 'package:dio/io.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart' show Locale;
+import 'package:hotaru/l10n/l10n.dart';
 import 'package:hotaru/common/common.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/interface.dart';
+import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/providers.dart';
@@ -19,7 +22,7 @@ import 'package:yaml/yaml.dart';
 import '../helpers/app_paths.dart';
 import '../helpers/test_profiles.dart';
 
-class _Core extends Mock implements CoreHandlerInterface {}
+class _Core extends Mock implements CoreHandlerInterface, CoreGlobalOutbound {}
 
 class _RealHttpOverrides extends HttpOverrides {}
 
@@ -59,6 +62,7 @@ void main() {
   );
 
   setUp(() async {
+    await AppLocalizations.load(const Locale('en'));
     directory = await Directory.systemTemp.createTemp('hotaru_routing_');
     await useAppPaths(directory);
     globalState.packageInfo = PackageInfo(
@@ -68,6 +72,7 @@ void main() {
       buildNumber: '18',
     );
     core = _Core();
+    when(() => core.globalOutbound()).thenAnswer((_) async => 'GLOBAL');
     container = ProviderContainer(
       overrides: [
         profilesProvider.overrideWith(() => TestProfiles([profile])),
@@ -201,17 +206,26 @@ void main() {
     },
   );
 
-  for (final binding in ['Selected', 'GLOBAL']) {
+  for (final (binding, collision) in [
+    ('Selected', false),
+    ('GLOBAL', false),
+    ('Hotaru GLOBAL (1)', false),
+    ('Hotaru GLOBAL (1)', true),
+  ]) {
     test(
-      'profile builder uses imported rules exclusively through $binding',
+      'profile builder binds $binding with source collision=$collision',
       () async {
-        if (binding == 'GLOBAL') {
+        final managed = binding.startsWith('Hotaru');
+        when(
+          () => core.globalOutbound(),
+        ).thenAnswer((_) async => managed ? binding : 'GLOBAL');
+        if (binding != 'Selected') {
           container
               .read(profilesProvider.notifier)
               .put(
                 profile.copyWith(
-                  currentGroupName: 'GLOBAL',
-                  selectedMap: {'GLOBAL': 'provider-only'},
+                  currentGroupName: binding,
+                  selectedMap: {binding: 'provider-only'},
                 ),
               );
         }
@@ -230,6 +244,7 @@ void main() {
           (_) async => {
             'proxies': [
               {'name': 'Node', 'type': 'direct'},
+              if (collision) {'name': 'GLOBAL', 'type': 'direct'},
             ],
             'proxy-groups': [
               {
@@ -241,7 +256,7 @@ void main() {
             'rules': ['IP-CIDR,127.0.0.0/8,REJECT', 'MATCH,Selected'],
           },
         );
-        final built = await container
+        final building = container
             .read(setupActionProvider.notifier)
             .getProfile(
               setupState: SetupState(
@@ -259,10 +274,15 @@ void main() {
               ),
               patchConfig: const PatchClashConfig(),
             );
+        if (collision) {
+          await expectLater(building, throwsFormatException);
+          return;
+        }
+        final built = await building;
         final result = loadYaml(built.yaml) as YamlMap;
         expect(result['rules'], [
           'DOMAIN-SUFFIX,example.cn,DIRECT',
-          'MATCH,$binding',
+          'MATCH,${managed ? 'GLOBAL' : binding}',
         ]);
         expect((result['proxies'] as YamlList).single['name'], 'Node');
         expect((result['proxy-groups'] as YamlList).first['name'], 'Selected');
