@@ -19,6 +19,14 @@ $tunName = 'HotaruFlutter_' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $installed = $false
 $resultPath = Join-Path $Bundle 'native-result.json'
 try {
+  $env:HOTARU_NATIVE_PORTABLE_BUNDLE = $Bundle
+  try {
+    flutter test test/core/sing_box/portable_native_test.dart --reporter expanded
+    if ($LASTEXITCODE -ne 0) { throw 'Portable application without Helper failed' }
+  } finally {
+    Remove-Item Env:HOTARU_NATIVE_PORTABLE_BUNDLE -ErrorAction SilentlyContinue
+  }
+  if ((Snapshot) -ne $baseline) { throw 'Portable application changed system networking' }
   $installed = $true
   $installer = Start-Process $helper -ArgumentList @('install', '--owner-pid', $PID) -PassThru -Wait
   if ($installer.ExitCode -ne 0) { throw 'Disposable Helper installation failed' }

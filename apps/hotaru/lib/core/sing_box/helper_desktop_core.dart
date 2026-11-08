@@ -7,6 +7,7 @@ import '../adapter.dart';
 import '../desktop/helper_client.dart';
 import '../desktop/core_manifest.dart';
 import '../desktop/lifecycle.dart';
+import '../desktop/launcher.dart';
 import '../desktop/listener_owner.dart';
 import '../desktop/model.dart';
 import '../desktop/transport.dart';
@@ -15,6 +16,7 @@ import 'config_preparation.dart';
 import 'controller_connection.dart';
 import 'desktop_core.dart';
 import 'pipe_connection.dart';
+import 'verified_launcher.dart';
 
 Future<SingBoxDesktopCore> createSingBoxHelperCore({
   required AcceptedSingBoxConfig configuration,
@@ -39,7 +41,12 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
     readCoreSha256: () async => digest,
     expectedHelperPath: () => p.join(directory, '$appHelperService.exe'),
   );
-  final plan = _HelperPlan(helper, configuration);
+  final direct = SingBoxVerifiedLauncher(
+    executable: p.join(directory, 'HotaruCore.exe'),
+    digest: digest,
+    launcher: DirectCoreLauncher(corePath: p.join(directory, 'HotaruCore.exe')),
+  );
+  final plan = _HelperPlan(helper, direct, configuration);
   final lifecycle = DesktopCoreLifecycle.withPlan(
     plan: plan,
     verifyPeerPid: true,
@@ -47,15 +54,16 @@ Future<SingBoxDesktopCore> createSingBoxHelperCore({
   );
   return SingBoxDesktopCore.withConfiguration(
     lifecycle: lifecycle,
-    configuration: _HelperConfiguration(lifecycle, helper),
+    configuration: _HelperConfiguration(lifecycle, helper, direct),
   );
 }
 
 final class _HelperConfiguration implements SingBoxConfigurationBinding {
   final DesktopCoreLifecycle lifecycle;
   final HelperClient helper;
+  final CoreProcessLauncher direct;
 
-  const _HelperConfiguration(this.lifecycle, this.helper);
+  const _HelperConfiguration(this.lifecycle, this.helper, this.direct);
 
   @override
   AcceptedSingBoxConfig get current =>
@@ -81,7 +89,7 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
 
   @override
   Future<CoreLifecycleResult> apply(AcceptedSingBoxConfig configuration) =>
-      lifecycle.applyConfiguration(_HelperPlan(helper, configuration));
+      lifecycle.applyConfiguration(_HelperPlan(helper, direct, configuration));
 }
 
 final class _HelperPlan extends DesktopCoreLaunchPlan {
@@ -97,6 +105,7 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
 
   factory _HelperPlan(
     HelperClient helper,
+    CoreProcessLauncher direct,
     AcceptedSingBoxConfig configuration,
   ) {
     final listeners = configuration.listeners;
@@ -132,6 +141,7 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
       transportFactory: transportFactory,
       launcherResolver: _HelperResolver(
         helper,
+        direct,
         () => connection,
         configuration.profileId,
       ),
@@ -141,18 +151,27 @@ final class _HelperPlan extends DesktopCoreLaunchPlan {
 
 final class _HelperResolver implements DesktopCoreLauncherResolver {
   final HelperClient helper;
+  final CoreProcessLauncher direct;
   final SingBoxPipeConnection Function() connection;
 
   final int? profileId;
 
-  const _HelperResolver(this.helper, this.connection, this.profileId);
+  const _HelperResolver(
+    this.helper,
+    this.direct,
+    this.connection,
+    this.profileId,
+  );
 
   @override
   Future<CoreProcessLauncher> resolve() async {
-    if (await helper.readiness() != HelperReadiness.ready) {
-      throw StateError('Matching privileged sing-box Helper is unavailable');
-    }
-    return _HelperLauncher(HelperLauncher(helper), connection(), profileId);
+    final launcher = await HelperLauncherResolver(
+      hasHelper: true,
+      directLauncher: direct,
+      helperLauncher: HelperLauncher(helper),
+      helperReady: helper.readiness,
+    ).resolve();
+    return _HelperLauncher(launcher, connection(), profileId);
   }
 }
 
