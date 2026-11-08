@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - .github/workflows/ip-source-contract.yaml
+      - apps/hotaru/tool/fetch_verified_release.ps1
+      - apps/hotaru/tool/verified_sqlite_ci.ps1
       - apps/hotaru/tool/ip_source_contract.py
       - apps/hotaru/lib/common/ip_facts.dart
       - apps/hotaru/lib/models/ip_facts.dart
@@ -51,6 +53,7 @@ jobs:
           Set-Content -NoNewline -Encoding utf8 pubspec.yaml $source
           flutter pub get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./tool/verified_sqlite_ci.ps1
       - name: Verify production parsing against public provider samples
         working-directory: apps/hotaru
         shell: pwsh

@@ -71,6 +71,8 @@ on:
       - apps/hotaru/test/core/sing_box/dns_fake_ip_test.dart
       - apps/hotaru/test/core/sing_box/dns_groups_test.dart
       - apps/hotaru/core/sing_box_host/**
+      - apps/hotaru/tool/fetch_verified_release.ps1
+      - apps/hotaru/tool/verified_sqlite_ci.ps1
       - apps/hotaru/services/helper/**
       - apps/hotaru/lib/core/desktop/core_manifest.dart
       - apps/hotaru/lib/core/adapter.dart
@@ -186,6 +188,7 @@ jobs:
           Set-Content -NoNewline -Encoding utf8 pubspec.yaml $source
           flutter pub get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./tool/verified_sqlite_ci.ps1
           $asset = Join-Path $env:RUNNER_TEMP 'sing-box-dns.zip'
           & (Join-Path $env:GITHUB_WORKSPACE 'apps/hotaru/tool/sing_box_cli.ps1') -Destination $asset
           if ((Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne '99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df') {
