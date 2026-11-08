@@ -9,6 +9,7 @@ import 'package:hotaru/core/routed_http.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
 import 'package:hotaru/core/sing_box/http_probe.dart';
 import 'package:hotaru/core/telemetry.dart';
+import 'package:hotaru/core/connection_path.dart';
 import 'package:hotaru/models/core.dart';
 
 import 'loopback_proxy_fixture.dart';
@@ -187,6 +188,43 @@ void main() {
       expect(origins, 3);
       expect(a.receipts, isEmpty);
       expect(b.receipts, hasLength(3));
+      expect(
+        latest!.dials,
+        isNull,
+        reason: 'ordinary counters must not copy dial history',
+      );
+      final pathId = ++id;
+      final pathReply = Completer<CoreTelemetrySnapshot>();
+      pending[pathId] = pathReply;
+      process.stdin.writeln(
+        jsonEncode({'method': 'telemetry_paths', 'id': pathId}),
+      );
+      await process.stdin.flush();
+      final pathsSample = await pathReply.future.timeout(
+        const Duration(seconds: 3),
+      );
+      expect(
+        pathsSample.dials!.entries.where((call) => call.outbound == 'B'),
+        hasLength(3),
+      );
+      final paths = CoreConnectionPaths(pathsSample, [
+        CoreNodeSpec(
+          tag: 'B',
+          protocol: CoreNodeProtocol.http,
+          server: '127.0.0.1',
+          port: b.server.port,
+        ),
+      ]);
+      final observed = [
+        ...pathsSample.active,
+        ...pathsSample.closed,
+      ].where((entry) => entry.destinationPort == origin.port).toList();
+      expect(observed, hasLength(3));
+      for (final entry in observed) {
+        final path = paths.resolve(entry)!;
+        expect(path.hops, ['B']);
+        expect(path.complete, isTrue);
+      }
       final processes = latest!.processes!;
       final total =
           processes.entries.fold<int>(

@@ -1269,5 +1269,9 @@
   "processTrafficSampled": "采样时间",
   "singBoxReimportTitle": "请重新导入订阅或配置",
   "singBoxReimportBody": "Hotaru 已切换到 sing-box 内核。原有文件和偏好设置已保留，旧配置不会自动启用。请重新导入订阅或配置后再连接；独立分流规则需重新选择节点。",
-  "geoUpdateFailedTip": "{resource} 更新失败，当前运行配置未改动。请检查网络和资源链接后重试。"
+  "geoUpdateFailedTip": "{resource} 更新失败，当前运行配置未改动。请检查网络和资源链接后重试。",
+  "connectionObservedPath": "实际连接链路",
+  "connectionThisDevice": "本机",
+  "connectionPathComplete": "已观测完整链路",
+  "connectionPathPartial": "仅显示已观测链路"
 }

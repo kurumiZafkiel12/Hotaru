@@ -630,10 +630,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "connected": MessageLookupByLibrary.simpleMessage("接続済み"),
     "connecting": MessageLookupByLibrary.simpleMessage("接続中…"),
     "connection": MessageLookupByLibrary.simpleMessage("接続"),
+    "connectionObservedPath": MessageLookupByLibrary.simpleMessage("実際の接続経路"),
+    "connectionPathComplete": MessageLookupByLibrary.simpleMessage("経路全体を観測済み"),
+    "connectionPathPartial": MessageLookupByLibrary.simpleMessage(
+      "観測できた経路のみ表示",
+    ),
     "connectionStats": MessageLookupByLibrary.simpleMessage("接続統計"),
     "connectionStatsDesc": MessageLookupByLibrary.simpleMessage(
       "ライブ接続、最近のリクエスト、DNS クエリ",
     ),
+    "connectionThisDevice": MessageLookupByLibrary.simpleMessage("この端末"),
     "connections": MessageLookupByLibrary.simpleMessage("接続"),
     "connectivity": MessageLookupByLibrary.simpleMessage("接続状態："),
     "connectivityResponded": MessageLookupByLibrary.simpleMessage("応答あり"),

@@ -1269,5 +1269,9 @@
   "processTrafficSampled": "Muestra",
   "singBoxReimportTitle": "Vuelve a importar las suscripciones o configuraciones",
   "singBoxReimportBody": "Hotaru ahora usa sing-box. Se conservan tus archivos y preferencias; la configuración anterior no se iniciará automáticamente. Vuelve a importar la suscripción o configuración antes de conectar y selecciona de nuevo los nodos de las reglas independientes.",
-  "geoUpdateFailedTip": "No se pudo actualizar {resource}. La configuración activa no ha cambiado. Comprueba la red y la URL del recurso e inténtalo de nuevo."
+  "geoUpdateFailedTip": "No se pudo actualizar {resource}. La configuración activa no ha cambiado. Comprueba la red y la URL del recurso e inténtalo de nuevo.",
+  "connectionObservedPath": "Ruta de conexión observada",
+  "connectionThisDevice": "Este dispositivo",
+  "connectionPathComplete": "Ruta completa observada",
+  "connectionPathPartial": "Solo saltos observados"
 }

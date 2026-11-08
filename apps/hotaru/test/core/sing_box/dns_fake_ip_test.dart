@@ -458,9 +458,18 @@ void main() {
           await udpQuery(dnsPort, question('txt.fake.invalid', type: 16));
           expect(receipts, contains('txt.fake.invalid'));
           client.findProxy = (_) => 'PROXY 127.0.0.1:$mixed';
-          final request = await client.getUrl(
-            Uri.parse('http://${fakeAddress.address}:${origin.port}/receipt'),
-          );
+          final request = await client
+              .getUrl(
+                Uri.parse(
+                  'http://${fakeAddress.address}:${origin.port}/receipt',
+                ),
+              )
+              .catchError((Object error, StackTrace stack) {
+                Error.throwWithStackTrace(
+                  StateError('$error\nOwned core output:\n${output.join()}'),
+                  stack,
+                );
+              });
           final response = await request.close();
           expect(response.statusCode, 200, reason: output.join());
           expect(

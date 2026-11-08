@@ -154,6 +154,11 @@ final class SingBoxPipeConnection
 
   Future<CoreTelemetrySnapshot> telemetry() => _snapshot('telemetry');
 
+  Future<CoreTelemetrySnapshot> pathTelemetry() =>
+      _host?.supports('telemetry_paths') == true
+      ? _snapshot('telemetry_paths')
+      : telemetry();
+
   @override
   Future<void> collectMemory() async {
     await _snapshot('collect_memory');

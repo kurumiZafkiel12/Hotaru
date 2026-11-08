@@ -744,10 +744,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "connected": MessageLookupByLibrary.simpleMessage("Connected"),
     "connecting": MessageLookupByLibrary.simpleMessage("Connecting…"),
     "connection": MessageLookupByLibrary.simpleMessage("Connection"),
+    "connectionObservedPath": MessageLookupByLibrary.simpleMessage(
+      "Observed connection path",
+    ),
+    "connectionPathComplete": MessageLookupByLibrary.simpleMessage(
+      "Full path observed",
+    ),
+    "connectionPathPartial": MessageLookupByLibrary.simpleMessage(
+      "Showing observed hops only",
+    ),
     "connectionStats": MessageLookupByLibrary.simpleMessage("Connection stats"),
     "connectionStatsDesc": MessageLookupByLibrary.simpleMessage(
       "Live connections, recent requests and DNS queries",
     ),
+    "connectionThisDevice": MessageLookupByLibrary.simpleMessage("This device"),
     "connections": MessageLookupByLibrary.simpleMessage("Connections"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Connectivity: "),
     "connectivityResponded": MessageLookupByLibrary.simpleMessage("Responded"),
@@ -1286,9 +1296,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),

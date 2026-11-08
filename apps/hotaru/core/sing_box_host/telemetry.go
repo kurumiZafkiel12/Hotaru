@@ -30,6 +30,7 @@ type observedEngine struct {
 	*box.Box
 	traffic   *trafficcontrol.Manager
 	processes *processTraffic
+	dials     *dialObservations
 	dns       adapter.DNSRouter
 	mu        sync.RWMutex
 	closed    bool
@@ -108,7 +109,22 @@ func (e *observedEngine) FinalTraffic() *trafficTotals {
 	return &trafficTotals{Upload: up, Download: down}
 }
 
-func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
+type pathTelemetrySource interface {
+	PathTelemetry() (telemetrySnapshot, error)
+}
+
+type pathObservation struct{ source telemetrySource }
+
+func (o pathObservation) Telemetry() (telemetrySnapshot, error) {
+	if source, ok := o.source.(pathTelemetrySource); ok {
+		return source.PathTelemetry()
+	}
+	return telemetrySnapshot{}, errors.New("telemetry_unavailable")
+}
+
+func (e *observedEngine) Telemetry() (telemetrySnapshot, error)     { return e.snapshot(false) }
+func (e *observedEngine) PathTelemetry() (telemetrySnapshot, error) { return e.snapshot(true) }
+func (e *observedEngine) snapshot(paths bool) (telemetrySnapshot, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	if e.closed || e.traffic == nil {
@@ -129,6 +145,14 @@ func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 		Memory: readMemorySnapshot(),
 	}
 	budget := maxControlFrame - 4096
+	if paths && e.dials != nil {
+		result.Dials = e.dials.snapshot(budget / 2)
+		encoded, err := json.Marshal(result.Dials)
+		if err != nil {
+			return telemetrySnapshot{}, err
+		}
+		budget -= len(encoded) + 64
+	}
 	if e.processes != nil {
 		result.Processes = e.processes.snapshot()
 		for _, entry := range result.Processes.Entries {
@@ -170,19 +194,21 @@ func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 			return telemetrySnapshot{}, err
 		}
 	}
+	result.SampledAt = time.Now().UTC()
 	return result, nil
 }
 
 type telemetrySnapshot struct {
-	SampledAt       time.Time               `json:"sampled_at"`
-	Upload          int64                   `json:"upload_total"`
-	Download        int64                   `json:"download_total"`
-	HistoryCapacity int                     `json:"history_capacity"`
-	ActiveTruncated bool                    `json:"active_truncated"`
-	Active          []observedConnection    `json:"active"`
-	Closed          []observedConnection    `json:"closed"`
-	Memory          *observedMemory         `json:"memory,omitempty"`
-	Processes       *processTrafficSnapshot `json:"processes,omitempty"`
+	Dials           *dialObservationSnapshot `json:"dials,omitempty"`
+	SampledAt       time.Time                `json:"sampled_at"`
+	Upload          int64                    `json:"upload_total"`
+	Download        int64                    `json:"download_total"`
+	HistoryCapacity int                      `json:"history_capacity"`
+	ActiveTruncated bool                     `json:"active_truncated"`
+	Active          []observedConnection     `json:"active"`
+	Closed          []observedConnection     `json:"closed"`
+	Memory          *observedMemory          `json:"memory,omitempty"`
+	Processes       *processTrafficSnapshot  `json:"processes,omitempty"`
 }
 
 type observedMemory struct {

@@ -206,6 +206,21 @@ void main() {
   );
 
   test(
+    'path history is requested only by connection readers and falls back for older hosts',
+    () async {
+      await connect(features: ['telemetry_paths']);
+      final methods = <String>[];
+      pipe.onRequest = (request) {
+        methods.add(request['method'] as String);
+        pipe.telemetry(request['id'] as int, data: telemetryFixture());
+      };
+      await connection.telemetry();
+      await connection.pathTelemetry();
+      expect(methods, ['telemetry', 'telemetry_paths']);
+    },
+  );
+
+  test(
     'declared maintenance shares bounded request correlation with telemetry',
     () async {
       await connect(features: ['collect_memory', 'reset_dns_connections']);

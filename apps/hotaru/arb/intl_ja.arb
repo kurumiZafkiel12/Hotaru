@@ -1269,5 +1269,9 @@
   "processTrafficSampled": "取得時刻",
   "singBoxReimportTitle": "サブスクリプションまたは設定を再インポート",
   "singBoxReimportBody": "Hotaru は sing-box に切り替わりました。既存のファイルと設定は保持されますが、以前の構成は自動的に有効になりません。接続前にサブスクリプションまたは構成を再インポートし、独立ルーティング用のノードを再選択してください。",
-  "geoUpdateFailedTip": "{resource} を更新できませんでした。実行中の構成は変更されていません。ネットワークとリソース URL を確認して再試行してください。"
+  "geoUpdateFailedTip": "{resource} を更新できませんでした。実行中の構成は変更されていません。ネットワークとリソース URL を確認して再試行してください。",
+  "connectionObservedPath": "実際の接続経路",
+  "connectionThisDevice": "この端末",
+  "connectionPathComplete": "経路全体を観測済み",
+  "connectionPathPartial": "観測できた経路のみ表示"
 }

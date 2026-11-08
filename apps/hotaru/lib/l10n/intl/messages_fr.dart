@@ -794,11 +794,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "connected": MessageLookupByLibrary.simpleMessage("Connecté"),
     "connecting": MessageLookupByLibrary.simpleMessage("Connexion…"),
     "connection": MessageLookupByLibrary.simpleMessage("Connexion"),
+    "connectionObservedPath": MessageLookupByLibrary.simpleMessage(
+      "Chemin de connexion observé",
+    ),
+    "connectionPathComplete": MessageLookupByLibrary.simpleMessage(
+      "Chemin complet observé",
+    ),
+    "connectionPathPartial": MessageLookupByLibrary.simpleMessage(
+      "Étapes observées uniquement",
+    ),
     "connectionStats": MessageLookupByLibrary.simpleMessage(
       "Statistiques de connexion",
     ),
     "connectionStatsDesc": MessageLookupByLibrary.simpleMessage(
       "Connexions en direct, requêtes récentes et requêtes DNS",
+    ),
+    "connectionThisDevice": MessageLookupByLibrary.simpleMessage(
+      "Cet appareil",
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Connexions"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Connectivité : "),
@@ -1372,9 +1384,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Saisissez le contenu de la règle",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Ce système masque la liste des apps installées tant que l’autorisation n’est pas accordée. Accordez-la pour configurer le proxy par app.",
     ),

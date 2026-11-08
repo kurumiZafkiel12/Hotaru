@@ -52,6 +52,9 @@ func emitReady(output io.Writer, instance engine) error {
 	if _, ok := instance.(telemetrySource); ok {
 		event.Features = append(event.Features, "telemetry")
 	}
+	if _, ok := instance.(pathTelemetrySource); ok {
+		event.Features = append(event.Features, "telemetry_paths")
+	}
 	if _, ok := instance.(runtimeMaintenanceSource); ok {
 		methods := make([]string, 0, len(runtimeMaintenanceMethods))
 		for method := range runtimeMaintenanceMethods {
@@ -91,11 +94,13 @@ func readControl(input io.Reader, output io.Writer, source func() telemetrySourc
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&command) != nil || decoder.Decode(new(any)) != io.EOF ||
-			(command.Method != "telemetry" && runtimeMaintenanceMethods[command.Method] == nil) || command.ID == 0 || output == nil {
+			(command.Method != "telemetry" && command.Method != "telemetry_paths" && runtimeMaintenanceMethods[command.Method] == nil) || command.ID == 0 || output == nil {
 			return errors.New("invalid host control command")
 		}
 		observed := source()
-		if command.Method != "telemetry" {
+		if command.Method == "telemetry_paths" {
+			observed = pathObservation{source: observed}
+		} else if command.Method != "telemetry" {
 			observed = maintenanceObservation{source: observed, method: command.Method}
 		}
 		if err := emitTelemetry(output, command.ID, observed); err != nil {
@@ -166,6 +171,7 @@ func newEngine(ctx context.Context, path string) (engine, error) {
 
 func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	ctx = include.Context(service.ContextWith(ctx, deprecated.NewStderrManager(log.StdLogger())))
+	dials := installDialObservations(ctx)
 	options, err := boxJSON.UnmarshalExtendedContext[option.Options](ctx, content)
 	if err != nil {
 		return nil, err
@@ -179,7 +185,7 @@ func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	}
 	processes := newProcessTraffic()
 	instance.Router().AppendTracker(processes)
-	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx), processes: processes}, nil
+	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx), processes: processes, dials: dials}, nil
 }
 
 const coreForkPath = "github.com/kurumiZafkiel12/Hotaru-Core"

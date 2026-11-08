@@ -764,7 +764,7 @@ final class ResourcesActionProvider
   }
 }
 
-String _$resourcesActionHash() => r'4789f340b60eadbbc3bc124f296bbeaa35121ba6';
+String _$resourcesActionHash() => r'7bfd36c9987a06ad453be2fb3b9d282e6e64eb7c';
 
 abstract class _$ResourcesAction extends $Notifier<void> {
   void build();

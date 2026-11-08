@@ -1269,5 +1269,9 @@
   "processTrafficSampled": "Échantillon",
   "singBoxReimportTitle": "Réimporter les abonnements ou les configurations",
   "singBoxReimportBody": "Hotaru utilise désormais sing-box. Vos fichiers et préférences sont conservés ; l’ancienne configuration ne démarre pas automatiquement. Réimportez votre abonnement ou configuration avant la connexion et sélectionnez à nouveau les nœuds des règles indépendantes.",
-  "geoUpdateFailedTip": "Impossible de mettre à jour {resource}. La configuration active est inchangée. Vérifiez le réseau et l’URL de la ressource, puis réessayez."
+  "geoUpdateFailedTip": "Impossible de mettre à jour {resource}. La configuration active est inchangée. Vérifiez le réseau et l’URL de la ressource, puis réessayez.",
+  "connectionObservedPath": "Chemin de connexion observé",
+  "connectionThisDevice": "Cet appareil",
+  "connectionPathComplete": "Chemin complet observé",
+  "connectionPathPartial": "Étapes observées uniquement"
 }

@@ -8533,8 +8533,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -10605,6 +10604,46 @@ class AppLocalizations {
       name: 'geoUpdateFailedTip',
       desc: '',
       args: [resource],
+    );
+  }
+
+  /// `Observed connection path`
+  String get connectionObservedPath {
+    return Intl.message(
+      'Observed connection path',
+      name: 'connectionObservedPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This device`
+  String get connectionThisDevice {
+    return Intl.message(
+      'This device',
+      name: 'connectionThisDevice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full path observed`
+  String get connectionPathComplete {
+    return Intl.message(
+      'Full path observed',
+      name: 'connectionPathComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Showing observed hops only`
+  String get connectionPathPartial {
+    return Intl.message(
+      'Showing observed hops only',
+      name: 'connectionPathPartial',
+      desc: '',
+      args: [],
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'dial_observations.dart';
+
 abstract interface class CoreFinalTrafficSource {
   int? get profileId;
   Future<CoreTrafficTotals?> get finalTraffic;
@@ -22,6 +24,10 @@ abstract interface class CoreTelemetry {
   Future<CoreTelemetrySnapshot> telemetry();
 }
 
+abstract interface class CoreConnectionPathTelemetry {
+  Future<CoreTelemetrySnapshot> pathTelemetry();
+}
+
 final class CoreTelemetrySnapshot {
   final DateTime sampledAt;
   final int uploadTotal;
@@ -32,6 +38,7 @@ final class CoreTelemetrySnapshot {
   final List<CoreObservedConnection> closed;
   final CoreObservedMemory? memory;
   final CoreProcessTraffic? processes;
+  final CoreDialObservations? dials;
 
   CoreTelemetrySnapshot({
     required this.sampledAt,
@@ -43,6 +50,7 @@ final class CoreTelemetrySnapshot {
     required List<CoreObservedConnection> closed,
     this.memory,
     this.processes,
+    this.dials,
   }) : active = List.unmodifiable(active),
        closed = List.unmodifiable(closed);
 
@@ -77,6 +85,13 @@ final class CoreTelemetrySnapshot {
       activeTruncated: truncated,
       active: entries('active', closed: false),
       closed: entries('closed', closed: true),
+      dials: switch (value['dials']) {
+        null => null,
+        final Map<String, dynamic> dials => CoreDialObservations.fromJson(
+          dials,
+        ),
+        _ => throw const FormatException('Invalid dial observations'),
+      },
       processes: switch (value['processes']) {
         null => null,
         final Map<String, dynamic> processes => CoreProcessTraffic.fromJson(

@@ -118,6 +118,15 @@ abstract class TrackerInfo with _$TrackerInfo {
     required String rulePayload,
     int? downloadSpeed,
     int? uploadSpeed,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default([])
+    List<String> observedPath,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default('')
+    String pathObservationStatus,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default('')
+    String pathInbound,
   }) = _TrackerInfo;
 
   factory TrackerInfo.fromJson(Map<String, Object?> json) =>

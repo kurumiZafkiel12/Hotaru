@@ -28,6 +28,7 @@ import '../interface.dart';
 import '../method.dart';
 import '../outbound_http.dart';
 import '../telemetry.dart';
+import '../connection_path.dart';
 import '../maintenance.dart';
 import '../event.dart';
 import '../routing_mode.dart';
@@ -802,34 +803,46 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     if (source is! CoreTelemetry) {
       throw const CoreAdapterException('telemetry_unavailable');
     }
-    final sample = await (source as CoreTelemetry).telemetry();
+    final nodes = core.configuration?.profile.nodes ?? const <CoreNodeSpec>[];
+    final sample = await (source is CoreConnectionPathTelemetry
+        ? (source as CoreConnectionPathTelemetry).pathTelemetry()
+        : (source as CoreTelemetry).telemetry());
     if (sample.activeTruncated) {
       throw const CoreAdapterException('connection_window_truncated');
     }
-    final result = await Isolate.run(
-      () => [
+    final result = await Isolate.run(() {
+      final paths = CoreConnectionPaths(sample, nodes);
+      return [
         for (final entry in sample.active)
-          TrackerInfo(
-            id: entry.id,
-            start: entry.createdAt,
-            upload: entry.upload,
-            download: entry.download,
-            metadata: Metadata(
-              network: entry.network,
-              sourceIP: entry.sourceIp,
-              sourcePort: '${entry.sourcePort}',
-              destinationIP: entry.destinationIp,
-              destinationPort: '${entry.destinationPort}',
-              host: entry.host,
-              processPath: entry.processPath,
-              process: entry.processPath.split(RegExp(r'[/\\]')).last,
+          for (final path in [paths.resolve(entry)])
+            TrackerInfo(
+              id: entry.id,
+              start: entry.createdAt,
+              upload: entry.upload,
+              download: entry.download,
+              metadata: Metadata(
+                network: entry.network,
+                sourceIP: entry.sourceIp,
+                sourcePort: '${entry.sourcePort}',
+                destinationIP: entry.destinationIp,
+                destinationPort: '${entry.destinationPort}',
+                host: entry.host,
+                processPath: entry.processPath,
+                process: entry.processPath.split(RegExp(r'[/\\]')).last,
+              ),
+              chains: entry.chain,
+              rule: entry.rule,
+              rulePayload: '',
+              observedPath: path?.hops ?? const [],
+              pathObservationStatus: path == null
+                  ? ''
+                  : path.complete
+                  ? 'complete'
+                  : 'partial',
+              pathInbound: path == null ? '' : entry.inbound,
             ),
-            chains: entry.chain,
-            rule: entry.rule,
-            rulePayload: '',
-          ),
-      ],
-    );
+      ];
+    });
     _checkSession(session);
     return result;
   }

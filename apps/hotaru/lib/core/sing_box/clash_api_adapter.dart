@@ -20,6 +20,7 @@ final class SingBoxClashApiAdapter
         CoreLogSource,
         CoreOutboundHttpClients,
         CoreTelemetry,
+        CoreConnectionPathTelemetry,
         CoreRoutingModes,
         CoreRuntimeMaintenance,
         CoreConnectionMaintenance {
@@ -28,6 +29,7 @@ final class SingBoxClashApiAdapter
   final HttpClient _client;
   final SingBoxOutboundHttp _outboundHttp;
   final Future<CoreTelemetrySnapshot> Function()? _telemetry;
+  final Future<CoreTelemetrySnapshot> Function()? _pathTelemetry;
   final CoreRuntimeMaintenance? _runtime;
   bool _closed = false;
   final Set<SingBoxLogStream> _logs = {};
@@ -38,9 +40,11 @@ final class SingBoxClashApiAdapter
     CoreProbeListenerSpec? probe,
     Iterable<String> probeOutbounds = const [],
     Future<CoreTelemetrySnapshot> Function()? telemetry,
+    Future<CoreTelemetrySnapshot> Function()? pathTelemetry,
     CoreRuntimeMaintenance? runtime,
   }) : _secret = secret,
        _telemetry = telemetry,
+       _pathTelemetry = pathTelemetry,
        _runtime = runtime,
        _outboundHttp = SingBoxOutboundHttp(
          listener: probe,
@@ -305,6 +309,12 @@ final class SingBoxClashApiAdapter
   @override
   Future<void> closeConnection(String id) async {
     await _request('DELETE', ['connections', id]);
+  }
+
+  @override
+  Future<CoreTelemetrySnapshot> pathTelemetry() {
+    if (_closed) throw const CoreAdapterException('closed');
+    return _pathTelemetry?.call() ?? telemetry();
   }
 
   @override

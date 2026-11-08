@@ -768,11 +768,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "connected": MessageLookupByLibrary.simpleMessage("Подключено"),
     "connecting": MessageLookupByLibrary.simpleMessage("Подключение…"),
     "connection": MessageLookupByLibrary.simpleMessage("Соединение"),
+    "connectionObservedPath": MessageLookupByLibrary.simpleMessage(
+      "Наблюдаемый путь соединения",
+    ),
+    "connectionPathComplete": MessageLookupByLibrary.simpleMessage(
+      "Полный путь подтверждён",
+    ),
+    "connectionPathPartial": MessageLookupByLibrary.simpleMessage(
+      "Только наблюдаемые узлы",
+    ),
     "connectionStats": MessageLookupByLibrary.simpleMessage(
       "Статистика подключений",
     ),
     "connectionStatsDesc": MessageLookupByLibrary.simpleMessage(
       "Подключения, запросы и DNS-запросы",
+    ),
+    "connectionThisDevice": MessageLookupByLibrary.simpleMessage(
+      "Это устройство",
     ),
     "connections": MessageLookupByLibrary.simpleMessage("Соединения"),
     "connectivity": MessageLookupByLibrary.simpleMessage("Подключение: "),
@@ -1336,9 +1348,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),

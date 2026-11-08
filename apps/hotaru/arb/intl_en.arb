@@ -1276,5 +1276,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "connectionObservedPath": "Observed connection path",
+  "connectionThisDevice": "This device",
+  "connectionPathComplete": "Full path observed",
+  "connectionPathPartial": "Showing observed hops only"
 }

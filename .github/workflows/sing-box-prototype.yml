@@ -212,9 +212,9 @@ jobs:
         run: |
           $env:HOTARU_TEST_SING_BOX = Join-Path $env:RUNNER_TEMP 'hotaru-helper-probe/HotaruCore.exe'
           $env:HOTARU_TEST_SING_BOX_HOST = '1'
-          flutter test test/core/sing_box/inbound_state_test.dart test/core/sing_box/routing_mode_test.dart test/core/sing_box/outbound_http_test.dart test/core/sing_box/detour_test.dart test/core/sing_box/ip_resolution_test.dart --plain-name 'real engine' --reporter expanded
+          flutter test test/core/sing_box/inbound_state_test.dart test/core/sing_box/routing_mode_test.dart test/core/sing_box/outbound_http_test.dart test/core/sing_box/detour_test.dart test/core/sing_box/ip_resolution_test.dart --plain-name 'real engine' --concurrency=1 --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          flutter test test/core/sing_box/http_probe_native_test.dart test/core/sing_box/routed_http_test.dart test/core/sing_box/application_settings_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart test/core/sing_box/geodata_test.dart --reporter expanded
+          flutter test test/core/sing_box/http_probe_native_test.dart test/core/sing_box/routed_http_test.dart test/core/sing_box/application_settings_test.dart test/core/sing_box/log_stream_test.dart test/core/sing_box/runtime_options_test.dart test/core/sing_box/dns_fake_ip_test.dart test/core/sing_box/dns_groups_test.dart test/core/sing_box/geodata_test.dart --concurrency=1 --reporter expanded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Remove-Item Env:HOTARU_TEST_SING_BOX_HOST
       - name: Verify real Flutter Rust IPC through SYSTEM Helper

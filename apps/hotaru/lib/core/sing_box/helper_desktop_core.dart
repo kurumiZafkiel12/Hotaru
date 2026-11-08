@@ -77,6 +77,9 @@ final class _HelperConfiguration implements SingBoxConfigurationBinding {
       endpoint: Uri.parse('http://127.0.0.1:${listeners.controllerPort}'),
       secret: listeners.secret,
       telemetry: (lifecycle.activePlan as _HelperPlan).connection().telemetry,
+      pathTelemetry: (lifecycle.activePlan as _HelperPlan)
+          .connection()
+          .pathTelemetry,
       runtime: (lifecycle.activePlan as _HelperPlan).connection(),
       probe: listeners.activeProbe,
       probeOutbounds: [
