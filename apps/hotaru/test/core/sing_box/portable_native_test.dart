@@ -7,12 +7,14 @@ import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/models/models.dart' show SetupParams;
 
 import 'support/windows_process_witness.dart';
+import '../../plugins/code_forge/support.dart' show initEditorNative;
 
 void main() {
   final bundle = Platform.environment['HOTARU_NATIVE_PORTABLE_BUNDLE'];
   test(
     'portable application without a Helper forwards and exits through the verified owned pipe host',
     () async {
+      await initEditorNative();
       final directory = await Directory.systemTemp.createTemp(
         'hotaru-portable-',
       );

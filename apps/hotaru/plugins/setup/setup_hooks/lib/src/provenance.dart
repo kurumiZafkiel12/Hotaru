@@ -41,8 +41,8 @@ writeHostProvenance({
   final hostLicense = p.normalize(p.join(rootDir, '..', '..', 'LICENSE'));
   final upstreamOutput = p.join(outputDir, 'LICENSE-sing-box');
   final hostOutput = p.join(outputDir, 'LICENSE-Hotaru');
-  copyFile(upstreamLicense, upstreamOutput);
-  copyFile(hostLicense, hostOutput);
+  writeLicenseNotice(upstreamLicense, upstreamOutput);
+  writeLicenseNotice(hostLicense, hostOutput);
   final sources = p.join(outputDir, 'SOURCES.txt');
   File(sources).writeAsStringSync(
     'sing-box: https://github.com/SagerNet/sing-box/tree/v1.14.4\n'
@@ -126,4 +126,15 @@ writeHostProvenance({
     dirty: dirty,
     inputs: versionInputs.where((path) => File(path).existsSync()).toList(),
   );
+}
+
+void writeLicenseNotice(String source, String destination) {
+  final contents = File(source).readAsStringSync();
+  final output = File(destination);
+  if (output.existsSync()) {
+    if (output.readAsStringSync() == contents) return;
+    if (Platform.isWindows) runCommand('attrib', ['-R', destination]);
+  }
+  output.parent.createSync(recursive: true);
+  output.writeAsStringSync(contents, flush: true);
 }
