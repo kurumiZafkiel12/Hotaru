@@ -5,12 +5,16 @@ import 'package:hotaru/common/exception.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/interface.dart';
+import 'package:hotaru/core/profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 class MockCoreHandlerInterface extends Mock implements CoreHandlerInterface {}
+
+class _ApplicationHandler extends Mock
+    implements CoreHandlerInterface, CoreProfileApplication {}
 
 void main() {
   late MockCoreHandlerInterface mock;
@@ -113,6 +117,73 @@ void main() {
   });
 
   group('config methods', () {
+    test(
+      'reviewed profiles carry identity and complete before network takeover',
+      () async {
+        final source = _ApplicationHandler();
+        final controller = CoreController.scoped(source);
+        const params = SetupParams(
+          selectedMap: {},
+          testUrl: 'http://fixture.invalid',
+        );
+        final review = Completer<String>();
+        var takeover = false;
+        when(
+          () => source.setupProfile(params, profileId: 42),
+        ).thenAnswer((_) => review.future);
+        final pending = controller.setupConfig(
+          params: params,
+          profileId: 42,
+          preloadInvoke: () async {
+            takeover = true;
+          },
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(takeover, isFalse);
+        review.complete('');
+        expect(await pending, '');
+        expect(takeover, isTrue);
+        verifyNever(() => source.setupConfig(any()));
+      },
+    );
+
+    test('cancelled or failed profile review never invokes takeover', () async {
+      final source = _ApplicationHandler();
+      final controller = CoreController.scoped(source);
+      const params = SetupParams(
+        selectedMap: {},
+        testUrl: 'http://fixture.invalid',
+      );
+      var takeover = false;
+      when(
+        () => source.setupProfile(params, profileId: 42),
+      ).thenAnswer((_) async => 'cancelled');
+      expect(
+        await controller.setupConfig(
+          params: params,
+          profileId: 42,
+          preloadInvoke: () async {
+            takeover = true;
+          },
+        ),
+        'cancelled',
+      );
+      expect(takeover, isFalse);
+      when(
+        () => source.setupProfile(params, profileId: 42),
+      ).thenThrow(StateError('review failed'));
+      await expectLater(
+        controller.setupConfig(
+          params: params,
+          profileId: 42,
+          preloadInvoke: () async {
+            takeover = true;
+          },
+        ),
+        throwsStateError,
+      );
+      expect(takeover, isFalse);
+    });
     test('validateConfig delegates to interface', () async {
       when(() => mock.validateConfig('/path')).thenAnswer((_) async => 'ok');
       final result = await controller.validateConfig('/path');

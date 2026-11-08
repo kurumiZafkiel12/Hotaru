@@ -10,8 +10,10 @@ import '../config/encoding.dart';
 import '../config/ip_prefix.dart';
 import '../config/probe_listener.dart';
 import '../config/mode_outbounds.dart';
+import '../config/runtime_options.dart';
 import 'dns_config.dart';
 import 'rule_sets_config.dart';
+import 'runtime_config.dart';
 
 final class SingBoxConfigBuilder {
   Future<CoreConfigBuildResult> build(
@@ -27,6 +29,7 @@ final class SingBoxConfigBuilder {
   ) {
     final issues = <CoreConfigIssue>[];
     issues.addAll(validateRuleSets(profile));
+    issues.addAll(validateRuntimeOptions(profile, listeners));
     final ruleSets = {for (final set in profile.ruleSets) set.tag: set};
     final tags = <String>{};
     void tag(String value, String path) {
@@ -187,7 +190,7 @@ final class SingBoxConfigBuilder {
     if (requestedProbe != null &&
         (!requestedProbe.isValid ||
             [
-              listeners.mixedPort,
+              ...listeners.dataPorts,
               listeners.controllerPort,
               listeners.dnsPort,
             ].contains(requestedProbe.port))) {
@@ -210,6 +213,13 @@ final class SingBoxConfigBuilder {
     final tun = listeners.activeTun;
     try {
       final encoded = CoreConfigEncoding.encode({
+        if (profile.runtime.logLevel case final level?)
+          'log': {
+            if (level == 'silent')
+              'disabled': true
+            else
+              'level': level == 'warning' ? 'warn' : level,
+          },
         if (profile.dns case final dns?) 'dns': compileDns(dns, listeners),
         'inbounds': [
           for (final group in profile.dns?.groups ?? const [])
@@ -240,13 +250,7 @@ final class SingBoxConfigBuilder {
               'listen': '127.0.0.1',
               'listen_port': listeners.activeDnsPort,
             },
-          if (listeners.inboundsEnabled)
-            {
-              'type': 'mixed',
-              'tag': 'mixed',
-              'listen': '127.0.0.1',
-              'listen_port': listeners.mixedPort,
-            },
+          ...compileDataInbounds(listeners),
           if (tun != null)
             {
               'type': 'tun',
@@ -255,10 +259,14 @@ final class SingBoxConfigBuilder {
               'address': tun.addresses,
               'auto_route': tun.autoRoute,
               'stack': 'system',
+              if (tun.mtu != null) 'mtu': tun.mtu,
+              if (tun.routes.isNotEmpty) 'route_address': tun.routes,
+              if (tun.excludedRoutes.isNotEmpty)
+                'route_exclude_address': tun.excludedRoutes,
             },
         ],
         'outbounds': [
-          _node(modes.direct),
+          _node(modes.direct, profile.runtime),
           {
             'type': 'selector',
             'tag': modes.global.tag,
@@ -267,10 +275,13 @@ final class SingBoxConfigBuilder {
           },
           for (final node in profile.nodes)
             {
-              ..._node(node),
+              ..._node(node, profile.runtime),
               if (profile.dns?.proxyServer != null &&
                   node.protocol != CoreNodeProtocol.direct)
-                'domain_resolver': profile.dns!.proxyServer,
+                'domain_resolver': _resolver(
+                  profile.dns!.proxyServer!,
+                  profile.runtime.resolveIpv6,
+                ),
             },
           for (final selector in profile.selectors)
             {
@@ -287,13 +298,19 @@ final class SingBoxConfigBuilder {
         ],
         'route': {
           'final': profile.finalOutbound,
+          if (profile.runtime.findProcess) 'find_process': true,
+          if (profile.runtime.defaultInterface != null)
+            'default_interface': profile.runtime.defaultInterface,
           if (profile.ruleSets.any((set) => !set.isEmpty))
             'rule_set': [
               for (final set in profile.ruleSets)
                 if (!set.isEmpty) compileRuleSet(set),
             ],
           if (profile.dns != null)
-            'default_domain_resolver': profile.dns!.finalServer,
+            'default_domain_resolver': _resolver(
+              profile.dns!.finalServer,
+              profile.runtime.resolveIpv6,
+            ),
           if (tun?.autoRoute == true) 'auto_detect_interface': true,
           'rules': [
             for (final group in profile.dns?.groups ?? const [])
@@ -385,6 +402,9 @@ final class SingBoxConfigBuilder {
     return result;
   }
 
+  static Object _resolver(String tag, bool ipv6) =>
+      ipv6 ? tag : <String, Object?>{'server': tag, 'strategy': 'ipv4_only'};
+
   static Map<String, Object?>? _rule(
     CoreRouteRule rule,
     Map<String, CoreRuleSetSpec> sets,
@@ -416,10 +436,18 @@ final class SingBoxConfigBuilder {
     };
   }
 
-  static Map<String, Object?> _node(CoreNodeSpec node) {
+  static Map<String, Object?> _node(
+    CoreNodeSpec node,
+    CoreRuntimeOptions runtime,
+  ) {
     return {
       'type': node.protocol.name,
       'tag': node.tag,
+      if (runtime.disableTcpKeepAlive) 'disable_tcp_keep_alive': true,
+      if (runtime.tcpKeepAliveSeconds != null)
+        'tcp_keep_alive': '${runtime.tcpKeepAliveSeconds}s',
+      if (runtime.tcpKeepAliveIntervalSeconds != null)
+        'tcp_keep_alive_interval': '${runtime.tcpKeepAliveIntervalSeconds}s',
       if (node.protocol != CoreNodeProtocol.direct) ...{
         'server': node.server,
         'server_port': node.port,
@@ -446,7 +474,7 @@ final class SingBoxConfigBuilder {
         if (node.tls case final tls?)
           'tls': {
             'enabled': true,
-            'insecure': tls.insecure,
+            'insecure': tls.insecure || runtime.skipCertVerify,
             if (tls.serverName != null) 'server_name': tls.serverName,
             if (tls.alpn.isNotEmpty) 'alpn': tls.alpn,
             if (tls.fingerprint != null)

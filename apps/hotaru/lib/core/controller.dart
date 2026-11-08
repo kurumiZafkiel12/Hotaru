@@ -226,7 +226,17 @@ class CoreController {
   Future<String> setupConfig({
     required SetupParams params,
     Future<void> Function()? preloadInvoke,
+    int? profileId,
   }) async {
+    final source = _interface;
+    if (source is CoreProfileApplication) {
+      final result = await (source as CoreProfileApplication).setupProfile(
+        params,
+        profileId: profileId,
+      );
+      if (result.isEmpty) await preloadInvoke?.call();
+      return result;
+    }
     if (preloadInvoke == null) {
       return _interface.setupConfig(params);
     }

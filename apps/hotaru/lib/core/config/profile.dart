@@ -1,6 +1,7 @@
 import 'dns.dart';
 import 'probe_listener.dart';
 import 'rule_set.dart';
+import 'runtime_options.dart';
 import '../routing_mode.dart';
 
 enum CoreNodeProtocol {
@@ -151,6 +152,7 @@ final class CoreProfileSpec {
   final List<CoreRouteRule> rules;
   final List<CoreRuleSetSpec> ruleSets;
   final CoreDnsSpec? dns;
+  final CoreRuntimeOptions runtime;
 
   CoreProfileSpec({
     required List<CoreNodeSpec> nodes,
@@ -159,6 +161,7 @@ final class CoreProfileSpec {
     List<CoreRouteRule> rules = const [],
     List<CoreRuleSetSpec> ruleSets = const [],
     this.dns,
+    this.runtime = const CoreRuntimeOptions(),
   }) : nodes = List.unmodifiable(nodes),
        selectors = List.unmodifiable(selectors),
        ruleSets = List.unmodifiable(ruleSets),
@@ -170,13 +173,21 @@ final class CoreTunSpec {
   final List<String> addresses;
   final bool autoRoute;
   final bool hijackDns;
+  final int? mtu;
+  final List<String> routes;
+  final List<String> excludedRoutes;
 
   CoreTunSpec({
     required this.interfaceName,
     required List<String> addresses,
     required this.autoRoute,
     this.hijackDns = false,
-  }) : addresses = List.unmodifiable(addresses);
+    this.mtu,
+    List<String> routes = const [],
+    List<String> excludedRoutes = const [],
+  }) : addresses = List.unmodifiable(addresses),
+       routes = List.unmodifiable(routes),
+       excludedRoutes = List.unmodifiable(excludedRoutes);
 }
 
 final class CoreListenerSpec {
@@ -190,6 +201,7 @@ final class CoreListenerSpec {
   final CoreProbeListenerSpec? probe;
   final CoreRoutingMode initialMode;
   final String? globalSelection;
+  final CoreInboundOptions? inbound;
 
   const CoreListenerSpec({
     required this.mixedPort,
@@ -202,7 +214,14 @@ final class CoreListenerSpec {
     this.probe,
     this.initialMode = CoreRoutingMode.rule,
     this.globalSelection,
+    this.inbound,
   });
+
+  List<int> get dataPorts => [
+    mixedPort,
+    ?inbound?.httpPort,
+    ?inbound?.socksPort,
+  ];
 
   CoreProbeListenerSpec? get activeProbe => inboundsEnabled ? probe : null;
   CoreTunSpec? get activeTun => inboundsEnabled ? tun : null;
@@ -219,6 +238,7 @@ final class CoreListenerSpec {
     probe: probe,
     initialMode: initialMode,
     globalSelection: globalSelection,
+    inbound: inbound,
   );
 
   CoreListenerSpec withRuntime({
@@ -236,6 +256,7 @@ final class CoreListenerSpec {
     probe: probe,
     initialMode: mode,
     globalSelection: globalSelection,
+    inbound: inbound,
   );
 }
 

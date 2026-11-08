@@ -31,18 +31,23 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreOutboundHttpClients,
         CoreRoutingModes,
         CoreGlobalOutbound,
-        CoreProfileTextBuilder {
+        CoreProfileTextBuilder,
+        CoreProfileApplication {
   final SingBoxDesktopCore core;
+  final Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)?
+  _prepareProfile;
   late final SingBoxUiRoutes _routes;
   late final SingBoxUiTraffic _traffic;
   late final StreamSubscription<DesktopCoreFailure> _crashes;
   Future<CoreLifecycleResult>? _closing;
+  int _profileRevision = 0;
 
   SingBoxUiHandler(
     this.core, {
     void Function(CoreEvent)? onEvent,
     Duration Function()? trafficElapsed,
-  }) {
+    Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)? prepareProfile,
+  }) : _prepareProfile = prepareProfile {
     if (core.configuration == null) {
       throw ArgumentError('A prepared sing-box configuration is required');
     }
@@ -85,7 +90,56 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   @override
   Future<CoreLifecycleResult> stop() => core.stop();
   @override
-  Future<CoreLifecycleResult> close() => _closing ??= _close();
+  Future<CoreLifecycleResult> close() {
+    if (_closing == null) {
+      _profileRevision++;
+      _closing = _close();
+    }
+    return _closing!;
+  }
+
+  @override
+  Future<String> setupConfig(SetupParams setupParams) =>
+      setupProfile(setupParams);
+
+  @override
+  Future<String> setupProfile(SetupParams params, {int? profileId}) async {
+    if (_closing != null) throw const CoreAdapterException('closed');
+    if (profileId != null && profileId < 0) {
+      throw const CoreAdapterException('invalid_profile_identity');
+    }
+    final prepare = _prepareProfile;
+    if (prepare == null) {
+      throw const CoreAdapterException('profile_preparation_unavailable');
+    }
+    final revision = ++_profileRevision;
+    final AcceptedSingBoxConfig? configuration;
+    try {
+      configuration = await prepare(params, profileId);
+    } catch (_) {
+      if (_closing != null) throw const CoreAdapterException('closed');
+      if (revision != _profileRevision) {
+        throw const CoreAdapterException('configuration_superseded');
+      }
+      rethrow;
+    }
+    if (_closing != null) throw const CoreAdapterException('closed');
+    if (revision != _profileRevision) {
+      throw const CoreAdapterException('configuration_superseded');
+    }
+    if (configuration == null) {
+      throw const CoreAdapterException('configuration_review_cancelled');
+    }
+    if (configuration.profileId != profileId) {
+      throw const CoreAdapterException('invalid_profile_identity');
+    }
+    final result = await _routes.applyConfiguration(configuration);
+    if (revision != _profileRevision ||
+        result.outcome == CoreLifecycleOutcome.superseded) {
+      throw const CoreAdapterException('configuration_superseded');
+    }
+    return '';
+  }
 
   Future<CoreLifecycleResult> _close() async {
     try {
@@ -152,7 +206,10 @@ final class SingBoxUiHandler extends CoreHandlerInterface
 
   Future<CoreLifecycleResult> applyConfiguration(
     AcceptedSingBoxConfig configuration,
-  ) => _routes.applyConfiguration(configuration);
+  ) {
+    _profileRevision++;
+    return _routes.applyConfiguration(configuration);
+  }
 
   @override
   Future<bool> get isInit async => core.lifecycle.state is DesktopCoreRunning;

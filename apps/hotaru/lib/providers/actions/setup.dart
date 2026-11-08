@@ -860,6 +860,7 @@ class SetupAction extends _$SetupAction {
           final message = await _core.setupConfig(
             params: setupParams,
             preloadInvoke: preloadInvoke,
+            profileId: profileId,
           );
           if (message.isNotEmpty) {
             globalState.lastConfigCounts = configCountsOf(const {});

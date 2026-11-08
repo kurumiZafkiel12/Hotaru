@@ -11,6 +11,8 @@ import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/sing_box/desktop_core.dart';
 import 'package:hotaru/core/sing_box/ui_routes.dart';
+import 'package:hotaru/core/sing_box/ui_handler.dart';
+import 'package:hotaru/models/models.dart' show SetupParams;
 import 'package:mocktail/mocktail.dart';
 
 import '../desktop/fakes.dart';
@@ -97,6 +99,8 @@ void main() {
   late SingBoxDesktopCore core;
   late SingBoxUiRoutes routes;
   late StreamController<DesktopCoreState> states;
+  late StreamController<DesktopCoreFailure> crashes;
+  late List<SingBoxUiHandler> handlers;
   late DesktopCoreState state;
   late CoreRoutingMode mode;
   late String selected;
@@ -126,6 +130,8 @@ void main() {
     lifecycle = _Lifecycle();
     adapter = _Adapter();
     states = StreamController.broadcast();
+    crashes = StreamController.broadcast();
+    handlers = [];
     state = _running(1);
     generation = 1;
     selected = 'B';
@@ -135,6 +141,7 @@ void main() {
     submit = commit;
     when(() => lifecycle.state).thenAnswer((_) => state);
     when(() => lifecycle.states).thenAnswer((_) => states.stream);
+    when(() => lifecycle.crashEvents).thenAnswer((_) => crashes.stream);
     when(() => lifecycle.close()).thenAnswer((_) async {
       state = const DesktopCoreClosed(100);
       return const CoreLifecycleResult(
@@ -183,10 +190,152 @@ void main() {
     );
   });
   tearDown(() async {
+    for (final handler in handlers) {
+      await handler.close();
+    }
     await core.close();
     await routes.close();
     await states.close();
+    await crashes.close();
   });
+
+  SingBoxUiHandler application(
+    Future<AcceptedSingBoxConfig?> Function(SetupParams, int?) prepare,
+  ) {
+    final handler = SingBoxUiHandler(
+      core,
+      prepareProfile: prepare,
+      onEvent: (_) {},
+    );
+    handlers.add(handler);
+    return handler;
+  }
+
+  const params = SetupParams(
+    selectedMap: {},
+    testUrl: 'http://fixture.invalid',
+  );
+
+  test(
+    'reviewed source application retains the latest pause intent and profile identity',
+    () async {
+      final review = Completer<AcceptedSingBoxConfig?>();
+      final handler = application((actual, id) {
+        expect(actual, params);
+        expect(id, 2);
+        return review.future;
+      });
+      final applying = handler.setupProfile(params, profileId: 2);
+      expect(submitted, isEmpty);
+      await handler.stopListener();
+      review.complete(await _configuration(id: 2));
+      expect(await applying, '');
+      expect(binding.current.profileId, 2);
+      expect(binding.current.listeners.inboundsEnabled, isFalse);
+    },
+  );
+
+  test('late source review cannot replace a newer reviewed source', () async {
+    final reviews = {
+      2: Completer<AcceptedSingBoxConfig?>(),
+      3: Completer<AcceptedSingBoxConfig?>(),
+    };
+    final handler = application((_, id) => reviews[id]!.future);
+    final first = handler.setupProfile(params, profileId: 2);
+    final firstFailure = expectLater(
+      first,
+      throwsA(
+        isA<CoreAdapterException>().having(
+          (error) => error.code,
+          'code',
+          'configuration_superseded',
+        ),
+      ),
+    );
+    final second = handler.setupProfile(params, profileId: 3);
+    reviews[3]!.complete(await _configuration(id: 3));
+    expect(await second, '');
+    reviews[2]!.complete(await _configuration(id: 2));
+    await firstFailure;
+    expect(submitted.map((configuration) => configuration.profileId), [3]);
+  });
+
+  test(
+    'cancelled review and mismatched profile identity never reach lifecycle activation',
+    () async {
+      AcceptedSingBoxConfig? prepared;
+      final handler = application((_, _) async => prepared);
+      await expectLater(
+        handler.setupProfile(params, profileId: 2),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'configuration_review_cancelled',
+          ),
+        ),
+      );
+      prepared = await _configuration(id: 3);
+      await expectLater(
+        handler.setupProfile(params, profileId: 2),
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'invalid_profile_identity',
+          ),
+        ),
+      );
+      expect(submitted, isEmpty);
+    },
+  );
+
+  test(
+    'explicit configuration replacement supersedes a pending source review',
+    () async {
+      final review = Completer<AcceptedSingBoxConfig?>();
+      final handler = application((_, _) => review.future);
+      final pending = handler.setupProfile(params, profileId: 2);
+      final failure = expectLater(
+        pending,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'configuration_superseded',
+          ),
+        ),
+      );
+      await handler.applyConfiguration(await _configuration(id: 3));
+      review.complete(await _configuration(id: 2));
+      await failure;
+      expect(binding.current.profileId, 3);
+      expect(submitted, hasLength(1));
+    },
+  );
+
+  test(
+    'terminal close rejects a late source review without reopening a process',
+    () async {
+      final review = Completer<AcceptedSingBoxConfig?>();
+      final handler = application((_, _) => review.future);
+      final pending = handler.setupProfile(params, profileId: 2);
+      final failure = expectLater(
+        pending,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (error) => error.code,
+            'code',
+            'closed',
+          ),
+        ),
+      );
+      await handler.close();
+      review.complete(await _configuration(id: 2));
+      await failure;
+      expect(submitted, isEmpty);
+    },
+  );
 
   test(
     'listener changes adopt a configuration committed outside this UI command queue',

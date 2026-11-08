@@ -72,6 +72,7 @@ Future<({CoreProfileSpec profile, String? global})> _runtimeData(
     rules: profile.rules,
     ruleSets: profile.ruleSets,
     dns: profile.dns,
+    runtime: profile.runtime,
   );
   return (profile: updated, global: global);
 });

@@ -13,6 +13,10 @@ abstract interface class CoreProfileTextBuilder {
   Future<String> buildProfileText(SetupBase base);
 }
 
+abstract interface class CoreProfileApplication {
+  Future<String> setupProfile(SetupParams params, {int? profileId});
+}
+
 final class CoreProfileDocuments {
   static Future<String> readText(String path) =>
       Isolate.run(() async => utf8.decode(await _readBytes(path)));

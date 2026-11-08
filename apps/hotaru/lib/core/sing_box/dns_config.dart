@@ -84,7 +84,7 @@ List<CoreConfigIssue> validateDns(
   final serverTags = Set<String>.of(tags);
   final ports = listeners.dnsGroups?.ports ?? const <String, int>{};
   final occupied = {
-    listeners.mixedPort,
+    ...listeners.dataPorts,
     listeners.controllerPort,
     ?listeners.dnsPort,
     ?listeners.probe?.port,
