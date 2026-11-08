@@ -6,6 +6,27 @@ import 'package:path/path.dart' as p;
 import 'error.dart';
 import 'util.dart';
 
+const coreForkPath = 'github.com/kurumiZafkiel12/Hotaru-Core';
+const coreForkVersion = 'v1.14.4-hotaru.1';
+const coreForkCommit = '6acd22523814f97e9e2c1d4908da7da4289f3f9a';
+const coreForkSum = 'h1:0dmxgd3DJyrmKhiYllipXJ0BO7WHCJUnOMZgIpqiopM=';
+
+void validateCoreModule(Map<dynamic, dynamic> module) {
+  final replacement = module['Replace'];
+  if (module['Path'] != 'github.com/sagernet/sing-box' ||
+      module['Version'] != 'v1.14.4' ||
+      module['Dir'] is! String ||
+      replacement is! Map ||
+      replacement['Path'] != coreForkPath ||
+      replacement['Version'] != coreForkVersion ||
+      replacement['Sum'] != coreForkSum ||
+      replacement['Replace'] != null) {
+    throw BuildException(
+      'The host requires the reviewed Hotaru-Core source for sing-box v1.14.4',
+    );
+  }
+}
+
 Future<
   ({Map<String, Object> metadata, List<String> inputs, List<String> outputs})
 >
@@ -26,12 +47,23 @@ writeHostProvenance({
         ], workingDirectory: moduleDir).stdout
         as String,
   );
-  if (module is! Map ||
-      module['Version'] != 'v1.14.4' ||
-      module['Replace'] != null ||
-      module['Dir'] is! String) {
+  if (module is! Map) throw BuildException('Invalid core module metadata');
+  validateCoreModule(module);
+  runCommand('go', ['mod', 'verify'], workingDirectory: moduleDir);
+  final origin = jsonDecode(
+    runCommand('go', [
+          'mod',
+          'download',
+          '-json',
+          '$coreForkPath@$coreForkVersion',
+        ], workingDirectory: moduleDir).stdout
+        as String,
+  );
+  if (origin is! Map ||
+      origin['Origin'] is! Map ||
+      origin['Origin']['Hash'] != coreForkCommit) {
     throw BuildException(
-      'The host requires the pinned, unreplaced sing-box v1.14.4',
+      'The core source tag does not match the reviewed commit',
     );
   }
   final source = readSourceProvenance(rootDir);
@@ -45,7 +77,8 @@ writeHostProvenance({
   writeLicenseNotice(hostLicense, hostOutput);
   final sources = p.join(outputDir, 'SOURCES.txt');
   File(sources).writeAsStringSync(
-    'sing-box: https://github.com/SagerNet/sing-box/tree/v1.14.4\n'
+    'Hotaru Core: https://github.com/kurumiZafkiel12/Hotaru-Core/tree/$coreForkCommit\n'
+    'Base sing-box: https://github.com/SagerNet/sing-box/tree/v1.14.4\n'
     'Hotaru host: https://github.com/kurumiZafkiel12/Hotaru\n'
     'Source revision: $revision\n'
     'Working tree modified: $dirty\n',
@@ -53,6 +86,10 @@ writeHostProvenance({
   );
   return (
     metadata: {
+      'coreSource': coreForkPath,
+      'coreSourceVersion': coreForkVersion,
+      'coreSourceCommit': coreForkCommit,
+      'coreSourceSum': coreForkSum,
       'helperSha256': await calcSha256(helper),
       'target': target,
       'sourceCommit': revision,

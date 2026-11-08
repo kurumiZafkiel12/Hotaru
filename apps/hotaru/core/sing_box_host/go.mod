@@ -79,3 +79,5 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
+
+replace github.com/sagernet/sing-box => github.com/kurumiZafkiel12/Hotaru-Core v1.14.4-hotaru.1

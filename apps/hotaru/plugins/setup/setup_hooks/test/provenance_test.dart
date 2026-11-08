@@ -4,6 +4,38 @@ import 'package:setup_hooks/src/provenance.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('module provenance rejects local and unreviewed fork replacements', () {
+    Map<String, Object> module() => {
+      'Path': 'github.com/sagernet/sing-box',
+      'Version': 'v1.14.4',
+      'Dir': '/module',
+      'Replace': {
+        'Path': coreForkPath,
+        'Version': coreForkVersion,
+        'Sum': coreForkSum,
+      },
+    };
+    validateCoreModule(module());
+    for (final invalid in [
+      <String, Object>{},
+      {...module(), 'Version': 'v1.15.0'},
+      {
+        ...module(),
+        'Replace': {'Path': '../local', 'Version': '', 'Sum': coreForkSum},
+      },
+      {
+        ...module(),
+        'Replace': {
+          'Path': coreForkPath,
+          'Version': coreForkVersion,
+          'Sum': 'h1:unexpected',
+        },
+      },
+    ]) {
+      expect(() => validateCoreModule(invalid), throwsA(anything));
+    }
+  });
+
   test('license notices are writable build outputs and can be refreshed', () {
     final directory = Directory.systemTemp.createTempSync('hotaru-notice-');
     addTearDown(() => directory.deleteSync(recursive: true));

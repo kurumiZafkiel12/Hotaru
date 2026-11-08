@@ -182,17 +182,29 @@ func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx), processes: processes}, nil
 }
 
+const coreForkPath = "github.com/kurumiZafkiel12/Hotaru-Core"
+const coreForkVersion = "v1.14.4-hotaru.1"
+const coreForkSum = "h1:0dmxgd3DJyrmKhiYllipXJ0BO7WHCJUnOMZgIpqiopM="
+
+func validPinnedModule(module *debug.Module) bool {
+	if module == nil || module.Path != "github.com/sagernet/sing-box" || module.Version != "v1.14.4" {
+		return false
+	}
+	replacement := module.Replace
+	return replacement != nil && replacement.Path == coreForkPath && replacement.Version == coreForkVersion &&
+		replacement.Sum == coreForkSum && replacement.Replace == nil
+}
+
 func pinnedVersion() (string, error) {
 	info, ok := debug.ReadBuildInfo()
 	if ok {
 		for _, dependency := range info.Deps {
-			if dependency.Path == "github.com/sagernet/sing-box" &&
-				dependency.Version == "v1.14.4" && dependency.Replace == nil {
+			if validPinnedModule(dependency) {
 				return strings.TrimPrefix(dependency.Version, "v"), nil
 			}
 		}
 	}
-	return "", errors.New("host requires the pinned, unreplaced sing-box v1.14.4 module")
+	return "", errors.New("host requires the pinned Hotaru-Core source for sing-box v1.14.4")
 }
 
 func command(args []string) error {
