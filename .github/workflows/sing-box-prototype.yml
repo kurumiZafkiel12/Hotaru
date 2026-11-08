@@ -104,7 +104,7 @@ jobs:
         shell: pwsh
         run: |
           $asset = Join-Path $env:RUNNER_TEMP 'sing-box.zip'
-          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset
+          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset -MaximumRetryCount 3 -RetryIntervalSec 5
           $expected = '99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df'
           if ((Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) {
             throw 'Upstream sing-box asset digest mismatch'
@@ -187,7 +187,7 @@ jobs:
           flutter pub get
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $asset = Join-Path $env:RUNNER_TEMP 'sing-box-dns.zip'
-          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset
+          Invoke-WebRequest 'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' -OutFile $asset -MaximumRetryCount 3 -RetryIntervalSec 5
           if ((Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne '99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df') {
             throw 'DNS test engine digest mismatch'
           }

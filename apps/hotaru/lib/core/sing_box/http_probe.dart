@@ -129,6 +129,7 @@ final class SingBoxHttpProbe {
         request.persistentConnection = false;
         requestHeaders.forEach(request.headers.set);
         final response = await request.close();
+        final receivedAt = DateTime.now().toUtc();
         if (const {301, 302, 303, 307, 308}.contains(response.statusCode) &&
             response.headers.value('location') != null) {
           final location = response.headers.value('location')!;
@@ -172,6 +173,7 @@ final class SingBoxHttpProbe {
         final observed = await _observation(
           sockets.sublist(socketIndex),
           target,
+          receivedAt,
         );
         final bytes = body.takeBytes();
         return ProbeResult(
@@ -195,11 +197,12 @@ final class SingBoxHttpProbe {
   Future<CoreObservedConnection?> _observation(
     List<_ProbeSocket> sockets,
     Uri target,
+    DateTime receivedAt,
   ) async {
     if (sockets.isEmpty) return null;
     try {
       final data = await observe();
-      return await _matchObservation(data, sockets, target);
+      return await _matchObservation(data, sockets, target, receivedAt);
     } catch (_) {
       return null;
     }
@@ -239,12 +242,14 @@ Future<CoreObservedConnection?> _matchObservation(
   CoreTelemetrySnapshot data,
   List<_ProbeSocket> sockets,
   Uri target,
+  DateTime receivedAt,
 ) => Isolate.run(() {
   final matches = <String, CoreObservedConnection>{};
   for (final entry in [...data.active, ...data.closed]) {
     if (entry.network != 'tcp' ||
         !const {'mixed', 'hotaru-probe'}.contains(entry.inbound) ||
-        entry.destinationPort != target.port) {
+        entry.destinationPort != target.port ||
+        entry.createdAt.isAfter(receivedAt)) {
       continue;
     }
     final destination = entry.host.isEmpty ? entry.destinationIp : entry.host;

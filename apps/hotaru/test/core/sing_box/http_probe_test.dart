@@ -173,6 +173,7 @@ void main() {
     () async {
       for (final patch in [
         {'created_at': DateTime.utc(2000).toIso8601String()},
+        {'created_at': DateTime.utc(2100).toIso8601String()},
         {'host': 'other.invalid'},
         {'inbound': 'unrelated'},
         {'network': 'udp'},
