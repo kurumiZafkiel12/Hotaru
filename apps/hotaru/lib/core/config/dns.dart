@@ -1,4 +1,31 @@
+import 'rule_set.dart';
+
 enum CoreDnsProtocol { udp, tcp, tls, https, local }
+
+final class CoreDnsDomainFilter {
+  final CoreRuleSetSpec set;
+  final bool invert;
+
+  const CoreDnsDomainFilter(this.set, {this.invert = false});
+}
+
+enum CoreDnsFilterMode { blacklist, whitelist }
+
+final class CoreDnsFakeIpSpec {
+  final String? ipv4Range;
+  final String? ipv6Range;
+  final int ttl;
+  final CoreDnsFilterMode mode;
+  final List<CoreDnsDomainFilter> filters;
+
+  CoreDnsFakeIpSpec({
+    this.ipv4Range,
+    this.ipv6Range,
+    this.ttl = 1,
+    this.mode = CoreDnsFilterMode.blacklist,
+    List<CoreDnsDomainFilter> filters = const [],
+  }) : filters = List.unmodifiable(filters);
+}
 
 final class CoreDnsServerSpec {
   final String tag;
@@ -42,6 +69,7 @@ final class CoreDnsSpec {
   final String? proxyServer;
   final bool ipv6;
   final int? cacheCapacity;
+  final CoreDnsFakeIpSpec? fakeIp;
 
   CoreDnsSpec({
     required List<CoreDnsServerSpec> servers,
@@ -50,6 +78,7 @@ final class CoreDnsSpec {
     this.proxyServer,
     this.ipv6 = false,
     this.cacheCapacity,
+    this.fakeIp,
   }) : servers = List.unmodifiable(servers),
        groups = List.unmodifiable(groups);
 }

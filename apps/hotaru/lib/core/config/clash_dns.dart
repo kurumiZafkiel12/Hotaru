@@ -1,6 +1,9 @@
 import 'dart:io' show InternetAddress;
 
 import 'dns.dart';
+import 'dns_domain_filter.dart';
+import 'geodata.dart';
+import 'ip_prefix.dart';
 import 'profile.dart';
 
 final class CoreDnsImportResult {
@@ -11,12 +14,18 @@ final class CoreDnsImportResult {
     : issues = List.unmodifiable(issues);
 }
 
-CoreDnsImportResult importClashDns(Object? value) => _ClashDns().read(value);
+CoreDnsImportResult importClashDns(
+  Object? value, {
+  Map<String, CoreGeoMatchData> geodata = const {},
+}) => _ClashDns(geodata).read(value);
 
 final class _ClashDns {
+  final Map<String, CoreGeoMatchData> geodata;
   final List<CoreConfigIssue> issues = [];
   final List<CoreDnsServerSpec> servers = [];
   final List<CoreDnsGroupSpec> groups = [];
+
+  _ClashDns(this.geodata);
 
   void issue(String code, String path, {bool warning = false}) => issues.add(
     CoreConfigIssue(
@@ -79,6 +88,11 @@ final class _ClashDns {
           'respect-rules',
           'prefer-h3',
           'cache-size',
+          'fake-ip-range',
+          'fake-ip-range6',
+          'fake-ip-filter',
+          'fake-ip-filter-mode',
+          'fake-ip-ttl',
         }.contains(key)) {
           continue;
         }
@@ -121,9 +135,11 @@ final class _ClashDns {
         );
       }
       final mode = value['enhanced-mode'];
-      if (mode != null && mode != 'normal' && mode != 'redir-host') {
-        issue('dns_fake_ip_not_migrated', 'dns.enhanced-mode');
+      if (mode != null &&
+          !const ['normal', 'redir-host', 'fake-ip'].contains(mode)) {
+        issue('invalid_dns_enhanced_mode', 'dns.enhanced-mode');
       }
+      final fakeIp = readFakeIp(value, mode == 'fake-ip');
       String? bootstrap;
       if (value['default-nameserver'] != null) {
         bootstrap = pool(value['default-nameserver'], 'dns-bootstrap', null);
@@ -145,6 +161,7 @@ final class _ClashDns {
         proxyServer: proxy,
         ipv6: flag(value['ipv6'], false),
         cacheCapacity: capacity as int?,
+        fakeIp: fakeIp,
       );
       return CoreDnsImportResult(
         issues.any((issue) => issue.severity == CoreConfigIssueSeverity.error)
@@ -158,8 +175,77 @@ final class _ClashDns {
     }
   }
 
+  CoreDnsFakeIpSpec? readFakeIp(Map<dynamic, dynamic> value, bool active) {
+    String? range(String key, String fallback, int bits) {
+      final raw = value[key] ?? fallback;
+      if (raw == '') return null;
+      if (raw is! String) throw const FormatException();
+      final prefix = CoreIpPrefix.parse(raw);
+      if (prefix == null ||
+          prefix.network.rawAddress.length * 8 != bits ||
+          prefix.prefix > bits - 2) {
+        throw const FormatException();
+      }
+      return raw;
+    }
+
+    final ipv4 = range('fake-ip-range', '198.18.0.1/16', 32);
+    final ipv6 = range('fake-ip-range6', '', 128);
+    if (!active) {
+      if (value.keys.any((key) => key.toString().startsWith('fake-ip-'))) {
+        issue('inactive_dns_fake_ip_settings', 'dns', warning: true);
+      }
+      return null;
+    }
+    if (ipv4 == null && ipv6 == null) throw const FormatException();
+    final mode = value['fake-ip-filter-mode'] ?? 'blacklist';
+    if (mode == 'rule') {
+      issue('dns_fake_ip_rule_filter_not_migrated', 'dns.fake-ip-filter-mode');
+      return null;
+    }
+    if (mode != 'blacklist' && mode != 'whitelist') {
+      throw const FormatException();
+    }
+    final ttl = value['fake-ip-ttl'] ?? 1;
+    if (ttl is! int || ttl < 0 || ttl > 0xffffffff) {
+      throw const FormatException();
+    }
+    final raw =
+        value['fake-ip-filter'] ??
+        const [
+          'dns.msftnsci.com',
+          'www.msftnsci.com',
+          'www.msftconnecttest.com',
+        ];
+    if (raw is! List || raw.length > 100000) throw const FormatException();
+    final filters = <CoreDnsDomainFilter>[];
+    for (var i = 0; i < raw.length; i++) {
+      final entry = raw[i];
+      if (entry is! String) throw const FormatException();
+      try {
+        filters.addAll(readDnsDomainFilter(entry, geodata));
+      } on FormatException catch (error) {
+        issue(
+          error.message == 'geo_data_required'
+              ? 'geo_data_required'
+              : 'unsupported_dns_domain_filter',
+          'dns.fake-ip-filter.$i',
+        );
+      }
+    }
+    return CoreDnsFakeIpSpec(
+      ipv4Range: ipv4,
+      ipv6Range: ipv6,
+      ttl: ttl,
+      mode: mode == 'blacklist'
+          ? CoreDnsFilterMode.blacklist
+          : CoreDnsFilterMode.whitelist,
+      filters: filters,
+    );
+  }
+
   String add(String address, String tag, String? bootstrap) {
-    if (address == 'system') {
+    if (address == 'system' || address == 'system://') {
       servers.add(CoreDnsServerSpec(tag: tag, protocol: CoreDnsProtocol.local));
       return tag;
     }

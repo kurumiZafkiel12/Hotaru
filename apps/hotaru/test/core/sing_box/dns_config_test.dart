@@ -48,6 +48,7 @@ void main() {
       'https://dns.invalid/dns-query': CoreDnsProtocol.https,
       '2001:db8::1': CoreDnsProtocol.udp,
       'system': CoreDnsProtocol.local,
+      'system://': CoreDnsProtocol.local,
     }.entries) {
       final result = importClashDns({
         ...settings(entry.key),
@@ -71,7 +72,7 @@ void main() {
         {
           'nameserver-policy': {'+.invalid': '192.0.2.2'},
         },
-        {'enhanced-mode': 'fake-ip'},
+        {'enhanced-mode': 'unsupported'},
         {'respect-rules': true},
         {'prefer-h3': true},
         {'nameserver': List.filled(17, '192.0.2.1')},

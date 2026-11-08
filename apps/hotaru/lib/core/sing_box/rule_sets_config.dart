@@ -2,15 +2,23 @@ import '../config/ip_prefix.dart';
 import '../config/profile.dart';
 import '../config/rule_set.dart';
 
-List<CoreConfigIssue> validateRuleSets(CoreProfileSpec profile) {
+List<CoreConfigIssue> validateRuleSets(CoreProfileSpec profile) =>
+    validateCoreRuleSets(profile.ruleSets);
+
+List<CoreConfigIssue> validateCoreRuleSets(
+  List<CoreRuleSetSpec> sets, {
+  String path = 'ruleSets',
+  int limit = 1024,
+}) {
   final issues = <CoreConfigIssue>[];
   final names = <String>{};
   var entries = 0;
-  if (profile.ruleSets.length > 1024) {
-    return [const CoreConfigIssue('rule_set_limit', 'ruleSets')];
+  if (sets.length > limit) {
+    return [CoreConfigIssue('rule_set_limit', path)];
   }
-  for (final set in profile.ruleSets) {
-    final path = 'ruleSets.${set.tag}';
+  final root = path;
+  for (final set in sets) {
+    final path = '$root.${set.tag}';
     if (set.tag.isEmpty || !names.add(set.tag)) {
       issues.add(CoreConfigIssue('invalid_rule_set_tag', path));
     }
@@ -20,7 +28,7 @@ List<CoreConfigIssue> validateRuleSets(CoreProfileSpec profile) {
       entries += values.length;
     }
     if (entries > CoreRuleSetSpec.maxEntries) {
-      issues.add(const CoreConfigIssue('rule_set_entry_limit', 'ruleSets'));
+      issues.add(CoreConfigIssue('rule_set_entry_limit', root));
       break;
     }
     if (set.kind == CoreRuleSetKind.domain && set.prefixes.isNotEmpty ||

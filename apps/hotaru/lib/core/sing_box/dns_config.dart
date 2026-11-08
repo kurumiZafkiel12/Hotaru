@@ -2,6 +2,9 @@ import 'dart:io';
 
 import '../config/dns.dart';
 import '../config/profile.dart';
+import '../config/ip_prefix.dart';
+import '../config/rule_set.dart';
+import 'rule_sets_config.dart';
 
 List<CoreConfigIssue> validateDns(
   CoreProfileSpec profile,
@@ -119,6 +122,35 @@ List<CoreConfigIssue> validateDns(
       (dns.cacheCapacity! < 1 || dns.cacheCapacity! > 0xffffffff)) {
     error('invalid_dns_cache_capacity', 'dns.cacheCapacity');
   }
+  if (dns.fakeIp case final fake?) {
+    if (tags.contains(_fakeIpDnsTag)) error('invalid_dns_tag', 'dns.fakeIp');
+    if (fake.ipv4Range == null && fake.ipv6Range == null ||
+        !_validFakeRange(fake.ipv4Range, 32) ||
+        !_validFakeRange(fake.ipv6Range, 128)) {
+      error('invalid_fake_ip_range', 'dns.fakeIp');
+    }
+    if (fake.ttl < 0 || fake.ttl > 0xffffffff) {
+      error('invalid_fake_ip_ttl', 'dns.fakeIp.ttl');
+    }
+    final sets = <CoreRuleSetSpec>[
+      for (var i = 0; i < fake.filters.length; i++)
+        CoreRuleSetSpec(
+          tag: '$i',
+          kind: fake.filters[i].set.kind,
+          domains: fake.filters[i].set.domains,
+          suffixes: fake.filters[i].set.suffixes,
+          keywords: fake.filters[i].set.keywords,
+          regexes: fake.filters[i].set.regexes,
+          prefixes: fake.filters[i].set.prefixes,
+        ),
+    ];
+    if (sets.any((set) => set.kind != CoreRuleSetKind.domain)) {
+      error('invalid_dns_filter_kind', 'dns.fakeIp.filters');
+    }
+    issues.addAll(
+      validateCoreRuleSets(sets, path: 'dns.fakeIp.filters', limit: 100000),
+    );
+  }
   for (final server in dns.servers) {
     if (server.addressResolver != null &&
         !tags.contains(server.addressResolver)) {
@@ -159,9 +191,26 @@ List<CoreConfigIssue> validateDns(
 
 String dnsGroupInboundTag(String tag) => 'hotaru-dns-group:$tag';
 
+const _fakeIpDnsTag = 'hotaru-dns-fakeip';
+
+bool _validFakeRange(String? value, int bits) {
+  if (value == null) return true;
+  final prefix = CoreIpPrefix.parse(value);
+  return prefix != null &&
+      prefix.network.rawAddress.length * 8 == bits &&
+      prefix.prefix <= bits - 2;
+}
+
 Map<String, Object?> compileDns(CoreDnsSpec dns, CoreListenerSpec listeners) =>
     {
       'servers': [
+        if (dns.fakeIp case final fake?)
+          {
+            'type': 'fakeip',
+            'tag': _fakeIpDnsTag,
+            if (fake.ipv4Range != null) 'inet4_range': fake.ipv4Range,
+            if (fake.ipv6Range != null) 'inet6_range': fake.ipv6Range,
+          },
         for (final server in dns.servers)
           {
             'type': server.protocol.name,
@@ -181,12 +230,82 @@ Map<String, Object?> compileDns(CoreDnsSpec dns, CoreListenerSpec listeners) =>
             'server_port': listeners.dnsGroups!.ports[group.tag],
           },
       ],
-      if (dns.groups.isNotEmpty)
-        'rules': [for (final group in dns.groups) ..._groupRules(group)],
+      if (dns.groups.isNotEmpty || dns.fakeIp != null)
+        'rules': [
+          if (!dns.ipv6 && dns.fakeIp != null && dns.groups.isNotEmpty)
+            {
+              'inbound': [
+                for (final group in dns.groups) dnsGroupInboundTag(group.tag),
+              ],
+              'query_type': [28],
+              'action': 'predefined',
+              'rcode': 0,
+            },
+          for (final group in dns.groups) ..._groupRules(group),
+          if (dns.fakeIp case final fake?) ..._fakeIpRules(fake),
+          if (!dns.ipv6 && dns.fakeIp != null)
+            {
+              'query_type': [28],
+              'action': 'predefined',
+              'rcode': 0,
+            },
+        ],
       'final': dns.finalServer,
-      if (!dns.ipv6) 'strategy': 'ipv4_only',
+      // Source fake IPv6 is independent of real-resolution IPv6. Explicit
+      // AAAA rules above retain that split without legacy per-action strategy.
+      if (!dns.ipv6 && dns.fakeIp == null) 'strategy': 'ipv4_only',
       if (dns.cacheCapacity != null) 'cache_capacity': dns.cacheCapacity,
     };
+
+List<Map<String, Object?>> _fakeIpRules(CoreDnsFakeIpSpec fake) {
+  final filters = <Map<String, Object?>>[];
+  for (final filter in fake.filters) {
+    final rules = compileRuleSet(filter.set)['rules']! as List;
+    if (rules.isEmpty && !filter.invert) continue;
+    filters.add({
+      'type': 'logical',
+      'mode': 'and',
+      'rules': [
+        {
+          'domain_regex': ['.'],
+        },
+        if (rules.isNotEmpty)
+          {
+            'type': 'logical',
+            'mode': 'or',
+            'rules': rules,
+            if (filter.invert) 'invert': true,
+          },
+      ],
+    });
+  }
+  if (filters.isEmpty && fake.mode == CoreDnsFilterMode.whitelist) return [];
+  return [
+    for (final addressQuery in [true, false])
+      {
+        'type': 'logical',
+        'mode': 'and',
+        'rules': [
+          {
+            'query_type': addressQuery ? [1, 28] : [64, 65],
+          },
+          if (filters.isNotEmpty)
+            {
+              'type': 'logical',
+              'mode': 'or',
+              'rules': filters,
+              if (fake.mode == CoreDnsFilterMode.blacklist) 'invert': true,
+            },
+        ],
+        'action': addressQuery ? 'route' : 'predefined',
+        if (addressQuery) ...{
+          'server': _fakeIpDnsTag,
+          'rewrite_ttl': fake.ttl,
+        } else
+          'rcode': 0,
+      },
+  ];
+}
 
 List<Map<String, Object?>> _groupRules(CoreDnsGroupSpec group) {
   final inbound = [dnsGroupInboundTag(group.tag)];

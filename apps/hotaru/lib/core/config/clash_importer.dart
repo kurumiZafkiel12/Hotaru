@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:yaml/yaml.dart';
 
 import 'clash_dns.dart';
+import 'dns_domain_filter.dart';
 import 'encoding.dart';
 import 'geodata.dart';
 import 'ip_prefix.dart';
@@ -90,6 +91,24 @@ Future<CoreConfigImportResult> _withGeo(
           }
           if (requests.length > 1024) {
             throw const FormatException('geo_request_limit');
+          }
+        }
+      }
+      final dns = document['dns'];
+      if (dns is Map &&
+          dns['enable'] == true &&
+          dns['enhanced-mode'] == 'fake-ip' &&
+          dns['fake-ip-filter'] is List) {
+        final filters = dns['fake-ip-filter'] as List;
+        if (filters.length > 100000) throw const CoreConfigSizeException();
+        for (final filter in filters) {
+          if (filter is! String) continue;
+          for (final request
+              in dnsFilterGeoRequests(filter) ?? <CoreGeoRequest>[]) {
+            requests[request.key] = request;
+            if (requests.length > 1024) {
+              throw const FormatException('geo_request_limit');
+            }
           }
         }
       }
@@ -225,7 +244,7 @@ final class _ClashImport {
       final nodes = <CoreNodeSpec>[];
       final CoreDnsImportResult? dns = input['dns'] == null
           ? null
-          : importClashDns(input['dns']);
+          : importClashDns(input['dns'], geodata: geodata);
       if (dns != null) issues.addAll(dns.issues);
       final rawNodes = list(input['proxies'] ?? []);
       for (var index = 0; index < rawNodes.length; index++) {
