@@ -39,6 +39,7 @@ import 'ui_routes.dart';
 import 'ui_traffic.dart';
 import 'http_probe.dart';
 import 'service_diagnostics.dart';
+import 'telegram_probe.dart';
 import 'outbound_ip.dart';
 
 final class SingBoxUiHandler extends CoreHandlerInterface
@@ -110,7 +111,22 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         logLevel: LogLevel.debug,
       ),
     );
+    final telegram = SingBoxTelegramProbe(
+      core: core,
+      transport: _routedHttp,
+      observe: () {
+        final source = core.adapter;
+        if (source is! CoreTelemetry) {
+          throw const CoreAdapterException('telemetry_unavailable');
+        }
+        return (source as CoreTelemetry).telemetry();
+      },
+    );
     _services = SingBoxServiceDiagnostics(
+      sendTcp: (params, cancelled) => _routes.observeProbe(
+        params,
+        (request) => telegram.probe(request, cancelled),
+      ),
       send: (params, cancelled) => _routes.observeProbe(
         params,
         (request) => _probe.probe(request, cancelled: cancelled),

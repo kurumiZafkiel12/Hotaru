@@ -8,6 +8,48 @@ import 'package:hotaru/core/sing_box/service_diagnostics.dart';
 import 'package:hotaru/models/models.dart';
 
 void main() {
+  test(
+    'Telegram checks five independent MTProto DCs; webpage success alone is insufficient',
+    () async {
+      for (final failed in [-1, 2]) {
+        final requests = <String>[];
+        final diagnostics = SingBoxServiceDiagnostics(
+          send: (params, cancelled) async => (
+            result: ProbeResult(url: params.url, statusCode: 200),
+            snapshot: const RouteSnapshot(coreEpoch: 1),
+            hits: <RouteHit>[],
+          ),
+          sendTcp: (params, cancelled) async {
+            requests.add(params.url);
+            return (
+              result: ProbeResult(
+                url: params.url,
+                statusCode: requests.length - 1 == failed ? 0 : 200,
+                error: requests.length - 1 == failed
+                    ? 'mtproto_handshake_failed'
+                    : null,
+              ),
+              snapshot: const RouteSnapshot(coreEpoch: 1),
+              hits: <RouteHit>[],
+            );
+          },
+        );
+        final results = await diagnostics.check(
+          const ServiceCheckParams(names: ['telegram'], timeout: 1000),
+        );
+        expect(requests, hasLength(5));
+        expect(requests.first, contains('/DC1'));
+        expect(requests.last, contains('/DC5'));
+        expect(results.single.observations, hasLength(6));
+        expect(
+          results.single.status,
+          failed == -1 ? 'reachable' : 'inconclusive',
+        );
+        diagnostics.close();
+      }
+    },
+  );
+
   test('Dart service catalog covers every existing service target', () {
     expect(
       singBoxServiceEndpoints.keys.toSet(),

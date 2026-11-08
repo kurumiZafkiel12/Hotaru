@@ -9,6 +9,7 @@ import '../../models/models.dart';
 import '../adapter.dart';
 import 'service_catalog.dart';
 import 'probe_evidence.dart';
+import 'telegram_probe.dart' show telegramDataCenters;
 import '../../common/constant.dart' show browserUa;
 
 final class _ServiceRun {
@@ -21,13 +22,14 @@ final class _ServiceRun {
 
 final class SingBoxServiceDiagnostics {
   final ServiceProbeSender send;
+  final ServiceProbeSender? sendTcp;
   final TaskPool _pool = TaskPool(4);
   final _runs = <String, _ServiceRun>{};
   final _claims = <String, _ServiceRun>{};
   final _cancelled = <String, DateTime>{};
   bool _closed = false;
 
-  SingBoxServiceDiagnostics({required this.send});
+  SingBoxServiceDiagnostics({required this.send, this.sendTcp});
 
   Future<List<ServiceCheckItem>> check(ServiceCheckParams params) async {
     if (_closed) throw const CoreAdapterException('closed');
@@ -74,7 +76,13 @@ final class SingBoxServiceDiagnostics {
             run.cancelled.future,
             claim.cancelled.future,
           ]);
-          final env = _ServiceEnvironment(send, params, cancelled);
+          final env = _ServiceEnvironment(
+            name,
+            send,
+            sendTcp,
+            params,
+            cancelled,
+          );
           try {
             return await _pool.run(() async {
               if (_closed ||
@@ -111,7 +119,9 @@ final class SingBoxServiceDiagnostics {
 }
 
 final class _ServiceEnvironment {
+  final String name;
   final ServiceProbeSender send;
+  final ServiceProbeSender? sendTcp;
   final ServiceCheckParams params;
   final Future<void> cancelled;
   final observations = <ServiceObservation>[];
@@ -119,13 +129,28 @@ final class _ServiceEnvironment {
   RouteSnapshot? snapshot;
   final watch = Stopwatch()..start();
 
-  _ServiceEnvironment(this.send, this.params, this.cancelled);
+  _ServiceEnvironment(
+    this.name,
+    this.send,
+    this.sendTcp,
+    this.params,
+    this.cancelled,
+  );
 
-  Future<ProbeResult> get(String url, {int maxBody = 512 * 1024}) async {
+  Future<ProbeResult> get(
+    String url, {
+    int maxBody = 512 * 1024,
+    bool tcp = false,
+  }) async {
     final timeout = params.timeout <= 0 ? 10000 : params.timeout;
-    final remaining = timeout * 4 - watch.elapsedMilliseconds;
+    final remaining =
+        timeout * (name == 'telegram' ? 6 : 4) - watch.elapsedMilliseconds;
     if (remaining <= 0) return ProbeResult(url: url, error: 'timeout');
-    final observed = await send(
+    final sender = tcp ? sendTcp : send;
+    if (sender == null) {
+      throw const CoreAdapterException('tcp_probe_unavailable');
+    }
+    final observed = await sender(
       ProbeParams(
         url: url,
         proxyName: params.proxyName,
@@ -168,7 +193,11 @@ final class _ServiceEnvironment {
           : singBoxServiceEndpoints[name]!;
       var result = await get(
         endpoint,
-        maxBody: params.connectivity ? 0 : 512 * 1024,
+        maxBody: params.connectivity
+            ? 0
+            : const {'prime-video', 'tiktok'}.contains(name)
+            ? 8 * 1024 * 1024
+            : 512 * 1024,
       );
       var classification = await classifyServiceResponse(
         result,
@@ -263,6 +292,20 @@ final class _ServiceEnvironment {
             classification = 'unsupported-region';
           }
         }
+      }
+      if (!params.connectivity && name == 'telegram') {
+        var passed = 0;
+        for (final (index, address) in telegramDataCenters.indexed) {
+          final dc = await get(
+            'mtproto://$address:443/DC${index + 1}',
+            maxBody: 0,
+            tcp: true,
+          );
+          if (dc.error == null && dc.statusCode == 200) passed++;
+        }
+        classification = passed == telegramDataCenters.length
+            ? 'reachable'
+            : 'inconclusive';
       }
       return ServiceCheckItem(
         name: name,

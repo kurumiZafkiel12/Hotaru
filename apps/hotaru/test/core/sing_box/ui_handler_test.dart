@@ -34,6 +34,8 @@ class _Adapter extends Mock
         CoreRuntimeMaintenance,
         CoreConnectionMaintenance {}
 
+class _PathAdapter extends _Adapter implements CoreConnectionPathTelemetry {}
+
 class _Binding implements SingBoxConfigurationBinding {
   @override
   final AcceptedSingBoxConfig current;
@@ -623,6 +625,38 @@ void main() {
       expect(values.first, isEmpty);
       expect(values.last, contains('invalid_uuid'));
       verifyZeroInteractions(adapter);
+    },
+  );
+
+  test(
+    'ordinary controller reads optional path history through its session wrapper',
+    () async {
+      final native = _PathAdapter();
+      when(() => native.close()).thenAnswer((_) async {});
+      when(() => native.pathTelemetry()).thenAnswer(
+        (_) async => CoreTelemetrySnapshot.fromJson({
+          ...telemetryFixture(),
+          'active': [observedConnectionFixture()],
+          'dials': {
+            'capacity': 4096,
+            'first_id': 0,
+            'last_id': 0,
+            'entries': [],
+          },
+        }),
+      );
+      final owned = SingBoxDesktopCore.withConfiguration(
+        lifecycle: lifecycle,
+        configuration: _Binding(core.configuration!, native),
+      );
+      final bridge = SingBoxUiHandler(owned);
+      addTearDown(bridge.close);
+      final row = (await CoreController.scoped(bridge).getConnections()).single;
+      expect(row.observedPath, ['exit']);
+      expect(row.pathObservationStatus, 'partial');
+      expect(row.pathInbound, 'mixed');
+      verify(() => native.pathTelemetry()).called(1);
+      verifyNever(() => native.telemetry());
     },
   );
 

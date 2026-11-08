@@ -16,6 +16,7 @@ final class SessionCoreAdapter
         CoreLogSource,
         CoreOutboundHttpClients,
         CoreTelemetry,
+        CoreConnectionPathTelemetry,
         CoreRoutingModes,
         CoreRuntimeMaintenance,
         CoreConnectionMaintenance {
@@ -144,6 +145,15 @@ final class SessionCoreAdapter
       throw const CoreAdapterException('routing_modes_unavailable');
     }
     return (adapter as CoreRoutingModes).setRoutingMode(mode);
+  });
+
+  @override
+  Future<CoreTelemetrySnapshot> pathTelemetry() => _invoke((adapter) {
+    if (adapter is CoreConnectionPathTelemetry) {
+      return (adapter as CoreConnectionPathTelemetry).pathTelemetry();
+    }
+    if (adapter is CoreTelemetry) return (adapter as CoreTelemetry).telemetry();
+    throw const CoreAdapterException('telemetry_unavailable');
   });
 
   @override

@@ -53,6 +53,34 @@ const _nodes = [
 
 void main() {
   test(
+    'native direct observation is complete without inventing a user node',
+    () {
+      final call = {
+        ..._call(1),
+        'outbound': 'owned-direct',
+        'outbound_type': 'direct',
+      };
+      final raw = telemetryFixture()
+        ..['active'] = [
+          {...observedConnectionFixture(), 'outbound': 'owned-direct'},
+        ]
+        ..['dials'] = {
+          'capacity': 4096,
+          'first_id': 1,
+          'last_id': 1,
+          'entries': [call],
+        };
+      final sample = CoreTelemetrySnapshot.fromJson(raw);
+      final path = CoreConnectionPaths(
+        sample,
+        [],
+      ).resolve(sample.active.single)!;
+      expect(path.hops, ['owned-direct']);
+      expect(path.complete, isTrue);
+    },
+  );
+
+  test(
     'assembles observed physical entry to exit; configured order is not evidence',
     () {
       final sample = _sample([

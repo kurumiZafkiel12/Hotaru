@@ -30,6 +30,9 @@ final class _MaintenanceAdapter extends Mock
 final class _TelemetryAdapter extends Mock
     implements CoreAdapter, CoreTelemetry {}
 
+final class _PathAdapter extends Mock
+    implements CoreAdapter, CoreTelemetry, CoreConnectionPathTelemetry {}
+
 final class _RoutingAdapter extends Mock
     implements CoreAdapter, CoreRoutingModes {}
 
@@ -345,6 +348,46 @@ void main() {
       );
       pending.complete(42);
       await rejected;
+    },
+  );
+
+  test(
+    'session wrapper forwards optional path snapshots without replacing ordinary counters',
+    () async {
+      final native = _PathAdapter();
+      when(() => native.close()).thenAnswer((_) async {});
+      when(() => native.telemetry()).thenAnswer(
+        (_) async =>
+            CoreTelemetrySnapshot.fromJson(telemetryFixture(upload: 1)),
+      );
+      final pending = Completer<CoreTelemetrySnapshot>();
+      when(() => native.pathTelemetry()).thenAnswer((_) => pending.future);
+      final scoped = SessionCoreAdapter(
+        lifecycle: lifecycle,
+        factory: () => native,
+      );
+      addTearDown(scoped.close);
+      expect((await scoped.telemetry()).uploadTotal, 1);
+      final result = scoped.pathTelemetry();
+      final rejected = expectLater(
+        result,
+        throwsA(
+          isA<CoreAdapterException>().having(
+            (e) => e.code,
+            'code',
+            'session_changed',
+          ),
+        ),
+      );
+      state = _running('replacement');
+      events.add(state);
+      await pumpEventQueue();
+      pending.complete(
+        CoreTelemetrySnapshot.fromJson(telemetryFixture(upload: 9)),
+      );
+      await rejected;
+      verify(() => native.pathTelemetry()).called(1);
+      verify(() => native.telemetry()).called(1);
     },
   );
 

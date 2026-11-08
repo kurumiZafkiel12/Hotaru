@@ -73,6 +73,8 @@ void main() {
       } else if (request.uri.path == '/redirect') {
         request.response.statusCode = 302;
         request.response.headers.set('location', 'http://second.invalid/final');
+      } else if (request.uri.path == '/large') {
+        request.response.write('${'x' * (600 * 1024)}"currentTerritory":"JP"');
       } else {
         request.response.statusCode = 403;
         request.response.write('abcdefghijk');
@@ -206,6 +208,18 @@ void main() {
   );
 
   test(
+    'bounded large-page scan retains region fields beyond the former body cap',
+    () async {
+      final result = await probe.probe(
+        params(path: '/large', maxBody: 8 * 1024 * 1024),
+      );
+      expect(result.error, isNull);
+      expect(result.body, endsWith('"currentTerritory":"JP"'));
+      expect(result.chains, ['B', 'Selected']);
+    },
+  );
+
+  test(
     'timeout closes the scope and invalid requests never open a client',
     () async {
       final slow = await probe.probe(params(path: '/slow', timeout: 100));
@@ -219,7 +233,7 @@ void main() {
         ),
         params(headers: {'X-Test': 'bad\r\nvalue'}),
         params(headers: {'Proxy-Authorization': 'secret'}),
-        params(maxBody: 2 * 1024 * 1024),
+        params(maxBody: 8 * 1024 * 1024 + 1),
       ];
       for (final request in invalid) {
         expect((await probe.probe(request)).error, 'failed');

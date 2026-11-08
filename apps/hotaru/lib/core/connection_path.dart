@@ -86,7 +86,9 @@ final class CoreConnectionPaths {
       final next = children[tag] ?? const <String>{};
       if (next.isEmpty) {
         final node = _nodes[tag];
-        complete = node != null && node.detour == null;
+        complete =
+            node != null && node.detour == null ||
+            hops.length == 1 && root.outboundType == 'direct';
         break;
       }
       if (next.length != 1) break;

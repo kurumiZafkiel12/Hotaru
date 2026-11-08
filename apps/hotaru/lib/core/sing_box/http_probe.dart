@@ -34,7 +34,7 @@ final class SingBoxHttpProbe {
     try {
       if (timeout > const Duration(minutes: 2) ||
           params.maxBody < 0 ||
-          params.maxBody > 1024 * 1024 ||
+          params.maxBody > 8 * 1024 * 1024 ||
           _pool.pendingCount >= 64) {
         throw const CoreAdapterException('invalid_probe_bounds');
       }
