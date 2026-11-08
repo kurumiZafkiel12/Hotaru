@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/config/profile.dart';
+import 'package:hotaru/core/config/runtime_options.dart';
 import 'package:hotaru/core/routed_http.dart';
 import 'package:hotaru/core/sing_box/config_builder.dart';
 import 'package:hotaru/core/sing_box/http_probe.dart';
@@ -87,6 +88,7 @@ void main() {
             ),
           ],
           finalOutbound: 'Selected',
+          runtime: const CoreRuntimeOptions(findProcess: true),
         ),
         CoreListenerSpec(
           mixedPort: mixed,
@@ -151,6 +153,7 @@ void main() {
         }
       });
       await ready.future.timeout(const Duration(seconds: 10));
+      CoreTelemetrySnapshot? latest;
       var id = 0;
       final probe = SingBoxHttpProbe(
         transport: _Mixed(mixed),
@@ -162,7 +165,8 @@ void main() {
             jsonEncode({'method': 'telemetry', 'id': requestId}),
           );
           await process.stdin.flush();
-          return reply.future.timeout(const Duration(seconds: 3));
+          latest = await reply.future.timeout(const Duration(seconds: 3));
+          return latest!;
         },
       );
       for (var index = 0; index < 3; index++) {
@@ -183,6 +187,27 @@ void main() {
       expect(origins, 3);
       expect(a.receipts, isEmpty);
       expect(b.receipts, hasLength(3));
+      final processes = latest!.processes!;
+      final total =
+          processes.entries.fold<int>(
+            0,
+            (sum, entry) => sum + entry.upload + entry.download,
+          ) +
+          processes.unattributedUpload +
+          processes.unattributedDownload;
+      expect(total, greaterThan(0));
+      if (Platform.isWindows) {
+        expect(processes.entries.any((entry) => entry.pid == pid), isTrue);
+        expect(
+          processes.entries
+              .where((entry) => entry.pid == pid)
+              .fold<int>(
+                0,
+                (sum, entry) => sum + entry.upload + entry.download,
+              ),
+          greaterThan(0),
+        );
+      }
     },
     skip: enabled
         ? false

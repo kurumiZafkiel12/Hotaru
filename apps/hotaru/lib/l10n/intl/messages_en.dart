@@ -1789,6 +1789,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Private key passphrase",
     ),
     "process": MessageLookupByLibrary.simpleMessage("Process"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage(
+      "By application",
+    ),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage(
+      "By process",
+    ),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "No traffic yet. Make a request through Hotaru to start counting.",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not read current counters. Refresh to try again.",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "Some processes could not be listed individually; their bytes are included in unattributed traffic.",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage("Sampled"),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage(
+      "Application traffic ranking",
+    ),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "Unattributed traffic",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "The current kernel does not provide process traffic counters.",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("Profile"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("Please enter a valid interval"),

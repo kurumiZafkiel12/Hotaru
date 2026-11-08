@@ -43,7 +43,8 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreGlobalOutbound,
         CoreProfileTextBuilder,
         CoreProfileApplication,
-        CoreRoutePreviewSource {
+        CoreRoutePreviewSource,
+        CoreProcessTrafficSource {
   final SingBoxDesktopCore core;
   final Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)?
   _prepareProfile;
@@ -334,6 +335,15 @@ final class SingBoxUiHandler extends CoreHandlerInterface
 
   @override
   Future<void> resetTraffic() => _traffic.reset();
+
+  @override
+  Future<CoreProcessTraffic?> getProcessTraffic() async {
+    final source = core.adapter;
+    if (source is! CoreTelemetry) {
+      throw const CoreAdapterException('telemetry_unavailable');
+    }
+    return (await (source as CoreTelemetry).telemetry()).processes;
+  }
 
   @override
   Future<CoreMemoryStats?> getMemoryStats() async {

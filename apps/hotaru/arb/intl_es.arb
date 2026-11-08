@@ -1256,5 +1256,15 @@
   "routePreviewRule": "Regla coincidente",
   "routePreviewDefault": "Ruta predeterminada o modo de salida actual",
   "routePreviewPath": "Ruta seleccionada",
-  "routePreviewHops": "Saltos físicos previstos"
+  "routePreviewHops": "Saltos físicos previstos",
+  "processTrafficTitle": "Clasificación de tráfico por aplicación",
+  "processTrafficScope": "Solo cuenta el tráfico que pasa por Hotaru en esta sesión del núcleo, incluidas las conexiones cerradas. Reiniciar el núcleo pone los contadores a cero. El tráfico sin identificar aparece aparte.",
+  "processTrafficByApp": "Por aplicación",
+  "processTrafficByProcess": "Por proceso",
+  "processTrafficUnavailable": "El núcleo actual no ofrece contadores por proceso.",
+  "processTrafficEmpty": "Todavía no hay tráfico. Envía una solicitud a través de Hotaru.",
+  "processTrafficFailed": "No se pudieron leer los contadores. Actualiza para reintentar.",
+  "processTrafficUnattributed": "Tráfico sin atribuir",
+  "processTrafficOverflow": "Algunos procesos no se pueden listar por separado; sus bytes se incluyen en el tráfico sin atribuir.",
+  "processTrafficSampled": "Muestra"
 }

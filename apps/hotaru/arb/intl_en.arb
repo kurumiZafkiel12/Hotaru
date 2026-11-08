@@ -1256,5 +1256,15 @@
   "routePreviewRule": "Matched rule",
   "routePreviewDefault": "Default route or current outbound mode",
   "routePreviewPath": "Selected path",
-  "routePreviewHops": "Planned physical hops"
+  "routePreviewHops": "Planned physical hops",
+  "processTrafficTitle": "Application traffic ranking",
+  "processTrafficScope": "Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.",
+  "processTrafficByApp": "By application",
+  "processTrafficByProcess": "By process",
+  "processTrafficUnavailable": "The current kernel does not provide process traffic counters.",
+  "processTrafficEmpty": "No traffic yet. Make a request through Hotaru to start counting.",
+  "processTrafficFailed": "Could not read current counters. Refresh to try again.",
+  "processTrafficUnattributed": "Unattributed traffic",
+  "processTrafficOverflow": "Some processes could not be listed individually; their bytes are included in unattributed traffic.",
+  "processTrafficSampled": "Sampled"
 }

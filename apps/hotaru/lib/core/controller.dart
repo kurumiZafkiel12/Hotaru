@@ -8,6 +8,7 @@ import 'package:hotaru/core/spill.dart';
 import 'outbound_http.dart';
 import 'routed_http.dart';
 import 'config/route_preview.dart';
+import 'telemetry.dart';
 import 'routing_mode.dart';
 import 'profile_documents.dart';
 import 'package:hotaru/enum/enum.dart';
@@ -35,6 +36,19 @@ class CoreController {
 
   @visibleForTesting
   CoreController.scoped(this._interface);
+
+  bool get supportsProcessTraffic => _interface is CoreProcessTrafficSource;
+
+  Future<CoreProcessTraffic?> getProcessTraffic() {
+    final source = _interface;
+    if (source is! CoreProcessTrafficSource) {
+      throw const CoreMethodException(
+        code: 'process_traffic_unavailable',
+        message: 'Process traffic observation is unavailable',
+      );
+    }
+    return (source as CoreProcessTrafficSource).getProcessTraffic();
+  }
 
   bool get supportsRoutePreview => _interface is CoreRoutePreviewSource;
 

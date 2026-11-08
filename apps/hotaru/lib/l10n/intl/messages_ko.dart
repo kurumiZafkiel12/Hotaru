@@ -1500,6 +1500,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "privateKey": MessageLookupByLibrary.simpleMessage("개인 키"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage("개인 키 암호"),
     "process": MessageLookupByLibrary.simpleMessage("프로세스"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage("앱별"),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage("프로세스별"),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "아직 트래픽이 없습니다. Hotaru를 통해 요청을 보내세요.",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "통계를 읽지 못했습니다. 새로 고침 후 다시 시도하세요.",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "일부 프로세스를 개별 표시하지 못해 해당 바이트를 미분류 트래픽에 포함했습니다.",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage("수집 시각"),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "현재 커널 세션에서 Hotaru를 통과한 트래픽만 집계하며 종료된 연결도 포함합니다. 커널을 재시작하면 초기화됩니다. 식별하지 못한 트래픽은 별도로 표시합니다.",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage("앱 트래픽 순위"),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "미분류 트래픽",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "현재 커널은 프로세스별 트래픽 집계를 제공하지 않습니다.",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("프로필"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("올바른 간격을 입력하세요"),

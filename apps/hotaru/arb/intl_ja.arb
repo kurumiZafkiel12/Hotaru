@@ -1256,5 +1256,15 @@
   "routePreviewRule": "一致したルール",
   "routePreviewDefault": "既定ルートまたは現在の送信モード",
   "routePreviewPath": "選択された経路",
-  "routePreviewHops": "予定される物理ホップ"
+  "routePreviewHops": "予定される物理ホップ",
+  "processTrafficTitle": "アプリの通信量ランキング",
+  "processTrafficScope": "このカーネルセッションで Hotaru を通る通信のみを集計します。接続終了後も保持し、カーネル再起動でリセットします。識別できない通信は別枠です。",
+  "processTrafficByApp": "アプリ別",
+  "processTrafficByProcess": "プロセス別",
+  "processTrafficUnavailable": "現在のカーネルはプロセス通信量を提供していません。",
+  "processTrafficEmpty": "通信はまだありません。Hotaru 経由で接続してください。",
+  "processTrafficFailed": "統計を取得できませんでした。更新して再試行してください。",
+  "processTrafficUnattributed": "未分類の通信",
+  "processTrafficOverflow": "一部のプロセスは個別表示できず、その通信量は未分類に含まれます。",
+  "processTrafficSampled": "取得時刻"
 }

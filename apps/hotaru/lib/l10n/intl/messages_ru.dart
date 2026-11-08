@@ -1869,6 +1869,36 @@ class MessageLookup extends MessageLookupByLibrary {
       "Пароль закрытого ключа",
     ),
     "process": MessageLookupByLibrary.simpleMessage("Процесс"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage(
+      "По приложениям",
+    ),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage(
+      "По процессам",
+    ),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "Трафика пока нет. Выполните запрос через Hotaru.",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось прочитать счётчики. Обновите данные.",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "Некоторые процессы не удалось показать отдельно; их байты включены в неатрибутированный трафик.",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage(
+      "Время замера",
+    ),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "Учитывается только трафик через Hotaru в текущем сеансе ядра, включая закрытые соединения. Перезапуск ядра обнуляет счётчики. Неопознанный трафик показан отдельно.",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage(
+      "Рейтинг трафика приложений",
+    ),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "Неатрибутированный трафик",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Текущее ядро не предоставляет счётчики по процессам.",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("Профиль"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("Введите корректный интервал"),

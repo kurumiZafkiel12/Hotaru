@@ -1522,6 +1522,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "privateKey": MessageLookupByLibrary.simpleMessage("秘密鍵"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage("秘密鍵のパスフレーズ"),
     "process": MessageLookupByLibrary.simpleMessage("プロセス"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage("アプリ別"),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage("プロセス別"),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "通信はまだありません。Hotaru 経由で接続してください。",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "統計を取得できませんでした。更新して再試行してください。",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "一部のプロセスは個別表示できず、その通信量は未分類に含まれます。",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage("取得時刻"),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "このカーネルセッションで Hotaru を通る通信のみを集計します。接続終了後も保持し、カーネル再起動でリセットします。識別できない通信は別枠です。",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage("アプリの通信量ランキング"),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "未分類の通信",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "現在のカーネルはプロセス通信量を提供していません。",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("プロファイル"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("有効な間隔を入力してください"),

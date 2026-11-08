@@ -1917,6 +1917,36 @@ class MessageLookup extends MessageLookupByLibrary {
       "Phrase secrète de la clé privée",
     ),
     "process": MessageLookupByLibrary.simpleMessage("Processus"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage(
+      "Par application",
+    ),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage(
+      "Par processus",
+    ),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aucun trafic. Lancez une requête via Hotaru.",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible de lire les compteurs. Actualisez pour réessayer.",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "Certains processus ne peuvent pas être affichés séparément ; leurs octets figurent dans le trafic non attribué.",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage(
+      "Échantillon",
+    ),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "Compte uniquement le trafic passant par Hotaru pendant cette session du noyau, connexions fermées comprises. Un redémarrage remet les compteurs à zéro. Le trafic non identifié est séparé.",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage(
+      "Classement du trafic des applications",
+    ),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "Trafic non attribué",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Le noyau actuel ne fournit pas de compteurs par processus.",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("Profil"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage(

@@ -28,10 +28,11 @@ type telemetrySource interface {
 
 type observedEngine struct {
 	*box.Box
-	traffic *trafficcontrol.Manager
-	dns     adapter.DNSRouter
-	mu      sync.RWMutex
-	closed  bool
+	traffic   *trafficcontrol.Manager
+	processes *processTraffic
+	dns       adapter.DNSRouter
+	mu        sync.RWMutex
+	closed    bool
 }
 
 type runtimeMaintenanceSource interface {
@@ -128,6 +129,15 @@ func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 		Memory: readMemorySnapshot(),
 	}
 	budget := maxControlFrame - 4096
+	if e.processes != nil {
+		result.Processes = e.processes.snapshot()
+		for _, entry := range result.Processes.Entries {
+			budget -= 256 + len(entry.Path)*6
+		}
+		if budget < 0 {
+			return telemetrySnapshot{}, errTelemetryTooLarge
+		}
+	}
 	appendConnection := func(c *trafficcontrol.TrackerMetadata, closed bool) error {
 		observed := observeConnection(c, closed)
 		cost := 1024
@@ -164,14 +174,15 @@ func (e *observedEngine) Telemetry() (telemetrySnapshot, error) {
 }
 
 type telemetrySnapshot struct {
-	SampledAt       time.Time            `json:"sampled_at"`
-	Upload          int64                `json:"upload_total"`
-	Download        int64                `json:"download_total"`
-	HistoryCapacity int                  `json:"history_capacity"`
-	ActiveTruncated bool                 `json:"active_truncated"`
-	Active          []observedConnection `json:"active"`
-	Closed          []observedConnection `json:"closed"`
-	Memory          *observedMemory      `json:"memory,omitempty"`
+	SampledAt       time.Time               `json:"sampled_at"`
+	Upload          int64                   `json:"upload_total"`
+	Download        int64                   `json:"download_total"`
+	HistoryCapacity int                     `json:"history_capacity"`
+	ActiveTruncated bool                    `json:"active_truncated"`
+	Active          []observedConnection    `json:"active"`
+	Closed          []observedConnection    `json:"closed"`
+	Memory          *observedMemory         `json:"memory,omitempty"`
+	Processes       *processTrafficSnapshot `json:"processes,omitempty"`
 }
 
 type observedMemory struct {

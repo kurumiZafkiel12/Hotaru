@@ -1256,5 +1256,15 @@
   "routePreviewRule": "命中规则",
   "routePreviewDefault": "默认规则或当前出站模式",
   "routePreviewPath": "选中链路",
-  "routePreviewHops": "计划经过的物理节点"
+  "routePreviewHops": "计划经过的物理节点",
+  "processTrafficTitle": "应用流量排行",
+  "processTrafficScope": "仅统计经过 Hotaru 的当前内核会话流量，连接关闭后仍累计；内核重启后重新计数。无法识别进程的流量单列。",
+  "processTrafficByApp": "按应用",
+  "processTrafficByProcess": "按进程",
+  "processTrafficUnavailable": "当前内核未提供进程流量统计。",
+  "processTrafficEmpty": "暂无流量，请先通过 Hotaru 发起网络请求。",
+  "processTrafficFailed": "暂时无法读取统计，请刷新重试。",
+  "processTrafficUnattributed": "未归属流量",
+  "processTrafficOverflow": "部分进程无法单独列出，其流量计入未归属流量。",
+  "processTrafficSampled": "采样时间"
 }

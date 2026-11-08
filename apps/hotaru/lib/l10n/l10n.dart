@@ -10477,6 +10477,106 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Application traffic ranking`
+  String get processTrafficTitle {
+    return Intl.message(
+      'Application traffic ranking',
+      name: 'processTrafficTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.`
+  String get processTrafficScope {
+    return Intl.message(
+      'Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.',
+      name: 'processTrafficScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `By application`
+  String get processTrafficByApp {
+    return Intl.message(
+      'By application',
+      name: 'processTrafficByApp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `By process`
+  String get processTrafficByProcess {
+    return Intl.message(
+      'By process',
+      name: 'processTrafficByProcess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The current kernel does not provide process traffic counters.`
+  String get processTrafficUnavailable {
+    return Intl.message(
+      'The current kernel does not provide process traffic counters.',
+      name: 'processTrafficUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No traffic yet. Make a request through Hotaru to start counting.`
+  String get processTrafficEmpty {
+    return Intl.message(
+      'No traffic yet. Make a request through Hotaru to start counting.',
+      name: 'processTrafficEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not read current counters. Refresh to try again.`
+  String get processTrafficFailed {
+    return Intl.message(
+      'Could not read current counters. Refresh to try again.',
+      name: 'processTrafficFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unattributed traffic`
+  String get processTrafficUnattributed {
+    return Intl.message(
+      'Unattributed traffic',
+      name: 'processTrafficUnattributed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Some processes could not be listed individually; their bytes are included in unattributed traffic.`
+  String get processTrafficOverflow {
+    return Intl.message(
+      'Some processes could not be listed individually; their bytes are included in unattributed traffic.',
+      name: 'processTrafficOverflow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sampled`
+  String get processTrafficSampled {
+    return Intl.message(
+      'Sampled',
+      name: 'processTrafficSampled',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

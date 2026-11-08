@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'speed_test.dart';
 import 'route_preview.dart';
+import 'process_traffic.dart';
 import 'embedded_tool.dart';
 import 'ip_tools.dart';
 import '../features/browser_diagnostics/tool_site.dart';
@@ -156,6 +157,14 @@ class _ToolMatrix extends StatelessWidget {
             context,
             const NetworkDiagnosticsView(kind: NetworkDiagnostic.recovery),
           ),
+        ),
+      if (platform == SupportPlatform.Windows)
+        (
+          l10n.toolsRecords,
+          l10n.processTrafficTitle,
+          l10n.processTrafficScope,
+          AppGlyphs.status,
+          () => BaseNavigator.push(context, const ProcessTrafficView()),
         ),
       for (final item in navigation)
         (

@@ -177,7 +177,9 @@ func newEngineConfig(ctx context.Context, content []byte) (engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx)}, nil
+	processes := newProcessTraffic()
+	instance.Router().AppendTracker(processes)
+	return &observedEngine{Box: instance, traffic: service.PtrFromContext[trafficcontrol.Manager](ctx), dns: service.FromContext[adapter.DNSRouter](ctx), processes: processes}, nil
 }
 
 func pinnedVersion() (string, error) {

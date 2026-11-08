@@ -1386,6 +1386,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "privateKey": MessageLookupByLibrary.simpleMessage("私钥"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage("私钥密码"),
     "process": MessageLookupByLibrary.simpleMessage("进程"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage("按应用"),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage("按进程"),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "暂无流量，请先通过 Hotaru 发起网络请求。",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "暂时无法读取统计，请刷新重试。",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "部分进程无法单独列出，其流量计入未归属流量。",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage("采样时间"),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "仅统计经过 Hotaru 的当前内核会话流量，连接关闭后仍累计；内核重启后重新计数。无法识别进程的流量单列。",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage("应用流量排行"),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage("未归属流量"),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "当前内核未提供进程流量统计。",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("配置"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("请输入有效间隔时间格式"),

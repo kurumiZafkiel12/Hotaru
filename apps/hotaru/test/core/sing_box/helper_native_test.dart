@@ -1231,6 +1231,7 @@ void main() {
       final file = await File('${directory.path}/application.yaml')
           .writeAsString(
             jsonEncode({
+              'find-process-mode': 'always',
               'mixed-port': listeners.mixedPort,
               'ipv6': true,
               'mode': 'rule',
@@ -1371,6 +1372,20 @@ void main() {
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
           (4, 1, 2),
         );
+        final observedProcesses = await controller.getProcessTraffic();
+        expect(observedProcesses, isNotNull);
+        final caller = observedProcesses!.entries
+            .where((entry) => entry.pid == pid)
+            .toList();
+        expect(caller, isNotEmpty);
+        expect(caller.any((entry) => entry.path.isNotEmpty), isTrue);
+        expect(
+          caller.fold<int>(
+            0,
+            (total, entry) => total + entry.upload + entry.download,
+          ),
+          greaterThan(0),
+        );
         final preview = await controller.previewRoute('fixture.invalid');
         expect(preview.status, CoreRoutePreviewStatus.resolved);
         expect(preview.chain, ['selected', 'B']);
@@ -1426,6 +1441,7 @@ void main() {
       report['application_http_current_and_direct'] = true;
       report['application_offline_preview'] = true;
       report['application_http_probe_observation'] = true;
+      report['application_process_counters'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 abstract interface class CoreFinalTrafficSource {
   int? get profileId;
   Future<CoreTrafficTotals?> get finalTraffic;
@@ -29,6 +31,7 @@ final class CoreTelemetrySnapshot {
   final List<CoreObservedConnection> active;
   final List<CoreObservedConnection> closed;
   final CoreObservedMemory? memory;
+  final CoreProcessTraffic? processes;
 
   CoreTelemetrySnapshot({
     required this.sampledAt,
@@ -39,6 +42,7 @@ final class CoreTelemetrySnapshot {
     required List<CoreObservedConnection> active,
     required List<CoreObservedConnection> closed,
     this.memory,
+    this.processes,
   }) : active = List.unmodifiable(active),
        closed = List.unmodifiable(closed);
 
@@ -73,6 +77,14 @@ final class CoreTelemetrySnapshot {
       activeTruncated: truncated,
       active: entries('active', closed: false),
       closed: entries('closed', closed: true),
+      processes: switch (value['processes']) {
+        null => null,
+        final Map<String, dynamic> processes => CoreProcessTraffic.fromJson(
+          processes,
+          sampledAt: _date(value, 'sampled_at'),
+        ),
+        _ => throw const FormatException('Invalid process counters'),
+      },
       memory: switch (value['memory']) {
         null => null,
         final Map<String, dynamic> memory => CoreObservedMemory.fromJson(
@@ -82,6 +94,91 @@ final class CoreTelemetrySnapshot {
       },
     );
   }
+}
+
+abstract interface class CoreProcessTrafficSource {
+  Future<CoreProcessTraffic?> getProcessTraffic();
+}
+
+final class CoreProcessTraffic {
+  final DateTime? sampledAt;
+  final int capacity;
+  final bool overflow;
+  final int unattributedUpload;
+  final int unattributedDownload;
+  final List<CoreProcessCounter> entries;
+
+  CoreProcessTraffic({
+    this.sampledAt,
+    required this.capacity,
+    required this.overflow,
+    required this.unattributedUpload,
+    required this.unattributedDownload,
+    required List<CoreProcessCounter> entries,
+  }) : entries = List.unmodifiable(entries);
+
+  factory CoreProcessTraffic.fromJson(
+    Map<String, dynamic> value, {
+    DateTime? sampledAt,
+  }) {
+    final entries = value['entries'];
+    final capacity = _integer(value, 'capacity');
+    final overflow = value['overflow'];
+    final unknown = value['unattributed'];
+    if (capacity != 1024 ||
+        overflow is! bool ||
+        entries is! List ||
+        entries.length > capacity ||
+        unknown is! Map<String, dynamic>) {
+      throw const FormatException('Invalid process counter limits');
+    }
+    final keys = <(int, String)>{};
+    final parsed = <CoreProcessCounter>[];
+    for (final entry in entries) {
+      if (entry is! Map<String, dynamic>) {
+        throw const FormatException('Invalid process counter');
+      }
+      final pid = _integer(entry, 'pid');
+      final path = _string(entry, 'path');
+      if (pid > 0xffffffff ||
+          pid == 0 && path.isEmpty ||
+          path.contains('\u0000') ||
+          utf8.encode(path).length > 1024 ||
+          !keys.add((pid, path))) {
+        throw const FormatException('Invalid process identity');
+      }
+      parsed.add(
+        CoreProcessCounter(
+          pid: pid,
+          path: path,
+          upload: _integer(entry, 'upload'),
+          download: _integer(entry, 'download'),
+        ),
+      );
+    }
+    return CoreProcessTraffic(
+      sampledAt: sampledAt,
+      capacity: capacity,
+      overflow: overflow,
+      unattributedUpload: _integer(unknown, 'upload'),
+      unattributedDownload: _integer(unknown, 'download'),
+      entries: parsed,
+    );
+  }
+}
+
+final class CoreProcessCounter {
+  final int pid;
+  final String path;
+  final int upload;
+  final int download;
+
+  const CoreProcessCounter({
+    required this.pid,
+    required this.path,
+    required this.upload,
+    required this.download,
+  });
 }
 
 final class CoreObservedMemory {

@@ -1256,5 +1256,15 @@
   "routePreviewRule": "Règle correspondante",
   "routePreviewDefault": "Route par défaut ou mode de sortie actif",
   "routePreviewPath": "Chemin sélectionné",
-  "routePreviewHops": "Sauts physiques prévus"
+  "routePreviewHops": "Sauts physiques prévus",
+  "processTrafficTitle": "Classement du trafic des applications",
+  "processTrafficScope": "Compte uniquement le trafic passant par Hotaru pendant cette session du noyau, connexions fermées comprises. Un redémarrage remet les compteurs à zéro. Le trafic non identifié est séparé.",
+  "processTrafficByApp": "Par application",
+  "processTrafficByProcess": "Par processus",
+  "processTrafficUnavailable": "Le noyau actuel ne fournit pas de compteurs par processus.",
+  "processTrafficEmpty": "Aucun trafic. Lancez une requête via Hotaru.",
+  "processTrafficFailed": "Impossible de lire les compteurs. Actualisez pour réessayer.",
+  "processTrafficUnattributed": "Trafic non attribué",
+  "processTrafficOverflow": "Certains processus ne peuvent pas être affichés séparément ; leurs octets figurent dans le trafic non attribué.",
+  "processTrafficSampled": "Échantillon"
 }

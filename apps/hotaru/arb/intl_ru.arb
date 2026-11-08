@@ -1256,5 +1256,15 @@
   "routePreviewRule": "Совпавшее правило",
   "routePreviewDefault": "Маршрут по умолчанию или текущий режим выхода",
   "routePreviewPath": "Выбранный путь",
-  "routePreviewHops": "Планируемые физические переходы"
+  "routePreviewHops": "Планируемые физические переходы",
+  "processTrafficTitle": "Рейтинг трафика приложений",
+  "processTrafficScope": "Учитывается только трафик через Hotaru в текущем сеансе ядра, включая закрытые соединения. Перезапуск ядра обнуляет счётчики. Неопознанный трафик показан отдельно.",
+  "processTrafficByApp": "По приложениям",
+  "processTrafficByProcess": "По процессам",
+  "processTrafficUnavailable": "Текущее ядро не предоставляет счётчики по процессам.",
+  "processTrafficEmpty": "Трафика пока нет. Выполните запрос через Hotaru.",
+  "processTrafficFailed": "Не удалось прочитать счётчики. Обновите данные.",
+  "processTrafficUnattributed": "Неатрибутированный трафик",
+  "processTrafficOverflow": "Некоторые процессы не удалось показать отдельно; их байты включены в неатрибутированный трафик.",
+  "processTrafficSampled": "Время замера"
 }

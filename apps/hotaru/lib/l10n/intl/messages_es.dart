@@ -1920,6 +1920,34 @@ class MessageLookup extends MessageLookupByLibrary {
       "Frase de contraseña de la clave privada",
     ),
     "process": MessageLookupByLibrary.simpleMessage("Proceso"),
+    "processTrafficByApp": MessageLookupByLibrary.simpleMessage(
+      "Por aplicación",
+    ),
+    "processTrafficByProcess": MessageLookupByLibrary.simpleMessage(
+      "Por proceso",
+    ),
+    "processTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "Todavía no hay tráfico. Envía una solicitud a través de Hotaru.",
+    ),
+    "processTrafficFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron leer los contadores. Actualiza para reintentar.",
+    ),
+    "processTrafficOverflow": MessageLookupByLibrary.simpleMessage(
+      "Algunos procesos no se pueden listar por separado; sus bytes se incluyen en el tráfico sin atribuir.",
+    ),
+    "processTrafficSampled": MessageLookupByLibrary.simpleMessage("Muestra"),
+    "processTrafficScope": MessageLookupByLibrary.simpleMessage(
+      "Solo cuenta el tráfico que pasa por Hotaru en esta sesión del núcleo, incluidas las conexiones cerradas. Reiniciar el núcleo pone los contadores a cero. El tráfico sin identificar aparece aparte.",
+    ),
+    "processTrafficTitle": MessageLookupByLibrary.simpleMessage(
+      "Clasificación de tráfico por aplicación",
+    ),
+    "processTrafficUnattributed": MessageLookupByLibrary.simpleMessage(
+      "Tráfico sin atribuir",
+    ),
+    "processTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "El núcleo actual no ofrece contadores por proceso.",
+    ),
     "profile": MessageLookupByLibrary.simpleMessage("Perfil"),
     "profileAutoUpdateIntervalInvalidValidationDesc":
         MessageLookupByLibrary.simpleMessage("Introduce un intervalo válido"),
