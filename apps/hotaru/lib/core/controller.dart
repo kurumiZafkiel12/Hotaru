@@ -34,7 +34,6 @@ class CoreController {
     _instance = this;
   }
 
-  @visibleForTesting
   CoreController.scoped(this._interface);
 
   bool get supportsProcessTraffic => _interface is CoreProcessTrafficSource;

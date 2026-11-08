@@ -10577,6 +10577,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Reimport subscriptions or configurations`
+  String get singBoxReimportTitle {
+    return Intl.message(
+      'Reimport subscriptions or configurations',
+      name: 'singBoxReimportTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.`
+  String get singBoxReimportBody {
+    return Intl.message(
+      'Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.',
+      name: 'singBoxReimportBody',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

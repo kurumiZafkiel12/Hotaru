@@ -14,6 +14,7 @@ import 'runtime_configuration.dart';
 final class SingBoxApplicationProfilePreparer {
   final String configPath;
   final Map<String, String> providerFiles;
+  final Future<Map<String, String>> Function()? providerFileGrants;
   final ClashSubscriptionImporter Function(CoreApplicationSettings) importer;
   final Future<CoreListenerSpec> Function(
     CoreProfileSpec,
@@ -39,6 +40,7 @@ final class SingBoxApplicationProfilePreparer {
     required this.review,
     this.refreshImporter,
     Map<String, String> providerFiles = const {},
+    this.providerFileGrants,
   }) : providerFiles = Map.unmodifiable(providerFiles);
 
   bool _current(int revision) => !_closed && revision == _revision;
@@ -97,10 +99,12 @@ final class SingBoxApplicationProfilePreparer {
         ? await CoreProfileDocuments.readText(configPath)
         : await CoreProfileDocuments.build(base);
     if (!_current(revision)) return null;
+    final files = await providerFileGrants?.call() ?? providerFiles;
+    if (!_current(revision)) return null;
     final projection = await CoreApplicationSettings.parse(
       source,
       skipCertVerify: params.skipCertVerify,
-      authorizedProviderFiles: providerFiles,
+      authorizedProviderFiles: files,
     );
     if (!_current(revision)) return null;
     final settings = projection.settings;

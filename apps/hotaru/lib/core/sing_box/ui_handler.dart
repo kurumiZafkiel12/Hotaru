@@ -47,6 +47,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
         CoreRoutePreviewSource,
         CoreProcessTrafficSource {
   final SingBoxDesktopCore core;
+  final Future<void> Function()? afterClose;
   final Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)?
   _prepareProfile;
   late final SingBoxUiRoutes _routes;
@@ -65,6 +66,7 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     this.core, {
     void Function(CoreEvent)? onEvent,
     Duration Function()? trafficElapsed,
+    this.afterClose,
     Future<AcceptedSingBoxConfig?> Function(SetupParams, int?)? prepareProfile,
   }) : _prepareProfile = prepareProfile {
     if (core.configuration == null) {
@@ -116,6 +118,8 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     refreshImporter,
     void Function(CoreEvent)? onEvent,
     Map<String, String> providerFiles = const {},
+    Future<Map<String, String>> Function()? providerFileGrants,
+    Future<void> Function()? afterClose,
   }) {
     final preparation = SingBoxApplicationProfilePreparer(
       configPath: configPath,
@@ -124,10 +128,12 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       review: review,
       refreshImporter: refreshImporter,
       providerFiles: providerFiles,
+      providerFileGrants: providerFileGrants,
     );
     return SingBoxUiHandler(
       core,
       prepareProfile: preparation.prepare,
+      afterClose: afterClose,
       onEvent: onEvent,
     ).._sourcePreparation = preparation;
   }
@@ -271,10 +277,14 @@ final class SingBoxUiHandler extends CoreHandlerInterface
       try {
         await stopLog();
       } finally {
-        await _routedHttp.close();
-        await _routes.close();
-        await _traffic.close();
-        await _crashes.cancel();
+        try {
+          await _routedHttp.close();
+          await _routes.close();
+          await _traffic.close();
+          await _crashes.cancel();
+        } finally {
+          await afterClose?.call();
+        }
       }
     }
   }
@@ -319,8 +329,13 @@ final class SingBoxUiHandler extends CoreHandlerInterface
   }
 
   @override
-  Future<CoreRoutePreview> previewRoute(String target) =>
-      core.previewRoute(target);
+  Future<CoreRoutePreview> previewRoute(String target) {
+    final settings = core.configuration?.applicationData;
+    if (settings is CoreApplicationSettings && settings.unconfigured) {
+      throw const CoreAdapterException('applied_profile_unavailable');
+    }
+    return core.previewRoute(target);
+  }
 
   @override
   Future<RouteSnapshot> watchRoute(bool watch) => _routes.watch(watch);
@@ -579,6 +594,10 @@ final class SingBoxUiHandler extends CoreHandlerInterface
     final configuration = core.configuration;
     if (configuration == null) {
       throw const CoreAdapterException('applied_profile_unavailable');
+    }
+    final settings = configuration.applicationData;
+    if (settings is CoreApplicationSettings && settings.unconfigured) {
+      return const ProxiesData(all: [], proxies: {});
     }
     final nodes = await core.adapter.outbounds();
     if (!identical(configuration, core.configuration)) {

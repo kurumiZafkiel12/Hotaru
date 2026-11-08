@@ -1954,6 +1954,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "silentLaunchDesc": MessageLookupByLibrary.simpleMessage(
       "サイレント起動ではウィンドウを表示しません。",
     ),
+    "singBoxReimportBody": MessageLookupByLibrary.simpleMessage(
+      "Hotaru は sing-box に切り替わりました。既存のファイルと設定は保持されますが、以前の構成は自動的に有効になりません。接続前にサブスクリプションまたは構成を再インポートし、独立ルーティング用のノードを再選択してください。",
+    ),
+    "singBoxReimportTitle": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションまたは設定を再インポート",
+    ),
     "singleAdd": MessageLookupByLibrary.simpleMessage("個別追加"),
     "singleImport": MessageLookupByLibrary.simpleMessage("個別インポート"),
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(

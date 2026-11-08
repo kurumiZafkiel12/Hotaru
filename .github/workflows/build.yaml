@@ -155,14 +155,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: ${{ matrix.platform == 'windows' && 'false' || 'recursive' }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
-            apps/hotaru/core/go.sum
+            ${{ matrix.platform == 'windows' && 'apps/hotaru/core/sing_box_host/go.sum' || 'apps/hotaru/core/go.sum' }}
             apps/hotaru/plugins/setup/setup_hooks/lib/src/go_builder.dart
 
       - name: Setup Rust cache
@@ -201,6 +201,15 @@ jobs:
         if: matrix.platform == 'windows'
         uses: NuGet/setup-nuget@v2
 
+      - name: Fetch Windows CA certificates
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+          mkdir -p "$(dirname "$bundle")"
+          curl -fsSL --retry 3 -o "$bundle" https://curl.se/ca/cacert-2026-09-25.pem
+          echo "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505  $bundle" | sha256sum -c -
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -224,24 +233,33 @@ jobs:
         if: matrix.platform == 'windows'
         run: flutter test test/common/network_diagnostics_windows_test.dart
 
-      - name: Verify node bandwidth routing on Windows
+      - name: Verify node routing through the packaged sing-box host
         if: matrix.platform == 'windows'
-        working-directory: apps/hotaru/core
-        shell: bash
-        env:
-          CGO_ENABLED: '0'
+        shell: pwsh
         run: |
-          set -o pipefail
-          go test . -run 'TestNodeBandwidthListenerPinsActualTrafficInEveryMode|TestNodeSpeed|TestProviderOnlyNodeSpeed' -v | tee "$RUNNER_TEMP/hotaru-native-node-routing.log"
+          $bundle = Join-Path $PWD 'build/windows/x64/runner/Debug'
+          $core = Join-Path $bundle 'HotaruCore.exe'
+          $manifest = Get-Content (Join-Path $bundle 'manifest.json') -Raw | ConvertFrom-Json
+          if ($manifest.engine -ne 'sing-box' -or $manifest.coreVersion -ne '1.14.4' -or
+              $manifest.coreSha256 -ne (Get-FileHash $core -Algorithm SHA256).Hash.ToLowerInvariant()) {
+            throw 'Debug application does not contain the expected host'
+          }
+          foreach ($name in @('LICENSE-sing-box', 'LICENSE-Hotaru', 'SOURCES.txt')) {
+            if (-not (Test-Path (Join-Path $bundle $name))) { throw "Missing bundled source notice: $name" }
+          }
+          $env:HOTARU_TEST_SING_BOX = $core
+          $env:HOTARU_TEST_SING_BOX_HOST = '1'
+          flutter test test/core/sing_box/outbound_http_test.dart test/core/sing_box/outbound_clients_test.dart --reporter expanded | Tee-Object -FilePath "$env:RUNNER_TEMP/hotaru-native-node-routing.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Verify Flutter-generated independent rules through actual Mihomo traffic
+      - name: Verify independent rules through actual sing-box traffic
         if: matrix.platform == 'windows'
-        shell: bash
+        shell: pwsh
         run: |
-          export HOTARU_ROUTING_FIXTURE="$RUNNER_TEMP/hotaru-independent-routing.yaml"
-          flutter test test/providers/routing_configs_test.dart
-          cd core
-          CGO_ENABLED=0 go test . -run TestGeneratedIndependentRulesUseActualSelectedExit -v
+          $env:HOTARU_TEST_SING_BOX = (Resolve-Path 'build/windows/x64/runner/Debug/HotaruCore.exe').Path
+          $env:HOTARU_TEST_SING_BOX_HOST = '1'
+          flutter test test/providers/routing_configs_test.dart test/core/sing_box/managed_global_test.dart --reporter expanded
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Capture actual Windows UI in safe mode
         if: matrix.platform == 'windows'
@@ -558,6 +576,7 @@ jobs:
           CA_BUNDLE_SHA256: a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505
         run: |
           bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+          mkdir -p "$(dirname "$bundle")"
           curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
           echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
 

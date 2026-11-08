@@ -1266,5 +1266,7 @@
   "processTrafficFailed": "통계를 읽지 못했습니다. 새로 고침 후 다시 시도하세요.",
   "processTrafficUnattributed": "미분류 트래픽",
   "processTrafficOverflow": "일부 프로세스를 개별 표시하지 못해 해당 바이트를 미분류 트래픽에 포함했습니다.",
-  "processTrafficSampled": "수집 시각"
+  "processTrafficSampled": "수집 시각",
+  "singBoxReimportTitle": "구독 또는 설정을 다시 가져오세요",
+  "singBoxReimportBody": "Hotaru가 sing-box로 전환되었습니다. 기존 파일과 환경설정은 유지되며 이전 구성은 자동으로 활성화되지 않습니다. 연결하기 전에 구독 또는 구성을 다시 가져오고 독립 라우팅 규칙의 노드를 다시 선택하세요."
 }

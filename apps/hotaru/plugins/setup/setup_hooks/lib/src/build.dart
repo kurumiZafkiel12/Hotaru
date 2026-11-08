@@ -5,6 +5,7 @@ import 'build_cache.dart';
 import 'fingerprint.dart';
 import 'go_builder.dart';
 import 'options.dart';
+import 'provenance.dart';
 import 'rust_builder.dart';
 import 'target.dart';
 import 'util.dart';
@@ -89,23 +90,38 @@ Future<BuildReport> buildPlatform(BuildRequest request) async {
     target.platformDir,
     coreManifestName,
   );
+  final provenance = config.engine == CoreBuildEngine.singBox
+      ? await writeHostProvenance(
+          rootDir: rootDir,
+          moduleDir: p.join(rootDir, config.coreDir),
+          outputDir: p.dirname(manifestPath),
+          target: '${target.platformDir}-${target.goarch}',
+          helper: helper.primaryOutput,
+        )
+      : null;
   writeCoreManifest(
     path: manifestPath,
     coreSha256: coreSha256,
     engine: config.engine,
     coreVersion: config.coreVersion,
+    provenance: provenance?.metadata ?? const {},
   );
 
   _log.info(
     'Done in ${stopwatch.elapsed}: ${core.primaryOutput}, '
     '${helper.primaryOutput}',
   );
-  return _report([core, helper], extraOutputs: [manifestPath]);
+  return _report(
+    [core, helper],
+    extraOutputs: [manifestPath, ...?provenance?.outputs],
+    extraInputs: provenance?.inputs ?? const [],
+  );
 }
 
 BuildReport _report(
   List<BuildExecution> results, {
   List<String> extraOutputs = const [],
+  List<String> extraInputs = const [],
 }) {
   final inputs = <String>{};
   final outputs = <String>{};
@@ -114,6 +130,7 @@ BuildReport _report(
     outputs.addAll(result.outputs);
   }
   outputs.addAll(extraOutputs);
+  inputs.addAll(extraInputs);
   return BuildReport(
     inputs: inputs.toList()..sort(),
     outputs: outputs.toList()..sort(),

@@ -13,6 +13,7 @@ import 'yaml_document.dart';
 
 final class CoreApplicationSettings {
   final String source;
+  final bool unconfigured;
   final List<CoreProviderInfo> providers;
   final List<CoreConfigIssue> importIssues;
   final String _document;
@@ -29,6 +30,7 @@ final class CoreApplicationSettings {
 
   CoreApplicationSettings._({
     required this.source,
+    this.unconfigured = false,
     List<CoreProviderInfo> providers = const [],
     List<CoreConfigIssue> importIssues = const [],
     required String document,
@@ -53,10 +55,16 @@ final class CoreApplicationSettings {
     String source, {
     required bool skipCertVerify,
     Map<String, String> authorizedProviderFiles = const {},
+    bool unconfigured = false,
   }) {
     final files = Map<String, String>.of(authorizedProviderFiles);
     return Isolate.run(
-      () => _SettingsReader().read(source, skipCertVerify, files),
+      () => _SettingsReader().read(
+        source,
+        skipCertVerify,
+        files,
+        unconfigured: unconfigured,
+      ),
     );
   }
 
@@ -65,6 +73,7 @@ final class CoreApplicationSettings {
     List<CoreConfigIssue>? importIssues,
   }) => CoreApplicationSettings._(
     source: source,
+    unconfigured: unconfigured,
     document: _document,
     issues: issues,
     providers: providers,
@@ -89,6 +98,7 @@ final class CoreApplicationSettings {
     final files = providerFiles;
     final retainedProviders = providers;
     final retainedIssues = importIssues;
+    final initial = unconfigured;
     return Isolate.run(() {
       const allowed = {
         'tun',
@@ -122,6 +132,7 @@ final class CoreApplicationSettings {
         utf8.decode(CoreConfigEncoding.encode(document)),
         skipCertVerify,
         files,
+        unconfigured: initial,
       );
       return CoreApplicationSettingsResult(
         projected.settings?.withProviders(
@@ -202,8 +213,9 @@ final class _SettingsReader {
   CoreApplicationSettingsResult read(
     String source,
     bool skipCertVerify,
-    Map<String, String> files,
-  ) {
+    Map<String, String> files, {
+    bool unconfigured = false,
+  }) {
     try {
       final document = mapping(decodeCoreYaml(source));
       normalizeProviderPaths(document, files);
@@ -464,6 +476,7 @@ final class _SettingsReader {
         CoreApplicationSettings._(
           source: utf8.decode(CoreConfigEncoding.encode(document)),
           document: source,
+          unconfigured: unconfigured,
           issues: issues,
           mixedPort: mixedPort,
           inbound: CoreInboundOptions(

@@ -1266,5 +1266,7 @@
   "processTrafficFailed": "Impossible de lire les compteurs. Actualisez pour réessayer.",
   "processTrafficUnattributed": "Trafic non attribué",
   "processTrafficOverflow": "Certains processus ne peuvent pas être affichés séparément ; leurs octets figurent dans le trafic non attribué.",
-  "processTrafficSampled": "Échantillon"
+  "processTrafficSampled": "Échantillon",
+  "singBoxReimportTitle": "Réimporter les abonnements ou les configurations",
+  "singBoxReimportBody": "Hotaru utilise désormais sing-box. Vos fichiers et préférences sont conservés ; l’ancienne configuration ne démarre pas automatiquement. Réimportez votre abonnement ou configuration avant la connexion et sélectionnez à nouveau les nœuds des règles indépendantes."
 }

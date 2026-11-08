@@ -128,6 +128,7 @@ void writeCoreManifest({
   required String coreSha256,
   CoreBuildEngine engine = CoreBuildEngine.mihomo,
   String? coreVersion,
+  Map<String, Object> provenance = const {},
 }) {
   if (!RegExp(r'^[0-9a-f]{64}$').hasMatch(coreSha256)) {
     throw BuildException('Invalid Core SHA256: $coreSha256');
@@ -139,6 +140,7 @@ void writeCoreManifest({
   }
   final content =
       '${jsonEncode({
+        ...provenance,
         'coreSha256': coreSha256,
         if (engine == CoreBuildEngine.singBox) ...{'engine': 'sing-box', 'coreVersion': coreVersion, 'hostProtocol': 'hotaru-bootstrap-v1'},
       })}\n';

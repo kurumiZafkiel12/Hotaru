@@ -1772,6 +1772,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "silentLaunch": MessageLookupByLibrary.simpleMessage("静默启动"),
     "silentLaunchDesc": MessageLookupByLibrary.simpleMessage("静默启动时不显示窗口。"),
+    "singBoxReimportBody": MessageLookupByLibrary.simpleMessage(
+      "Hotaru 已切换到 sing-box 内核。原有文件和偏好设置已保留，旧配置不会自动启用。请重新导入订阅或配置后再连接；独立分流规则需重新选择节点。",
+    ),
+    "singBoxReimportTitle": MessageLookupByLibrary.simpleMessage("请重新导入订阅或配置"),
     "singleAdd": MessageLookupByLibrary.simpleMessage("单条添加"),
     "singleImport": MessageLookupByLibrary.simpleMessage("单条导入"),
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(

@@ -9,6 +9,7 @@ hooks:
   user_defines:
     setup:
       build_assets: true
+      windows_core: sing-box
     rust_api:
       build_assets: true
 

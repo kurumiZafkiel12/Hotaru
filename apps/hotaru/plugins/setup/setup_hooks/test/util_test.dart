@@ -83,6 +83,36 @@ void main() {
       },
     );
 
+    test(
+      'provenance cannot replace the physical host digest or protocol identity',
+      () {
+        final directory = Directory.systemTemp.createTempSync(
+          'setup_host_provenance_',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final path = '${directory.path}/manifest.json';
+        const hash =
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        writeCoreManifest(
+          path: path,
+          coreSha256: hash,
+          engine: CoreBuildEngine.singBox,
+          coreVersion: '1.14.4',
+          provenance: {
+            'coreSha256': 'wrong',
+            'engine': 'wrong',
+            'hostProtocol': 'wrong',
+            'sourceCommit': 'source',
+          },
+        );
+        final manifest = jsonDecode(File(path).readAsStringSync());
+        expect(manifest['coreSha256'], hash);
+        expect(manifest['engine'], 'sing-box');
+        expect(manifest['hostProtocol'], 'hotaru-bootstrap-v1');
+        expect(manifest['sourceCommit'], 'source');
+      },
+    );
+
     test('replaces an existing manifest', () {
       final directory = Directory.systemTemp.createTempSync(
         'setup_hooks_manifest_test_',

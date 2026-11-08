@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hotaru/core/adapter.dart';
+import 'package:hotaru/bootstrap_windows.dart';
 import 'package:hotaru/core/controller.dart';
 import 'package:hotaru/core/routing_mode.dart';
 import 'package:hotaru/core/sing_box/ui_handler.dart';
@@ -20,9 +21,6 @@ import 'package:hotaru/core/config/route_preview.dart';
 import 'package:hotaru/core/config/clash_importer.dart';
 import 'package:hotaru/core/sing_box/config_preparation.dart';
 import 'package:hotaru/core/config/clash_subscription.dart';
-import 'package:hotaru/core/config/application_settings.dart';
-import 'package:hotaru/core/provider_cache.dart';
-import 'package:hotaru/core/provider_download.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/sing_box/helper_desktop_core.dart';
 
@@ -1224,119 +1222,62 @@ void main() {
         }
         await request.response.close();
       });
-      final providerCache = await CoreProviderCache.open(
-        '${directory.path}/provider-cache',
-      );
-      final occupied = <int>{};
-      Future<int> port() async {
-        while (true) {
-          final candidate = await freeLoopbackPort();
-          if (occupied.add(candidate)) return candidate;
-        }
-      }
-
-      final listeners = CoreListenerSpec(
-        mixedPort: await port(),
-        controllerPort: await port(),
-        secret: 'application-private-fixture',
-        inboundsEnabled: false,
-        probe: CoreProbeListenerSpec(
-          port: await port(),
-          secret: 'application-probe-fixture-1234567890123456',
-        ),
-      );
-      final initial = SingBoxConfigPreparer();
-      final prepared = await initial.prepare(
-        import: () async => CoreConfigImportResult(
-          profile: CoreProfileSpec(
-            nodes: const [
-              CoreNodeSpec(tag: 'DIRECT', protocol: CoreNodeProtocol.direct),
-            ],
-            selectors: [],
-            finalOutbound: 'DIRECT',
-          ),
-          issues: [],
-        ),
-        listeners: listeners,
-      );
-      expect(prepared.status, SingBoxPreparationStatus.ready);
-      final core = await createSingBoxHelperCore(
-        bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
-        configuration: initial.approve(prepared.candidate!),
-      );
-      addTearDown(core.close);
-      final file = await File('${directory.path}/application.yaml')
-          .writeAsString(
-            jsonEncode({
-              'find-process-mode': 'always',
-              'mixed-port': listeners.mixedPort,
-              'ipv6': true,
-              'mode': 'rule',
-              'authentication': ['fixture:password:part'],
-              'secret': 'source-not-controller',
-              'external-controller': '0.0.0.0:9090',
-              'proxy-providers': {
-                'source': {
-                  'type': 'http',
-                  'url': 'http://127.0.0.1:${sourceServer.port}/source',
-                  'proxy': 'DIRECT',
-                  'interval': 3600,
-                },
-              },
-              'proxy-groups': [
-                {
-                  'name': 'selected',
-                  'type': 'select',
-                  'use': ['source'],
-                },
-              ],
-              'rules': ['MATCH,selected'],
-            }),
-          );
       var approved = true;
       var reviews = 0;
-      late final SingBoxUiHandler handler;
-      ClashSubscriptionImporter importer(
-        CoreApplicationSettings settings,
-        Set<String> force,
-      ) {
-        final cache = CoreCachedProviderLoader(
-          downloader: CoreProviderDownloader(
-            transport: handler,
-            userAgent: settings.userAgent,
-          ),
-          cache: providerCache,
-        );
-        return ClashSubscriptionImporter(
-          resolve: (request) async => (await cache.loadProxy(
-            request,
-            force: force.contains(request.name),
-          )).text,
-        );
-      }
-
-      handler = SingBoxUiHandler.withProfileFiles(
-        core,
-        configPath: file.path,
-        importer: (settings) => importer(settings, const {}),
-        refreshImporter: importer,
-        listeners: (profile, settings) async => CoreListenerSpec(
-          mixedPort: settings.mixedPort,
-          controllerPort: listeners.controllerPort,
-          secret: listeners.secret,
-          probe: listeners.probe,
-          inbound: settings.inbound,
-        ),
-        review: (issues) async {
+      final persisted = <ProfileTrafficObservation>[];
+      final persistenceErrors = <Object>[];
+      final application = await WindowsCoreApplication.create(
+        homeDirectory: directory.path,
+        configPath: '${directory.path}/application.yaml',
+        mixedPort: await freeLoopbackPort(),
+        providerFiles: () async => {},
+        resolveGeo: (_) async => {},
+        review: (_) async {
           reviews++;
           return approved;
         },
+        persistTraffic: (sample) async {
+          persisted.add(sample);
+        },
+        onError: (error, _) => persistenceErrors.add(error),
         onEvent: (_) {},
+        bundleDirectory: _environment['HOTARU_NATIVE_HELPER_BUNDLE']!,
       );
-      addTearDown(handler.close);
-      final controller = CoreController.scoped(handler);
+      final core = application.core;
+      final controller = application.controller;
+      addTearDown(controller.close);
+      final listeners = core.configuration!.listeners;
+      await File('${directory.path}/application.yaml').writeAsString(
+        jsonEncode({
+          'find-process-mode': 'always',
+          'mixed-port': listeners.mixedPort,
+          'ipv6': true,
+          'mode': 'rule',
+          'authentication': ['fixture:password:part'],
+          'secret': 'source-not-controller',
+          'external-controller': '0.0.0.0:9090',
+          'proxy-providers': {
+            'source': {
+              'type': 'http',
+              'url': 'http://127.0.0.1:${sourceServer.port}/source',
+              'proxy': 'DIRECT',
+              'interval': 3600,
+            },
+          },
+          'proxy-groups': [
+            {
+              'name': 'selected',
+              'type': 'select',
+              'use': ['source'],
+            },
+          ],
+          'rules': ['MATCH,selected'],
+        }),
+      );
       final processes = <WindowsProcessWitness>[];
       final pids = <int>[];
+      final sessions = <String>[];
+      var completed = false;
       addTearDown(() {
         for (final process in processes) {
           process.close();
@@ -1345,6 +1286,7 @@ void main() {
       void record() {
         final state = core.lifecycle.state as DesktopCoreRunning;
         pids.add(state.session.pid);
+        sessions.add(state.session.sessionId);
         processes.add(WindowsProcessWitness.open(state.session.pid));
       }
 
@@ -1537,8 +1479,26 @@ void main() {
           (receipts, proxyA.receipts.length, proxyB.receipts.length),
           (5, 1, 3),
         );
+        await controller.withRoutedClient(
+          (client) => fetch(client, 'after-provider-refresh'),
+        );
+        expect(
+          (receipts, proxyA.receipts.length, proxyB.receipts.length),
+          (6, 1, 4),
+        );
+        completed = true;
       } finally {
         await controller.close();
+        if (completed) {
+          final finalSamples = persisted
+              .where((sample) => sample.sessionId == sessions.last)
+              .toList();
+          expect(finalSamples, isNotEmpty);
+          expect(finalSamples.last.profileId, 11);
+          expect(finalSamples.last.upload, greaterThan(0));
+          expect(finalSamples.last.download, greaterThan(0));
+          expect(persistenceErrors, isEmpty);
+        }
         await proxyA.close();
         await proxyB.close();
         await origin.close(force: true);
@@ -1559,6 +1519,8 @@ void main() {
       report['application_process_counters'] = true;
       report['application_runtime_update'] = true;
       report['application_provider_cache_refresh'] = true;
+      report['application_bootstrap_assembly'] = true;
+      report['application_profile_traffic_wiring'] = true;
       (report.putIfAbsent('pids', () => <int>[]) as List).addAll(pids);
       await result.writeAsString(jsonEncode(report));
     },

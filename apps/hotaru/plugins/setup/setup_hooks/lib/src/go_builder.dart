@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'build_cache.dart';
 import 'fingerprint.dart';
 import 'options.dart';
+import 'provenance.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -112,6 +113,12 @@ class GoBuilder {
       ..addValue('config', config.toFingerprintMap())
       ..addValue('environment', env)
       ..addValue('arguments', _buildArguments(target));
+
+    if (config.engine == CoreBuildEngine.singBox) {
+      final source = readSourceProvenance(rootDir);
+      builder.addValue('source_revision', source.revision);
+      builder.addValue('source_dirty', source.dirty);
+    }
 
     final goEnvResult = runCommand(
       'go',

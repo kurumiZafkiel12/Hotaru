@@ -2463,6 +2463,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "silentLaunchDesc": MessageLookupByLibrary.simpleMessage(
       "Le lancement silencieux démarre l’app sans afficher la fenêtre.",
     ),
+    "singBoxReimportBody": MessageLookupByLibrary.simpleMessage(
+      "Hotaru utilise désormais sing-box. Vos fichiers et préférences sont conservés ; l’ancienne configuration ne démarre pas automatiquement. Réimportez votre abonnement ou configuration avant la connexion et sélectionnez à nouveau les nœuds des règles indépendantes.",
+    ),
+    "singBoxReimportTitle": MessageLookupByLibrary.simpleMessage(
+      "Réimporter les abonnements ou les configurations",
+    ),
     "singleAdd": MessageLookupByLibrary.simpleMessage("Ajout unique"),
     "singleImport": MessageLookupByLibrary.simpleMessage("Importation unique"),
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(

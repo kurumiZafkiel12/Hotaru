@@ -1922,6 +1922,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "silentLaunchDesc": MessageLookupByLibrary.simpleMessage(
       "백그라운드 실행은 창을 표시하지 않고 시작합니다.",
     ),
+    "singBoxReimportBody": MessageLookupByLibrary.simpleMessage(
+      "Hotaru가 sing-box로 전환되었습니다. 기존 파일과 환경설정은 유지되며 이전 구성은 자동으로 활성화되지 않습니다. 연결하기 전에 구독 또는 구성을 다시 가져오고 독립 라우팅 규칙의 노드를 다시 선택하세요.",
+    ),
+    "singBoxReimportTitle": MessageLookupByLibrary.simpleMessage(
+      "구독 또는 설정을 다시 가져오세요",
+    ),
     "singleAdd": MessageLookupByLibrary.simpleMessage("개별 추가"),
     "singleImport": MessageLookupByLibrary.simpleMessage("개별 가져오기"),
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(

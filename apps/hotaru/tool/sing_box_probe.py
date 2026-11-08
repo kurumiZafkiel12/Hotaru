@@ -379,7 +379,12 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                     replacement = json.loads(json.dumps(config))
                     replacement['outbounds'][-1]['tag'] = 'replacement'
                     replacement['route']['final'] = 'replacement'
-                    api('/configs', 'PUT', {'payload': json.dumps(replacement)})
+                    reload_response = 'http_response'
+                    try:
+                        api('/configs', 'PUT', {'payload': json.dumps(replacement)})
+                    except (ConnectionResetError, http.client.RemoteDisconnected):
+                        reload_response = 'connection_closed_without_response'
+                        progress('Config capability request lost its response; require unchanged graph and independent route receipts')
                     unchanged = api('/proxies')['proxies']
                     assert 'selected' in unchanged and 'replacement' not in unchanged
                     target = f'https://127.0.0.1:{origin.server_port}/receipt'
@@ -461,6 +466,7 @@ def run(binary, dart=None, stdio_host=False, tun=False):
                         'dart_config_builder_verified': dart is not None,
                         'protocol_config_check_verified': dart is not None,
                         'clash_api_config_reload_supported': False,
+                        'clash_api_config_reload_response': reload_response,
                         'active_connection_fields': sorted(entry),
                         'metadata_fields': sorted(entry['metadata']),
                         'process_path_available': bool(entry['metadata']['processPath']),
