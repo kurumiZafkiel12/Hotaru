@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'build_cache.dart';
 import 'fingerprint.dart';
 import 'options.dart';
+import 'provenance.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -27,7 +28,8 @@ class GoBuilder {
   final BuildNotice notice;
   final List<String> harnessInputs;
 
-  static const _mainPackage = './cmd/core';
+  String get _mainPackage =>
+      config.engine == CoreBuildEngine.singBox ? '.' : './cmd/core';
 
   String get _corePath => p.join(rootDir, config.coreDir);
   String get _outputPath => p.join(rootDir, config.outputDir);
@@ -85,12 +87,17 @@ class GoBuilder {
 
   String _ldflags() => [
     config.goLdflags,
-    if (config.coreVersion.isNotEmpty)
+    if (config.engine == CoreBuildEngine.mihomo &&
+        config.coreVersion.isNotEmpty)
       '-X $_versionSymbol=${config.coreVersion}',
   ].join(' ');
 
   List<String> _buildArguments(Target target, {String? outFile}) => [
     'build',
+    if (config.engine == CoreBuildEngine.singBox) ...[
+      '-mod=readonly',
+      '-trimpath',
+    ],
     '-ldflags=${_ldflags()}',
     '-tags=${config.tags}',
     if (outFile != null) ...['-o', outFile],
@@ -106,6 +113,12 @@ class GoBuilder {
       ..addValue('config', config.toFingerprintMap())
       ..addValue('environment', env)
       ..addValue('arguments', _buildArguments(target));
+
+    if (config.engine == CoreBuildEngine.singBox) {
+      final source = readSourceProvenance(rootDir);
+      builder.addValue('source_revision', source.revision);
+      builder.addValue('source_dirty', source.dirty);
+    }
 
     final goEnvResult = runCommand(
       'go',
@@ -152,7 +165,15 @@ class GoBuilder {
         r'''{{range .GoFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .CgoFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .CFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .CXXFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .MFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .HFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .FFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .SFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .SwigFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .SwigCXXFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .SysoFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{range .EmbedFiles}}{{$.Dir}}/{{.}}{{"\n"}}{{end}}{{with .Module}}{{if .GoMod}}{{.GoMod}}{{"\n"}}{{end}}{{end}}''';
     final result = runCommand(
       'go',
-      ['list', '-deps', '-tags=${config.tags}', '-f', template, _mainPackage],
+      [
+        'list',
+        if (config.engine == CoreBuildEngine.singBox) '-mod=readonly',
+        '-deps',
+        '-tags=${config.tags}',
+        '-f',
+        template,
+        _mainPackage,
+      ],
       workingDirectory: _corePath,
       environment: environment,
     );

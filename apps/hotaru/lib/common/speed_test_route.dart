@@ -91,8 +91,8 @@ String injectSpeedTestRoute(Map<dynamic, dynamic> rawConfig) {
   return name;
 }
 
-/// Serializes per-node tests: the reserved group has a single selection,
-/// so concurrent tests would measure each other's target.
+/// Concurrent bandwidth tests compete for the same link. Legacy engines also
+/// share one reserved selector.
 class NodeSpeedTestGate {
   NodeSpeedTestGate._();
 

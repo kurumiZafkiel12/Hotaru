@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "L’adresse publique WebRTC diffère de la sortie de la page pour la même famille IP. Vérifiez UDP et le proxy.",
   "browserRtcMatch": "L’adresse publique WebRTC correspond à la sortie de cette page. Les autres navigateurs peuvent utiliser un autre chemin.",
   "browserLeakUnavailable": "Impossible de lancer le test web. Vérifiez l’accès à BrowserLeaks et l’installation de Microsoft Edge WebView2.",
-  "browserRemoteIp": "IP de sortie de la page",
+  "browserRemoteIp": "IP visible par le site",
   "browserRtcPublicIp": "IP publique WebRTC",
-  "browserLocalIp": "IP locale",
-  "browserLocalNotExposed": "Aucune adresse locale identifiable exposée"
+  "browserLocalIp": "Adresse IP locale",
+  "browserLocalNotExposed": "Aucune adresse locale identifiable exposée",
+  "embeddedToolScope": "La page utilise le proxy actuel de Hotaru. Le site effectue le test.",
+  "embeddedToolNeedCore": "Connectez Hotaru pour ouvrir cet outil.",
+  "embeddedToolUnavailable": "Impossible de charger la page. Vérifiez la connexion et WebView2, puis réessayez.",
+  "embeddedToolReload": "Recharger la page",
+  "ipToolsTitle": "Diagnostic IP",
+  "ipToolsScope": "Choisissez un site pour consulter l’IP, le réseau et la réputation de la connexion actuelle.",
+  "ipToolsDetails": "Localisation et réseau",
+  "ipToolsReputation": "Réputation et risque IP",
+  "ipToolsPrivacy": "Confidentialité IP et navigateur",
+  "browserIpv4": "Adresse IPv4",
+  "browserIpv6": "Adresse IPv6",
+  "browserCountry": "Pays",
+  "browserRegion": "Région",
+  "browserCity": "Ville",
+  "browserOrganization": "Organisation",
+  "browserPublicIp": "Adresse IP publique",
+  "browserSupport": "Prise en charge de WebRTC",
+  "browserNoLeak": "Aucune fuite détectée lors de ce test",
+  "browserLeakDetected": "Fuite détectée",
+  "browserPotentialLeak": "Fuite potentielle",
+  "browserDnsServers": "Serveurs DNS",
+  "browserSessionDescription": "Description de session",
+  "browserMediaDevices": "Périphériques multimédias",
+  "browserPermissions": "Autorisations",
+  "ipFactsOrigin": "Origine IP",
+  "ipFactsAttribute": "Type IP",
+  "ipFactsQuality": "Qualité IP",
+  "ipFactsNative": "Natif",
+  "ipFactsBroadcast": "Diffusé",
+  "ipFactsLow": "Risque faible",
+  "ipFactsMedium": "Modéré",
+  "ipFactsElevated": "Élevé",
+  "ipFactsHigh": "Risque fort",
+  "ipFactsScore": "{level} (Scamalytics : {score})",
+  "ipFactsOriginEvidence": "Pays de localisation : {geo} ; pays d’enregistrement du bloc IP : {registered} (RDAP)",
+  "ipFactsScope": "L’origine compare le pays d’enregistrement du bloc IP à sa localisation. Le type provient d’iplocate ; la qualité utilise uniquement le score Scamalytics. Les données absentes sont indiquées comme inconnues.",
+  "ipFactsNoData": "Aucune donnée exploitable",
+  "networkLatencyRating": "Évaluation de latence",
+  "profileTrafficTotal": "Total {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "Données envoyées et reçues pendant que ce profil était actif, depuis son importation",
+  "configurationReviewTitle": "Vérification de la conversion",
+  "configurationReviewIntro": "Vérifiez les différences avant d’activer cette configuration. Le fichier source reste inchangé.",
+  "configurationReviewBlocked": "Certaines options ne peuvent pas être converties. Cette configuration ne sera pas activée ; la connexion actuelle et le fichier source restent inchangés.",
+  "configurationReviewSummary": "Blocages : {errors} · Modifications : {warnings}",
+  "configurationReviewApply": "Activer la configuration",
+  "configurationReviewLocations": "Emplacements techniques",
+  "configurationReviewCount": "Éléments : {count}",
+  "configurationReviewMore": "Autres : {count}",
+  "configurationReviewOwned": "Hotaru gère ces paramètres ou les chemins du cache local.",
+  "configurationReviewMetadata": "Les métadonnées descriptives sont ignorées sans modifier le routage.",
+  "configurationReviewIpRules": "Les règles IP utilisent le nouveau résolveur. Plusieurs réponses ou un échec DNS peuvent modifier le routage.",
+  "configurationReviewGeo": "GeoIP utilise la base DAT sélectionnée ; les régions peuvent différer de la MMDB d’origine.",
+  "configurationReviewHosts": "Le comportement de Hosts n’est pas entièrement aligné. Les entrées locales ou système peuvent être traitées différemment.",
+  "configurationReviewLoadBalance": "La répartition de charge devient une sélection manuelle ; les connexions ne sont plus réparties.",
+  "configurationReviewFallback": "Le basculement devient une sélection par test URL ; le moment de sélection peut différer.",
+  "configurationReviewHealth": "Les vérifications indépendantes du fournisseur ne sont pas encore migrées. Les groupes de test URL gardent leurs propres paramètres.",
+  "configurationReviewDuplicates": "Les références de nœuds en double dans un groupe sont fusionnées.",
+  "configurationReviewUnsupported": "Cette option ne peut pas être convertie. Consultez son emplacement technique.",
+  "configurationReviewChanged": "Le comportement de cette option change après conversion. Consultez son emplacement technique.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "L’adaptateur virtuel utilisera la pile réseau système de sing-box, différente de la configuration d’origine.",
+  "configurationReviewDial": "Le nouveau moteur utilise sa propre planification des connexions et mesure de latence ; les résultats peuvent différer de la version précédente.",
+  "routePreviewTitle": "Aperçu du routage",
+  "routePreviewScope": "Consulte les règles actives et le chemin choisi sans requête DNS ni connexion à la cible. Ce plan ne représente pas une connexion observée.",
+  "routePreviewTarget": "Domaine ou adresse IP",
+  "routePreviewAction": "Prévisualiser",
+  "routePreviewRunning": "Lecture…",
+  "routePreviewUnavailable": "Démarrez sing-box et appliquez une configuration.",
+  "routePreviewFailed": "Impossible de lire une route cohérente. Vérifiez la connexion et réessayez.",
+  "routePreviewResolved": "Plan de routage trouvé",
+  "routePreviewAddressRequired": "Une règle précédente exige une réponse DNS ; le trajet reste indéterminé hors ligne.",
+  "routePreviewContextRequired": "Une règle précédente exige des détails de connexion absents de cet aperçu.",
+  "routePreviewSelectionRequired": "La sélection active est indisponible. Choisissez un nœud et réessayez.",
+  "routePreviewInvalidTarget": "Saisissez un domaine ou une IP sans protocole ni chemin URL.",
+  "routePreviewRule": "Règle correspondante",
+  "routePreviewDefault": "Route par défaut ou mode de sortie actif",
+  "routePreviewPath": "Chemin sélectionné",
+  "routePreviewHops": "Sauts physiques prévus",
+  "processTrafficTitle": "Classement du trafic des applications",
+  "processTrafficScope": "Compte uniquement le trafic passant par Hotaru pendant cette session du noyau, connexions fermées comprises. Un redémarrage remet les compteurs à zéro. Le trafic non identifié est séparé.",
+  "processTrafficByApp": "Par application",
+  "processTrafficByProcess": "Par processus",
+  "processTrafficUnavailable": "Le noyau actuel ne fournit pas de compteurs par processus.",
+  "processTrafficEmpty": "Aucun trafic. Lancez une requête via Hotaru.",
+  "processTrafficFailed": "Impossible de lire les compteurs. Actualisez pour réessayer.",
+  "processTrafficUnattributed": "Trafic non attribué",
+  "processTrafficOverflow": "Certains processus ne peuvent pas être affichés séparément ; leurs octets figurent dans le trafic non attribué.",
+  "processTrafficSampled": "Échantillon",
+  "singBoxReimportTitle": "Réimporter les abonnements ou les configurations",
+  "singBoxReimportBody": "Hotaru utilise désormais sing-box. Vos fichiers et préférences sont conservés ; l’ancienne configuration ne démarre pas automatiquement. Réimportez votre abonnement ou configuration avant la connexion et sélectionnez à nouveau les nœuds des règles indépendantes.",
+  "geoUpdateFailedTip": "Impossible de mettre à jour {resource}. La configuration active est inchangée. Vérifiez le réseau et l’URL de la ressource, puis réessayez.",
+  "connectionObservedPath": "Chemin de connexion observé",
+  "connectionThisDevice": "Cet appareil",
+  "connectionPathComplete": "Chemin complet observé",
+  "connectionPathPartial": "Étapes observées uniquement"
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:hotaru/core/desktop/launcher.dart';
 import 'package:hotaru/core/desktop/model.dart';
 import 'package:hotaru/core/desktop/transport.dart';
 

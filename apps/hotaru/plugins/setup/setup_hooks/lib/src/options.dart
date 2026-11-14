@@ -4,7 +4,11 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import 'error.dart';
+
 final _log = Logger('options');
+
+enum CoreBuildEngine { mihomo, singBox }
 
 class BuildConfig {
   const BuildConfig({
@@ -16,8 +20,10 @@ class BuildConfig {
     required this.outputDir,
     required this.helperDir,
     required this.helperName,
+    this.engine = CoreBuildEngine.mihomo,
   });
 
+  final CoreBuildEngine engine;
   final String tags;
   final String goLdflags;
   final String coreVersion;
@@ -58,7 +64,30 @@ class BuildConfig {
     );
   }
 
+  BuildConfig forEngine(CoreBuildEngine selected, {String? outputDir}) {
+    if (selected == CoreBuildEngine.mihomo && outputDir == null) return this;
+    final host = selected == CoreBuildEngine.singBox;
+    return BuildConfig(
+      engine: selected,
+      tags: host ? 'with_clash_api,with_quic,with_utls' : tags,
+      goLdflags: goLdflags,
+      coreVersion: host ? '1.14.4' : coreVersion,
+      coreDir: host ? 'core/sing_box_host' : coreDir,
+      coreName: coreName,
+      outputDir: outputDir ?? this.outputDir,
+      helperDir: helperDir,
+      helperName: helperName,
+    );
+  }
+
+  static CoreBuildEngine windowsEngine(Object? value) => switch (value) {
+    null || 'mihomo' => CoreBuildEngine.mihomo,
+    'sing-box' => CoreBuildEngine.singBox,
+    _ => throw BuildException('Unsupported Windows Core build engine'),
+  };
+
   Map<String, String> toFingerprintMap() => {
+    'engine': engine.name,
     'tags': tags,
     'go_ldflags': goLdflags,
     'core_version': coreVersion,

@@ -124,9 +124,13 @@ const speedTestUserAgent =
     '(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 
 class SpeedTestRunner {
-  SpeedTestRunner({required this.findProxy});
+  SpeedTestRunner({required String Function(Uri uri) findProxy})
+    : _createClient = (() => HttpClient()..findProxy = findProxy);
 
-  final String Function(Uri uri) findProxy;
+  SpeedTestRunner.withClientFactory(HttpClient Function() createClient)
+    : _createClient = createClient;
+
+  final HttpClient Function() _createClient;
 
   bool _cancelled = false;
   HttpClient? _client;
@@ -140,10 +144,9 @@ class SpeedTestRunner {
   }
 
   HttpClient _newClient() {
-    final client = HttpClient()
+    final client = _createClient()
       ..connectionTimeout = const Duration(seconds: 8)
-      ..userAgent = speedTestUserAgent
-      ..findProxy = findProxy;
+      ..userAgent = speedTestUserAgent;
     _client = client;
     return client;
   }

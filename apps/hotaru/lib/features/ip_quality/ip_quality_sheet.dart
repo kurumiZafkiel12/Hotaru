@@ -10,17 +10,24 @@ import 'package:material_ui/material_ui.dart';
 
 import 'ip_quality_text.dart';
 import 'labels.dart';
+import 'facts_labels.dart';
+import 'package:hotaru/enum/enum.dart';
+import 'package:hotaru/models/ip_facts.dart';
+import 'package:hotaru/providers/ip_facts.dart';
 
-Future<void> showIpQualitySheet(BuildContext context, {required String ip}) {
+Future<void> showIpQualitySheet(
+  BuildContext context, {
+  required String ip,
+  SupportPlatform? platform,
+}) {
+  Widget sheet() =>
+      (platform ?? SupportPlatform.currentPlatform) == SupportPlatform.Windows
+      ? IpFactsSheet(ip: ip)
+      : _IpQualitySheet(ip: ip);
   if (isSheetPage(context)) {
-    return Navigator.of(
-      context,
-    ).push(PagedSheetRoute(builder: (_) => _IpQualitySheet(ip: ip)));
+    return Navigator.of(context).push(PagedSheetRoute(builder: (_) => sheet()));
   }
-  return showSheet<void>(
-    context: context,
-    builder: (_) => _IpQualitySheet(ip: ip),
-  );
+  return showSheet<void>(context: context, builder: (_) => sheet());
 }
 
 class _IpQualitySheet extends ConsumerWidget {
@@ -226,5 +233,107 @@ class _IpQualityDetail extends ConsumerWidget {
         value: valueOf(quality?.source.label, width: 72),
       ),
     ];
+  }
+}
+
+class IpFactsSheet extends ConsumerWidget {
+  const IpFactsSheet({super.key, required this.ip});
+  final String ip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.appLocalizations;
+    final state = ref.watch(ipFactsProvider(ip));
+    final facts = state.value;
+    Widget value(String text) => state.isLoading && facts == null
+        ? const SkeletonText(width: 64)
+        : Text(text);
+    return CommonScaffold(
+      title: l10n.outboundIp,
+      actions: [
+        AppBarActionButton(
+          data: IconButtonData(
+            glyph: AppGlyphs.refresh,
+            tooltip: l10n.ipQualityRetry,
+            isLoading: state.isLoading,
+            onPressed: () => ref.invalidate(ipFactsProvider(ip)),
+          ),
+        ),
+      ],
+      body: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(
+          top: context.contentTopPadding,
+          bottom: 20 + context.bottomInset,
+        ),
+        children: [
+          generateSection(
+            title: l10n.basicInfo,
+            items: [
+              DetailRow(
+                title: l10n.ipAddress,
+                copyText: ip,
+                value: IpQualityText(ip: ip, useIpFacts: true),
+              ),
+              DetailRow(
+                title: l10n.ipFactsOrigin,
+                value: Tooltip(
+                  message: facts?.originEvidence(context) ?? l10n.ipFactsScope,
+                  child: value(
+                    (facts?.origin ?? IpOrigin.unknown).label(context),
+                  ),
+                ),
+              ),
+              DetailRow(
+                title: l10n.ipFactsAttribute,
+                value: value(
+                  (facts?.attribute ?? IpAttribute.unknown).label(context),
+                ),
+              ),
+              DetailRow(
+                title: l10n.ipFactsQuality,
+                value: state.isLoading && facts == null
+                    ? const SkeletonText(width: 120)
+                    : Text(
+                        facts?.qualityLabel(context) ?? l10n.unknown,
+                        style: TextStyle(color: facts?.risk.color(context)),
+                      ),
+              ),
+            ],
+          ),
+          generateSection(
+            title: l10n.network,
+            items: [
+              DetailRow(
+                title: l10n.ipOrganization,
+                copyText: facts?.organization,
+                value: value(facts?.organization ?? l10n.unknown),
+              ),
+              DetailRow(
+                title: l10n.ipAsn,
+                copyText: facts?.asn == null ? null : 'AS${facts!.asn}',
+                value: value(
+                  facts?.asn == null ? l10n.unknown : 'AS${facts!.asn}',
+                ),
+              ),
+              DetailRow(
+                title: l10n.ipQualitySource,
+                value: const Text('iplocate · RDAP · Scamalytics'),
+              ),
+            ],
+          ),
+          generateSection(title: l10n.other, items: const [_HideIpItem()]),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
+            child: Text(
+              l10n.ipFactsScope,
+              style: AppTextStyle.caption1
+                  .of(context)
+                  .copyWith(color: context.colorScheme.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

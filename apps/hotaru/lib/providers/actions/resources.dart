@@ -69,7 +69,8 @@ class ResourcesAction extends _$ResourcesAction {
       database.clashProvidersDao.query().get(),
     ).wait;
     await Future.wait([
-      for (final geoResource in GeoResource.values)
+      for (final geoResource
+          in ref.read(coreHandlerProvider).supportedGeoResources)
         update(
           geoResource.updatingKey,
           geoResource.name,

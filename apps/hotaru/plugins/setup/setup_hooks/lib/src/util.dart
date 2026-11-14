@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'error.dart';
+import 'options.dart';
 
 final _log = Logger('util');
 
@@ -122,13 +123,27 @@ Future<String> calcSha256(String filePath) async {
 
 const coreManifestName = 'manifest.json';
 
-void writeCoreManifest({required String path, required String coreSha256}) {
+void writeCoreManifest({
+  required String path,
+  required String coreSha256,
+  CoreBuildEngine engine = CoreBuildEngine.mihomo,
+  String? coreVersion,
+  Map<String, Object> provenance = const {},
+}) {
   if (!RegExp(r'^[0-9a-f]{64}$').hasMatch(coreSha256)) {
     throw BuildException('Invalid Core SHA256: $coreSha256');
   }
 
   final manifest = File(path);
-  final content = '${jsonEncode({'coreSha256': coreSha256})}\n';
+  if (engine == CoreBuildEngine.singBox && coreVersion != '1.14.4') {
+    throw BuildException('Unsupported sing-box host version');
+  }
+  final content =
+      '${jsonEncode({
+        ...provenance,
+        'coreSha256': coreSha256,
+        if (engine == CoreBuildEngine.singBox) ...{'engine': 'sing-box', 'coreVersion': coreVersion, 'hostProtocol': 'hotaru-bootstrap-v1'},
+      })}\n';
   if (manifest.existsSync() && manifest.readAsStringSync() == content) {
     return;
   }

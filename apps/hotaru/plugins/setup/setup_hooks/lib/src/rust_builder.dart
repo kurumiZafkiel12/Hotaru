@@ -33,6 +33,7 @@ class RustBuilder {
     final triple = target.rustTriple;
     final args = [
       'build',
+      if (config.engine == CoreBuildEngine.singBox) '--locked',
       '--target',
       triple,
       if (target.goos == 'windows') ...['--features', 'windows-service'],

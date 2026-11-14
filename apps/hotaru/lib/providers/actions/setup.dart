@@ -44,6 +44,7 @@ class SetupAction extends _$SetupAction {
   _SetupInputs? _appliedInputs;
   var _lastPushDuration = Duration.zero;
   var _pendingForceApply = false;
+  int _modeSelectionRevision = 0;
 
   bool get _isRunning => _startTime != null && _startTime!.isBeforeNow;
 
@@ -367,13 +368,41 @@ class SetupAction extends _$SetupAction {
   }
 
   void changeMode(Mode mode) {
+    final revision = ++_modeSelectionRevision;
     ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
     if (mode == Mode.global) {
+      final core = _core;
+      if (core.supportsGlobalOutbound) {
+        unawaited(_selectGlobalOutbound(core, revision));
+        return;
+      }
       ref
           .read(proxiesActionProvider.notifier)
           .updateCurrentGroupName(GroupName.GLOBAL.name);
+    }
+  }
+
+  Future<void> _selectGlobalOutbound(CoreController core, int revision) async {
+    final profileId = ref.read(currentProfileProvider)?.id;
+    try {
+      final name = await core.globalOutbound();
+      if (!ref.mounted ||
+          revision != _modeSelectionRevision ||
+          ref.read(currentProfileProvider)?.id != profileId ||
+          ref.read(patchClashConfigProvider).mode != Mode.global ||
+          !identical(core, _core)) {
+        return;
+      }
+      ref.read(proxiesActionProvider.notifier).updateCurrentGroupName(name);
+    } catch (error) {
+      if (ref.mounted && revision == _modeSelectionRevision) {
+        commonPrint.log(
+          'global outbound selection failed: ${compactError(error)}',
+          logLevel: coreFailureLogLevel(error),
+        );
+      }
     }
   }
 
@@ -528,14 +557,19 @@ class SetupAction extends _$SetupAction {
           ? setupState.routingOutbound
           : profile?.currentGroupName;
       final names = {
-        GroupName.GLOBAL.name,
         for (final section in ['proxies', 'proxy-groups'])
           for (final item in rawConfig[section] as List? ?? const [])
             if (item is Map && item['name'] is String) item['name'] as String,
       };
+      final declaredGlobal = names.contains(GroupName.GLOBAL.name);
+      names.add(GroupName.GLOBAL.name);
+      final managedGlobal = await _core.globalOutbound();
       String? target;
-      if (preferred == GroupName.GLOBAL.name) {
-        if (profile?.selectedMap[GroupName.GLOBAL.name]?.isNotEmpty != true) {
+      if (preferred == managedGlobal) {
+        if (managedGlobal != GroupName.GLOBAL.name && declaredGlobal) {
+          throw FormatException(currentAppLocalizations.routingConfigFailed);
+        }
+        if (profile?.selectedMap[managedGlobal]?.isNotEmpty != true) {
           throw const FormatException(
             'choose a node before using independent rules',
           );
@@ -588,6 +622,7 @@ class SetupAction extends _$SetupAction {
             ? setupState.matchTarget
             : lastMatchTarget(profileBase.base.matchRules),
         safeMode: ref.read(safeModeProvider),
+        scopedOutboundClients: _core.supportsOutboundClients,
       ),
     );
     if (profileBase == null) {
@@ -831,6 +866,7 @@ class SetupAction extends _$SetupAction {
           final message = await _core.setupConfig(
             params: setupParams,
             preloadInvoke: preloadInvoke,
+            profileId: profileId,
           );
           if (message.isNotEmpty) {
             globalState.lastConfigCounts = configCountsOf(const {});

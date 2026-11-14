@@ -56,6 +56,12 @@ class Preferences {
     await preferences?.setInt('upgradeVersion', version);
   }
 
+  Future<String?> getDesktopCoreEpoch() async =>
+      (await _store.value)?.getString('desktopCoreEpoch');
+
+  Future<bool> setDesktopCoreEpoch(String epoch) async =>
+      await (await _store.value)?.setString('desktopCoreEpoch', epoch) ?? false;
+
   Future<void> saveShareState(SharedState shareState) async {
     final preferences = await _store.value;
     await preferences?.setString('sharedState', json.encode(shareState));

@@ -23,6 +23,10 @@ import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
+import 'package:hotaru/models/ip_facts.dart';
+import 'package:hotaru/providers/ip_facts.dart';
+import 'package:hotaru/features/ip_quality/facts_labels.dart';
+import 'package:hotaru/enum/enum.dart';
 
 const _builtinOutbounds = {'DIRECT', 'REJECT', 'REJECT-DROP', 'PASS'};
 
@@ -32,7 +36,9 @@ const _ipMask = '*****';
 
 /// The address the proxied traffic leaves by, next to the start button.
 class CurrentOutboundCard extends ConsumerStatefulWidget {
-  const CurrentOutboundCard({super.key});
+  const CurrentOutboundCard({super.key, this.platform});
+
+  final SupportPlatform? platform;
 
   @override
   ConsumerState<CurrentOutboundCard> createState() =>
@@ -42,24 +48,35 @@ class CurrentOutboundCard extends ConsumerStatefulWidget {
 class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     with ProbeStartHold<CurrentOutboundCard> {
   late final OutboundIpProbe _probe;
-  late final NetworkQuality _networkQuality;
+  NetworkQuality? _networkQuality;
+
+  bool get _usesFacts =>
+      (widget.platform ?? SupportPlatform.currentPlatform) ==
+      SupportPlatform.Windows;
 
   @override
   void initState() {
     super.initState();
     _probe = ref.read(outboundIpProbeProvider.notifier)..watch(routedOutbound);
-    _networkQuality = ref.read(networkQualityProvider.notifier)..watch();
+    if (!_usesFacts) {
+      final networkQuality = ref.read(networkQualityProvider.notifier)..watch();
+      _networkQuality = networkQuality;
+    }
   }
 
   @override
   void dispose() {
     _probe.unwatch(routedOutbound);
-    _networkQuality.unwatch();
+    _networkQuality?.unwatch();
     super.dispose();
   }
 
   void _refresh(String? ip) {
     _probe.refresh(const [routedOutbound]);
+    if (_usesFacts && ip != null) {
+      ref.invalidate(ipFactsProvider(ip));
+      return;
+    }
     if (ip != null && ref.read(ipQualityProvider(ip)).hasError) {
       ref.invalidate(ipQualityProvider(ip));
     }
@@ -79,12 +96,17 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     final ipInfo = entry.value;
     final phase = shownPhase(entry);
     final failed = phase == ProbePhase.failed && ipInfo == null;
-    final qualityState = ipInfo == null
+    final factsState = _usesFacts && ipInfo != null
+        ? ref.watch(ipFactsProvider(ipInfo.ip))
+        : null;
+    final facts = factsState?.value;
+    final qualityState = ipInfo == null || _usesFacts
         ? null
         : ref.watch(ipQualityProvider(ipInfo.ip));
     final quality = qualityState?.value;
-    final qualityLoading =
-        qualityState != null && quality == null && qualityState.isLoading;
+    final qualityLoading = _usesFacts
+        ? factsState != null && facts == null && factsState.isLoading
+        : qualityState != null && quality == null && qualityState.isLoading;
     final loading = ipInfo == null ? !failed : qualityLoading;
     final metrics = _OutboundMetrics.of(density);
     final appLocalizations = context.appLocalizations;
@@ -94,7 +116,7 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
         ? (appLocalizations.running, DashboardChipTone.ok)
         : (appLocalizations.notRunning, DashboardChipTone.idle);
     final country = _CountryColumn(
-      countryCode: ipInfo?.countryCode,
+      countryCode: _usesFacts ? facts?.geoCountry : ipInfo?.countryCode,
       metrics: metrics,
       active: isStart,
       checking: phase == ProbePhase.probing,
@@ -104,12 +126,29 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
     final address = _ExitRow(
       info: ipInfo,
       failed: failed,
+      useFacts: _usesFacts,
       metrics: metrics,
       active: isStart,
     );
-    final dimensions = _IpDimensions(quality: quality, loading: qualityLoading);
+    final dimensions = _usesFacts
+        ? _FactsDimensions(
+            facts: facts,
+            loading: qualityLoading,
+            onPressed: ipInfo == null
+                ? null
+                : () => showIpQualitySheet(
+                    context,
+                    ip: ipInfo.ip,
+                    platform: SupportPlatform.Windows,
+                  ),
+          )
+        : _IpDimensions(quality: quality, loading: qualityLoading);
     final metadata = _Cells(
-      quality: quality,
+      organization: _usesFacts
+          ? facts?.organization ??
+                (facts?.asn == null ? null : 'AS${facts!.asn}')
+          : quality?.organization ??
+                (quality?.asn == null ? null : 'AS${quality!.asn}'),
       loading: loading,
       active: isStart && !suspended,
       gap: metrics.cellGap,
@@ -327,12 +366,14 @@ class _CountryColumn extends StatelessWidget {
 class _ExitRow extends StatelessWidget {
   const _ExitRow({
     required this.info,
+    required this.useFacts,
     required this.failed,
     required this.active,
     required this.metrics,
   });
 
   final IpInfo? info;
+  final bool useFacts;
   final bool failed;
   final bool active;
   final _OutboundMetrics metrics;
@@ -354,7 +395,11 @@ class _ExitRow extends StatelessWidget {
           shape: AppShape.xs,
           standsOff: true,
           child: InkWell(
-            onTap: () => showIpQualitySheet(context, ip: info.ip),
+            onTap: () => showIpQualitySheet(
+              context,
+              ip: info.ip,
+              platform: useFacts ? SupportPlatform.Windows : null,
+            ),
             customBorder: AppShape.xs,
             hoverColor: Colors.transparent,
             splashColor: Colors.transparent,
@@ -460,8 +505,10 @@ class _IpDimension extends StatelessWidget {
     required this.evidence,
     this.loading = false,
     this.onPressed,
+    this.detail,
   });
 
+  final String? detail;
   final VoidCallback? onPressed;
   final String label;
   final String value;
@@ -470,6 +517,7 @@ class _IpDimension extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final detail = this.detail;
     final dimension = Tooltip(
       message: '$label: $value\n$evidence',
       child: Semantics(
@@ -495,6 +543,15 @@ class _IpDimension extends StatelessWidget {
                 maxLines: DashboardDensityScope.of(context).isDesktop ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyle.caption1.of(context, emphasized: true),
+              ),
+            if (detail != null)
+              Text(
+                detail,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyle.caption2
+                    .of(context)
+                    .copyWith(color: context.colorScheme.onSurfaceVariant),
               ),
           ],
         ),
@@ -641,14 +698,14 @@ class _CountryBadgeState extends State<_CountryBadge>
 
 class _Cells extends StatelessWidget {
   const _Cells({
-    required this.quality,
+    required this.organization,
     required this.loading,
     required this.active,
     required this.gap,
     this.inline = false,
   });
 
-  final IpQuality? quality;
+  final String? organization;
   final bool loading;
   final bool active;
   final double gap;
@@ -658,12 +715,8 @@ class _Cells extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
-    final organization = switch (quality) {
-      IpQuality(organization: final name?) when name.isNotEmpty => name,
-      IpQuality(asn: final asn?) => 'AS$asn',
-      _ => null,
-    };
     final runTime = active ? const _RunTimeValue() : const _Placeholder();
+    final organization = this.organization;
     final network = organization != null
         ? _CellText(organization)
         : loading
@@ -972,4 +1025,57 @@ class _WavePainter extends CustomPainter {
       phase != oldDelegate.phase ||
       active != oldDelegate.active ||
       enabled != oldDelegate.enabled;
+}
+
+class _FactsDimensions extends StatelessWidget {
+  const _FactsDimensions({
+    required this.facts,
+    required this.loading,
+    this.onPressed,
+  });
+  final IpFacts? facts;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.appLocalizations;
+    final facts = this.facts;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        Expanded(
+          child: _IpDimension(
+            label: strings.ipFactsOrigin,
+            value: (facts?.origin ?? IpOrigin.unknown).label(context),
+            evidence: facts?.originEvidence(context) ?? strings.ipFactsScope,
+            loading: loading,
+            onPressed: onPressed,
+          ),
+        ),
+        Expanded(
+          child: _IpDimension(
+            label: strings.ipFactsAttribute,
+            value: (facts?.attribute ?? IpAttribute.unknown).label(context),
+            evidence: 'iplocate',
+            loading: loading,
+            onPressed: onPressed,
+          ),
+        ),
+        Expanded(
+          child: _IpDimension(
+            label: strings.ipFactsQuality,
+            value: (facts?.risk ?? IpRisk.unknown).label(context),
+            detail: facts != null && facts.risk != IpRisk.unknown
+                ? '${facts.riskScore} · Scamalytics'
+                : null,
+            evidence: facts?.qualityLabel(context) ?? strings.unknown,
+            loading: loading,
+            onPressed: onPressed,
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:hotaru/core/desktop/core_manifest.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,5 +38,36 @@ void main() {
       ),
       isNull,
     );
+  });
+
+  test('sing-box launch refuses the legacy bundle manifest', () async {
+    final file = File('${directory.path}/manifest.json')
+      ..writeAsStringSync(jsonEncode({'coreSha256': 'a' * 64}));
+    expect(await CoreManifest.readSingBoxHostSha256(path: file.path), isNull);
+  });
+
+  test('requires the pinned engine version and bootstrap protocol', () async {
+    for (final overrides in [
+      {'engine': 'mihomo'},
+      {'coreVersion': '1.14.3'},
+      {'hostProtocol': 'unknown'},
+      {'coreSha256': 'invalid'},
+      <String, String>{},
+    ]) {
+      final file = File('${directory.path}/manifest.json')
+        ..writeAsStringSync(
+          jsonEncode({
+            'engine': 'sing-box',
+            'coreVersion': '1.14.4',
+            'hostProtocol': 'hotaru-bootstrap-v1',
+            'coreSha256': 'a' * 64,
+            ...overrides,
+          }),
+        );
+      expect(
+        await CoreManifest.readSingBoxHostSha256(path: file.path),
+        overrides.isEmpty ? 'a' * 64 : isNull,
+      );
+    }
   });
 }

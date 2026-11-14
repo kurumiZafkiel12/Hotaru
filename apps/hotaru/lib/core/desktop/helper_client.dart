@@ -11,7 +11,6 @@ import 'package:path/path.dart' as p;
 import 'package:win32_registry/win32_registry.dart';
 
 import 'core_manifest.dart';
-import 'launcher.dart';
 import 'model.dart';
 import 'process_probe.dart';
 

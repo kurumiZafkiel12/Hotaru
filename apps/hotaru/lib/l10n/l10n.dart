@@ -9708,10 +9708,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Page egress IP`
+  /// `Your remote IP`
   String get browserRemoteIp {
     return Intl.message(
-      'Page egress IP',
+      'Your remote IP',
       name: 'browserRemoteIp',
       desc: '',
       args: [],
@@ -9728,9 +9728,14 @@ class AppLocalizations {
     );
   }
 
-  /// `Local IP`
+  /// `Local IP address`
   String get browserLocalIp {
-    return Intl.message('Local IP', name: 'browserLocalIp', desc: '', args: []);
+    return Intl.message(
+      'Local IP address',
+      name: 'browserLocalIp',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `No identifiable local address exposed`
@@ -9738,6 +9743,906 @@ class AppLocalizations {
     return Intl.message(
       'No identifiable local address exposed',
       name: 'browserLocalNotExposed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Page requests use Hotaru’s current proxy. The website performs the test.`
+  String get embeddedToolScope {
+    return Intl.message(
+      'Page requests use Hotaru’s current proxy. The website performs the test.',
+      name: 'embeddedToolScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connect Hotaru to open this tool.`
+  String get embeddedToolNeedCore {
+    return Intl.message(
+      'Connect Hotaru to open this tool.',
+      name: 'embeddedToolNeedCore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The page could not load. Check the connection and WebView2, then retry.`
+  String get embeddedToolUnavailable {
+    return Intl.message(
+      'The page could not load. Check the connection and WebView2, then retry.',
+      name: 'embeddedToolUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reload page`
+  String get embeddedToolReload {
+    return Intl.message(
+      'Reload page',
+      name: 'embeddedToolReload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP diagnostics`
+  String get ipToolsTitle {
+    return Intl.message(
+      'IP diagnostics',
+      name: 'ipToolsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose a site to view the current connection’s IP, network and reputation.`
+  String get ipToolsScope {
+    return Intl.message(
+      'Choose a site to view the current connection’s IP, network and reputation.',
+      name: 'ipToolsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location and network details`
+  String get ipToolsDetails {
+    return Intl.message(
+      'Location and network details',
+      name: 'ipToolsDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP reputation and risk`
+  String get ipToolsReputation {
+    return Intl.message(
+      'IP reputation and risk',
+      name: 'ipToolsReputation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP and browser privacy`
+  String get ipToolsPrivacy {
+    return Intl.message(
+      'IP and browser privacy',
+      name: 'ipToolsPrivacy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IPv4 address`
+  String get browserIpv4 {
+    return Intl.message(
+      'IPv4 address',
+      name: 'browserIpv4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IPv6 address`
+  String get browserIpv6 {
+    return Intl.message(
+      'IPv6 address',
+      name: 'browserIpv6',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Country`
+  String get browserCountry {
+    return Intl.message('Country', name: 'browserCountry', desc: '', args: []);
+  }
+
+  /// `Region`
+  String get browserRegion {
+    return Intl.message('Region', name: 'browserRegion', desc: '', args: []);
+  }
+
+  /// `City`
+  String get browserCity {
+    return Intl.message('City', name: 'browserCity', desc: '', args: []);
+  }
+
+  /// `Organization`
+  String get browserOrganization {
+    return Intl.message(
+      'Organization',
+      name: 'browserOrganization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Public IP address`
+  String get browserPublicIp {
+    return Intl.message(
+      'Public IP address',
+      name: 'browserPublicIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebRTC support`
+  String get browserSupport {
+    return Intl.message(
+      'WebRTC support',
+      name: 'browserSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No leak detected in this test`
+  String get browserNoLeak {
+    return Intl.message(
+      'No leak detected in this test',
+      name: 'browserNoLeak',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leak detected`
+  String get browserLeakDetected {
+    return Intl.message(
+      'Leak detected',
+      name: 'browserLeakDetected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potential leak`
+  String get browserPotentialLeak {
+    return Intl.message(
+      'Potential leak',
+      name: 'browserPotentialLeak',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS servers`
+  String get browserDnsServers {
+    return Intl.message(
+      'DNS servers',
+      name: 'browserDnsServers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Session description`
+  String get browserSessionDescription {
+    return Intl.message(
+      'Session description',
+      name: 'browserSessionDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Media devices`
+  String get browserMediaDevices {
+    return Intl.message(
+      'Media devices',
+      name: 'browserMediaDevices',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Permissions`
+  String get browserPermissions {
+    return Intl.message(
+      'Permissions',
+      name: 'browserPermissions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP origin`
+  String get ipFactsOrigin {
+    return Intl.message('IP origin', name: 'ipFactsOrigin', desc: '', args: []);
+  }
+
+  /// `IP type`
+  String get ipFactsAttribute {
+    return Intl.message(
+      'IP type',
+      name: 'ipFactsAttribute',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP quality`
+  String get ipFactsQuality {
+    return Intl.message(
+      'IP quality',
+      name: 'ipFactsQuality',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Native`
+  String get ipFactsNative {
+    return Intl.message('Native', name: 'ipFactsNative', desc: '', args: []);
+  }
+
+  /// `Broadcast`
+  String get ipFactsBroadcast {
+    return Intl.message(
+      'Broadcast',
+      name: 'ipFactsBroadcast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low risk`
+  String get ipFactsLow {
+    return Intl.message('Low risk', name: 'ipFactsLow', desc: '', args: []);
+  }
+
+  /// `Medium`
+  String get ipFactsMedium {
+    return Intl.message('Medium', name: 'ipFactsMedium', desc: '', args: []);
+  }
+
+  /// `Elevated`
+  String get ipFactsElevated {
+    return Intl.message(
+      'Elevated',
+      name: 'ipFactsElevated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High risk`
+  String get ipFactsHigh {
+    return Intl.message('High risk', name: 'ipFactsHigh', desc: '', args: []);
+  }
+
+  /// `{level} (Scamalytics {score})`
+  String ipFactsScore(Object level, Object score) {
+    return Intl.message(
+      '$level (Scamalytics $score)',
+      name: 'ipFactsScore',
+      desc: '',
+      args: [level, score],
+    );
+  }
+
+  /// `Location country: {geo}; IP block registration country: {registered} (RDAP)`
+  String ipFactsOriginEvidence(Object geo, Object registered) {
+    return Intl.message(
+      'Location country: $geo; IP block registration country: $registered (RDAP)',
+      name: 'ipFactsOriginEvidence',
+      desc: '',
+      args: [geo, registered],
+    );
+  }
+
+  /// `IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.`
+  String get ipFactsScope {
+    return Intl.message(
+      'IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.',
+      name: 'ipFactsScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No usable data provided`
+  String get ipFactsNoData {
+    return Intl.message(
+      'No usable data provided',
+      name: 'ipFactsNoData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latency rating`
+  String get networkLatencyRating {
+    return Intl.message(
+      'Latency rating',
+      name: 'networkLatencyRating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total {traffic}`
+  String profileTrafficTotal(String traffic) {
+    return Intl.message(
+      'Total $traffic',
+      name: 'profileTrafficTotal',
+      desc: '',
+      args: [traffic],
+    );
+  }
+
+  /// `Upload and download while this profile was active, accumulated since import`
+  String get profileTrafficSinceImport {
+    return Intl.message(
+      'Upload and download while this profile was active, accumulated since import',
+      name: 'profileTrafficSinceImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration conversion review`
+  String get configurationReviewTitle {
+    return Intl.message(
+      'Configuration conversion review',
+      name: 'configurationReviewTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review the differences before enabling this configuration. The source file stays unchanged.`
+  String get configurationReviewIntro {
+    return Intl.message(
+      'Review the differences before enabling this configuration. The source file stays unchanged.',
+      name: 'configurationReviewIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.`
+  String get configurationReviewBlocked {
+    return Intl.message(
+      'Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.',
+      name: 'configurationReviewBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Blocking: {errors} · Changes: {warnings}`
+  String configurationReviewSummary(int errors, int warnings) {
+    return Intl.message(
+      'Blocking: $errors · Changes: $warnings',
+      name: 'configurationReviewSummary',
+      desc: '',
+      args: [errors, warnings],
+    );
+  }
+
+  /// `Enable configuration`
+  String get configurationReviewApply {
+    return Intl.message(
+      'Enable configuration',
+      name: 'configurationReviewApply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Technical locations`
+  String get configurationReviewLocations {
+    return Intl.message(
+      'Technical locations',
+      name: 'configurationReviewLocations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Items: {count}`
+  String configurationReviewCount(int count) {
+    return Intl.message(
+      'Items: $count',
+      name: 'configurationReviewCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Additional: {count}`
+  String configurationReviewMore(int count) {
+    return Intl.message(
+      'Additional: $count',
+      name: 'configurationReviewMore',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Hotaru controls these settings or local cache paths.`
+  String get configurationReviewOwned {
+    return Intl.message(
+      'Hotaru controls these settings or local cache paths.',
+      name: 'configurationReviewOwned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Descriptive metadata is ignored and does not change routing.`
+  String get configurationReviewMetadata {
+    return Intl.message(
+      'Descriptive metadata is ignored and does not change routing.',
+      name: 'configurationReviewMetadata',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.`
+  String get configurationReviewIpRules {
+    return Intl.message(
+      'IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.',
+      name: 'configurationReviewIpRules',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `GeoIP uses the selected DAT database; region matches can differ from the original MMDB.`
+  String get configurationReviewGeo {
+    return Intl.message(
+      'GeoIP uses the selected DAT database; region matches can differ from the original MMDB.',
+      name: 'configurationReviewGeo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.`
+  String get configurationReviewHosts {
+    return Intl.message(
+      'Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.',
+      name: 'configurationReviewHosts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Load balancing becomes manual selection; connections are no longer distributed.`
+  String get configurationReviewLoadBalance {
+    return Intl.message(
+      'Load balancing becomes manual selection; connections are no longer distributed.',
+      name: 'configurationReviewLoadBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fallback becomes URL-test selection; selection timing can differ.`
+  String get configurationReviewFallback {
+    return Intl.message(
+      'Fallback becomes URL-test selection; selection timing can differ.',
+      name: 'configurationReviewFallback',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.`
+  String get configurationReviewHealth {
+    return Intl.message(
+      'The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.',
+      name: 'configurationReviewHealth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duplicate node references within a group are merged.`
+  String get configurationReviewDuplicates {
+    return Intl.message(
+      'Duplicate node references within a group are merged.',
+      name: 'configurationReviewDuplicates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This option could not be converted. See its technical location.`
+  String get configurationReviewUnsupported {
+    return Intl.message(
+      'This option could not be converted. See its technical location.',
+      name: 'configurationReviewUnsupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This option changes behavior during conversion. See its technical location.`
+  String get configurationReviewChanged {
+    return Intl.message(
+      'This option changes behavior during conversion. See its technical location.',
+      name: 'configurationReviewChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.`
+  String get configurationReviewTunStack {
+    return Intl.message(
+      'The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.',
+      name: 'configurationReviewTunStack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.`
+  String get configurationReviewDial {
+    return Intl.message(
+      'The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.',
+      name: 'configurationReviewDial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Route preview`
+  String get routePreviewTitle {
+    return Intl.message(
+      'Route preview',
+      name: 'routePreviewTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.`
+  String get routePreviewScope {
+    return Intl.message(
+      'Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.',
+      name: 'routePreviewScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domain or IP address`
+  String get routePreviewTarget {
+    return Intl.message(
+      'Domain or IP address',
+      name: 'routePreviewTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preview`
+  String get routePreviewAction {
+    return Intl.message(
+      'Preview',
+      name: 'routePreviewAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checking…`
+  String get routePreviewRunning {
+    return Intl.message(
+      'Checking…',
+      name: 'routePreviewRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start the sing-box engine and apply a profile to use route preview.`
+  String get routePreviewUnavailable {
+    return Intl.message(
+      'Start the sing-box engine and apply a profile to use route preview.',
+      name: 'routePreviewUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The active route could not be read consistently. Check the connection and try again.`
+  String get routePreviewFailed {
+    return Intl.message(
+      'The active route could not be read consistently. Check the connection and try again.',
+      name: 'routePreviewFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Routing plan found`
+  String get routePreviewResolved {
+    return Intl.message(
+      'Routing plan found',
+      name: 'routePreviewResolved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `An earlier rule needs a DNS answer. Offline preview cannot determine the route.`
+  String get routePreviewAddressRequired {
+    return Intl.message(
+      'An earlier rule needs a DNS answer. Offline preview cannot determine the route.',
+      name: 'routePreviewAddressRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `An earlier rule needs connection details that this preview does not have.`
+  String get routePreviewContextRequired {
+    return Intl.message(
+      'An earlier rule needs connection details that this preview does not have.',
+      name: 'routePreviewContextRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The active selection is unavailable. Choose a node and retry.`
+  String get routePreviewSelectionRequired {
+    return Intl.message(
+      'The active selection is unavailable. Choose a node and retry.',
+      name: 'routePreviewSelectionRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a domain or IP address, without a URL scheme or path.`
+  String get routePreviewInvalidTarget {
+    return Intl.message(
+      'Enter a domain or IP address, without a URL scheme or path.',
+      name: 'routePreviewInvalidTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Matched rule`
+  String get routePreviewRule {
+    return Intl.message(
+      'Matched rule',
+      name: 'routePreviewRule',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default route or current outbound mode`
+  String get routePreviewDefault {
+    return Intl.message(
+      'Default route or current outbound mode',
+      name: 'routePreviewDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Selected path`
+  String get routePreviewPath {
+    return Intl.message(
+      'Selected path',
+      name: 'routePreviewPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Planned physical hops`
+  String get routePreviewHops {
+    return Intl.message(
+      'Planned physical hops',
+      name: 'routePreviewHops',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Application traffic ranking`
+  String get processTrafficTitle {
+    return Intl.message(
+      'Application traffic ranking',
+      name: 'processTrafficTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.`
+  String get processTrafficScope {
+    return Intl.message(
+      'Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.',
+      name: 'processTrafficScope',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `By application`
+  String get processTrafficByApp {
+    return Intl.message(
+      'By application',
+      name: 'processTrafficByApp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `By process`
+  String get processTrafficByProcess {
+    return Intl.message(
+      'By process',
+      name: 'processTrafficByProcess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The current kernel does not provide process traffic counters.`
+  String get processTrafficUnavailable {
+    return Intl.message(
+      'The current kernel does not provide process traffic counters.',
+      name: 'processTrafficUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No traffic yet. Make a request through Hotaru to start counting.`
+  String get processTrafficEmpty {
+    return Intl.message(
+      'No traffic yet. Make a request through Hotaru to start counting.',
+      name: 'processTrafficEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not read current counters. Refresh to try again.`
+  String get processTrafficFailed {
+    return Intl.message(
+      'Could not read current counters. Refresh to try again.',
+      name: 'processTrafficFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unattributed traffic`
+  String get processTrafficUnattributed {
+    return Intl.message(
+      'Unattributed traffic',
+      name: 'processTrafficUnattributed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Some processes could not be listed individually; their bytes are included in unattributed traffic.`
+  String get processTrafficOverflow {
+    return Intl.message(
+      'Some processes could not be listed individually; their bytes are included in unattributed traffic.',
+      name: 'processTrafficOverflow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sampled`
+  String get processTrafficSampled {
+    return Intl.message(
+      'Sampled',
+      name: 'processTrafficSampled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reimport subscriptions or configurations`
+  String get singBoxReimportTitle {
+    return Intl.message(
+      'Reimport subscriptions or configurations',
+      name: 'singBoxReimportTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.`
+  String get singBoxReimportBody {
+    return Intl.message(
+      'Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.',
+      name: 'singBoxReimportBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not update {resource}. The running configuration is unchanged. Check the network and resource URL, then try again.`
+  String geoUpdateFailedTip(String resource) {
+    return Intl.message(
+      'Could not update $resource. The running configuration is unchanged. Check the network and resource URL, then try again.',
+      name: 'geoUpdateFailedTip',
+      desc: '',
+      args: [resource],
+    );
+  }
+
+  /// `Observed connection path`
+  String get connectionObservedPath {
+    return Intl.message(
+      'Observed connection path',
+      name: 'connectionObservedPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This device`
+  String get connectionThisDevice {
+    return Intl.message(
+      'This device',
+      name: 'connectionThisDevice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full path observed`
+  String get connectionPathComplete {
+    return Intl.message(
+      'Full path observed',
+      name: 'connectionPathComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Showing observed hops only`
+  String get connectionPathPartial {
+    return Intl.message(
+      'Showing observed hops only',
+      name: 'connectionPathPartial',
       desc: '',
       args: [],
     );

@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "WebRTC 暴露的公网地址与同地址族的网页出口不同，可能存在泄漏，请检查 UDP 与代理设置。",
   "browserRtcMatch": "本次 WebRTC 公网地址与网页出口一致，未发现地址不一致；不代表其他浏览器也使用相同路径。",
   "browserLeakUnavailable": "无法运行网页检测。请检查网络能否访问 BrowserLeaks，以及 Microsoft Edge WebView2 运行时是否已安装。",
-  "browserRemoteIp": "网页出口 IP",
+  "browserRemoteIp": "网站看到的出口 IP",
   "browserRtcPublicIp": "WebRTC 公网 IP",
-  "browserLocalIp": "本地 IP",
-  "browserLocalNotExposed": "未暴露可识别的本地地址"
+  "browserLocalIp": "本地 IP 地址",
+  "browserLocalNotExposed": "未暴露可识别的本地地址",
+  "embeddedToolScope": "网页请求通过 Hotaru 当前代理加载，检测由网站执行。",
+  "embeddedToolNeedCore": "请先连接 Hotaru，再打开此工具。",
+  "embeddedToolUnavailable": "网页加载失败，请检查连接和 WebView2 后重试。",
+  "embeddedToolReload": "重新加载网页",
+  "ipToolsTitle": "IP 检测",
+  "ipToolsScope": "选择网站查看当前连接的 IP、网络归属和信誉。",
+  "ipToolsDetails": "位置与网络信息",
+  "ipToolsReputation": "IP 信誉与风险",
+  "ipToolsPrivacy": "IP 与浏览器隐私",
+  "browserIpv4": "IPv4 地址",
+  "browserIpv6": "IPv6 地址",
+  "browserCountry": "国家或地区",
+  "browserRegion": "区域",
+  "browserCity": "城市",
+  "browserOrganization": "组织",
+  "browserPublicIp": "公网 IP 地址",
+  "browserSupport": "WebRTC 支持情况",
+  "browserNoLeak": "本次未发现泄漏",
+  "browserLeakDetected": "检测到泄漏",
+  "browserPotentialLeak": "可能存在泄漏",
+  "browserDnsServers": "DNS 服务器",
+  "browserSessionDescription": "会话描述",
+  "browserMediaDevices": "媒体设备",
+  "browserPermissions": "权限",
+  "ipFactsOrigin": "IP来源",
+  "ipFactsAttribute": "IP属性",
+  "ipFactsQuality": "IP质量",
+  "ipFactsNative": "原生",
+  "ipFactsBroadcast": "广播",
+  "ipFactsLow": "低风险",
+  "ipFactsMedium": "中等",
+  "ipFactsElevated": "较高",
+  "ipFactsHigh": "高风险",
+  "ipFactsScore": "{level}（Scamalytics {score} 分）",
+  "ipFactsOriginEvidence": "定位国家：{geo}；IP 段注册国家：{registered}（RDAP）",
+  "ipFactsScope": "IP 来源由 IP 段注册国家与定位国家对照；IP 属性来自 iplocate，IP 质量仅使用 Scamalytics 分数。未取得数据的项目显示未知。",
+  "ipFactsNoData": "未提供有效数据",
+  "networkLatencyRating": "延迟评级",
+  "profileTrafficTotal": "累计 {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "自导入以来，本配置生效期间的上传与下载总量",
+  "configurationReviewTitle": "配置转换检查",
+  "configurationReviewIntro": "启用前请查看以下差异。原始配置文件保持不变。",
+  "configurationReviewBlocked": "部分选项无法转换，这份配置不会启用；当前连接与原始文件保持不变。",
+  "configurationReviewSummary": "阻止启用：{errors} 项 · 行为差异：{warnings} 项",
+  "configurationReviewApply": "启用配置",
+  "configurationReviewLocations": "详细位置",
+  "configurationReviewCount": "{count} 项",
+  "configurationReviewMore": "另有 {count} 项",
+  "configurationReviewOwned": "这些设置或本地缓存路径由 Hotaru 接管。",
+  "configurationReviewMetadata": "说明性字段已忽略，不会改变分流。",
+  "configurationReviewIpRules": "IP 规则使用新内核解析。多个解析结果或解析失败时，分流结果可能与原配置不同。",
+  "configurationReviewGeo": "GeoIP 使用选定的 DAT 数据库，地区匹配可能与原来的 MMDB 不同。",
+  "configurationReviewHosts": "Hosts 行为尚未完全对齐，自定义或系统 Hosts 的处理可能不同。",
+  "configurationReviewLoadBalance": "负载均衡改为手动选择，不再自动分摊连接。",
+  "configurationReviewFallback": "故障转移组改为自动测速组，节点选择时机可能不同。",
+  "configurationReviewHealth": "提供者的独立健康检查尚未迁移；自动测速组仍使用自身的设置。",
+  "configurationReviewDuplicates": "同组内重复的节点引用已合并。",
+  "configurationReviewUnsupported": "此选项无法转换，请查看详细位置。",
+  "configurationReviewChanged": "此选项在转换后的处理方式存在差异，请查看详细位置。",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "虚拟网卡将使用 sing-box 的系统网络栈，与原配置的网络栈不同。",
+  "configurationReviewDial": "新内核采用自身的连接调度和延迟测量方式，结果可能与旧版本不同。",
+  "routePreviewTitle": "分流预演",
+  "routePreviewScope": "读取当前规则与节点选择，不查询 DNS，也不连接目标。结果是路由计划，并非已发生的连接。",
+  "routePreviewTarget": "域名或 IP 地址",
+  "routePreviewAction": "预演",
+  "routePreviewRunning": "读取中…",
+  "routePreviewUnavailable": "请启动 sing-box 内核并应用配置，再使用分流预演。",
+  "routePreviewFailed": "无法一致地读取当前路线，请检查连接后重试。",
+  "routePreviewResolved": "已找到路由计划",
+  "routePreviewAddressRequired": "前面的规则需要 DNS 解析结果，离线预演无法确定路线。",
+  "routePreviewContextRequired": "前面的规则需要端口、进程等连接信息，本次预演无法确定路线。",
+  "routePreviewSelectionRequired": "当前节点选择不可用，请选择节点后重试。",
+  "routePreviewInvalidTarget": "请输入域名或 IP 地址，不包含网址协议或路径。",
+  "routePreviewRule": "命中规则",
+  "routePreviewDefault": "默认规则或当前出站模式",
+  "routePreviewPath": "选中链路",
+  "routePreviewHops": "计划经过的物理节点",
+  "processTrafficTitle": "应用流量排行",
+  "processTrafficScope": "仅统计经过 Hotaru 的当前内核会话流量，连接关闭后仍累计；内核重启后重新计数。无法识别进程的流量单列。",
+  "processTrafficByApp": "按应用",
+  "processTrafficByProcess": "按进程",
+  "processTrafficUnavailable": "当前内核未提供进程流量统计。",
+  "processTrafficEmpty": "暂无流量，请先通过 Hotaru 发起网络请求。",
+  "processTrafficFailed": "暂时无法读取统计，请刷新重试。",
+  "processTrafficUnattributed": "未归属流量",
+  "processTrafficOverflow": "部分进程无法单独列出，其流量计入未归属流量。",
+  "processTrafficSampled": "采样时间",
+  "singBoxReimportTitle": "请重新导入订阅或配置",
+  "singBoxReimportBody": "Hotaru 已切换到 sing-box 内核。原有文件和偏好设置已保留，旧配置不会自动启用。请重新导入订阅或配置后再连接；独立分流规则需重新选择节点。",
+  "geoUpdateFailedTip": "{resource} 更新失败，当前运行配置未改动。请检查网络和资源链接后重试。",
+  "connectionObservedPath": "实际连接链路",
+  "connectionThisDevice": "本机",
+  "connectionPathComplete": "已观测完整链路",
+  "connectionPathPartial": "仅显示已观测链路"
 }

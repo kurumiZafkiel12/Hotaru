@@ -451,19 +451,10 @@ class _ServiceResult extends StatelessWidget {
       child: ExpansionTile(
         leading: SizedBox.square(
           dimension: 32,
-          child: target.icon.isEmpty
-              ? Center(
-                  child: Text(
-                    target.label.substring(0, 1),
-                    style: AppTextStyle.title3
-                        .of(context, emphasized: true)
-                        .copyWith(color: context.colorScheme.primary),
-                  ),
-                )
-              : SvgPicture.asset(
-                  'assets/images/services/${target.icon}.svg',
-                  theme: SvgTheme(currentColor: context.colorScheme.primary),
-                ),
+          child: SvgPicture.asset(
+            'assets/images/services/${target.icon}.svg',
+            theme: SvgTheme(currentColor: context.colorScheme.primary),
+          ),
         ),
         trailing: IconButton(
           tooltip: l10n.retry,

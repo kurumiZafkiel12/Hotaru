@@ -59,6 +59,7 @@ void main() {
         final l10n = AppLocalizations.of(context);
         expect(find.text(l10n.serviceStatus), findsNothing);
         expect(find.text(l10n.auditTitle), findsOneWidget);
+        expect(find.text(l10n.nodeGlobeTitle), findsNothing);
         expect(find.text(l10n.webrtcLeakTitle), findsOneWidget);
         for (var attempt = 0; attempt < 8; attempt++) {
           if (tester.getCenter(find.text(l10n.resources)).dy < 880) break;

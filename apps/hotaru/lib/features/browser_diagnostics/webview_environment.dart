@@ -3,10 +3,14 @@ import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_pla
 import 'package:flutter_inappwebview_windows/flutter_inappwebview_windows.dart';
 
 Future<WindowsWebViewEnvironment> createLeakWebViewEnvironment(
-  String path,
-) async {
+  String path, {
+  String? browserArguments,
+}) async {
   final environment = await WindowsWebViewEnvironment.static().create(
-    settings: WebViewEnvironmentSettings(userDataFolder: path),
+    settings: WebViewEnvironmentSettings(
+      userDataFolder: path,
+      additionalBrowserArguments: browserArguments,
+    ),
   );
   final channel =
       'com.pichillilorenzo/flutter_webview_environment_${environment.id}';

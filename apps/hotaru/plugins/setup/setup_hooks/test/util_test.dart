@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:setup_hooks/src/error.dart';
+import 'package:setup_hooks/src/options.dart';
 import 'package:setup_hooks/src/util.dart';
 import 'package:test/test.dart';
 
@@ -46,6 +48,70 @@ void main() {
         directory.deleteSync(recursive: true);
       }
     });
+
+    test(
+      'sing-box manifests identify the verified bootstrap host and reject other versions',
+      () {
+        final directory = Directory.systemTemp.createTempSync(
+          'setup_host_manifest_',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final path = '${directory.path}/manifest.json';
+        const hash =
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        writeCoreManifest(
+          path: path,
+          coreSha256: hash,
+          engine: CoreBuildEngine.singBox,
+          coreVersion: '1.14.4',
+        );
+        expect(jsonDecode(File(path).readAsStringSync()), {
+          'coreSha256': hash,
+          'engine': 'sing-box',
+          'coreVersion': '1.14.4',
+          'hostProtocol': 'hotaru-bootstrap-v1',
+        });
+        expect(
+          () => writeCoreManifest(
+            path: path,
+            coreSha256: hash,
+            engine: CoreBuildEngine.singBox,
+            coreVersion: 'latest',
+          ),
+          throwsA(isA<BuildException>()),
+        );
+      },
+    );
+
+    test(
+      'provenance cannot replace the physical host digest or protocol identity',
+      () {
+        final directory = Directory.systemTemp.createTempSync(
+          'setup_host_provenance_',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final path = '${directory.path}/manifest.json';
+        const hash =
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        writeCoreManifest(
+          path: path,
+          coreSha256: hash,
+          engine: CoreBuildEngine.singBox,
+          coreVersion: '1.14.4',
+          provenance: {
+            'coreSha256': 'wrong',
+            'engine': 'wrong',
+            'hostProtocol': 'wrong',
+            'sourceCommit': 'source',
+          },
+        );
+        final manifest = jsonDecode(File(path).readAsStringSync());
+        expect(manifest['coreSha256'], hash);
+        expect(manifest['engine'], 'sing-box');
+        expect(manifest['hostProtocol'], 'hotaru-bootstrap-v1');
+        expect(manifest['sourceCommit'], 'source');
+      },
+    );
 
     test('replaces an existing manifest', () {
       final directory = Directory.systemTemp.createTempSync(

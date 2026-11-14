@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:hotaru/common/common.dart';
+import 'package:hotaru/core/controller.dart';
+import 'package:hotaru/providers/core.dart';
 import 'package:hotaru/enum/enum.dart';
 import 'package:hotaru/models/models.dart';
 import 'package:hotaru/providers/action.dart';
@@ -59,8 +61,8 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     }
     final resources = _readResources();
     final loads = <String, Future<FileInfo?>>{
-      for (final type in GeoResource.values)
-        type.updatingKey: _geoFileInfo(type),
+      for (final type in ref.read(coreHandlerProvider).supportedGeoResources)
+        type.updatingKey: _geoFileInfo(type, ref.read(coreHandlerProvider)),
       for (final provider in resources.ruleProviders)
         provider.updatingKey: provider.fileInfo,
       for (final script in resources.scripts)
@@ -166,7 +168,9 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     final resources = _resources;
     final (:iconSets, :ruleProviders, :scripts) = resources ?? _noResources;
     final resourceKeys = [
-      for (final geoResource in GeoResource.values) geoResource.updatingKey,
+      for (final geoResource
+          in ref.read(coreHandlerProvider).supportedGeoResources)
+        geoResource.updatingKey,
       for (final iconSet in iconSets) iconSet.updatingKey,
       for (final provider in ruleProviders) provider.updatingKey,
       for (final script in scripts) script.updatingKey,
@@ -214,7 +218,8 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
             generateSection(
               title: appLocalizations.geoResources,
               items: [
-                for (final geoResource in GeoResource.values)
+                for (final geoResource
+                    in ref.read(coreHandlerProvider).supportedGeoResources)
                   _GeoResourceItem(geoResource, preloaded: _fileInfos),
               ],
             ),
@@ -420,7 +425,9 @@ class _FileInfoBuilderState extends ConsumerState<_FileInfoBuilder> {
   }
 }
 
-Future<FileInfo?> _geoFileInfo(GeoResource type) async {
+Future<FileInfo?> _geoFileInfo(GeoResource type, CoreController core) async {
+  final owned = await core.geoResources?.filePath(type.name);
+  if (owned != null) return File(owned).getFileInfo();
   final fileName = switch (type) {
     GeoResource.MMDB => MMDB,
     GeoResource.ASN => ASN,
@@ -475,7 +482,7 @@ class _GeoResourceItem extends ConsumerWidget {
       source: type,
       updatingKey: type.updatingKey,
       preloaded: preloaded,
-      load: () => _geoFileInfo(type),
+      load: () => _geoFileInfo(type, ref.read(coreHandlerProvider)),
       builder: (context, fileInfo, pending) => _ResourceItem(
         title: type.name,
         url: url,

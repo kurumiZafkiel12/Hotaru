@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'launcher.dart';
 import 'model.dart';
-import 'transport.dart';
+import 'connection.dart';
 
 abstract interface class DesktopCoreLifecycleController {
   DesktopCoreState get state;
@@ -22,6 +21,23 @@ abstract interface class DesktopCoreLifecycleController {
   Future<DesktopCoreSession> waitUntilRunning(Duration timeout);
 }
 
+class DesktopCoreLaunchPlan {
+  final DesktopCoreConnection Function() transportFactory;
+  final DesktopCoreLauncherResolver launcherResolver;
+
+  const DesktopCoreLaunchPlan({
+    required this.transportFactory,
+    required this.launcherResolver,
+  });
+}
+
+final class _ConfigurationRecovered implements Exception {
+  final DesktopCoreFailure failure;
+  final DesktopCoreLaunchPlan rejectedPlan;
+
+  const _ConfigurationRecovered(this.failure, this.rejectedPlan);
+}
+
 enum _LifecycleTarget { running, restarted, stopped, closed }
 
 enum _LifecycleAchievement { runningExisting, runningFresh, idle, closed }
@@ -29,8 +45,9 @@ enum _LifecycleAchievement { runningExisting, runningFresh, idle, closed }
 final class _LifecycleIntent {
   final int revision;
   final _LifecycleTarget target;
+  final DesktopCoreLaunchPlan plan;
 
-  const _LifecycleIntent(this.revision, this.target);
+  const _LifecycleIntent(this.revision, this.target, this.plan);
 }
 
 final class _PendingLifecycleCommand {
@@ -124,12 +141,13 @@ final class _TransportConnectionWaiter {
 }
 
 final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
-  final DesktopCoreTransport Function() transportFactory;
-  final DesktopCoreLauncherResolver launcherResolver;
+  DesktopCoreLaunchPlan _activePlan;
+  late DesktopCoreLaunchPlan _committedPlan;
+  DesktopCoreLaunchPlan? _recoveryPlan;
   final DesktopCoreTimeouts timeouts;
   final String Function() sessionIdFactory;
   final bool verifyPeerPid;
-  final DesktopCoreTransportBinding _transport;
+  final DesktopCoreConnectionBinding _transport;
 
   final StreamController<DesktopCoreState> _stateController =
       StreamController<DesktopCoreState>.broadcast();
@@ -146,42 +164,76 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
   CoreProcessLease? _unconfirmedLease;
   Future<CoreLifecycleResult>? _closeResult;
   int _revision = 0;
-  _LifecycleIntent _desired = const _LifecycleIntent(
-    0,
-    _LifecycleTarget.stopped,
-  );
+  late _LifecycleIntent _desired;
   Completer<void> _intentChanged = Completer<void>();
   bool _terminalRequested = false;
 
   factory DesktopCoreLifecycle({
-    required DesktopCoreTransport Function() transportFactory,
+    required DesktopCoreConnection Function() transportFactory,
     required DesktopCoreLauncherResolver launcherResolver,
     DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(),
     String Function()? sessionIdFactory,
     bool verifyPeerPid = false,
   }) {
-    return DesktopCoreLifecycle._(
+    return DesktopCoreLifecycle.withConnection(
       transportFactory: transportFactory,
       launcherResolver: launcherResolver,
       timeouts: timeouts,
       sessionIdFactory: sessionIdFactory ?? createCoreSessionId,
       verifyPeerPid: verifyPeerPid,
-      transport: DesktopCoreTransportBinding(transportFactory()),
+      connection: DesktopCoreConnectionBinding(transportFactory()),
     );
   }
 
+  factory DesktopCoreLifecycle.withPlan({
+    required DesktopCoreLaunchPlan plan,
+    DesktopCoreTimeouts timeouts = const DesktopCoreTimeouts(),
+    String Function()? sessionIdFactory,
+    bool verifyPeerPid = false,
+  }) => DesktopCoreLifecycle._(
+    plan: plan,
+    timeouts: timeouts,
+    sessionIdFactory: sessionIdFactory ?? createCoreSessionId,
+    verifyPeerPid: verifyPeerPid,
+    connection: DesktopCoreConnectionBinding(plan.transportFactory()),
+  );
+
+  factory DesktopCoreLifecycle.withConnection({
+    required DesktopCoreConnection Function() transportFactory,
+    required DesktopCoreLauncherResolver launcherResolver,
+    required DesktopCoreTimeouts timeouts,
+    required String Function() sessionIdFactory,
+    required bool verifyPeerPid,
+    required DesktopCoreConnectionBinding connection,
+  }) => DesktopCoreLifecycle._(
+    plan: DesktopCoreLaunchPlan(
+      transportFactory: transportFactory,
+      launcherResolver: launcherResolver,
+    ),
+    timeouts: timeouts,
+    sessionIdFactory: sessionIdFactory,
+    verifyPeerPid: verifyPeerPid,
+    connection: connection,
+  );
+
   DesktopCoreLifecycle._({
-    required this.transportFactory,
-    required this.launcherResolver,
+    required DesktopCoreLaunchPlan plan,
     required this.timeouts,
     required this.sessionIdFactory,
     required this.verifyPeerPid,
-    required DesktopCoreTransportBinding transport,
-  }) : _transport = transport {
+    required DesktopCoreConnectionBinding connection,
+  }) : _transport = connection,
+       _activePlan = plan {
+    _committedPlan = _activePlan;
+    _desired = _LifecycleIntent(0, _LifecycleTarget.stopped, _committedPlan);
     _transportSubscription = _transport.events.listen(_handleTransportEvent);
   }
 
-  DesktopCoreTransport get transport => _transport;
+  DesktopCoreLaunchPlan get activePlan => _activePlan;
+  DesktopCoreLaunchPlan get committedPlan => _committedPlan;
+
+  Future<CoreLifecycleResult> applyConfiguration(DesktopCoreLaunchPlan plan) =>
+      _submit(_LifecycleTarget.restarted, plan: plan);
 
   @override
   DesktopCoreState get state => _state;
@@ -212,7 +264,10 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     return result;
   }
 
-  Future<CoreLifecycleResult> _submit(_LifecycleTarget target) {
+  Future<CoreLifecycleResult> _submit(
+    _LifecycleTarget target, {
+    DesktopCoreLaunchPlan? plan,
+  }) {
     if (_terminalRequested) {
       return Future.error(
         DesktopCoreFailure(
@@ -225,7 +280,15 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     if (target == _LifecycleTarget.closed) {
       _terminalRequested = true;
     }
-    final intent = _LifecycleIntent(++_revision, target);
+    if (target == _LifecycleTarget.stopped ||
+        target == _LifecycleTarget.closed) {
+      _recoveryPlan = null;
+    }
+    final intent = _LifecycleIntent(
+      ++_revision,
+      target,
+      plan ?? _committedPlan,
+    );
     final command = _PendingLifecycleCommand(intent);
     _pending.add(command);
     _desired = intent;
@@ -264,11 +327,20 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
       try {
         final achievement = await _reconcile(intent);
         final settled = _desired;
-        if (!_satisfies(achievement, settled.target)) {
+        if (!_satisfies(achievement, settled.target) ||
+            (_wantsRunning && !identical(_activePlan, settled.plan))) {
           continue;
         }
         _completeCommands(settled);
       } catch (error, stackTrace) {
+        if (error is _ConfigurationRecovered) {
+          _failCommands(
+            error.failure.revision,
+            error.failure,
+            rejectedPlan: error.rejectedPlan,
+          );
+          continue;
+        }
         final failure = error is DesktopCoreFailure
             ? error
             : _failure(
@@ -301,23 +373,17 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     }
     switch (intent.target) {
       case _LifecycleTarget.running:
-        final running = _session;
-        if (running != null) {
-          if (_state is DesktopCoreRunning) {
-            return _LifecycleAchievement.runningExisting;
-          }
-          await _stopSession(
-            running,
-            intent.revision,
-            allowUnconfirmedExit: _terminalRequested,
-          );
-          if (!_wantsRunning) {
-            return _abandonedStart();
-          }
-        }
-        return _startForIntent(intent);
       case _LifecycleTarget.restarted:
         final session = _session;
+        if (session != null &&
+            _state is DesktopCoreRunning &&
+            intent.target == _LifecycleTarget.running &&
+            identical(_activePlan, intent.plan)) {
+          return _LifecycleAchievement.runningExisting;
+        }
+        if (session != null && !identical(_committedPlan, intent.plan)) {
+          _recoveryPlan ??= _committedPlan;
+        }
         if (session != null) {
           await _stopSession(
             session,
@@ -325,10 +391,44 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
             allowUnconfirmedExit: _terminalRequested,
           );
         }
-        if (!_wantsRunning) {
-          return _abandonedStart();
+        if (!_wantsPlan(intent.plan)) return _abandonedStart();
+        try {
+          if (!identical(_activePlan, intent.plan)) {
+            await _selectPlan(intent.plan);
+          }
+          return await _startForIntent(intent);
+        } catch (error) {
+          final previous = _recoveryPlan;
+          if (previous == null ||
+              identical(previous, intent.plan) ||
+              !_wantsPlan(intent.plan)) {
+            rethrow;
+          }
+          final unconfirmed = _unconfirmedLease;
+          if (unconfirmed != null) {
+            await _stopUnconfirmedLease(unconfirmed, allowFailure: false);
+          }
+          if (!_wantsPlan(intent.plan)) return _abandonedStart();
+          final revision = _desired.revision;
+          final restored = _LifecycleIntent(
+            revision,
+            _LifecycleTarget.restarted,
+            previous,
+          );
+          _desired = restored;
+          await _selectPlan(previous);
+          if (!await _startSession(restored)) return _abandonedStart();
+          _recoveryPlan = null;
+          throw _ConfigurationRecovered(
+            DesktopCoreFailure(
+              code: 'configuration_rejected_previous_restored',
+              phase: DesktopCorePhase.running,
+              revision: revision,
+              cause: error is DesktopCoreFailure ? error.code : 'start_failed',
+            ),
+            intent.plan,
+          );
         }
-        return _startForIntent(intent);
       case _LifecycleTarget.stopped:
         final session = _session;
         if (session != null) {
@@ -365,8 +465,17 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
         _desired.target == _LifecycleTarget.restarted;
   }
 
+  Future<void> _selectPlan(DesktopCoreLaunchPlan plan) async {
+    if (identical(_activePlan, plan)) return;
+    _activePlan = plan;
+    await _transport.replace(plan.transportFactory());
+  }
+
+  bool _wantsPlan(DesktopCoreLaunchPlan plan) =>
+      _wantsRunning && identical(_desired.plan, plan);
+
   Future<_LifecycleAchievement> _startForIntent(_LifecycleIntent intent) async {
-    if (await _startSession(intent.revision)) {
+    if (await _startSession(intent)) {
       return _LifecycleAchievement.runningFresh;
     }
     return _abandonedStart();
@@ -379,7 +488,8 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     return _LifecycleAchievement.idle;
   }
 
-  Future<bool> _startSession(int revision) async {
+  Future<bool> _startSession(_LifecycleIntent intent) async {
+    final revision = intent.revision;
     final sessionId = sessionIdFactory();
     _publish(DesktopCoreStarting(revision: revision, sessionId: sessionId));
     CoreProcessLease? lease;
@@ -396,11 +506,12 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     }
 
     try {
-      if (!await _ensureTransportReady()) {
+      if (!await _ensureTransportReady(intent.plan) ||
+          !_wantsPlan(intent.plan)) {
         return false;
       }
-      final launcher = await launcherResolver.resolve();
-      if (!_wantsRunning) {
+      final launcher = await _activePlan.launcherResolver.resolve();
+      if (!_wantsPlan(intent.plan)) {
         return false;
       }
       connectionWaiter = _TransportConnectionWaiter(
@@ -420,14 +531,16 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
           lease: lease,
         );
       }
-      if (!_wantsRunning) {
+      if (!_wantsPlan(intent.plan)) {
         await releaseLease();
         return false;
       }
+      _transport.observeProcess(lease);
       final connected = await _waitForConnectionWhileWanted(
         connectionWaiter.future,
+        intent.plan,
       );
-      if (connected == null || !_wantsRunning) {
+      if (connected == null || !_wantsPlan(intent.plan)) {
         await releaseLease();
         return false;
       }
@@ -452,6 +565,8 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
       _session = session;
       _sessionDisconnect = _SessionDisconnect(session);
       leaseReleased = true;
+      _committedPlan = intent.plan;
+      _recoveryPlan = null;
       _publish(DesktopCoreRunning(session));
       return true;
     } catch (error, stackTrace) {
@@ -478,19 +593,19 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     }
   }
 
-  Future<bool> _ensureTransportReady() async {
+  Future<bool> _ensureTransportReady(DesktopCoreLaunchPlan plan) async {
     if (_transport.state == DesktopTransportState.failed ||
         _transport.state == DesktopTransportState.closed ||
         (_transport.state == DesktopTransportState.connected &&
             _session == null)) {
-      await _transport.replace(transportFactory());
+      await _transport.replace(_activePlan.transportFactory());
     }
     if (_transport.state == DesktopTransportState.ready ||
         _transport.state == DesktopTransportState.connected) {
       return true;
     }
     final opening = _transport.open().timeout(timeouts.ready);
-    while (_wantsRunning) {
+    while (_wantsPlan(plan)) {
       final changed = _intentChanged.future;
       final result = await Future.any<Object?>([
         opening.then<Object?>((_) => true),
@@ -505,8 +620,9 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
 
   Future<TransportConnected?> _waitForConnectionWhileWanted(
     Future<TransportConnected> connection,
+    DesktopCoreLaunchPlan plan,
   ) async {
-    while (_wantsRunning) {
+    while (_wantsPlan(plan)) {
       final changed = _intentChanged.future;
       final result = await Future.any<Object?>([
         connection,
@@ -606,7 +722,7 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
       if (!disconnected.isCompleted) {
         _clearSession(session);
         if (!_terminalRequested) {
-          await _transport.replace(transportFactory());
+          await _transport.replace(_activePlan.transportFactory());
         }
         return;
       }
@@ -668,7 +784,8 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     for (final command in commands) {
       final outcome = command.intent.revision == settled.revision
           ? CoreLifecycleOutcome.applied
-          : _targetsCoalesce(command.intent.target, settled.target)
+          : identical(command.intent.plan, settled.plan) &&
+                _targetsCoalesce(command.intent.target, settled.target)
           ? CoreLifecycleOutcome.coalesced
           : CoreLifecycleOutcome.superseded;
       command.completer.complete(
@@ -691,13 +808,28 @@ final class DesktopCoreLifecycle implements DesktopCoreLifecycleController {
     return (firstRuns && settledRuns) || first == settled;
   }
 
-  void _failCommands(int revision, DesktopCoreFailure failure) {
+  void _failCommands(
+    int revision,
+    DesktopCoreFailure failure, {
+    DesktopCoreLaunchPlan? rejectedPlan,
+  }) {
     final commands = _pending
         .where((command) => command.intent.revision <= revision)
         .toList(growable: false);
     _pending.removeWhere((command) => command.intent.revision <= revision);
     for (final command in commands) {
-      command.completer.completeError(failure, failure.stackTrace);
+      if (rejectedPlan != null &&
+          !identical(command.intent.plan, rejectedPlan)) {
+        command.completer.complete(
+          CoreLifecycleResult(
+            revision: command.intent.revision,
+            outcome: CoreLifecycleOutcome.superseded,
+            session: _session,
+          ),
+        );
+      } else {
+        command.completer.completeError(failure, failure.stackTrace);
+      }
     }
   }
 

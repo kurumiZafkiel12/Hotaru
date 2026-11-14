@@ -1145,8 +1145,140 @@
   "browserRtcMismatch": "WebRTC exposed a public address different from the page egress in the same address family. Review UDP and proxy settings.",
   "browserRtcMatch": "This WebRTC public address matches the page egress. Other browsers may use different network paths.",
   "browserLeakUnavailable": "Could not run the browser test. Check BrowserLeaks connectivity and the Microsoft Edge WebView2 runtime installation.",
-  "browserRemoteIp": "Page egress IP",
+  "browserRemoteIp": "Your remote IP",
   "browserRtcPublicIp": "WebRTC public IP",
-  "browserLocalIp": "Local IP",
-  "browserLocalNotExposed": "No identifiable local address exposed"
+  "browserLocalIp": "Local IP address",
+  "browserLocalNotExposed": "No identifiable local address exposed",
+  "embeddedToolScope": "Page requests use Hotaru’s current proxy. The website performs the test.",
+  "embeddedToolNeedCore": "Connect Hotaru to open this tool.",
+  "embeddedToolUnavailable": "The page could not load. Check the connection and WebView2, then retry.",
+  "embeddedToolReload": "Reload page",
+  "ipToolsTitle": "IP diagnostics",
+  "ipToolsScope": "Choose a site to view the current connection’s IP, network and reputation.",
+  "ipToolsDetails": "Location and network details",
+  "ipToolsReputation": "IP reputation and risk",
+  "ipToolsPrivacy": "IP and browser privacy",
+  "browserIpv4": "IPv4 address",
+  "browserIpv6": "IPv6 address",
+  "browserCountry": "Country",
+  "browserRegion": "Region",
+  "browserCity": "City",
+  "browserOrganization": "Organization",
+  "browserPublicIp": "Public IP address",
+  "browserSupport": "WebRTC support",
+  "browserNoLeak": "No leak detected in this test",
+  "browserLeakDetected": "Leak detected",
+  "browserPotentialLeak": "Potential leak",
+  "browserDnsServers": "DNS servers",
+  "browserSessionDescription": "Session description",
+  "browserMediaDevices": "Media devices",
+  "browserPermissions": "Permissions",
+  "ipFactsOrigin": "IP origin",
+  "ipFactsAttribute": "IP type",
+  "ipFactsQuality": "IP quality",
+  "ipFactsNative": "Native",
+  "ipFactsBroadcast": "Broadcast",
+  "ipFactsLow": "Low risk",
+  "ipFactsMedium": "Medium",
+  "ipFactsElevated": "Elevated",
+  "ipFactsHigh": "High risk",
+  "ipFactsScore": "{level} (Scamalytics {score})",
+  "ipFactsOriginEvidence": "Location country: {geo}; IP block registration country: {registered} (RDAP)",
+  "ipFactsScope": "IP origin compares the registered IP block country with its location. IP type comes from iplocate; IP quality uses only Scamalytics scores. Missing data is shown as unknown.",
+  "ipFactsNoData": "No usable data provided",
+  "networkLatencyRating": "Latency rating",
+  "profileTrafficTotal": "Total {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "Upload and download while this profile was active, accumulated since import",
+  "configurationReviewTitle": "Configuration conversion review",
+  "configurationReviewIntro": "Review the differences before enabling this configuration. The source file stays unchanged.",
+  "configurationReviewBlocked": "Some options could not be converted. This configuration will not be enabled; the current connection and source file stay unchanged.",
+  "configurationReviewSummary": "Blocking: {errors} · Changes: {warnings}",
+  "configurationReviewApply": "Enable configuration",
+  "configurationReviewLocations": "Technical locations",
+  "configurationReviewCount": "Items: {count}",
+  "configurationReviewMore": "Additional: {count}",
+  "configurationReviewOwned": "Hotaru controls these settings or local cache paths.",
+  "configurationReviewMetadata": "Descriptive metadata is ignored and does not change routing.",
+  "configurationReviewIpRules": "IP rules use the new resolver. Multiple answers or failed lookups can produce different routing results.",
+  "configurationReviewGeo": "GeoIP uses the selected DAT database; region matches can differ from the original MMDB.",
+  "configurationReviewHosts": "Hosts behavior is not fully aligned. Custom or system Hosts may behave differently.",
+  "configurationReviewLoadBalance": "Load balancing becomes manual selection; connections are no longer distributed.",
+  "configurationReviewFallback": "Fallback becomes URL-test selection; selection timing can differ.",
+  "configurationReviewHealth": "The provider’s independent health checks have not been migrated. URL-test groups still use their own settings.",
+  "configurationReviewDuplicates": "Duplicate node references within a group are merged.",
+  "configurationReviewUnsupported": "This option could not be converted. See its technical location.",
+  "configurationReviewChanged": "This option changes behavior during conversion. See its technical location.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "The virtual adapter will use sing-box’s system network stack, which differs from the original configuration.",
+  "configurationReviewDial": "The new kernel uses its own connection scheduling and delay measurements; results may differ from the previous version.",
+  "routePreviewTitle": "Route preview",
+  "routePreviewScope": "Preview the active rules and selected path without DNS lookup or a connection to the target. Results describe a routing plan, not an observed connection.",
+  "routePreviewTarget": "Domain or IP address",
+  "routePreviewAction": "Preview",
+  "routePreviewRunning": "Checking…",
+  "routePreviewUnavailable": "Start the sing-box engine and apply a profile to use route preview.",
+  "routePreviewFailed": "The active route could not be read consistently. Check the connection and try again.",
+  "routePreviewResolved": "Routing plan found",
+  "routePreviewAddressRequired": "An earlier rule needs a DNS answer. Offline preview cannot determine the route.",
+  "routePreviewContextRequired": "An earlier rule needs connection details that this preview does not have.",
+  "routePreviewSelectionRequired": "The active selection is unavailable. Choose a node and retry.",
+  "routePreviewInvalidTarget": "Enter a domain or IP address, without a URL scheme or path.",
+  "routePreviewRule": "Matched rule",
+  "routePreviewDefault": "Default route or current outbound mode",
+  "routePreviewPath": "Selected path",
+  "routePreviewHops": "Planned physical hops",
+  "processTrafficTitle": "Application traffic ranking",
+  "processTrafficScope": "Counts only traffic passing through Hotaru in this kernel session, including closed connections. Restarting the kernel resets these counters. Unidentified traffic is listed separately.",
+  "processTrafficByApp": "By application",
+  "processTrafficByProcess": "By process",
+  "processTrafficUnavailable": "The current kernel does not provide process traffic counters.",
+  "processTrafficEmpty": "No traffic yet. Make a request through Hotaru to start counting.",
+  "processTrafficFailed": "Could not read current counters. Refresh to try again.",
+  "processTrafficUnattributed": "Unattributed traffic",
+  "processTrafficOverflow": "Some processes could not be listed individually; their bytes are included in unattributed traffic.",
+  "processTrafficSampled": "Sampled",
+  "singBoxReimportTitle": "Reimport subscriptions or configurations",
+  "singBoxReimportBody": "Hotaru now uses sing-box. Your files and preferences have been kept; the old configuration will not start automatically. Import your subscription or configuration again before connecting. Select nodes again for independent routing rules.",
+  "geoUpdateFailedTip": "Could not update {resource}. The running configuration is unchanged. Check the network and resource URL, then try again.",
+  "@geoUpdateFailedTip": {
+    "placeholders": {
+      "resource": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionObservedPath": "Observed connection path",
+  "connectionThisDevice": "This device",
+  "connectionPathComplete": "Full path observed",
+  "connectionPathPartial": "Showing observed hops only"
 }

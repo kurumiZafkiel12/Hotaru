@@ -623,26 +623,19 @@ class _ServiceBadge extends StatelessWidget {
       child: SizedBox.square(
         dimension: size,
         child: Center(
-          child: target.icon.isEmpty
-              ? Text(
-                  target.connectivityLabel.substring(0, 1),
-                  style: AppTextStyle.title3
-                      .of(context, emphasized: true)
-                      .copyWith(color: ink ?? colorScheme.onSurfaceVariant),
-                )
-              : SvgPicture.asset(
-                  'assets/images/services/${target.icon}.svg',
-                  width: size * _glyphShare,
-                  height: size * _glyphShare,
-                  excludeFromSemantics: true,
-                  theme: SvgTheme(
-                    currentColor:
-                        ink ??
-                        (enabled
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.onSurfaceVariant.opacity38),
-                  ),
-                ),
+          child: SvgPicture.asset(
+            'assets/images/services/${target.icon}.svg',
+            width: size * _glyphShare,
+            height: size * _glyphShare,
+            excludeFromSemantics: true,
+            theme: SvgTheme(
+              currentColor:
+                  ink ??
+                  (enabled
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.onSurfaceVariant.opacity38),
+            ),
+          ),
         ),
       ),
     );

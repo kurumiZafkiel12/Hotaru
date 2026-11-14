@@ -20,10 +20,13 @@ try {
     Copy-Item $report 'native-browser/windows/result.json'
     Write-Host "::notice title=Native Windows BrowserLeaks::$((Get-Content -Raw $report).Trim())"
     if ($result.source_sha -ne $env:GITHUB_SHA -or -not $result.safe_mode) { throw 'Browser harness source or safe-mode mismatch' }
-    $dns = $result.results | Where-Object kind -eq 'dns'
-    $rtc = $result.results | Where-Object kind -eq 'webrtc'
-    if (-not $dns.completed -or $dns.resolver_count -lt 1) { throw 'Actual DNS resolver detection did not complete' }
-    if (-not $rtc.completed -or -not $rtc.rtc_supported -or $rtc.remote_count -lt 1) { throw 'Actual WebRTC detection did not complete' }
+    foreach ($kind in @('dns', 'webrtc')) {
+        $sample = $result.results | Where-Object kind -eq $kind
+        if ($null -eq $sample) { throw "Visible tool sample missing: $kind" }
+        foreach ($field in @('visible_webview', 'forced_proxy_receipt', 'translated_fields', 'visible_cleanup')) {
+            if ($sample.$field -ne $true) { throw "Visible $kind tool proof missing: $field" }
+        }
+    }
 } finally {
     $env:HOTARU_NATIVE_BROWSER_REPORT = $previousReport
     if ($null -ne $ownedProcess -and -not $ownedProcess.HasExited) { Stop-Process -Id $ownedProcess.Id }

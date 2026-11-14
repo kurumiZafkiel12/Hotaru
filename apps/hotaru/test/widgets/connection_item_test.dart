@@ -39,6 +39,50 @@ TrackerInfo _tracker({
 }
 
 void main() {
+  testWidgets(
+    'observed path detail distinguishes complete and partial evidence',
+    (tester) async {
+      for (final status in ['complete', 'partial']) {
+        await tester.pumpWidget(
+          TestApp(
+            homeBuilder: (child) => Scaffold(body: child),
+            child: SheetProvider(
+              type: SheetType.page,
+              child: TrackerInfoDetailView(
+                trackerInfo: _tracker().copyWith(
+                  observedPath: ['relay', 'exit'],
+                  pathInbound: 'mixed',
+                  pathObservationStatus: status,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        final context = tester.element(find.byType(TrackerInfoDetailView));
+        final l10n = context.appLocalizations;
+        expect(find.text(l10n.connectionObservedPath), findsOneWidget);
+        expect(
+          find.text(
+            status == 'complete'
+                ? l10n.connectionPathComplete
+                : l10n.connectionPathPartial,
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining(
+            status == 'complete'
+                ? 'mixed → relay → exit'
+                : 'mixed → … → relay → exit',
+          ),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+
   testWidgets('TrackerInfoDetailView renders formatted connection fields', (
     tester,
   ) async {

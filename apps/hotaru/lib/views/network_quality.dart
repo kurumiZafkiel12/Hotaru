@@ -6,20 +6,27 @@ import 'package:hotaru/providers/providers.dart';
 import 'package:hotaru/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
-Future<void> showNetworkQualitySheet(BuildContext context) {
+Future<void> showNetworkQualitySheet(
+  BuildContext context, {
+  bool? latencyName,
+}) {
   if (isSheetPage(context)) {
-    return Navigator.of(
-      context,
-    ).push(PagedSheetRoute(builder: (_) => const NetworkQualityView()));
+    return Navigator.of(context).push(
+      PagedSheetRoute(
+        builder: (_) => NetworkQualityView(latencyName: latencyName),
+      ),
+    );
   }
   return showSheet<void>(
     context: context,
-    builder: (_) => const NetworkQualityView(),
+    builder: (_) => NetworkQualityView(latencyName: latencyName),
   );
 }
 
 class NetworkQualityView extends ConsumerStatefulWidget {
-  const NetworkQualityView({super.key});
+  const NetworkQualityView({super.key, this.latencyName});
+
+  final bool? latencyName;
 
   @override
   ConsumerState<NetworkQualityView> createState() => _NetworkQualityViewState();
@@ -60,7 +67,9 @@ class _NetworkQualityViewState extends ConsumerState<NetworkQualityView> {
     String milliseconds(double? value) =>
         value == null ? l10n.unknown : '${value.toStringAsFixed(1)} ms';
     return CommonScaffold(
-      title: l10n.statusNetworkQuality,
+      title: (widget.latencyName ?? system.isWindows)
+          ? l10n.networkLatencyRating
+          : l10n.statusNetworkQuality,
       body: ListView(
         controller: sheetScrollController(context),
         padding: EdgeInsets.fromLTRB(

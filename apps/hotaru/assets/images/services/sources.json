@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "icons": [
+    {
+      "icon": "copilot",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/githubcopilot.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/githubcopilot.svg"
+    },
+    {
+      "icon": "deepseek",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/deepseek.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/deepseek.svg"
+    },
+    {
+      "icon": "kimi",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/kimi.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/kimi.svg"
+    },
+    {
+      "icon": "hbomax",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/hbomax.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/hbomax.svg"
+    },
+    {
+      "icon": "paramount",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/paramountplus.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/paramountplus.svg"
+    },
+    {
+      "icon": "dazn",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/dazn.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/dazn.svg"
+    },
+    {
+      "icon": "twitch",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/twitch.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/twitch.svg"
+    },
+    {
+      "icon": "instagram",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/instagram.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/instagram.svg"
+    },
+    {
+      "icon": "whatsapp",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/whatsapp.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/whatsapp.svg"
+    },
+    {
+      "icon": "line",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/line.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/line.svg"
+    },
+    {
+      "icon": "wechat",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/wechat.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/wechat.svg"
+    },
+    {
+      "icon": "docker",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/docker.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/docker.svg"
+    },
+    {
+      "icon": "huggingface",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/huggingface.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/huggingface.svg"
+    },
+    {
+      "icon": "notion",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/notion.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/notion.svg"
+    },
+    {
+      "icon": "psn",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/playstation.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/playstation.svg"
+    },
+    {
+      "icon": "googleplay",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/googleplay.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/googleplay.svg"
+    },
+    {
+      "icon": "appletv",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/appletv.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/appletv.svg"
+    },
+    {
+      "icon": "applemusic",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/applemusic.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/applemusic.svg"
+    },
+    {
+      "icon": "youtubemusic",
+      "repository": "simple-icons/simple-icons",
+      "revision": "e451c581fccb01b56f47e1a77292bdd1fd95b1a4",
+      "path": "icons/youtubemusic.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/e451c581fccb01b56f47e1a77292bdd1fd95b1a4/icons/youtubemusic.svg"
+    },
+    {
+      "icon": "hulu",
+      "repository": "simple-icons/simple-icons",
+      "revision": "2001d94987807cc26307e5972f6566a1d4a60d12",
+      "path": "icons/hulu.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/2001d94987807cc26307e5972f6566a1d4a60d12/icons/hulu.svg"
+    },
+    {
+      "icon": "nintendo",
+      "repository": "simple-icons/simple-icons",
+      "revision": "2001d94987807cc26307e5972f6566a1d4a60d12",
+      "path": "icons/nintendo.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/simple-icons/simple-icons/blob/2001d94987807cc26307e5972f6566a1d4a60d12/icons/nintendo.svg"
+    },
+    {
+      "icon": "midjourney",
+      "repository": "gilbarbara/logos",
+      "revision": "22f03ffc4a652309d1fea4ade70f46e9e1d6602c",
+      "path": "logos/midjourney.svg",
+      "license": "CC0-1.0",
+      "modified": true,
+      "source": "https://github.com/gilbarbara/logos/blob/22f03ffc4a652309d1fea4ade70f46e9e1d6602c/logos/midjourney.svg"
+    },
+    {
+      "icon": "office",
+      "repository": "gilbarbara/logos",
+      "revision": "22f03ffc4a652309d1fea4ade70f46e9e1d6602c",
+      "path": "logos/microsoft-onedrive.svg",
+      "license": "CC0-1.0",
+      "modified": false,
+      "source": "https://github.com/gilbarbara/logos/blob/22f03ffc4a652309d1fea4ade70f46e9e1d6602c/logos/microsoft-onedrive.svg"
+    },
+    {
+      "icon": "doubao",
+      "repository": "lobehub/lobe-icons",
+      "revision": "ea434b96e75813517b377825e01c0df61dee8836",
+      "path": "packages/static-svg/icons/doubao-color.svg",
+      "license": "MIT",
+      "modified": false,
+      "source": "https://github.com/lobehub/lobe-icons/blob/ea434b96e75813517b377825e01c0df61dee8836/packages/static-svg/icons/doubao-color.svg"
+    },
+    {
+      "icon": "bbc",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/bbc_iplayer.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/bbc_iplayer.svg"
+    },
+    {
+      "icon": "abema",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/abema_tv.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/abema_tv.svg"
+    },
+    {
+      "icon": "bahamut",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/bahamut.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/bahamut.svg"
+    },
+    {
+      "icon": "qqmusic",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/qq_music.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/qq_music.svg"
+    },
+    {
+      "icon": "peacock",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/peacock.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/peacock.svg"
+    },
+    {
+      "icon": "unext",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/u_next.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/u_next.svg"
+    },
+    {
+      "icon": "fod",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/fod.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/fod.svg"
+    },
+    {
+      "icon": "viu",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/viu.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/viu.svg"
+    },
+    {
+      "icon": "tver",
+      "repository": "Arcticons-Team/Arcticons",
+      "revision": "08d1f6aa679f93f8d2647b21d3c440a78be05850",
+      "path": "icons/white/tver.svg",
+      "license": "CC-BY-SA-4.0",
+      "modified": true,
+      "source": "https://github.com/Arcticons-Team/Arcticons/blob/08d1f6aa679f93f8d2647b21d3c440a78be05850/icons/white/tver.svg"
+    },
+    {
+      "icon": "disneyplus",
+      "repository": "appshubcc/Bettbox",
+      "revision": "1fb8806fdf8275a3694cda31eec7ed2062330aee",
+      "path": "assets/images/platforms/disney.svg",
+      "license": "GPL-3.0",
+      "modified": false,
+      "source": "https://github.com/appshubcc/Bettbox/blob/1fb8806fdf8275a3694cda31eec7ed2062330aee/assets/images/platforms/disney.svg"
+    }
+  ]
+}

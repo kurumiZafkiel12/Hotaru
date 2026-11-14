@@ -78,6 +78,7 @@ void main() {
   }) {
     container = ProviderContainer(
       overrides: [
+        profileTrafficProvider.overrideWith((_, _) => Stream.value(null)),
         profilesProvider.overrideWith(() => TestProfiles(profiles)),
         viewSizeProvider.overrideWithBuild((_, _) => const Size(1200, 1000)),
         ...overrides,

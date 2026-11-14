@@ -1145,8 +1145,133 @@
   "browserRtcMismatch": "WebRTC 공개 주소가 같은 주소 체계의 페이지 출구와 다릅니다. UDP 및 프록시 설정을 확인하세요.",
   "browserRtcMatch": "이번 WebRTC 공개 주소는 페이지 출구와 같습니다. 다른 브라우저의 경로는 검사하지 않았습니다.",
   "browserLeakUnavailable": "웹 검사를 실행할 수 없습니다. BrowserLeaks 연결과 Microsoft Edge WebView2 런타임 설치를 확인하세요.",
-  "browserRemoteIp": "페이지 출구 IP",
+  "browserRemoteIp": "사이트에 표시되는 IP",
   "browserRtcPublicIp": "WebRTC 공개 IP",
-  "browserLocalIp": "로컬 IP",
-  "browserLocalNotExposed": "식별 가능한 로컬 주소가 노출되지 않음"
+  "browserLocalIp": "로컬 IP 주소",
+  "browserLocalNotExposed": "식별 가능한 로컬 주소가 노출되지 않음",
+  "embeddedToolScope": "페이지는 Hotaru의 현재 프록시를 사용하며 웹사이트에서 검사합니다.",
+  "embeddedToolNeedCore": "이 도구를 열려면 Hotaru에 연결하세요.",
+  "embeddedToolUnavailable": "페이지를 불러올 수 없습니다. 연결과 WebView2를 확인한 후 다시 시도하세요.",
+  "embeddedToolReload": "페이지 새로고침",
+  "ipToolsTitle": "IP 진단",
+  "ipToolsScope": "현재 연결의 IP, 네트워크 및 평판을 확인할 사이트를 선택하세요.",
+  "ipToolsDetails": "위치 및 네트워크 정보",
+  "ipToolsReputation": "IP 평판 및 위험",
+  "ipToolsPrivacy": "IP 및 브라우저 개인정보",
+  "browserIpv4": "IPv4 주소",
+  "browserIpv6": "IPv6 주소",
+  "browserCountry": "국가",
+  "browserRegion": "지역",
+  "browserCity": "도시",
+  "browserOrganization": "조직",
+  "browserPublicIp": "공인 IP 주소",
+  "browserSupport": "WebRTC 지원",
+  "browserNoLeak": "이번 검사에서 유출이 발견되지 않음",
+  "browserLeakDetected": "유출 감지",
+  "browserPotentialLeak": "유출 가능성",
+  "browserDnsServers": "DNS 서버",
+  "browserSessionDescription": "세션 설명",
+  "browserMediaDevices": "미디어 장치",
+  "browserPermissions": "권한",
+  "ipFactsOrigin": "IP 출처",
+  "ipFactsAttribute": "IP 유형",
+  "ipFactsQuality": "IP 품질",
+  "ipFactsNative": "원생",
+  "ipFactsBroadcast": "브로드캐스트",
+  "ipFactsLow": "낮은 위험",
+  "ipFactsMedium": "보통",
+  "ipFactsElevated": "다소 높음",
+  "ipFactsHigh": "높은 위험",
+  "ipFactsScore": "{level} (Scamalytics {score}점)",
+  "ipFactsOriginEvidence": "위치 국가: {geo}; IP 블록 등록 국가: {registered} (RDAP)",
+  "ipFactsScope": "IP 출처는 IP 블록 등록 국가와 위치 국가를 비교합니다. 유형은 iplocate, 품질은 Scamalytics 점수만 사용합니다. 데이터가 없으면 알 수 없음으로 표시합니다.",
+  "ipFactsNoData": "유효한 데이터 없음",
+  "networkLatencyRating": "지연 평가",
+  "profileTrafficTotal": "누적 {traffic}",
+  "@profileTrafficTotal": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTrafficSinceImport": "가져온 이후 이 프로필이 활성화된 동안의 업로드 및 다운로드 합계",
+  "configurationReviewTitle": "설정 변환 검토",
+  "configurationReviewIntro": "설정을 활성화하기 전에 차이점을 확인하세요. 원본 파일은 변경되지 않습니다.",
+  "configurationReviewBlocked": "일부 옵션을 변환할 수 없습니다. 이 설정은 활성화되지 않으며 현재 연결과 원본 파일은 유지됩니다.",
+  "configurationReviewSummary": "차단 항목: {errors} · 변경 사항: {warnings}",
+  "configurationReviewApply": "설정 활성화",
+  "configurationReviewLocations": "상세 위치",
+  "configurationReviewCount": "항목: {count}개",
+  "configurationReviewMore": "추가 {count}개",
+  "configurationReviewOwned": "이 설정이나 로컬 캐시 경로는 Hotaru가 관리합니다.",
+  "configurationReviewMetadata": "설명용 메타데이터는 무시되며 라우팅에는 영향을 주지 않습니다.",
+  "configurationReviewIpRules": "IP 규칙은 새 코어에서 이름을 확인합니다. 응답이 여러 개이거나 조회에 실패하면 라우팅 결과가 달라질 수 있습니다.",
+  "configurationReviewGeo": "GeoIP는 선택한 DAT 데이터베이스를 사용하므로 기존 MMDB와 지역 판정이 다를 수 있습니다.",
+  "configurationReviewHosts": "Hosts 동작은 아직 완전히 일치하지 않습니다. 사용자 또는 시스템 Hosts가 다르게 처리될 수 있습니다.",
+  "configurationReviewLoadBalance": "부하 분산은 수동 선택으로 바뀌며 연결이 자동으로 분산되지 않습니다.",
+  "configurationReviewFallback": "장애 조치는 URL 테스트 선택으로 바뀌며 노드 선택 시점이 달라질 수 있습니다.",
+  "configurationReviewHealth": "공급자의 독립 상태 검사는 아직 이전되지 않았습니다. URL 테스트 그룹은 자체 설정을 사용합니다.",
+  "configurationReviewDuplicates": "그룹 내 중복 노드 참조는 병합됩니다.",
+  "configurationReviewUnsupported": "이 옵션은 변환할 수 없습니다. 상세 위치를 확인하세요.",
+  "configurationReviewChanged": "변환 후 이 옵션의 동작이 달라집니다. 상세 위치를 확인하세요.",
+  "@configurationReviewSummary": {
+    "placeholders": {
+      "errors": {
+        "type": "int"
+      },
+      "warnings": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configurationReviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "configurationReviewTunStack": "가상 어댑터는 원래 설정과 다른 sing-box 시스템 네트워크 스택을 사용합니다.",
+  "configurationReviewDial": "새 코어는 자체 연결 스케줄링과 지연 측정 방식을 사용하므로 이전 버전과 결과가 다를 수 있습니다.",
+  "routePreviewTitle": "라우팅 미리보기",
+  "routePreviewScope": "DNS 조회나 대상 연결 없이 현재 규칙과 선택 경로를 확인합니다. 실제 연결 기록이 아닌 라우팅 계획입니다.",
+  "routePreviewTarget": "도메인 또는 IP 주소",
+  "routePreviewAction": "미리보기",
+  "routePreviewRunning": "확인 중…",
+  "routePreviewUnavailable": "sing-box를 시작하고 구성을 적용하세요.",
+  "routePreviewFailed": "현재 경로를 일관되게 읽지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+  "routePreviewResolved": "라우팅 계획을 찾았습니다",
+  "routePreviewAddressRequired": "앞선 규칙에 DNS 응답이 필요하여 오프라인에서는 경로를 판단할 수 없습니다.",
+  "routePreviewContextRequired": "앞선 규칙에 포트나 프로세스 등 추가 연결 정보가 필요합니다.",
+  "routePreviewSelectionRequired": "현재 노드 선택을 읽을 수 없습니다. 노드를 선택하고 다시 시도하세요.",
+  "routePreviewInvalidTarget": "URL 프로토콜이나 경로 없이 도메인 또는 IP를 입력하세요.",
+  "routePreviewRule": "일치한 규칙",
+  "routePreviewDefault": "기본 경로 또는 현재 아웃바운드 모드",
+  "routePreviewPath": "선택 경로",
+  "routePreviewHops": "예정된 물리 홉",
+  "processTrafficTitle": "앱 트래픽 순위",
+  "processTrafficScope": "현재 커널 세션에서 Hotaru를 통과한 트래픽만 집계하며 종료된 연결도 포함합니다. 커널을 재시작하면 초기화됩니다. 식별하지 못한 트래픽은 별도로 표시합니다.",
+  "processTrafficByApp": "앱별",
+  "processTrafficByProcess": "프로세스별",
+  "processTrafficUnavailable": "현재 커널은 프로세스별 트래픽 집계를 제공하지 않습니다.",
+  "processTrafficEmpty": "아직 트래픽이 없습니다. Hotaru를 통해 요청을 보내세요.",
+  "processTrafficFailed": "통계를 읽지 못했습니다. 새로 고침 후 다시 시도하세요.",
+  "processTrafficUnattributed": "미분류 트래픽",
+  "processTrafficOverflow": "일부 프로세스를 개별 표시하지 못해 해당 바이트를 미분류 트래픽에 포함했습니다.",
+  "processTrafficSampled": "수집 시각",
+  "singBoxReimportTitle": "구독 또는 설정을 다시 가져오세요",
+  "singBoxReimportBody": "Hotaru가 sing-box로 전환되었습니다. 기존 파일과 환경설정은 유지되며 이전 구성은 자동으로 활성화되지 않습니다. 연결하기 전에 구독 또는 구성을 다시 가져오고 독립 라우팅 규칙의 노드를 다시 선택하세요.",
+  "geoUpdateFailedTip": "{resource} 업데이트에 실패했습니다. 실행 중인 구성은 변경되지 않았습니다. 네트워크와 리소스 URL을 확인하고 다시 시도하세요.",
+  "connectionObservedPath": "실제 연결 경로",
+  "connectionThisDevice": "이 기기",
+  "connectionPathComplete": "전체 경로 관측됨",
+  "connectionPathPartial": "관측된 경로만 표시"
 }
